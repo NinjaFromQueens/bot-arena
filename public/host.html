@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Host · Bot Arena</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .wrap { max-width: 1500px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  /* lobby */
+  .lobby { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .joinpanel { display: grid; gap: 14px; text-align: center; justify-items: center; position: sticky; top: 12px; }
+  .joinpanel .step { font-size: 18px; color: var(--muted); }
+  .joinpanel .url { font-family: var(--mono); font-size: clamp(16px, 2vw, 22px); color: var(--fg); word-break: break-all; }
+  .bigcode { font-family: var(--mono); font-weight: 700; font-size: clamp(64px, 9vw, 120px); line-height: 1; letter-spacing: .12em; color: var(--orange-hi); text-shadow: 0 4px 0 #a93d0c; }
+  #qr { background: #fff; padding: 10px; border-radius: 12px; width: 220px; height: 220px; display: grid; place-items: center; }
+  #qr img, #qr svg { width: 100%; height: 100%; }
+  .lobbyhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .count { font-family: var(--display); font-weight: 700; font-size: 28px; }
+  .count b { color: var(--orange-hi); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .pcard { position: relative; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px; display: grid; gap: 4px; text-align: center; animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
+  .pcard canvas { width: 100%; aspect-ratio: 1; border-radius: 8px; }
+  .pcard .bn { font-family: var(--display); font-weight: 700; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pcard .bl { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pcard.off { opacity: .5; }
+  .pcard .kick { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; opacity: 0; transition: opacity .15s; font-size: 14px; }
+  .pcard:hover .kick, .pcard .kick:focus-visible { opacity: 1; }
+  .pcard .kick.confirm { opacity: 1; background: var(--bad); color: var(--ink); width: auto; border-radius: 8px; padding: 0 8px; font-family: var(--display); font-weight: 700; }
+  .empty { border: 2px dashed var(--line); border-radius: 14px; padding: 40px 20px; text-align: center; color: var(--muted); font-size: 18px; }
+  /* tournament */
+  .tour { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+  .matchhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 12px 16px 0; flex-wrap: wrap; }
+  .matchhead .rn { font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--orange-hi); }
+  .bracket { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; }
+  .round { display: grid; gap: 8px; align-content: space-around; min-width: 170px; flex: 1; }
+  .round h3 { margin: 0 0 4px; }
+  .bm { background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 15px; }
+  .bm.cur { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); animation: glow 1.2s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 6px var(--orange-soft); } }
+  .slotrow { display: flex; align-items: center; gap: 8px; padding: 6px 10px; min-height: 34px; }
+  .slotrow + .slotrow { border-top: 1px solid var(--line); }
+  .slotrow .d { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .slotrow .nm { font-family: var(--display); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .slotrow .by { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 6em; }
+  .slotrow.win .nm { color: var(--good); }
+  .slotrow.lose { opacity: .4; }
+  .slotrow.lose .nm { text-decoration: line-through; }
+  .slotrow.tbd .nm { color: var(--muted); font-weight: 500; }
+  .tourctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; user-select: none; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--orange); }
+  .side { display: grid; gap: 16px; }
+  @media (max-width: 1000px) { .lobby, .tour { grid-template-columns: minmax(0, 1fr); } .joinpanel { position: static; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Bot Arena</h1></div>
+    </a>
+    <div class="headright">
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+      <button class="btn ghost" id="fullscreen" type="button">Full screen</button>
+    </div>
+  </header>
+
+  <p class="warn" id="hostmsg" role="status"></p>
+
+  <!-- LOBBY -->
+  <section id="v-lobby" hidden>
+    <div class="lobby">
+      <div class="panel joinpanel">
+        <p class="step">1. Go to</p>
+        <p class="url" id="joinurl"></p>
+        <p class="step">2. Enter the code</p>
+        <div class="bigcode" id="bigcode">····</div>
+        <p class="step">or scan</p>
+        <div id="qr" aria-label="QR code to join"></div>
+      </div>
+      <div class="panel">
+        <div class="lobbyhead">
+          <div class="count"><b id="pcount">0</b> robots ready</div>
+          <button class="btn huge" id="start" type="button" disabled>Start tournament</button>
+        </div>
+        <div class="grid" id="players"></div>
+        <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
+        <p class="small" style="margin-top:12px">Hover a robot and click × to remove it (for example, an inappropriate name).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOURNAMENT -->
+  <section id="v-tour" hidden>
+    <div class="tour">
+      <div class="panel stage-card">
+        <div class="matchhead"><span class="rn" id="roundname">Tournament</span><span class="small" id="matchinfo"></span></div>
+        <canvas id="arena" class="arena-stage" aria-label="Battle arena" style="margin-top:8px"></canvas>
+        <div class="huds">
+          <div class="hud a"><div class="who"><span id="na">—</span><span id="ha">100</span></div><div class="hpbar"><i class="ghost" id="ga" style="width:100%"></i><i class="main" id="ba" style="width:100%"></i></div></div>
+          <span class="vs-mini">VS</span>
+          <div class="hud b"><div class="who"><span id="nb">—</span><span id="hb">100</span></div><div class="hpbar"><i class="ghost" id="gb" style="width:100%"></i><i class="main" id="bb" style="width:100%"></i></div></div>
+        </div>
+        <div class="stage-ctrl">
+          <button class="btn big" id="next" type="button">Next match</button>
+          <button class="btn ghost" id="skip" type="button" disabled>Skip to end</button>
+          <span class="spacer"></span>
+          <label class="switch"><input type="checkbox" id="auto"> Auto-play</label>
+          <div class="seg" role="group" aria-label="Battle speed">
+            <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button><button type="button" id="sp3" aria-pressed="false">3x</button>
+          </div>
+        </div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+      <div class="side">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
+            <h2>Bracket</h2><span class="small" id="left"></span>
+          </div>
+          <div class="bracket" id="bracket"></div>
+        </div>
+        <div class="panel tourctl" id="donectl" hidden>
+          <button class="btn big" id="again" type="button">New tournament, same robots</button>
+          <button class="btn ghost" id="newgame" type="button">New game code</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script src="/js/engine.js"></script>
+<script src="/js/battle.js"></script>
+<script src="/js/host.js"></script>
+</body>
+</html>

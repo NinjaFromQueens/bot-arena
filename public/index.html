@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bot Arena</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .hero { display: grid; gap: 10px; margin: 24px 0 26px; }
+  .hero h1 { font-size: clamp(40px, 9vw, 72px); }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 820px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+  .card { display: grid; gap: 12px; align-content: start; }
+  .card h2 { font-size: 26px; }
+  .card.join { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
+  .codein { font-size: 34px !important; text-align: center; letter-spacing: .3em !important; font-weight: 700; padding: 12px !important; }
+  .tagline { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--orange); text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Bot Arena</h1></div>
+    </a>
+  </header>
+  <section class="hero">
+    <span class="tagline">Sense · Think · Act</span>
+    <h1>Build a robot.<br>Battle the class.</h1>
+    <p class="intro">Design a robot on your own device, join your teacher's game with a code, and watch your bot fight in the tournament on the board.</p>
+  </section>
+  <div class="cards">
+    <form class="panel card join" id="joinform" autocomplete="off">
+      <h2>Join a game</h2>
+      <label class="small" for="code">Type the code on the board</label>
+      <input type="text" id="code" class="codein upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code">
+      <p class="warn" id="msg" role="status"></p>
+      <button class="btn big" type="submit">Join</button>
+    </form>
+    <div class="panel card">
+      <h2>Host a tournament</h2>
+      <p class="intro">For teachers. Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.</p>
+      <a class="btn big ghost" href="/host">Host on the board</a>
+    </div>
+    <div class="panel card">
+      <h2>Practice & Flying Car Lab</h2>
+      <p class="intro">Build bots and battle on one device, or design a flying Roadster and test thrust vs. weight.</p>
+      <a class="btn big ghost" href="/practice">Open practice mode</a>
+    </div>
+  </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  const code = document.getElementById("code"), msg = document.getElementById("msg");
+  code.addEventListener("input", () => { code.value = code.value.toUpperCase().replace(/[^A-Z]/g, ""); msg.textContent = ""; });
+  document.getElementById("joinform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const c = code.value.trim();
+    if (c.length !== 4) { msg.textContent = "Game codes are 4 letters."; return; }
+    socket.emit("room:check", { code: c }, (r) => {
+      if (r.ok) location.href = "/play?code=" + encodeURIComponent(c);
+      else msg.textContent = r.error;
+    });
+  });
+</script>
+</body>
+</html>

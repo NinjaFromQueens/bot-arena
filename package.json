@@ -1,0 +1,20 @@
+{
+  "name": "bot-arena",
+  "version": "1.0.0",
+  "description": "Fall Robotics Academy Bot Arena: students build robots on their own devices and battle in a live classroom tournament on the board.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test/bracket.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode-generator": "^1.4.4",
+    "socket.io": "^4.8.1"
+  }
+}
