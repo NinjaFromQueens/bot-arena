@@ -21,6 +21,8 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - `public/practice.html` + `public/js/practice.js` use the same engine/builder/battle code.
 - Flying Car Lab: `public/js/flight.js` (UMD, deterministic physics + missions + `grade` + `explain`) and `public/lab.html` / `public/js/lab.js` (UI + canvas). Single-device only; progress and design live in localStorage. After changing any number in flight.js run `npm test` (lab.test.js has a saved solution per mission) and `npm run lab` to see how hard each mission is. Explanations must stay true to the sim: if you add a mechanic, add a finding and a tip for it in `explain`/`tipFor`.
 
+- `offline/*.html` are generated single-file backups (practice + Lab). Run `npm run offline` after changing anything in `public/` so they stay in sync; never edit them by hand.
+
 ## Conventions
 - Validate every client payload on the server (`Engine.sanitizeBot`, `cleanBuilder`, name filter).
 - Student-facing copy: short, plain sentences, encouraging tone. Kids are roughly grades 5–10.

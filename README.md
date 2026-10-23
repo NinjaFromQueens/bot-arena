@@ -57,6 +57,17 @@ Other pages:
 
 Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (hover a robot in the lobby and click ×). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
 
+## Backup plan (if students can't join)
+
+| Problem | What to do |
+| --- | --- |
+| One student can't join | Check the 4-letter code (no I or O) or scan the QR. A refresh rejoins them with the same robot. |
+| Students arrive after you start | Click **New tournament, same robots**. It reopens the lobby and keeps everyone's robots. |
+| Live connection fails for the class, site still loads | Use `/practice`: students build and read you their bot code; you type codes into the Arena tab on the projector and draw the bracket on the board. |
+| Site is down or blocked | Double-click `offline/bot-arena-offline.html` (works with no internet). Students fill out the paper Robot Parts Sheet and you type their codes in. `offline/flying-car-lab-offline.html` is the Lab. |
+
+Rebuild the offline files after any change with `npm run offline`.
+
 ## Run it locally
 
 Requires Node 18 or newer.

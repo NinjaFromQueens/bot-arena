@@ -1,0 +1,1792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Offline backup of Bot Arena. Built by scripts/build-offline.js -->
+<title>Flying Car Lab</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Bot Arena — shared styles. Workshop "garage" on a blueprint floor; Fall Robotics orange. */
+:root {
+  color-scheme: dark;
+  --bg: #1b1a1e;
+  --floor: #242328;
+  --panel: #2b2a30;
+  --panel-hi: #33323a;
+  --line: #44424b;
+  --fg: #f4f1ea;
+  --muted: #aaa6b0;
+  --orange: #f46524;
+  --orange-hi: #ff8a50;
+  --orange-soft: #f4652429;
+  --blue: #38a7f0;
+  --blue-soft: #38a7f029;
+  --purple: #c58cff;
+  --gold: #ffd23f;
+  --good: #4fd18b;
+  --bad: #ff5d5d;
+  --ink: #141316;
+  --display: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --mono: "JetBrains Mono", "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; margin: 0; }
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 500px at 50% -200px, #f4652418, transparent 70%),
+    linear-gradient(var(--floor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--floor) 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px, 28px 28px;
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.45;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--orange-hi); }
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-block: 18px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin-bottom: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.logo { width: 46px; height: 46px; flex: none; }
+.brand small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 6vw, 44px); line-height: 1; margin: 2px 0 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-size: 21px; margin: 0; line-height: 1.2; }
+h3 { font-family: var(--display); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.intro { color: var(--muted); max-width: 70ch; }
+.intro b { color: var(--fg); font-weight: 600; }
+.panel { background: linear-gradient(180deg, var(--panel-hi), var(--panel) 120px); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.chip { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; line-height: 1.5; text-transform: uppercase; }
+.c-sense { background: var(--blue-soft); color: var(--blue); }
+.c-think { background: #c58cff26; color: var(--purple); }
+.c-act { background: var(--orange-soft); color: var(--orange-hi); }
+.c-win { background: #4fd18b26; color: var(--good); }
+.c-move { background: #ffffff14; color: var(--fg); }
+.btn {
+  font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .03em;
+  background: var(--orange); color: var(--ink); border: 0; border-radius: 9px; padding: 11px 18px; cursor: pointer;
+  box-shadow: 0 3px 0 #a93d0c; transition: transform .08s, box-shadow .08s, filter .15s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 #a93d0c; }
+.btn.ghost { background: var(--panel-hi); color: var(--fg); box-shadow: 0 3px 0 #18171b; border: 1px solid var(--line); }
+.btn.big { font-size: 19px; padding: 13px 26px; }
+.btn.huge { font-size: 24px; padding: 16px 30px; border-radius: 12px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.small { font-size: 13px; color: var(--muted); }
+.soundbtn { font-family: var(--mono); font-size: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.soundbtn[aria-pressed="true"] { color: var(--good); border-color: #4fd18b66; }
+input[type=text] {
+  font-family: var(--mono); font-size: 17px; letter-spacing: .04em;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; width: 100%;
+}
+input.upper { text-transform: uppercase; }
+canvas { display: block; width: 100%; max-width: 100%; }
+.warn { color: var(--bad); font-weight: 600; font-size: 15px; min-height: 1.45em; }
+.toast { color: var(--good); font-weight: 600; font-size: 15px; min-height: 1.45em; }
+
+/* builder */
+.slot { margin-top: 16px; }
+.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.choice {
+  text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 10px; cursor: pointer; line-height: 1.2; display: grid; gap: 3px; position: relative;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.choice:hover { border-color: #6a6772; transform: translateY(-1px); }
+.choice b { font-family: var(--display); font-size: 16px; }
+.choice span { color: var(--muted); font-size: 13px; }
+.choice em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.choice[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+.choice[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
+.choices.locked { pointer-events: none; opacity: .55; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.swatch { width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: inset 0 -4px 0 #0003; transition: transform .15s; }
+.swatch[aria-pressed="true"] { transform: scale(1.12); outline: 3px solid var(--fg); outline-offset: 3px; }
+.meter { height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); position: relative; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, #3cb877, var(--good)); transition: width .35s cubic-bezier(.3,1.4,.5,1); border-radius: 7px; }
+.meter.over > i { background: linear-gradient(90deg, #d93f3f, var(--bad)); }
+.wrow { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .06em; }
+.stats { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 2em; gap: 8px 10px; align-items: center; font-size: 15px; }
+.stats .bar { height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+.stats .bar i { display: block; height: 100%; border-radius: 5px; transition: width .4s cubic-bezier(.3,1.4,.5,1); }
+.stats .n { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* battle HUD */
+.stage-card { padding: 0; overflow: hidden; }
+.arena-stage { aspect-ratio: 16 / 9; }
+.huds { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.hud .who { display: flex; justify-content: space-between; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 17px; }
+.hud .who span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .who span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.hud.b .who { flex-direction: row-reverse; }
+.hpbar { height: 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 5px; position: relative; }
+.hpbar i { position: absolute; inset: 0 auto 0 0; display: block; height: 100%; border-radius: 8px; }
+.hpbar .ghost { background: #fff8; transition: width .7s ease .35s; }
+.hpbar .main { transition: width .25s ease; }
+.hud.b .hpbar i { inset: 0 0 0 auto; }
+.hud.a .main { background: linear-gradient(90deg, #c84a12, var(--orange)); }
+.hud.b .main { background: linear-gradient(270deg, #1d7fc4, var(--blue)); }
+.vs-mini { font-family: var(--display); font-weight: 700; color: var(--muted); font-size: 14px; }
+.stage-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 16px 16px; }
+.stage-ctrl .spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { background: var(--bg); border: 0; padding: 8px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--panel-hi); color: var(--fg); }
+.log { padding: 12px 16px 16px; border-top: 1px solid var(--line); font-size: 15px; max-height: 190px; overflow-y: auto; display: grid; gap: 5px; }
+.log:empty::before { content: "The battle log will show every Sense, Think, and Act move here."; color: var(--muted); font-size: 14px; }
+.log div { display: grid; grid-template-columns: 4.8em minmax(0, 1fr); gap: 8px; align-items: baseline; animation: logIn .25s ease-out; }
+.log .chip { text-align: center; }
+.log .a { color: var(--orange-hi); font-weight: 600; }
+.log .b { color: var(--blue); font-weight: 600; }
+.why { padding: 14px 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; animation: logIn .35s ease-out; background: linear-gradient(180deg, #ffd23f10, transparent); }
+.why h4 { margin: 0; font-family: var(--display); font-size: 19px; color: var(--gold); }
+.why ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.why li { font-size: 16px; }
+.why .tip { font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
+.why .tip b { font-family: var(--display); color: var(--orange-hi); }
+@keyframes logIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { transform: scale(.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+</style>
+<style>
+  /* Layout: mission strip on top; left = test track (canvas) + flight report; right = car builder with live design sheet. */
+  .wrap { max-width: 1400px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .missions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: thin; }
+  .mcard { text-align: left; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, transform .1s; }
+  .mcard:hover { border-color: #6a6772; transform: translateY(-1px); }
+  .mcard[aria-pressed="true"] { border-color: var(--orange); background: linear-gradient(180deg, var(--orange-soft), var(--panel)); }
+  .mcard .num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+  .mcard .nm { font-family: var(--display); font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stars { font-family: var(--mono); letter-spacing: .1em; color: var(--line); font-size: 15px; }
+  .stars b { color: var(--gold); font-weight: 700; }
+  .goalbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 12px; }
+  .goalbar .goal { font-size: 18px; font-weight: 500; flex: 1 1 380px; }
+  .goalbar .goal b { font-family: var(--display); color: var(--orange-hi); margin-right: 6px; }
+  .crit { display: flex; flex-wrap: wrap; gap: 6px; }
+  .crit span { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); }
+  .crit span.got { border-color: #ffd23f88; color: var(--gold); }
+
+  .lab { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 1fr); gap: 14px; align-items: start; }
+  .stagecard { padding: 0; overflow: hidden; }
+  #track { aspect-ratio: 16 / 9; }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+  .ctrl .spacer { flex: 1; }
+  .toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; cursor: pointer; user-select: none; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
+
+  .report { display: grid; gap: 10px; }
+  .report:empty { display: none; }
+  .headline { font-family: var(--display); font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .headline.good { color: var(--good); } .headline.bad { color: var(--bad); }
+  .headline .stars { font-size: 20px; }
+  .nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 560px) { .nums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .nums div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .nums b { display: block; font-family: var(--mono); font-size: 19px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .nums span { font-size: 12px; color: var(--muted); }
+  .nums i { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .nums i.up { color: var(--good); } .nums i.down { color: var(--bad); }
+  .finding { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); animation: logIn .3s ease-out both; }
+  .finding .ic { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink); }
+  .finding.good .ic { background: var(--good); } .finding.bad .ic { background: var(--bad); } .finding.info .ic { background: var(--blue); }
+  .finding.bad { border-color: #ff5d5d55; }
+  .finding h4 { margin: 0 0 2px; font-family: var(--display); font-size: 16px; }
+  .finding p { color: #d9d5de; font-size: 15px; }
+  .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
+  .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+
+  /* builder */
+  .builder { display: grid; gap: 14px; }
+  .sheet { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 4; box-shadow: 0 10px 24px #0008; }
+  .sheet h2 { font-size: 17px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .sheet h2 small { font-family: var(--mono); font-size: 12px; color: var(--muted); font-weight: 500; }
+  .meters { display: grid; grid-template-columns: 4.4em minmax(0, 1fr) 4.8em; gap: 6px 10px; align-items: center; font-size: 14px; }
+  .meters .bar { height: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; position: relative; }
+  .meters .bar i { display: block; height: 100%; border-radius: 6px; transition: width .3s cubic-bezier(.3,1.3,.5,1); }
+  .meters .bar .mark { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--fg); opacity: .7; }
+  .meters .n { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .sheetnums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .sheetnums div { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+  .sheetnums b { display: block; font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sheetnums span { font-size: 11px; color: var(--muted); }
+  .sheetnums .over b { color: var(--bad); }
+  .warns { display: grid; gap: 4px; margin-top: 8px; }
+  .warns p { font-size: 14px; color: var(--gold); }
+  .warns p.bad { color: var(--bad); }
+  .sec h3 { margin-bottom: 8px; }
+  .cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .cards3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .opt { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; cursor: pointer; display: grid; gap: 2px; line-height: 1.2; position: relative; transition: border-color .15s, background .15s; }
+  .opt:hover { border-color: #6a6772; }
+  .opt[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .opt[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
+  .opt b { font-family: var(--display); font-size: 15px; }
+  .opt span { font-size: 12.5px; color: var(--muted); }
+  .opt em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .steprow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+  .steprow + .steprow { margin-top: 6px; }
+  .steprow b { font-family: var(--display); font-size: 15px; display: block; }
+  .steprow span { font-size: 12.5px; color: var(--muted); }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .stepper button { width: 38px; height: 36px; border: 0; background: var(--panel-hi); cursor: pointer; font-size: 20px; font-weight: 700; color: var(--fg); }
+  .stepper button:disabled { opacity: .35; cursor: not-allowed; }
+  .stepper output { min-width: 40px; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 17px; }
+  .slider { display: grid; gap: 4px; }
+  .slider .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 500; }
+  .slider .lbl b { font-family: var(--mono); color: var(--ink); background: var(--orange); border-radius: 6px; padding: 0 7px; font-size: 13px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--orange) var(--p, 50%), var(--bg) var(--p, 50%)); border: 1px solid var(--line); }
+  input[type=range]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); }
+  input[type=range]::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--orange); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); margin-top: -8px; }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { background: var(--bg); border: 0; padding: 8px 6px; cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--orange); color: var(--ink); font-weight: 700; }
+  .planrow { display: grid; gap: 6px; }
+  .planrow + .planrow { margin-top: 12px; }
+  .planrow > .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 500; }
+  .planrow > .t small { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+  .flipbox { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .flipbox.off { opacity: .6; }
+  .flipbox p { font-size: 12.5px; color: var(--muted); }
+  .switch2 { position: relative; width: 52px; height: 30px; flex: none; }
+  .switch2 input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
+  .switch2 span { position: absolute; inset: 0; border-radius: 15px; background: var(--panel-hi); border: 1px solid var(--line); transition: background .2s; pointer-events: none; }
+  .switch2 span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); transition: transform .2s; }
+  .switch2 input:checked + span { background: var(--orange); }
+  .switch2 input:checked + span::after { transform: translateX(22px); }
+  .switch2 input:disabled { cursor: not-allowed; }
+  .switch2 input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  @media (max-width: 960px) {
+    .lab { grid-template-columns: minmax(0, 1fr); }
+    .sheet { position: static; box-shadow: none; }
+    .wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  }
+  .mobilebar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; align-items: center; gap: 12px;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: rgba(27,26,30,.96); border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
+  .mobilebar .mb { display: flex; gap: 14px; flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; }
+  .mobilebar .mb span { white-space: nowrap; }
+  .mobilebar .mb b { display: block; font-size: 16px; }
+  @media (max-width: 960px) { .mobilebar { display: flex; } }
+  @media (max-width: 560px) { .sheetnums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 440px) { .opt span { display: none; } .cards3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="bot-arena-offline.html">
+      <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Flying Car Lab</h1></div>
+    </a>
+    <div class="headright">
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+    </div>
+  </header>
+
+  <nav class="missions" id="missions" aria-label="Missions"></nav>
+  <div class="goalbar">
+    <p class="goal" id="goal"></p>
+    <div class="crit" id="crit"></div>
+  </div>
+
+  <div class="lab">
+    <div style="display:grid;gap:14px;min-width:0">
+      <div class="panel stagecard stagewrap">
+        <canvas id="track" aria-label="Test track"></canvas>
+        <div class="ctrl">
+          <button class="btn big" id="launch" type="button">Launch</button>
+          <button class="btn ghost" id="replay" type="button" disabled>Replay</button>
+          <span class="spacer"></span>
+          <label class="toggle"><input type="checkbox" id="forces" checked> Show forces</label>
+          <label class="toggle"><input type="checkbox" id="slowmo"> Slow motion</label>
+        </div>
+      </div>
+      <section class="panel report" id="report" aria-live="polite"></section>
+    </div>
+
+    <div class="builder">
+      <div class="panel sheet">
+        <h2>Design sheet <small id="sheetcost"></small></h2>
+        <div class="meters">
+          <span>Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
+          <span>Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
+        </div>
+        <div class="sheetnums">
+          <div><b id="s-tw"></b><span>thrust ÷ weight</span></div>
+          <div><b id="s-kg"></b><span>total mass</span></div>
+          <div><b id="s-burn"></b><span>push time</span></div>
+          <div id="s-costbox"><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
+        </div>
+        <div class="warns" id="warns"></div>
+      </div>
+
+      <div class="panel sec">
+        <h3>1 · Body material</h3>
+        <div class="cards4" id="o-material"></div>
+      </div>
+      <div class="panel sec">
+        <h3>2 · Air & thrusters</h3>
+        <div id="steppers1"></div>
+      </div>
+      <div class="panel sec">
+        <h3>3 · Flight computer <span class="chip c-sense">Sense</span><span class="chip c-think">Think</span><span class="chip c-act">Act</span></h3>
+        <div class="cards3" id="o-computer"></div>
+      </div>
+      <div class="panel sec">
+        <h3>4 · Landing gear</h3>
+        <div class="cards3" id="o-gear"></div>
+      </div>
+      <div class="panel sec">
+        <h3>5 · Passengers</h3>
+        <div id="steppers2"></div>
+      </div>
+      <div class="panel sec">
+        <h3>6 · Flight plan</h3>
+        <div class="planrow">
+          <div class="slider"><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
+        </div>
+        <div class="planrow"><div class="t">Ramp angle <small>steeper = higher, shorter</small></div><div class="seg" id="o-ramp"></div></div>
+        <div class="planrow"><div class="t">Save air for landing <small>needs a flight computer</small></div><div class="seg" id="o-reserve"></div></div>
+        <div class="planrow">
+          <div class="flipbox" id="flipbox">
+            <div><b style="font-family:var(--display)">Backflip</b><p id="fliphelp">Needs the Pro computer and 2+ flip nozzles.</p></div>
+            <label class="switch2"><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button">Reset to starting car</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mobilebar" id="mobilebar">
+  <div class="mb"><span><b id="mb-tw">0.00</b>thrust ÷ wt</span><span><b id="mb-kg">0 kg</b>mass</span><span><b id="mb-cost">$0k</b>cost</span></div>
+  <button class="btn big" id="mb-launch" type="button">Launch</button>
+</div>
+<script>
+/*
+ * Bot Arena engine — shared by the server (Node) and the browser.
+ * - Part data, bot codes, stats
+ * - Deterministic battle simulation (seeded), so the server decides the
+ *   winner and the host screen replays the exact same fight.
+ * - Browser-only: robot drawing, particle effects, sound.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Engine = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const isBrowser = typeof window !== "undefined";
+  const RM = isBrowser && window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+
+  // ---------------- data ----------------
+  const COLORS = ["#f46524", "#38a7f0", "#4fd18b", "#c58cff", "#ffd23f", "#ff5d8f"];
+  const BRAIN_COL = ["#ff5d5d", "#4fd18b", "#c58cff"];
+  // Battle numbers live here so balance can be tuned in one place (see test/balance.js).
+  //   dodge: harder to hit   burst: chance of a speed-burst bonus attack   heavy: can't be grabbed
+  //   acc: hit-chance bonus  swings: attacks per turn   mult: damage per swing   grab: chance to stall the enemy
+  //   tip: one line shown to students explaining the part's strength and weakness
+  const PARTS = {
+    body: [
+      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but light armor.", wt: 25, spd: 7, def: 1, dodge: 1, burst: 0.3 },
+      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 0, def: 7, dodge: 0, heavy: true },
+      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 6, def: 4, dodge: 7 },
+    ],
+    sensor: [
+      { n: "Camera", d: "Best aim", tip: "Sees the target clearly, so it hits more often.", wt: 10, aim: 7 },
+      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 4, dodge: 7 },
+      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 3, def: 3 },
+    ],
+    brain: [
+      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -3 },
+      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 2, shieldAt: 65, shieldP: 0.4, counter: 5 },
+      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.3, waitAim: 24 },
+    ],
+    tool: [
+      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 16, swings: 1, mult: 1, grab: 0.3 },
+      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -14, swings: 1, mult: 1 },
+      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder with no big weakness.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.71 },
+    ],
+  };
+  const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  const MAXW = 75;
+  const SLOTS = ["body", "sensor", "brain", "tool"];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  function statsOf(b) {
+    const s = { atk: 0, def: 0, spd: 0, aim: 0, wt: 0 };
+    SLOTS.forEach((k) => { const p = PARTS[k][b[k]]; for (const f in s) s[f] += p[f] || 0; });
+    return s;
+  }
+  function cleanName(n, max = 10) {
+    return String(n || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, max);
+  }
+  // Validate anything that arrives from a client.
+  function sanitizeBot(b) {
+    if (!b || typeof b !== "object") return null;
+    const out = { name: cleanName(b.name) || "BOT" };
+    for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v > 2) return null; out[k] = v; }
+    const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
+    if (statsOf(out).wt > MAXW) return null;
+    return out;
+  }
+  const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}`;
+  function parseCode(c) {
+    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-2])([0-2])([0-2])([0-2])([0-5])$/);
+    return m ? { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
+  }
+
+  // ---------------- deterministic battle ----------------
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function simulate(a, b, seed) {
+    const rnd = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
+    const S = [statsOf(a), statsOf(b)], bots = [a, b], H = [100, 100], ev = [];
+    const brace = [false, false], stall = [false, false];
+    const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
+    let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
+    const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
+    // one attack: returns true if the target was knocked out
+    function attack(me, op, burst) {
+      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool];
+      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]), 20, 95);
+      let bonus = 0;
+      if (!burst) {
+        push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
+        const BR = PARTS.brain[m.brain];
+        if (BR.shieldAt && H[me] < BR.shieldAt && !brace[me] && !shieldUsed[me] && rnd() < BR.shieldP) {
+          brace[me] = true; shieldUsed[me] = true;
+          push({ me, kind: "think", txt: " is hurt, so it raises its shield.", bubble: "SHIELD!" });
+          return false;
+        }
+        if (BR.waitP && chance < 70 && rnd() < BR.waitP) { chance = Math.min(95, chance + BR.waitAim); bonus = 3; push({ me, kind: "think", txt: " waits for a clear shot. Aim goes up!", bubble: "AIMING..." }); }
+        else if (BR.counter && counter[me]) { bonus = BR.counter; shieldUsed[me] = false; push({ me, kind: "think", txt: " blocked that hit, so it counterattacks!", bubble: "COUNTER!" }); }
+        else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
+        else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
+        counter[me] = false;
+      }
+      let total = 0, hits = 0;
+      for (let k = 0; k < T.swings; k++) {
+        if (rnd() * 100 < chance) {
+          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def;
+          if (brace[op]) dmg /= 2;
+          total += Math.max(2, Math.round(dmg)); hits++;
+        }
+      }
+      if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
+      H[op] = Math.max(0, H[op] - total);
+      const tool = T.n.toLowerCase();
+      let grab = false;
+      if (hits && T.grab && H[op] > 0) {
+        if (PARTS.body[o.body].heavy) grab = "heavy";
+        else if (rnd() < T.grab) { stall[op] = true; grab = true; }
+      }
+      let txt = hits ? `'s ${tool} hits${T.swings > 1 ? ` ${hits}x` : ""} for ${total} damage!` : ` swings the ${tool}... and misses!`;
+      if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
+      if (grab === true) txt += " It grabs the enemy!";
+      if (grab === "heavy") txt += " Too heavy to grab!";
+      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", crit: total >= 22, burst: !!burst, txt });
+      return H[op] <= 0;
+    }
+    const counter = [false, false], shieldUsed = [false, false];
+    for (let round = 0; round < 40 && H[0] > 0 && H[1] > 0; round++) {
+      const me = turn, op = 1 - turn, m = bots[me];
+      turn = op;
+      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
+      if (attack(me, op, false)) break;
+      const B = PARTS.body[m.body];
+      if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
+    }
+    const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
+    push({ me: w, kind: "win", txt: " WINS!" });
+    return { events: ev, winner: w };
+  }
+
+
+  // ---------------- why did it win? ----------------
+  // Looks at what actually happened in the fight and returns plain-language reasons
+  // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
+  function explainBattle(a, b, sim) {
+    const bots = [a, b], w = sim.winner, l = 1 - w;
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0 }));
+    let endHp = [100, 100], first = null;
+    for (const e of sim.events) {
+      if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
+      const s = st[e.me];
+      if (e.kind === "act") {
+        s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
+        if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
+      }
+      if (e.kind === "stall") s.stalled++;
+      if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
+      endHp = e.hp;
+    }
+    const acc = (k) => (st[k].swings ? st[k].hits / st[k].swings : 0);
+    const avg = (k) => (st[k].hits ? st[k].dmg / st[k].hits : 0);
+    const pct = (x) => Math.round(x * 100) + "%";
+    const N = (k) => bots[k].name, part = (k, slot) => PARTS[slot][bots[k][slot]].n;
+    const W = bots[w], L = bots[l];
+    const R = []; // [score, text, key]
+    const dAcc = acc(w) - acc(l);
+    if (dAcc >= 0.12 && st[l].swings >= 3) {
+      let why = "";
+      if (L.tool === 1) why = " Hammers swing slowly and miss a lot.";
+      else if (W.body === 2) why = ` ${N(w)}'s legs made it hard to hit.`;
+      else if (W.sensor === 1) why = ` ${N(w)}'s ultrasonic sensor helped it dodge.`;
+      else if (L.sensor === 2) why = ` ${N(l)}'s touch sensor has weak aim.`;
+      else if (W.sensor === 0) why = ` ${N(w)}'s camera aimed well.`;
+      R.push([dAcc * 10, `${N(w)} hit ${pct(acc(w))} of its attacks, but ${N(l)} only hit ${pct(acc(l))}.${why}`, "acc"]);
+    }
+    const dAvg = avg(w) - avg(l);
+    if (dAvg >= 4 && st[w].hits) {
+      let why = W.tool === 1 ? " The hammer hits huge." : PARTS.body[W.body].def >= 6 ? ` ${N(w)}'s thick treads armor blocked a lot of each hit.` : W.brain === 0 ? " Its aggressive brain hits harder." : "";
+      const vs = st[l].hits ? `, vs ${Math.round(avg(l))} for ${N(l)}` : `, and ${N(l)} never landed a hit`;
+      R.push([dAvg / 3, `${N(w)} hit harder: about ${Math.round(avg(w))} damage per hit${vs}.${why}`, "dmg"]);
+    }
+    const ratio = st[w].swings / Math.max(1, st[l].swings);
+    if (ratio >= 1.5 && st[w].swings - st[l].swings >= 3) {
+      const why = [W.tool === 2 ? "the spinner hits twice every turn" : "", st[w].bursts ? `its wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}` : ""].filter(Boolean);
+      R.push([(ratio - 1) * 1.6, `${N(w)} got ${st[w].swings} attacks to ${N(l)}'s ${st[l].swings}${why.length ? ": " + why.join(" and ") : ""}.`, "attacks"]);
+    }
+    if (first === w && st[l].swings <= 3 && sim.events.length < 18) R.push([1.3, `${N(w)} was faster, so it attacked first and ${N(l)} barely got a turn.`, "first"]);
+    if (st[w].grabs >= 1) R.push([1.2 + st[w].grabs, `${N(w)}'s gripper grabbed ${N(l)} ${st[w].grabs} time${st[w].grabs === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].grabs === 1 ? "a turn" : st[w].grabs + " turns"}.`, "grab"]);
+    if (st[l].heavyFail >= 1) R.push([1.5 + st[l].heavyFail * 0.5, `${N(l)}'s gripper couldn't grab ${N(w)}. Treads are too heavy to grab.`, "heavy"]);
+    if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
+    if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
+    if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(l)}'s small spinner hits bounced off ${N(w)}'s thick treads armor.`, "armor"]);
+    if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
+    R.sort((x, y) => y[0] - x[0]);
+    let reasons = R.slice(0, 3).map((r) => r[1]);
+    const close = endHp[w] <= 25, even = !R.length || R[0][0] < 1.1;
+    if (even) reasons = [`It was almost even. Both robots hit about the same, so a few lucky hits decided it. A rematch could go the other way!`, ...reasons].slice(0, 3);
+    const top = R.length ? R[0][2] : "luck";
+
+    const has = (slot, i) => L[slot] === i;
+    const loserTip = ({
+      acc: () => has("tool", 1) ? "Your Hammer missed a lot. A Gripper or Spinner hits more often." : !has("sensor", 0) ? `A Camera aims better than your ${part(l, "sensor")} sensor.` : !has("brain", 2) ? "The Smart brain waits for clear shots, so it misses less." : "Legs or an Ultrasonic sensor help you dodge.",
+      dmg: () => W.body === 1 && !has("tool", 1) ? "Against Treads, a Hammer smashes through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
+      attacks: () => !has("tool", 2) ? "A Spinner hits twice every turn, so you get more attacks." : !has("body", 0) ? "Wheels are fast and sometimes attack twice." : "Add armor so you survive long enough to hit back.",
+      first: () => !has("body", 0) ? "Wheels are the fastest body, so they usually attack first." : "Add armor so you can survive the first hits.",
+      grab: () => !has("body", 1) ? "Treads can't be grabbed. They're a good counter to Grippers." : "Finish fights faster with a Hammer before the gripper gets you.",
+      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer.",
+      burst: () => !has("tool", 1) ? "Wheels have light armor. A Hammer punishes them." : "Your Hammer struggles to hit fast Wheels. A Gripper is more accurate.",
+      shield: () => !has("tool", 1) ? "Defensive robots get tough when hurt. Finish them fast with a Hammer." : "Defensive robots get tough when hurt. The Aggressive brain hits harder through shields.",
+      aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
+      armor: () => "Spinner hits are small, so thick armor blocks them. Try a Hammer against Treads.",
+      luck: () => "Your robot was a good match. Ask for a rematch!",
+    }[top] || (() => "Every robot has a counter. Try a different part!"))();
+    const counter = W.body === 1 ? "Hammers beat Treads." : W.body === 0 ? "Hammers and big hits hurt light Wheels." : W.body === 2 ? "Accurate Grippers can still catch Legs." : "Every robot has a counter.";
+    const headline = (k) => k === w
+      ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
+      : `Why ${N(w)} beat ${N(l)}`;
+    return {
+      winner: w,
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : loserTip })),
+      stats: st,
+    };
+  }
+
+  // ---------------- browser-only: drawing, effects, sound ----------------
+  function fit(c) {
+    const r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const ctx = c.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: r.width, h: r.height };
+  }
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const f = (c) => clamp(Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt), 0, 255);
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+  const ease = { out: (t) => 1 - Math.pow(1 - t, 3), back: (t) => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
+  function bigText(ctx, lbl, x, y, size, color, scale = 1, alpha = 1) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha;
+    ctx.font = `700 ${Math.round(size)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineWidth = Math.max(4, size * 0.08); ctx.lineJoin = "round"; ctx.strokeStyle = "#141316"; ctx.strokeText(lbl, 0, 0);
+    ctx.fillStyle = color; ctx.fillText(lbl, 0, 0); ctx.restore();
+  }
+
+  class FX {
+    constructor() { this.p = []; this.txt = []; this.shake = 0; }
+    burst(x, y, n, o = {}) {
+      if (RM) n = Math.ceil(n / 3);
+      for (let i = 0; i < n; i++) {
+        const a = (o.angle ?? 0) + (Math.random() - 0.5) * (o.spread ?? Math.PI * 2), sp = (o.speed ?? 200) * (0.4 + Math.random() * 0.8);
+        const cols = o.colors || ["#ffd23f"];
+        this.p.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: (o.life ?? 0.6) * (0.6 + Math.random() * 0.6),
+          size: (o.size ?? 4) * (0.6 + Math.random() * 0.8), color: cols[(Math.random() * cols.length) | 0], g: o.g ?? 400,
+          kind: o.kind || "spark", rot: Math.random() * 6, vr: (Math.random() - 0.5) * 12, drag: o.drag ?? 0.9 });
+      }
+    }
+    text(x, y, s, color, size = 28) { this.txt.push({ x, y, s, color, size, life: 0, max: 1.1 }); }
+    update(dt) {
+      this.shake = Math.max(0, this.shake - dt * 30);
+      this.p = this.p.filter((q) => (q.life += dt) < q.max);
+      for (const q of this.p) {
+        const d = Math.pow(q.drag, dt * 10); q.vx *= d; q.vy = q.vy * d + q.g * dt;
+        q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt;
+      }
+      this.txt = this.txt.filter((t) => (t.life += dt) < t.max);
+    }
+    draw(ctx) {
+      for (const q of this.p) {
+        const k = 1 - q.life / q.max, soft = q.kind === "smoke" || q.kind === "dust";
+        ctx.globalAlpha = soft ? k * 0.55 : Math.min(1, k * 1.6);
+        ctx.fillStyle = q.color;
+        if (q.kind === "spark") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(Math.atan2(q.vy, q.vx)); ctx.fillRect(-q.size * 1.6, -q.size / 3, q.size * 3.2, q.size / 1.5); ctx.restore(); }
+        else if (q.kind === "confetti") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.fillRect(-q.size, -q.size / 2, q.size * 2, q.size); ctx.restore(); }
+        else { ctx.beginPath(); ctx.arc(q.x, q.y, q.size * (soft ? 1 + q.life * 2.5 : 1), 0, 7); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      for (const t of this.txt) {
+        const k = t.life / t.max, sc = k < 0.15 ? ease.back(k / 0.15) : 1;
+        bigText(ctx, t.s, t.x, t.y - k * 50, t.size, t.color, sc, k > 0.7 ? (1 - k) / 0.3 : 1);
+      }
+    }
+  }
+
+  // x = center, gy = ground y, s = unit size, dir 1 faces right.
+  // o: lunge 0..1, hurt 0..1, tilt (rad), shield, bob
+  function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
+    const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
+    const lw = Math.max(1.5, s * 0.05);
+    ctx.save(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath();
+    ctx.ellipse(x, gy + 2, s * 1.05 * (o.tilt ? 1.3 : 1), s * 0.14, 0, 0, 7); ctx.fill(); ctx.restore();
+
+    ctx.save(); ctx.translate(x, gy);
+    if (o.tilt) ctx.rotate(o.tilt * dir);
+    ctx.scale(dir, 1);
+    const bob = o.bob ?? Math.sin(t * 3 + b.color) * s * 0.025;
+    ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = ink;
+
+    let torsoBottom;
+    if (b.body === 0) {
+      [-0.55, 0.55].forEach((wx) => {
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.32 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = metal; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.14 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = metalHi; ctx.lineWidth = lw * 0.8;
+        for (let k = 0; k < 3; k++) { const a = t * 5 + k * 2.09; ctx.beginPath(); ctx.moveTo(wx * s + Math.cos(a) * 0.16 * s, -0.32 * s + Math.sin(a) * 0.16 * s); ctx.lineTo(wx * s + Math.cos(a) * 0.27 * s, -0.32 * s + Math.sin(a) * 0.27 * s); ctx.stroke(); }
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+      ctx.fillStyle = metal; rr(ctx, -0.6 * s, -0.5 * s, 1.2 * s, 0.14 * s, 0.05 * s); ctx.fill(); ctx.stroke();
+      torsoBottom = -0.48 * s;
+    } else if (b.body === 1) {
+      ctx.fillStyle = "#222126"; rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.fill(); ctx.stroke();
+      ctx.save(); rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.clip();
+      ctx.fillStyle = "#3a3940"; const off = (t * 40) % (0.2 * s);
+      for (let k = -1; k < 12; k++) ctx.fillRect(-0.98 * s + k * 0.2 * s + off, -0.52 * s, 0.08 * s, 0.07 * s);
+      ctx.restore();
+      for (let k = 0; k < 5; k++) { ctx.fillStyle = metal; ctx.beginPath(); ctx.arc((-0.68 + k * 0.34) * s, -0.26 * s, 0.11 * s, 0, 7); ctx.fill(); ctx.stroke(); }
+      torsoBottom = -0.5 * s;
+    } else {
+      const st = Math.sin(t * 5) * 0.1 * s;
+      [[-0.38, st], [0.38, -st]].forEach(([lx, sv]) => {
+        ctx.strokeStyle = ink; ctx.lineWidth = s * 0.17;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.strokeStyle = metal; ctx.lineWidth = s * 0.11;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(lx * s + sv, -0.4 * s, 0.07 * s, 0, 7); ctx.fill();
+        ctx.fillStyle = "#222126"; rr(ctx, lx * s - 0.22 * s, -0.1 * s, 0.44 * s, 0.1 * s, 0.04 * s); ctx.fill();
+      });
+      ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      torsoBottom = -0.74 * s;
+    }
+    ctx.translate(0, bob);
+
+    const tw = 1.3 * s, th = 0.95 * s, ty = torsoBottom - th;
+    const g = ctx.createLinearGradient(0, ty, 0, ty + th);
+    g.addColorStop(0, shade(col, 0.28)); g.addColorStop(0.55, col); g.addColorStop(1, shade(col, -0.3));
+    ctx.fillStyle = g; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.stroke();
+    if (o.hurt) { ctx.globalAlpha = o.hurt * 0.8; ctx.fillStyle = "#fff"; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = "rgba(0,0,0,.25)"; rr(ctx, -tw / 2 + 0.14 * s, ty + 0.42 * th, tw - 0.28 * s, 0.4 * th, 0.07 * s); ctx.fill();
+    for (let k = 0; k < 3; k++) {
+      const on = (Math.floor(t * 3) + k) % 3 === 0;
+      ctx.fillStyle = on ? BRAIN_COL[b.brain] : "rgba(255,255,255,.18)";
+      ctx.beginPath(); ctx.arc(-0.3 * s + k * 0.2 * s, ty + 0.62 * th, 0.055 * s, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = "rgba(255,255,255,.35)"; rr(ctx, -tw / 2 + 0.1 * s, ty + 0.08 * s, tw * 0.45, 0.07 * s, 0.03 * s); ctx.fill();
+    ctx.fillStyle = ink; [-1, 1].forEach((sx) => { ctx.beginPath(); ctx.arc(sx * (tw / 2 - 0.1 * s), ty + 0.24 * s, 0.03 * s, 0, 7); ctx.fill(); });
+
+    const hw = 0.82 * s, hh = 0.56 * s, hy = ty - hh - 0.1 * s;
+    ctx.fillStyle = metal; rr(ctx, -0.1 * s, ty - 0.13 * s, 0.2 * s, 0.16 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+    const hg = ctx.createLinearGradient(0, hy, 0, hy + hh); hg.addColorStop(0, "#ece8f0"); hg.addColorStop(1, "#a9a5b2");
+    ctx.fillStyle = hg; rr(ctx, -hw / 2, hy, hw, hh, 0.14 * s); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-0.18 * s, hy); ctx.lineTo(-0.24 * s, hy - 0.22 * s); ctx.stroke();
+    ctx.save(); ctx.shadowColor = BRAIN_COL[b.brain]; ctx.shadowBlur = 10 + 6 * Math.sin(t * 5);
+    ctx.fillStyle = BRAIN_COL[b.brain]; ctx.beginPath(); ctx.arc(-0.24 * s, hy - 0.26 * s, 0.07 * s, 0, 7); ctx.fill(); ctx.restore();
+    const blink = (t % 3.7) < 0.12 ? 0.15 : 1;
+    if (b.sensor === 0) {
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0.12 * s, hy + hh / 2, 0.2 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(0.12 * s, hy + hh / 2); ctx.scale(1, blink);
+      const eg = ctx.createRadialGradient(-0.03 * s, -0.03 * s, 0, 0, 0, 0.11 * s); eg.addColorStop(0, "#bfe6ff"); eg.addColorStop(1, "#1d7fc4");
+      ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(0, 0, 0.11 * s, 0, 7); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-0.04 * s, -0.04 * s, 0.03 * s, 0, 7); ctx.fill(); ctx.restore();
+    } else if (b.sensor === 1) {
+      [-0.1, 0.22].forEach((ex) => {
+        ctx.fillStyle = "#c9c5d1"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.15 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.1 * s, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#555"; ctx.lineWidth = lw * 0.6; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.06 * s, 0, 7); ctx.stroke();
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+    } else {
+      ctx.save(); ctx.translate(0.12 * s, hy + hh * 0.42); ctx.scale(1, blink);
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0, 0, 0.075 * s, 0, 7); ctx.fill(); ctx.restore();
+      ctx.lineWidth = lw * 0.8;
+      [-0.22, 0, 0.22].forEach((a, k) => {
+        const wig = Math.sin(t * 6 + k) * 0.04 * s;
+        ctx.beginPath(); ctx.moveTo(hw / 2 - 0.02 * s, hy + hh * 0.66); ctx.quadraticCurveTo(hw / 2 + 0.2 * s, hy + hh * 0.66 + a * s * 0.5 + wig, hw / 2 + 0.38 * s, hy + hh * 0.66 + a * s + wig); ctx.stroke();
+      });
+      ctx.lineWidth = lw;
+    }
+    ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
+
+    const l = o.lunge || 0, reach = Math.sin(l * Math.PI) * 0.5 * s;
+    const sx = tw / 2 - 0.06 * s, sy = ty + 0.32 * th, ex = sx + 0.45 * s + reach, ey = sy + 0.05 * s;
+    ctx.strokeStyle = ink; ctx.lineWidth = s * 0.16; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = metal; ctx.lineWidth = s * 0.1; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, 0.07 * s, 0, 7); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    if (b.tool === 0) {
+      const open = (0.18 - 0.14 * Math.sin(l * Math.PI)) * s;
+      ctx.lineWidth = s * 0.1;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey - open); ctx.lineTo(ex + 0.4 * s, ey - 0.03 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey + open); ctx.lineTo(ex + 0.4 * s, ey + 0.03 * s); ctx.stroke();
+      ctx.lineWidth = lw;
+    } else if (b.tool === 1) {
+      const sw = -0.5 + Math.sin(l * Math.PI) * 1.1;
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(sw);
+      ctx.fillStyle = "#6b4a2f"; rr(ctx, 0, -0.05 * s, 0.28 * s, 0.1 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+      const hg2 = ctx.createLinearGradient(0.24 * s, 0, 0.52 * s, 0); hg2.addColorStop(0, "#5c5a63"); hg2.addColorStop(1, "#2a292e");
+      ctx.fillStyle = hg2; rr(ctx, 0.24 * s, -0.3 * s, 0.28 * s, 0.6 * s, 0.06 * s); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save(); ctx.translate(ex + 0.24 * s, ey); ctx.rotate(t * (l > 0 ? 40 : 9));
+      ctx.fillStyle = "#3a3940"; ctx.beginPath(); ctx.arc(0, 0, 0.28 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#e9e6ee";
+      for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.moveTo(0.1 * s, -0.06 * s); ctx.lineTo(0.36 * s, -0.02 * s); ctx.lineTo(0.3 * s, 0.07 * s); ctx.lineTo(0.1 * s, 0.06 * s); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0, 0.07 * s, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+    if (o.shield) {
+      ctx.save(); ctx.globalAlpha = 0.22 + 0.1 * Math.sin(t * 8);
+      ctx.fillStyle = "#4fd18b"; ctx.strokeStyle = "#4fd18b"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, (hy + torsoBottom) / 2 - 0.05 * s, 1.2 * s, 1.25 * s, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 0.8; ctx.stroke(); ctx.restore();
+    }
+    ctx.restore();
+    return { headX: x + dir * 0.12 * s, headY: gy + hy + bob + hh / 2 };
+  }
+
+  // Small static portrait of a bot on a canvas element (lobby cards, roster rows).
+  function portrait(canvas, b, bg = "#2b2a30", dir = 1, scale = 1) {
+    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = bg; rr(ctx, 0, 0, w, h, w * 0.18); ctx.fill();
+    const s = Math.min(w, h) * 0.27 * scale;
+    drawBot(ctx, b, w * (dir === 1 ? 0.43 : 0.57), h * 0.92, s, dir, 0, { bob: 0 });
+  }
+
+  // ---------------- sound (off until turned on) ----------------
+  const Sound = (() => {
+    let actx = null, on = false;
+    function tone(freq, dur, type = "square", vol = 0.08, slideTo) {
+      if (!on || !actx) return;
+      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+    }
+    function noise(dur, vol = 0.12, hp = 600) {
+      if (!on || !actx) return;
+      const len = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
+      src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start();
+    }
+    const fx = {
+      click: () => tone(660, 0.05, "square", 0.04),
+      beep: () => tone(520, 0.12, "square", 0.06),
+      go: () => tone(880, 0.25, "square", 0.07),
+      join: () => { tone(660, 0.08, "square", 0.05); setTimeout(() => tone(990, 0.12, "square", 0.05), 80); },
+      scan: () => tone(1200, 0.18, "sine", 0.04, 1800),
+      think: () => tone(420, 0.1, "triangle", 0.05, 560),
+      hit: () => { noise(0.18, 0.18, 300); tone(140, 0.18, "sawtooth", 0.08, 60); },
+      miss: () => tone(900, 0.18, "sine", 0.05, 300),
+      ko: () => { tone(400, 0.7, "sawtooth", 0.07, 60); noise(0.5, 0.1, 200); },
+      win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 120)); },
+      whoosh: () => noise(1.2, 0.08, 900),
+      thud: () => { tone(90, 0.25, "sine", 0.12, 40); noise(0.2, 0.08, 150); },
+      fanfare: () => { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.22, "square", 0.07), i * 140)); },
+    };
+    return {
+      get on() { return on; },
+      toggle() {
+        on = !on;
+        if (on && !actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { on = false; } }
+        if (on) fx.go();
+        return on;
+      },
+      play(name) { try { fx[name] && fx[name](); } catch {} },
+    };
+  })();
+
+  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+    fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
+});
+
+</script>
+<script>
+/*
+ * Flying Car Lab physics — shared by the browser and Node tests.
+ * Units: meters, seconds, kilograms, newtons. Fully deterministic (no randomness).
+ *
+ * A design is:
+ * { material, tanks, lift, push, flip, computer, gear, people, speed (km/h), ramp (0-2), reserve (% of air), flipOn }
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Flight = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const G = 9.81;
+  const CAR_LEN = 4.5, CAR_H = 1.3, HALF = 2.2;
+
+  // ---------------- parts ----------------
+  const BASE = { kg: 550, cost: 60000 }; // frame, wheels, motors, battery, seats
+  const MATERIALS = [
+    { n: "Plastic", kg: 180, cost: 5000, str: 0.5, d: "Cheap and light, but cracks on hard landings" },
+    { n: "Aluminum", kg: 320, cost: 25000, str: 2, d: "Light metal with medium strength" },
+    { n: "Steel", kg: 650, cost: 12000, str: 3.5, d: "Super strong and cheap, but very heavy" },
+    { n: "Carbon fiber", kg: 170, cost: 80000, str: 2.5, d: "Super light and strong, but expensive" },
+  ];
+  const TANK = { kg: 40, air: 12, liters: 60, cost: 8000, max: 8 }; // kg includes the air inside
+  const NOZZLE = { kg: 4, cost: 3000, thrust: 1600, flow: 4, flipFlow: 2 }; // flow = kg of air per second while firing
+  const LIMITS = { lift: 16, push: 4, flip: 4 };
+  const COMPUTERS = [
+    { n: "None", kg: 0, cost: 0, d: "No sensors. Nobody keeps the car level." },
+    { n: "Stabilizer", kg: 5, cost: 8000, d: "Gyro sensor keeps the car level and fires a landing cushion." },
+    { n: "Pro computer", kg: 8, cost: 25000, d: "Everything the stabilizer does, plus flips and perfect cushion timing." },
+  ];
+  const GEARS = [
+    { n: "Standard", kg: 0, cost: 0, absorb: 7, stroke: 0.3, d: "Normal car springs" },
+    { n: "Sport", kg: 30, cost: 10000, absorb: 9.5, stroke: 0.6, d: "Stiffer, longer suspension" },
+    { n: "Racing", kg: 60, cost: 25000, absorb: 12, stroke: 1.0, d: "Long-travel shocks for big drops" },
+  ];
+  const PERSON_KG = 80;
+  const RAMPS = [{ n: "Low", deg: 10 }, { n: "Medium", deg: 18 }, { n: "Steep", deg: 25 }];
+  const RAMP_LEN = 5;
+  const FLIP_ARM = 1.8;
+
+  // ---------------- obstacles ----------------
+  // kind is used for drawing; h = height (m), w = length (m)
+  const VEH = {
+    sedan: { kind: "sedan", h: 1.45, w: 4.7, label: "Sedan" },
+    suv: { kind: "suv", h: 1.7, w: 4.8, label: "SUV" },
+    pickup: { kind: "pickup", h: 1.9, w: 5.7, label: "Pickup truck" },
+    cab: { kind: "cab", h: 1.5, w: 4.3, label: "Robotaxi" },
+    tractor: { kind: "tractor", h: 4.0, w: 7.0, label: "Semi truck" },
+    semi: { kind: "semi", h: 4.0, w: 20.0, label: "Semi truck with trailer" },
+  };
+  function row(list, start = 8, gap = 0.8) {
+    let x = start;
+    return list.map((k) => { const v = { ...VEH[k], x }; x += v.w + gap; return v; });
+  }
+
+  // ---------------- missions ----------------
+  // need: requirements beyond "land safely". stars: [complete, smooth landing, efficiency goal]
+  const MISSIONS = [
+    { id: "hop", n: "First Flight", goal: "Use your thrusters to stay in the air for at least 2 seconds, then land safely.",
+      obstacles: [], need: { airtime: 2 }, eff: { kind: "kg", max: 1100, text: "Car weighs under 1,100 kg" } },
+    { id: "car", n: "Car Hop", goal: "Jump over a parked car and land safely on the other side.",
+      obstacles: row(["sedan"], 20), need: {}, eff: { kind: "cost", max: 120000, text: "Costs under $120,000" } },
+    { id: "semi", n: "Semi Jump", goal: "Clear a semi truck with its trailer. It's 4 meters tall and 20 meters long.",
+      obstacles: row(["semi"], 14), need: {}, eff: { kind: "kg", max: 1250, text: "Car weighs under 1,250 kg" } },
+    { id: "flip", n: "Backflip", goal: "Do a full backflip in the air and land on your wheels.",
+      obstacles: [], need: { flip: true }, eff: { kind: "cost", max: 190000, text: "Costs under $190,000" } },
+    { id: "five", n: "Five in a Row", goal: "Like the real demo: hop over five vehicles parked in a line, including a semi truck.",
+      obstacles: row(["cab", "pickup", "tractor", "suv", "sedan"], 12, 1.2), need: {}, eff: { kind: "kg", max: 1200, text: "Car weighs under 1,200 kg" } },
+    { id: "semiflip", n: "Semi Flip", goal: "Clear the semi truck AND do a backflip on the way over.",
+      obstacles: row(["semi"], 14), need: { flip: true }, eff: { kind: "cost", max: 230000, text: "Costs under $230,000" } },
+    { id: "people", n: "Passenger Safety", goal: "Carry 2 passengers over the semi truck. The landing must be gentle: under 6 g.",
+      obstacles: row(["semi"], 14), need: { people: 2, maxG: 6 }, eff: { kind: "cost", max: 220000, text: "Costs under $220,000" } },
+    { id: "budget", n: "Budget Engineer", goal: "Clear the semi truck while spending less than $150,000. Every dollar counts.",
+      obstacles: row(["semi"], 14), need: { budget: 150000 }, eff: { kind: "kg", max: 1150, text: "Car weighs under 1,150 kg" } },
+  ];
+  const ZONE_END = 85; // landing zone ends here (m past the ramp)
+
+  const DEFAULT_DESIGN = { material: 2, tanks: 3, lift: 6, push: 0, flip: 0, computer: 0, gear: 0, people: 1, speed: 50, ramp: 1, reserve: 0, flipOn: false };
+
+  function clampDesign(d) {
+    const c = (v, a, b, def) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : def; };
+    const D = DEFAULT_DESIGN;
+    return {
+      material: c(d.material, 0, 3, D.material), tanks: c(d.tanks, 0, TANK.max, D.tanks),
+      lift: c(d.lift, 0, LIMITS.lift, D.lift), push: c(d.push, 0, LIMITS.push, D.push), flip: c(d.flip, 0, LIMITS.flip, D.flip),
+      computer: c(d.computer, 0, 2, D.computer), gear: c(d.gear, 0, 2, D.gear), people: c(d.people, 0, 2, D.people),
+      speed: c(d.speed, 20, 60, D.speed), ramp: c(d.ramp, 0, 2, D.ramp), reserve: [0, 15, 30, 45].includes(+d.reserve) ? +d.reserve : 0,
+      flipOn: !!d.flipOn,
+    };
+  }
+
+  // ---------------- design sheet ----------------
+  function sheet(d) {
+    const M = MATERIALS[d.material], C = COMPUTERS[d.computer], R = GEARS[d.gear];
+    const nozzles = d.lift + d.push + d.flip;
+    const parts = [
+      ["Frame, wheels, motors", BASE.kg, BASE.cost],
+      [`${M.n} body`, M.kg, M.cost],
+      [`${d.tanks} air tank${d.tanks === 1 ? "" : "s"}`, d.tanks * TANK.kg, d.tanks * TANK.cost],
+      [`${nozzles} nozzle${nozzles === 1 ? "" : "s"}`, nozzles * NOZZLE.kg, nozzles * NOZZLE.cost],
+      [`${C.n === "None" ? "No" : C.n} flight computer`, C.kg, C.cost],
+      [`${R.n} landing gear`, R.kg, R.cost],
+      [`${d.people} passenger${d.people === 1 ? "" : "s"}`, d.people * PERSON_KG, 0],
+    ];
+    const kg = parts.reduce((a, p) => a + p[1], 0), cost = parts.reduce((a, p) => a + p[2], 0);
+    const weight = kg * G, lift = d.lift * NOZZLE.thrust, push = d.push * NOZZLE.thrust;
+    const air = d.tanks * TANK.air, flowAll = (d.lift + d.push) * NOZZLE.flow;
+    const useAir = air * (1 - d.reserve / 100);
+    const burn = flowAll ? useAir / flowAll : 0;
+    const tw = weight ? lift / weight : 0;
+    const strength = R.absorb + M.str;
+    const inertia = kg * (CAR_LEN * CAR_LEN + CAR_H * CAR_H) / 12;
+    const flipAlpha = d.flip ? (d.flip * NOZZLE.thrust * FLIP_ARM) / inertia : 0;
+    const flipTime = flipAlpha ? 2 * Math.sqrt((2 * Math.PI) / flipAlpha) : Infinity;
+    return { parts, kg, cost, weight, lift, push, air, burn, tw, strength, inertia, flipAlpha, flipTime, liters: d.tanks * TANK.liters };
+  }
+
+  // ---------------- simulation ----------------
+  function simulate(design, mission) {
+    const d = clampDesign(design), S = sheet(d), M = mission || MISSIONS[0];
+    const obs = M.obstacles;
+    const th = (RAMPS[d.ramp].deg * Math.PI) / 180, v0 = d.speed / 3.6;
+    let x = 0, y = RAMP_LEN * Math.sin(th), vx = v0 * Math.cos(th), vy = v0 * Math.sin(th);
+    let p = th, w = 0, m = S.kg, air = S.air;
+    const reserveAir = S.air * (d.reserve / 100);
+    const ctrl = d.computer > 0 && d.lift >= 2; // stabilizer needs lift nozzles to steer with
+    const wantFlip = d.flipOn && d.computer === 2 && d.flip >= 2;
+    if (d.computer === 0) w = -0.5; // front wheels leave the ramp first: nose starts dropping
+    const dt = 1 / 240, frames = [];
+    let t = 0, maxY = y, maxYx = x, liftOff = false, burnEnd = null, cushionUsed = 0, cushionStart = null;
+    let flipTarget = 2 * Math.PI, flipDone = false, flipAngle = 0, startP = p, minAbove = Infinity, result = null;
+    let airOutT = null, flipAirOut = false, flipStartT = null;
+    // the Pro computer keeps enough air to finish the flip, and climbs with the rest first
+    const flipAirNeed = wantFlip && Number.isFinite(S.flipTime) ? d.flip * NOZZLE.flipFlow * S.flipTime * 1.1 : 0;
+    const y0 = y;
+    while (t < 14) {
+      const up = { x: -Math.sin(p), y: Math.cos(p) }, fwd = { x: Math.cos(p), y: Math.sin(p) };
+      const upright = Math.cos(p) > 0.3;
+      // --- what fires this step ---
+      let liftOn = false, pushOn = false, flipF = 0, cushion = false;
+      const mainAir = air > reserveAir + (wantFlip && !flipDone ? flipAirNeed : 0) + 1e-9;
+      const flipping = wantFlip && !flipDone && t > 0.12 && (!mainAir || !(d.lift || d.push));
+      const aligned = Math.cos(p) > 0.85; // mid-flip the computer only fires when the car points the right way
+      if (mainAir && (d.lift || d.push)) {
+        liftOn = d.lift > 0 && (!ctrl || (flipping ? aligned : upright));
+        pushOn = d.push > 0 && (!flipping || aligned);
+      }
+      if (!mainAir && burnEnd == null && (d.lift || d.push)) burnEnd = t;
+      // landing cushion: needs a computer, saved air, and the car coming down
+      if (!liftOn && ctrl && air > 1e-9 && vy < 0 && upright && d.lift) {
+        const a = (d.lift * NOZZLE.thrust) / m - G, v = -vy;
+        let trig = 2.5; // the Stabilizer always fires at 2.5 m
+        if (d.computer === 2) { // the Pro computer times it so the air lasts until touchdown
+          const tAir = air / (d.lift * NOZZLE.flow);
+          if (a <= 0) trig = v * tAir - 0.5 * a * tAir * tAir;
+          else trig = a * tAir >= v ? (v * v) / (2 * a) + 0.2 : v * tAir - 0.5 * a * tAir * tAir;
+        }
+        if (y <= trig) { cushion = true; liftOn = true; }
+      }
+      // flip control (Pro computer)
+      if (flipping && air > 1e-9) {
+        if (flipStartT == null) flipStartT = t;
+        const rem = flipTarget - p, stop = (w * w) / (2 * Math.max(S.flipAlpha, 1e-6));
+        if (rem > 0.06 || Math.abs(w) > 0.4) flipF = rem > stop ? 1 : -1;
+        else flipDone = true;
+      }
+      if (wantFlip && !flipDone && air <= 1e-9) flipAirOut = true;
+      // --- forces ---
+      let ax = 0, ay = -G, flow = 0;
+      // with a computer the lift nozzles are aimed straight down (thrust vectoring); without one they follow the car's tilt
+      const liftDir = ctrl && !flipping ? { x: 0, y: 1 } : up;
+      if (liftOn) { const F = d.lift * NOZZLE.thrust; ax += (F * liftDir.x) / m; ay += (F * liftDir.y) / m; flow += d.lift * NOZZLE.flow; liftOff = true; if (cushion) { cushionUsed += d.lift * NOZZLE.flow * dt; if (cushionStart == null) cushionStart = t; } }
+      if (pushOn) { const F = d.push * NOZZLE.thrust; ax += (F * fwd.x) / m; ay += (F * fwd.y) / m; flow += d.push * NOZZLE.flow; }
+      if (flipF) flow += d.flip * NOZZLE.flipFlow;
+      // --- rotation ---
+      let alpha = 0;
+      if (flipF) alpha = flipF * S.flipAlpha;
+      else if (ctrl && !flipping) {
+        const target = wantFlip && (flipDone || flipStartT != null) ? flipTarget : 0;
+        alpha = -16 * (p - target) - 7 * w;
+      } else if (!ctrl && liftOn) alpha = 0.12 * d.lift; // uneven thrust nobody corrects
+      // --- integrate ---
+      vx += ax * dt; vy += ay * dt; x += vx * dt; y += vy * dt;
+      w += alpha * dt; p += w * dt;
+      if (flow) { const used = Math.min(air, flow * dt); air -= used; m -= used; if (air <= 1e-9 && airOutT == null) airOutT = t; }
+      t += dt;
+      if (y > maxY) { maxY = y; maxYx = x; }
+      // obstacle clearance + collisions
+      for (const o of obs) {
+        if (x + HALF > o.x && x - HALF < o.x + o.w) {
+          minAbove = Math.min(minAbove, y - o.h);
+          if (y < o.h) {
+            const fromAbove = y - vy * dt >= o.h - 0.05;
+            result = { type: fromAbove ? "crash_top" : "crash_side", obstacle: o };
+          }
+        }
+      }
+      if (frames.length === 0 || t - frames[frames.length - 1].t >= 1 / 60 - 1e-9) {
+        frames.push({ t, x, y, p, lift: liftOn, push: pushOn, flip: flipF, cushion, air: air / Math.max(S.air, 1e-9), vy, vx });
+      }
+      if (result) break;
+      if (y <= 0 && t > 0.03) break;
+    }
+    frames.push({ t, x, y: Math.max(y, result ? y : 0), p, lift: false, push: false, flip: 0, cushion: false, air: air / Math.max(S.air, 1e-9), vy, vx, end: true });
+    const flightTime = t;
+    const vImp = Math.max(0, -vy);
+    const pitchDeg = ((((p * 180) / Math.PI) % 360) + 540) % 360 - 180; // -180..180
+    flipAngle = ((p - startP) * 180) / Math.PI;
+    const R = GEARS[d.gear];
+    const gForce = (vImp * vImp) / (2 * R.stroke) / G;
+    let outcome;
+    if (result) outcome = result.type;
+    else if (Math.abs(pitchDeg) > 25) outcome = Math.abs(pitchDeg) > 120 ? "crash_upside" : "crash_angle";
+    else if (vImp > S.strength) outcome = "crash_hard";
+    else if (x > ZONE_END) outcome = "overshoot";
+    else if (obs.length && x - HALF < Math.max(...obs.map((o) => o.x + o.w))) outcome = "short";
+    else outcome = "landed";
+    const landing = outcome === "landed" ? (vImp > S.strength * 0.75 ? "hard" : "smooth") : null;
+    return {
+      design: d, sheet: S, mission: M, frames, outcome, landing, obstacle: result && result.obstacle,
+      flightTime, landX: x, maxY, maxYx, vImp, gForce, pitchDeg, flipAngle, burnEnd, airOutT, liftOff,
+      cushionUsed, cushionStart, reserveAir, minAbove, wantFlip, flipAirOut, ctrl, y0, flipStartT, flipAirNeed,
+      vx0: v0 * Math.cos(th), vy0: v0 * Math.sin(th),
+    };
+  }
+  function groundBelow(x, obs) {
+    let g = 0;
+    for (const o of obs) if (x + HALF > o.x && x - HALF < o.x + o.w) g = Math.max(g, o.h);
+    return g;
+  }
+
+  // ---------------- grading ----------------
+  function grade(r) {
+    const M = r.mission, d = r.design, S = r.sheet, need = M.need || {};
+    const fails = [];
+    if (need.people && d.people < need.people) fails.push("people");
+    if (need.budget && S.cost > need.budget) fails.push("budget");
+    if (r.outcome !== "landed") fails.push("outcome");
+    if (need.airtime && r.flightTime < need.airtime) fails.push("airtime");
+    const flipped = Math.abs(r.flipAngle) >= 330;
+    if (need.flip && !flipped) fails.push("flip");
+    if (need.maxG && r.outcome === "landed" && r.gForce > need.maxG) fails.push("gforce");
+    const complete = fails.length === 0;
+    const smooth = complete && r.landing === "smooth";
+    const eff = M.eff, effVal = eff.kind === "kg" ? S.kg : S.cost;
+    const effOk = complete && effVal <= eff.max;
+    return { complete, fails, flipped, stars: [complete, smooth, effOk], effVal };
+  }
+
+  // ---------------- explanations ----------------
+  const fmt = (n, dp = 1) => Number(n).toFixed(dp).replace(/\.0$/, "");
+  const kN = (n) => fmt(n / 1000) + " kN";
+  const money = (n) => "$" + Math.round(n).toLocaleString("en-US");
+  const kg = (n) => Math.round(n).toLocaleString("en-US") + " kg";
+
+  function explain(r, g) {
+    const d = r.design, S = r.sheet, M = r.mission, out = [];
+    const item = (tone, title, text) => out.push({ tone, title, text });
+    // headline
+    let headline;
+    if (g.complete) headline = { tone: "good", text: g.stars.every(Boolean) ? "Mission complete with all 3 stars!" : "Mission complete!" };
+    else headline = { tone: "bad", text: "Not yet. Here's what happened and why." };
+
+    // budget / people gates
+    if (g.fails.includes("budget")) item("bad", "Over budget", `Your car costs ${money(S.cost)}, but this mission's budget is ${money(M.need.budget)}. The most expensive parts are carbon fiber (${money(MATERIALS[3].cost)}), the Pro computer, racing gear and extra tanks.`);
+    if (g.fails.includes("people")) item("bad", "Missing passengers", `This mission needs ${M.need.people} passengers, but your car has ${d.people}. Passengers add ${PERSON_KG} kg each, so you'll need more thrust.`);
+
+    // thrust vs weight
+    if (d.lift === 0) item("bad", "No lift thrusters", "Your car has no nozzles pointing down, so nothing pushes it up. The ramp alone gave it a short hop.");
+    else if (S.tw < 1) item("bad", "Thrust is less than weight", `Your lift thrust is ${kN(S.lift)}, but gravity pulls on your ${kg(S.kg)} car with ${kN(S.weight)}. Thrust-to-weight is ${fmt(S.tw, 2)}. Below 1.0 the nozzles can't lift the car by themselves. The ramp threw it up, and the thrust only slowed its fall.`);
+    else item(S.tw >= 1.3 ? "good" : "info", "Thrust beat weight", `Lift thrust ${kN(S.lift)} vs weight ${kN(S.weight)}: thrust-to-weight ${fmt(S.tw, 2)}. Above 1.0 means the nozzles can push the car up. Higher means it climbs faster.`);
+
+    // air supply
+    if (d.tanks === 0 && d.lift + d.push + d.flip > 0) item("bad", "No air tanks", "The nozzles had no air to blow out. Cold-gas thrusters need compressed air from tanks.");
+    else if (d.lift + d.push > 0 && S.tw >= 1) {
+      const t = r.burnEnd != null ? r.burnEnd : S.burn;
+      item("info", "Air supply", `Your ${S.liters} L of air (${d.tanks} tank${d.tanks === 1 ? "" : "s"}) ran the thrusters for ${fmt(t)} s${d.reserve ? `, keeping ${d.reserve}% for the landing` : ""}. When the air runs out, the push stops and gravity takes over. More tanks = longer push, but each tank adds ${TANK.kg} kg.`);
+    }
+
+    // height & distance vs obstacles
+    const obs = M.obstacles;
+    if (obs.length) {
+      const tallest = Math.max(...obs.map((o) => o.h)), end = Math.max(...obs.map((o) => o.x + o.w));
+      if (r.outcome === "crash_side") item("bad", `Hit the side of the ${r.obstacle.label.toLowerCase()}`, `The car only got ${fmt(Math.max(0, r.maxY))} m high, but the ${r.obstacle.label.toLowerCase()} is ${fmt(r.obstacle.h)} m tall. You need more height: more thrust, a lighter car, or more air.`);
+      else if (r.outcome === "crash_top") item("bad", `Came down on top of the ${r.obstacle.label.toLowerCase()}`, `You got high enough (${fmt(r.maxY)} m) but ran out of distance. The car came down at ${fmt(r.landX)} m and the vehicles end at ${fmt(end)} m. Go faster up the ramp, add push nozzles, or stay in the air longer.`);
+      else if (r.outcome !== "short") item("good", "Cleared the vehicles", `Peak height ${fmt(r.maxY)} m over a ${fmt(tallest)} m obstacle, with ${fmt(Math.max(0, r.minAbove))} m to spare at the closest point.`);
+    } else {
+      item("info", "Flight", `Peak height ${fmt(r.maxY)} m, ${fmt(r.flightTime)} s in the air, landed ${fmt(r.landX)} m from the ramp.`);
+      if (g.fails.includes("airtime")) item("bad", "Not enough air time", `You were airborne for ${fmt(r.flightTime)} s. The goal is ${M.need.airtime} s. Stronger thrust or more air keeps you up longer.`);
+    }
+    if (r.outcome === "short") item("bad", "Landed before the vehicles", `The car came down at ${fmt(r.landX)} m, but the vehicles start at ${fmt(obs[0].x)} m and end at ${fmt(Math.max(...obs.map((o) => o.x + o.w)))} m. It has to fly all the way over them. Add thrust and air, or go faster.`);
+    if (r.outcome === "overshoot") item("bad", "Flew past the landing zone", `You landed at ${fmt(r.landX)} m, but the safe landing zone ends at ${ZONE_END} m. Slow down on the ramp or use fewer push nozzles.`);
+
+    // stability / computer
+    if (!r.ctrl && (r.outcome === "crash_angle" || r.outcome === "crash_upside")) {
+      item("bad", "The car tipped over in the air", `It landed tilted ${fmt(Math.abs(r.pitchDeg), 0)}° (more than 25° crashes). ${d.computer === 0 ? "Without a flight computer nobody keeps the car level." : "The flight computer needs at least 2 lift nozzles to steer with."} A flight computer uses a gyro sensor (Sense), decides how to correct (Think), and fires nozzles (Act). That's Sense, Think, Act!`);
+    } else if (r.ctrl) item("good", "Flight computer kept it level", "The gyro sensed the tilt and the computer fired the nozzles to correct it. Sense, Think, Act.");
+    else if (d.computer === 0 && r.flightTime > 1.2 && r.outcome === "landed") item("info", "Lucky landing", `Without a flight computer the car tilted ${fmt(Math.abs(r.pitchDeg), 0)}° by landing. A longer flight would tip it over.`);
+
+    // flip
+    if (d.flipOn || M.need.flip) {
+      if (d.computer !== 2) item("bad", "No flip", "Only the Pro computer can do flips. It has to spin the car and stop it at exactly one full turn.");
+      else if (d.flip < 2) item("bad", "No flip thrusters", "Add at least 2 flip nozzles. They push the front and back in opposite directions to spin the car.");
+      else if (!d.flipOn) item("bad", "Flip was turned off", "Turn on Backflip in the flight plan.");
+      else if (g.flipped && r.outcome === "landed") item("good", "Backflip landed!", `The car turned ${fmt(Math.abs(r.flipAngle), 0)}° in ${fmt(S.flipTime)} s. Flip speed depends on thrust and weight: heavier cars are harder to spin (more inertia).`);
+      else {
+        const why = S.flipTime > r.flightTime
+          ? `A full flip needs about ${fmt(S.flipTime)} s with your ${d.flip} flip nozzles and ${kg(S.kg)} car, but you were only in the air ${fmt(r.flightTime)} s.`
+          : r.flipAirOut ? "The tanks ran out of air in the middle of the flip, so the computer couldn't stop the spin." : "The flip wasn't finished when the car touched down.";
+        item("bad", `Flip only got to ${fmt(Math.abs(r.flipAngle), 0)}°`, `${why} More flip nozzles spin faster, a lighter car is easier to spin, and more air time gives the flip time to finish.`);
+      }
+    }
+
+    // too high = hard landing
+    const tallest = obs.length ? Math.max(...obs.map((o) => o.h)) : 0;
+    const needH = obs.length ? tallest + 1.2 : 2;
+    if ((r.outcome === "crash_hard" || r.landing === "hard") && r.maxY > needH + 2) {
+      item("info", "Higher isn't always better", `You peaked at ${fmt(r.maxY)} m${obs.length ? `, but you only needed about ${fmt(needH)} m to clear the ${fmt(tallest)} m vehicles` : ""}. The higher you go, the faster you fall: from ${fmt(r.maxY)} m a car hits the ground at about ${fmt(Math.sqrt(2 * G * r.maxY))} m/s. Engineers use just enough power, not the most.`);
+    }
+    if (r.flipStartT != null && r.flipAirNeed > 0) item("info", "Flight plan", `The Pro computer climbed first, then started the flip at ${fmt(r.flipStartT)} s. It kept ${fmt(r.flipAirNeed, 0)} kg of air for the flip${d.reserve ? " plus your saved landing air" : ""}.`);
+
+    // landing
+    if (r.outcome === "crash_hard") item("bad", "Landing was too hard", `The car hit the ground at ${fmt(r.vImp)} m/s. Your ${GEARS[d.gear].n.toLowerCase()} gear + ${MATERIALS[d.material].n.toLowerCase()} body can take ${fmt(S.strength)} m/s. Fixes: stronger gear or body, or save air for a landing cushion (needs a flight computer).`);
+    else if (r.outcome === "landed") {
+      const pct = Math.round((r.vImp / S.strength) * 100);
+      item(r.landing === "smooth" ? "good" : "info", r.landing === "smooth" ? "Smooth landing" : "Hard landing (but it survived)", `Touched down at ${fmt(r.vImp)} m/s. Your car can take ${fmt(S.strength)} m/s, so that used ${pct}% of its strength.${d.people ? ` Passengers felt ${fmt(r.gForce)} g.` : ""}`);
+      if (g.fails.includes("gforce")) item("bad", "Too rough for passengers", `Passengers felt ${fmt(r.gForce)} g, but the limit is ${M.need.maxG} g. Longer suspension (Sport or Racing) spreads the stop out, and a landing cushion slows you before touchdown.`);
+    }
+    if (r.cushionUsed > 0.5) item("good", "Landing cushion fired", `The computer used ${fmt(r.cushionUsed, 0)} kg of saved air to slow the fall right before touchdown.`);
+    else if (d.reserve > 0 && !r.ctrl) item("info", "Saved air was wasted", "You saved air for the landing, but without a working flight computer nothing fired it at the right moment.");
+
+    return { headline, items: out, tip: tipFor(r, g) };
+  }
+
+  // the single most useful thing to try next
+  function tipFor(r, g) {
+    const d = r.design, S = r.sheet, M = r.mission;
+    const needN = Math.ceil((S.weight * 1.4) / NOZZLE.thrust);
+    const heavier = d.material === 2 ? "Steel is heavy: try aluminum or carbon fiber" : "Make the car lighter";
+    if (g.fails.includes("budget")) return "Swap to cheaper parts: steel or aluminum instead of carbon fiber, fewer tanks, or the Stabilizer instead of the Pro computer.";
+    if (g.fails.includes("people")) return `Set passengers to ${M.need.people}, then add lift nozzles to carry the extra weight.`;
+    if (r.outcome === "crash_angle" || r.outcome === "crash_upside") {
+      if (d.computer === 0) return "Add a flight computer. Without one, nothing keeps the car level and it tips over.";
+      if (d.lift < 2) return "Add at least 2 lift nozzles so the flight computer can steer.";
+      return "Give the flip more time: more flip nozzles, a lighter car, or more air time.";
+    }
+    if (r.outcome === "crash_side") {
+      if (d.lift === 0) return "Add lift nozzles. Try 10 to start.";
+      if (d.tanks === 0) return "Add air tanks. Your thrusters need air to push.";
+      if (S.tw < 1.3) return `Climb faster: you need thrust-to-weight around 1.4 or more. Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()}.`;
+      return "You climb fast enough but not for long enough. Add an air tank, save less air for landing, or use a steeper ramp.";
+    }
+    if (r.outcome === "crash_top") return S.tw < 1 ? `Your thrust is less than your weight, so the car can't stay up long enough to get over. Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()}.` : "You need more distance: raise the ramp speed, add a push nozzle, or add an air tank to stay up longer.";
+    if (r.outcome === "short") return S.tw < 1.2 ? `Add lift nozzles (about ${needN}) and air so the car can fly over, not just hop.` : "Go faster up the ramp and add an air tank so you stay up long enough to get past.";
+    if (r.outcome === "overshoot") return "Slow down on the ramp or remove push nozzles.";
+    const tallestT = M.obstacles.length ? Math.max(...M.obstacles.map((o) => o.h)) : 0;
+    if (r.outcome === "crash_hard" && r.maxY > (M.obstacles.length ? tallestT + 1.2 : 2) + 2) return `You flew ${fmt(r.maxY)} m high, which is more than you need. Use fewer lift nozzles or tanks so you don't fall as far, or upgrade the landing gear.`;
+    if (r.outcome === "crash_hard") return d.computer > 0
+      ? (d.reserve ? "Save more air for the cushion, or upgrade the landing gear. The Pro computer times the cushion best." : "Save 20% of your air for a landing cushion, or upgrade the landing gear.")
+      : "Upgrade the landing gear, or add a flight computer and save some air for a landing cushion.";
+    if (g.fails.includes("flip")) {
+      if (d.computer !== 2) return "Pick the Pro computer, add 2 or more flip nozzles, and turn on Backflip.";
+      if (d.flip < 2) return "Add at least 2 flip nozzles.";
+      if (!d.flipOn) return "Turn on Backflip in the flight plan.";
+      return S.flipTime > r.flightTime ? "Make the flip faster (more flip nozzles, lighter car) or stay up longer (more air, more lift)." : "Add an air tank so the computer has air left to finish the flip.";
+    }
+    if (g.fails.includes("airtime")) return S.tw < 1 ? `Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()} so the thrust can hold the car up.` : "Add an air tank or more lift nozzles to stay up longer.";
+    if (g.fails.includes("gforce")) return "Use Sport or Racing gear and save air for a cushion with the Pro computer.";
+    if (!g.stars[1]) return "For a smooth landing, save some air for a cushion or use stronger landing gear.";
+    if (!g.stars[2]) return `For the third star: ${M.eff.text.toLowerCase()}. You're at ${M.eff.kind === "kg" ? kg(S.kg) : money(S.cost)}.`;
+    return "Perfect run! Try the next mission.";
+  }
+
+  return { G, CAR_LEN, CAR_H, HALF, BASE, MATERIALS, TANK, NOZZLE, LIMITS, COMPUTERS, GEARS, PERSON_KG, RAMPS, RAMP_LEN, VEH, MISSIONS, ZONE_END,
+    DEFAULT_DESIGN, clampDesign, sheet, simulate, grade, explain, fmt, money, kg, kN };
+});
+
+</script>
+<script>
+/* Flying Car Lab: build a car, pick a mission, launch, and read the flight report. */
+(function () {
+  const E = window.Engine, F = window.Flight;
+  const { clamp, ease, bigText, rr, FX, Sound, RM } = E;
+  const $ = (id) => document.getElementById(id);
+  const ls = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+
+  let design = F.clampDesign(ls.get("fcl-design", F.DEFAULT_DESIGN));
+  let mIdx = clamp(ls.get("fcl-mission", 0) | 0, 0, F.MISSIONS.length - 1);
+  let stars = ls.get("fcl-stars", {});
+  let run = null, lastResult = null, prevResult = null;
+  const fx = new FX();
+  const mission = () => F.MISSIONS[mIdx];
+
+  // ---------------- missions ----------------
+  function starStr(arr) { return arr.map((s) => (s ? "<b>★</b>" : "☆")).join(""); }
+  function renderMissions() {
+    const el = $("missions"); el.innerHTML = "";
+    F.MISSIONS.forEach((m, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
+      b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
+      b.querySelector(".nm").textContent = m.n;
+      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
+      el.appendChild(b);
+    });
+    const cur = el.children[mIdx]; if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch {}
+  }
+  function renderGoal() {
+    const m = mission(), got = stars[m.id] || [];
+    $("goal").innerHTML = `<b>${m.n}</b><span></span>`; $("goal").lastChild.textContent = m.goal;
+    const crit = ["Complete the mission", "Smooth landing", m.eff.text];
+    $("crit").innerHTML = crit.map((c, i) => `<span class="${got[i] ? "got" : ""}">${got[i] ? "★" : "☆"} ${c}</span>`).join("");
+  }
+
+  // ---------------- builder ----------------
+  function opt(container, list, key, extra) {
+    const el = $(container); el.innerHTML = "";
+    list.forEach((o, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", design[key] === i);
+      b.innerHTML = `<b></b><span></span><em></em>`;
+      b.querySelector("b").textContent = o.n; b.querySelector("span").textContent = o.d;
+      b.querySelector("em").textContent = extra(o);
+      b.onclick = () => { design[key] = i; changed(); };
+      el.appendChild(b);
+    });
+  }
+  function seg(container, labels, key, values) {
+    const el = $(container); el.innerHTML = "";
+    labels.forEach((l, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.setAttribute("aria-pressed", design[key] === values[i]);
+      b.onclick = () => { design[key] = values[i]; changed(); };
+      el.appendChild(b);
+    });
+  }
+  function stepper(container, rows) {
+    const el = $(container); el.innerHTML = "";
+    rows.forEach(([key, title, sub, max]) => {
+      const row = document.createElement("div"); row.className = "steprow";
+      row.innerHTML = `<div><b></b><span></span></div><div class="stepper"><button type="button" aria-label="Fewer">−</button><output></output><button type="button" aria-label="More">+</button></div>`;
+      row.querySelector("b").textContent = title; row.querySelector("span").textContent = sub;
+      const [minus, plus] = row.querySelectorAll("button");
+      row.querySelector("output").textContent = design[key];
+      minus.disabled = design[key] <= 0; plus.disabled = design[key] >= max;
+      minus.onclick = () => { design[key] = Math.max(0, design[key] - 1); changed(); };
+      plus.onclick = () => { design[key] = Math.min(max, design[key] + 1); changed(); };
+      minus.setAttribute("aria-label", "Fewer " + title.toLowerCase()); plus.setAttribute("aria-label", "More " + title.toLowerCase());
+      el.appendChild(row);
+    });
+  }
+  const k$ = (n) => "$" + Math.round(n / 1000) + "k";
+  function renderBuilder() {
+    opt("o-material", F.MATERIALS, "material", (o) => `${o.kg} kg · ${k$(o.cost)} · strength +${o.str}`);
+    stepper("steppers1", [
+      ["tanks", "Air tanks", `${F.TANK.liters} L of air each · ${F.TANK.kg} kg · ${k$(F.TANK.cost)}`, F.TANK.max],
+      ["lift", "Lift nozzles (point down)", `Push the car UP · ${F.fmt(F.NOZZLE.thrust / 1000)} kN each`, F.LIMITS.lift],
+      ["push", "Push nozzles (point back)", "Push the car FORWARD", F.LIMITS.push],
+      ["flip", "Flip nozzles (front + back)", "Spin the car for flips", F.LIMITS.flip],
+    ]);
+    opt("o-computer", F.COMPUTERS, "computer", (o) => `${o.kg} kg · ${k$(o.cost)}`);
+    opt("o-gear", F.GEARS, "gear", (o) => `takes ${o.absorb} m/s · ${o.kg} kg · ${k$(o.cost)}`);
+    stepper("steppers2", [["people", "Passengers", `${F.PERSON_KG} kg each`, 2]]);
+    $("i-speed").value = design.speed; $("v-speed").textContent = design.speed + " km/h";
+    const sp = $("i-speed"); sp.style.setProperty("--p", ((design.speed - 20) / 40) * 100 + "%");
+    seg("o-ramp", F.RAMPS.map((r) => `${r.n} ${r.deg}°`), "ramp", [0, 1, 2]);
+    seg("o-reserve", ["0%", "15%", "30%", "45%"], "reserve", [0, 15, 30, 45]);
+    const canFlip = design.computer === 2 && design.flip >= 2;
+    $("i-flip").disabled = !canFlip; $("i-flip").checked = design.flipOn && canFlip;
+    $("flipbox").classList.toggle("off", !canFlip);
+    $("fliphelp").textContent = canFlip ? "The Pro computer climbs first, then spins the car one full turn." : design.computer !== 2 ? "Needs the Pro computer." : "Needs at least 2 flip nozzles.";
+  }
+  $("i-speed").addEventListener("input", () => { design.speed = +$("i-speed").value; changed(); });
+  $("i-flip").addEventListener("change", () => { design.flipOn = $("i-flip").checked; changed(); });
+  $("resetdesign").onclick = () => { design = { ...F.DEFAULT_DESIGN }; changed(); };
+
+  function renderSheet() {
+    const S = F.sheet(design), m = mission();
+    const max = Math.max(S.lift, S.weight, 1);
+    $("m-lift").style.width = (S.lift / max) * 100 + "%"; $("m-weight").style.width = (S.weight / max) * 100 + "%";
+    $("n-lift").textContent = F.kN(S.lift); $("n-weight").textContent = F.kN(S.weight);
+    $("s-tw").textContent = S.tw.toFixed(2); $("s-tw").style.color = S.tw >= 1 ? "var(--good)" : "var(--bad)";
+    $("s-kg").textContent = F.kg(S.kg);
+    $("s-burn").textContent = (design.lift + design.push ? F.fmt(S.burn) : "0") + " s";
+    const budget = m.need.budget;
+    $("s-cost").textContent = k$(S.cost); $("s-costlbl").textContent = budget ? `budget ${k$(budget)}` : "cost";
+    $("s-costbox").classList.toggle("over", !!budget && S.cost > budget);
+    $("sheetcost").textContent = `strength ${F.fmt(S.strength)} m/s`;
+    $("mb-tw").textContent = S.tw.toFixed(2); $("mb-tw").style.color = S.tw >= 1 ? "var(--good)" : "var(--bad)";
+    $("mb-kg").textContent = F.kg(S.kg); $("mb-cost").textContent = k$(S.cost);
+    $("mb-cost").style.color = budget && S.cost > budget ? "var(--bad)" : "";
+    const w = [];
+    if (design.lift === 0) w.push(["bad", "No lift nozzles: nothing pushes the car up."]);
+    else if (S.tw < 1) w.push(["bad", `Thrust is less than weight (${S.tw.toFixed(2)}). The car can't climb on its own.`]);
+    if (design.tanks === 0 && design.lift + design.push + design.flip) w.push(["bad", "No air tanks: the nozzles have nothing to blow."]);
+    if (design.computer > 0 && design.lift < 2) w.push(["", "The flight computer needs 2+ lift nozzles to steer."]);
+    if (design.reserve && design.computer === 0) w.push(["", "Saved landing air needs a flight computer to fire it."]);
+    if (budget && S.cost > budget) w.push(["bad", `Over budget by ${k$(S.cost - budget)}.`]);
+    if (m.need.people && design.people < m.need.people) w.push(["bad", `This mission needs ${m.need.people} passengers.`]);
+    if (m.need.flip && !(design.computer === 2 && design.flip >= 2 && design.flipOn)) w.push(["", "This mission needs a backflip: Pro computer, 2+ flip nozzles, Backflip on."]);
+    $("warns").innerHTML = "";
+    w.forEach(([c, t]) => { const p = document.createElement("p"); p.className = c; p.textContent = t; $("warns").appendChild(p); });
+  }
+  function changed() {
+    design = F.clampDesign(design); ls.set("fcl-design", design);
+    Sound.play("click"); renderBuilder(); renderSheet();
+  }
+
+  // ---------------- run ----------------
+  function stopRun() { run = null; }
+  function launch(result) {
+    const r = result || F.simulate(design, mission());
+    const th = (F.RAMPS[r.design.ramp].deg * Math.PI) / 180, v = r.design.speed / 3.6;
+    const rampBase = -F.RAMP_LEN * Math.cos(th);
+    run = { r, phase: "approach", t: 0, startX: rampBase - 16, rampBase, th, v, trail: [], approachDur: 16 / v + F.RAMP_LEN / v, after: 0, roll: 0, reported: !!result, landedFx: false };
+    fx.p = []; fx.txt = [];
+    Sound.play("go");
+    if (!result) { prevResult = lastResult; lastResult = r; }
+    $("replay").disabled = false;
+    if (!result) $("report").innerHTML = "";
+  }
+  $("launch").onclick = () => launch();
+  $("mb-launch").onclick = () => { try { $("track").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" }); } catch {} launch(); };
+  $("replay").onclick = () => { if (lastResult) launch(lastResult); };
+
+  function carState() {
+    if (!run) return { x: -12, y: 0, p: 0, idle: true };
+    const r = run.r;
+    if (run.phase === "approach") {
+      const d = run.t * run.v, flat = 16;
+      if (d < flat) return { x: run.startX + d, y: 0, p: 0 };
+      const u = Math.min(d - flat, F.RAMP_LEN);
+      return { x: run.rampBase + u * Math.cos(run.th), y: u * Math.sin(run.th), p: run.th };
+    }
+    const fr = r.frames;
+    if (run.phase === "fly") {
+      let i = Math.min(fr.length - 1, Math.floor(run.t * 60));
+      const a = fr[i], b = fr[Math.min(fr.length - 1, i + 1)], k = clamp(run.t * 60 - i, 0, 1);
+      return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, p: a.p + (b.p - a.p) * k, f: a };
+    }
+    // after landing
+    const last = fr[fr.length - 1], o = r.outcome;
+    let x = last.x, y = Math.max(0, last.y), p = last.p;
+    const T = run.after;
+    if (o === "landed" || o === "overshoot" || o === "short") {
+      const v0 = last.vx, dec = 6, tt = Math.min(T, v0 / dec);
+      x += v0 * tt - 0.5 * dec * tt * tt; y = 0;
+      p = last.p - Math.round(last.p / (2 * Math.PI)) * 2 * Math.PI; p *= Math.max(0, 1 - T * 6);
+    } else if (o === "crash_side") { x -= Math.min(T, 0.4) * 3; p = last.p + Math.min(T, 0.5) * 1.2; y = Math.max(0, y - T * 6); }
+    else if (o === "crash_top") { p = last.p * Math.max(0, 1 - T * 4); }
+    else if (o === "crash_angle" || o === "crash_upside") {
+      const target = Math.round(last.p / Math.PI) * Math.PI; p = last.p + (target - last.p) * ease.out(Math.min(1, T * 2)); y = 0;
+      x += Math.min(T, 0.6) * last.vx * 0.3;
+    } else if (o === "crash_hard") { y = 0; p = last.p - Math.round(last.p / (2 * Math.PI)) * 2 * Math.PI; }
+    return { x, y, p, after: true };
+  }
+
+  // ---------------- drawing ----------------
+  const cam = { left: -12, ppm: 18 };
+  const stars2 = Array.from({ length: 70 }, () => [Math.random(), Math.random() * 0.5, Math.random() * 1.3 + 0.4]);
+  function obstaclesEnd(m) { return m.obstacles.length ? Math.max(...m.obstacles.map((o) => o.x + o.w)) : 0; }
+
+  function draw(t, dt) {
+    const c = $("track"); if (!c.offsetParent) return;
+    const { ctx, w, h } = E.fit(c);
+    const m = run ? run.r.mission : mission();
+    const gy = h * 0.86;
+    fx.update(dt);
+
+    // camera
+    const car = carState();
+    let tLeft, tPpm;
+    const obsEnd = obstaclesEnd(m), tallest = m.obstacles.length ? Math.max(...m.obstacles.map((o) => o.h)) : 2;
+    if (!run || car.idle) {
+      const L = -20, R = Math.max(obsEnd + 8, 26);
+      tPpm = Math.min(w / (R - L), (gy * 0.85) / (tallest + 7)); tLeft = L;
+    } else {
+      const peak = run.r.maxY;
+      tPpm = clamp(Math.min(w / 42, (gy * 0.8) / (peak + 3)), w / 140, w / 22);
+      tLeft = car.x - (w * 0.38) / tPpm;
+    }
+    const s = run ? Math.min(1, dt * 4) : 1;
+    cam.ppm += (tPpm - cam.ppm) * s; cam.left += (tLeft - cam.left) * s;
+    const ppm = cam.ppm, X = (wx) => (wx - cam.left) * ppm, Y = (wy) => gy - wy * ppm;
+
+    ctx.save();
+    if (fx.shake && !RM) ctx.translate((Math.random() - 0.5) * fx.shake, (Math.random() - 0.5) * fx.shake);
+    // sky
+    const sky = ctx.createLinearGradient(0, 0, 0, gy); sky.addColorStop(0, "#14122a"); sky.addColorStop(0.6, "#3b2a4f"); sky.addColorStop(1, "#b8573a");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#fff";
+    for (const [sx, sy, sz] of stars2) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 2 + sx * 40); ctx.fillRect(sx * w, sy * gy, sz, sz); }
+    ctx.globalAlpha = 1;
+    // mesas (parallax)
+    const par = -cam.left * ppm * 0.15;
+    ctx.fillStyle = "#2a1f33";
+    ctx.beginPath(); ctx.moveTo(0, gy);
+    for (let i = -1; i < 8; i++) {
+      const bx = ((i * w * 0.32 + par) % (w * 2.56) + w * 2.56) % (w * 2.56) - w * 0.32;
+      ctx.lineTo(bx, gy - h * 0.06); ctx.lineTo(bx + w * 0.04, gy - h * (0.13 + (i % 3) * 0.03)); ctx.lineTo(bx + w * 0.2, gy - h * (0.13 + (i % 3) * 0.03)); ctx.lineTo(bx + w * 0.24, gy - h * 0.06);
+    }
+    ctx.lineTo(w, gy); ctx.fill();
+
+    // height ruler
+    const top = (gy - 10) / ppm, stepM = top > 40 ? 10 : top > 20 ? 5 : 2;
+    ctx.font = `600 ${Math.max(10, Math.round(h * 0.028))}px "JetBrains Mono", monospace`; ctx.lineWidth = 1;
+    for (let mm = stepM; mm < top; mm += stepM) {
+      const y = Y(mm); ctx.strokeStyle = "rgba(255,255,255,.09)"; ctx.setLineDash([3, 7]);
+      ctx.beginPath(); ctx.moveTo(44, y); ctx.lineTo(w, y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillText(mm + " m", 6, y + 4);
+    }
+
+    // ground, landing zone
+    ctx.fillStyle = "#3a3540"; ctx.fillRect(0, gy, w, h - gy);
+    const zs = X(m.obstacles.length ? obsEnd + F.HALF : 4), ze = X(F.ZONE_END);
+    ctx.fillStyle = "rgba(79,209,139,.16)"; ctx.fillRect(zs, gy, ze - zs, h - gy);
+    ctx.fillStyle = "#4a4550"; ctx.fillRect(0, gy, w, 3);
+    ctx.fillStyle = "#e9d27a";
+    for (let wx = Math.floor(cam.left / 4) * 4; X(wx) < w; wx += 4) ctx.fillRect(X(wx), gy + (h - gy) * 0.5, 2 * ppm, 3);
+    // finish flag
+    if (ze < w + 20) {
+      ctx.strokeStyle = "#f4f1ea"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ze, gy); ctx.lineTo(ze, gy - 3 * ppm); ctx.stroke();
+      ctx.fillStyle = "#ff5d5d"; ctx.beginPath(); ctx.moveTo(ze, gy - 3 * ppm); ctx.lineTo(ze + 1.4 * ppm, gy - 2.6 * ppm); ctx.lineTo(ze, gy - 2.2 * ppm); ctx.fill();
+    }
+    ctx.font = `700 ${Math.max(10, Math.round(h * 0.026))}px "JetBrains Mono", monospace`; ctx.fillStyle = "rgba(79,209,139,.85)";
+    if (ze - zs > 120) { ctx.textAlign = "center"; ctx.fillText("SAFE LANDING ZONE", (Math.max(zs, 0) + Math.min(ze, w)) / 2, gy + (h - gy) * 0.85); ctx.textAlign = "left"; }
+
+    // ramp
+    const th = run ? run.th : (F.RAMPS[design.ramp].deg * Math.PI) / 180;
+    const rb = -F.RAMP_LEN * Math.cos(th), rh = F.RAMP_LEN * Math.sin(th);
+    ctx.fillStyle = "#6b6370"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(rb), Y(0)); ctx.lineTo(X(0), Y(rh)); ctx.lineTo(X(0), Y(0)); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f46524"; for (let k = 0.15; k < 1; k += 0.25) { ctx.fillRect(X(rb + (0 - rb) * k), Y(rh * k) - 2, 0.35 * ppm, 3); }
+
+    // obstacles
+    for (const o of m.obstacles) drawVehicle(ctx, o, X, Y, ppm);
+    if (m.obstacles.length) {
+      ctx.strokeStyle = "rgba(255,210,63,.45)"; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
+      for (const o of m.obstacles) { ctx.beginPath(); ctx.moveTo(X(o.x), Y(o.h)); ctx.lineTo(X(o.x + o.w), Y(o.h)); ctx.stroke(); }
+      ctx.setLineDash([]);
+    }
+
+    // ghost of previous flight
+    if (prevResult && prevResult.mission.id === m.id) {
+      ctx.strokeStyle = "rgba(255,255,255,.28)"; ctx.setLineDash([4, 6]); ctx.lineWidth = 2; ctx.beginPath();
+      prevResult.frames.forEach((f, i) => { const px = X(f.x), py = Y(f.y + F.CAR_H / 2); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    // current trail
+    if (run && run.phase !== "approach") {
+      const fr = run.r.frames, upto = run.phase === "fly" ? Math.floor(run.t * 60) : fr.length;
+      ctx.fillStyle = "#ff8a50";
+      for (let i = 0; i < upto; i += 3) { ctx.globalAlpha = 0.3 + 0.6 * (i / Math.max(1, upto)); ctx.beginPath(); ctx.arc(X(fr[i].x), Y(fr[i].y + F.CAR_H / 2), 2, 0, 7); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      // peak marker
+      if (upto >= fr.length - 1 || run.phase === "after") {
+        const px = X(run.r.maxYx), py = Y(run.r.maxY + F.CAR_H + 0.4);
+        ctx.font = `700 ${Math.max(11, Math.round(h * 0.03))}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "#ffd23f";
+        ctx.fillText(`PEAK ${F.fmt(run.r.maxY)} m`, px, py); ctx.textAlign = "left";
+      }
+    }
+
+    // car
+    const d = run ? run.r.design : design;
+    const f = car.f || {};
+    const jets = { lift: !!f.lift, push: !!f.push, flip: f.flip || 0, cushion: !!f.cushion, vector: run ? run.r.ctrl && !(f.flip) : false };
+    if (run && run.phase === "fly" && (f.lift || f.push)) { if (!run.whoosh) { run.whoosh = true; Sound.play("whoosh"); } }
+    // dust under jets
+    if (jets.lift && car.y < 4 && !RM && Math.random() < 0.6) fx.burst(X(car.x + (Math.random() - 0.5) * 4), gy, 2, { colors: ["#c9a98a", "#a88a70"], kind: "dust", speed: 90, g: -10, life: 1, size: 5, angle: Math.random() < 0.5 ? 0 : Math.PI, spread: 0.6 });
+    let squash = 0;
+    if (run && run.phase === "after" && (run.r.outcome === "landed" || run.r.outcome === "crash_hard" || run.r.outcome === "overshoot" || run.r.outcome === "short")) squash = Math.max(0, 1 - run.after * 4) * (run.r.outcome === "crash_hard" ? 1.6 : 1);
+    drawCar(ctx, X(car.x), Y(car.y), ppm, car.p, d, jets, t, squash, run && run.phase === "after" && run.r.outcome.startsWith("crash"));
+    fx.draw(ctx);
+
+    // forces
+    if ($("forces").checked && (!run || run.phase !== "after")) drawForces(ctx, X(car.x), Y(car.y + F.CAR_H / 2), ppm, d, jets, car.idle || (run && run.phase === "approach"));
+
+    // HUD
+    if (run && run.phase !== "approach") {
+      const air = f.air != null ? f.air : (run.phase === "after" ? run.r.frames[run.r.frames.length - 1].air : 1);
+      const spd = Math.hypot(f.vx || 0, f.vy || 0) * 3.6;
+      hud(ctx, w, h, [["ALT", F.fmt(Math.max(0, car.y)) + " m"], ["SPEED", Math.round(spd) + " km/h"], ["TILT", Math.round(Math.abs(((car.p * 180) / Math.PI + 540) % 360 - 180)) + "°"]], air);
+    } else if (!run) {
+      ctx.font = `700 ${Math.max(12, Math.round(h * 0.035))}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.textAlign = "center";
+      ctx.fillText("Build your car, then press Launch", w / 2, h * 0.12); ctx.textAlign = "left";
+    }
+
+    // phase logic + effects
+    if (run) step(dt, X, Y, gy, w, h, ctx);
+    ctx.restore();
+  }
+
+  function step(dt, X, Y, gy, w, h, ctx) {
+    const sp = $("slowmo").checked ? 0.35 : 1;
+    run.t += dt * sp;
+    if (run.phase === "approach" && run.t >= run.approachDur) { run.phase = "fly"; run.t = 0; }
+    else if (run.phase === "fly" && run.t * 60 >= run.r.frames.length - 1) { run.phase = "after"; run.after = 0; landFx(X, Y, gy); }
+    else if (run.phase === "after") {
+      run.after += dt;
+      const r = run.r, o = r.outcome;
+      const label = { landed: r.landing === "smooth" ? "SMOOTH LANDING!" : "LANDED!", crash_hard: "TOO HARD!", crash_side: "CRASH!", crash_top: "CRASH!", crash_angle: "TIPPED OVER!", crash_upside: "UPSIDE DOWN!", overshoot: "TOO FAR!", short: "TOO SHORT!" }[o];
+      const good = o === "landed";
+      const k = ease.back(clamp((run.after - 0.15) / 0.35, 0, 1));
+      if (run.after > 0.15) bigText(ctx, label, w / 2, h * 0.22, h * 0.1, good ? (r.landing === "smooth" ? "#4fd18b" : "#ffd23f") : "#ff5d5d", k);
+      if (o.startsWith("crash") && Math.random() < 0.35 && !RM) { const c = carState(); fx.burst(X(c.x), Y(c.y + 0.8), 1, { colors: ["#55535c", "#7a7782"], kind: "smoke", speed: 25, g: -50, life: 1.8, size: 9, drag: 0.95, angle: -Math.PI / 2, spread: 1 }); }
+      if (!run.reported && run.after > 0.7) { run.reported = true; showReport(r); }
+    }
+  }
+  function landFx(X, Y, gy) {
+    const r = run.r, c = carState(), o = r.outcome;
+    if (o.startsWith("crash")) {
+      Sound.play("ko"); fx.shake = 16;
+      fx.burst(X(c.x), Y(c.y + 0.5), 40, { colors: ["#ffd23f", "#fff", "#ff8a50"], speed: 360, g: 500, life: 0.7, size: 4 });
+    } else {
+      Sound.play("thud"); fx.shake = r.landing === "smooth" ? 4 : 9;
+    }
+    fx.burst(X(c.x), gy, 30, { colors: ["#c9a98a", "#a88a70"], kind: "dust", speed: 180, g: -10, life: 1.2, size: 7, angle: -Math.PI / 2, spread: Math.PI });
+  }
+
+  function hud(ctx, w, h, rows, air) {
+    const fs = Math.max(11, Math.round(h * 0.032)), pad = 8;
+    ctx.font = `700 ${fs}px "JetBrains Mono", monospace`;
+    const bw = fs * 9.5, bh = (rows.length + 1) * fs * 1.45 + pad;
+    ctx.fillStyle = "rgba(20,19,22,.72)"; rr(ctx, w - bw - 10, 10, bw, bh, 8); ctx.fill();
+    rows.forEach(([k, v], i) => {
+      const y = 10 + pad + (i + 0.8) * fs * 1.45;
+      ctx.fillStyle = "#aaa6b0"; ctx.fillText(k, w - bw, y);
+      ctx.fillStyle = "#f4f1ea"; ctx.textAlign = "right"; ctx.fillText(v, w - 18, y); ctx.textAlign = "left";
+    });
+    const y = 10 + pad + (rows.length + 0.35) * fs * 1.45;
+    ctx.fillStyle = "#aaa6b0"; ctx.fillText("AIR", w - bw, y + fs * 0.45);
+    const bx = w - bw + fs * 2.6, barW = bw - fs * 2.6 - 18;
+    ctx.fillStyle = "#1b1a1e"; rr(ctx, bx, y - fs * 0.25, barW, fs * 0.8, 4); ctx.fill();
+    ctx.fillStyle = air > 0.25 ? "#38a7f0" : "#ff5d5d"; rr(ctx, bx, y - fs * 0.25, Math.max(0, barW * air), fs * 0.8, 4); ctx.fill();
+  }
+
+  function drawForces(ctx, sx, sy, ppm, d, jets, idle) {
+    const S = F.sheet(d), base = 2.4 * ppm;
+    const wl = base, tl = base * (S.lift / Math.max(1, S.weight));
+    const firing = idle || jets.lift;
+    const fs = Math.max(11, Math.round(ppm * 0.55));
+    ctx.save(); ctx.lineWidth = Math.max(3, ppm * 0.16); ctx.lineCap = "round"; ctx.font = `700 ${fs}px "JetBrains Mono", monospace`;
+    arrow(ctx, sx + ppm * 0.9, sy, sx + ppm * 0.9, sy + wl, "#38a7f0");
+    ctx.fillStyle = "#38a7f0"; ctx.fillText(`WEIGHT ${F.kN(S.weight)}`, sx + ppm * 1.3, sy + wl);
+    if (d.lift && firing) {
+      ctx.globalAlpha = idle ? 0.75 : 1;
+      arrow(ctx, sx - ppm * 0.9, sy, sx - ppm * 0.9, sy - tl, "#ff8a50");
+      ctx.fillStyle = "#ff8a50"; ctx.textAlign = "right"; ctx.fillText(`THRUST ${F.kN(S.lift)}`, sx - ppm * 1.3, sy - tl + fs); ctx.textAlign = "left";
+    }
+    ctx.restore();
+  }
+  function arrow(ctx, x1, y1, x2, y2, col) {
+    const a = Math.atan2(y2 - y1, x2 - x1), hl = Math.max(8, ctx.lineWidth * 2.6);
+    ctx.strokeStyle = col; ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - Math.cos(a - 0.45) * hl, y2 - Math.sin(a - 0.45) * hl); ctx.lineTo(x2 - Math.cos(a + 0.45) * hl, y2 - Math.sin(a + 0.45) * hl); ctx.closePath(); ctx.fill();
+  }
+
+  // car: (sx, sy) = screen point under the middle of the car; p = pitch (radians, nose up +)
+  function drawCar(ctx, sx, sy, ppm, p, d, jets, t, squash, wrecked) {
+    const L = F.CAR_LEN * ppm, H = F.CAR_H * ppm;
+    ctx.save();
+    ctx.translate(sx, sy - H / 2); ctx.rotate(-p);
+    ctx.scale(1 + squash * 0.06, 1 - squash * 0.14);
+    // jets (drawn first, behind the body)
+    const jet = (x, y, ang, len, col) => {
+      const g = ctx.createLinearGradient(x, y, x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+      g.addColorStop(0, col); g.addColorStop(1, "rgba(56,167,240,0)");
+      ctx.fillStyle = g; ctx.beginPath();
+      const wdt = Math.max(2, ppm * 0.12), nx = -Math.sin(ang) * wdt, ny = Math.cos(ang) * wdt;
+      ctx.moveTo(x + nx * 0.6, y + ny * 0.6); ctx.lineTo(x - nx * 0.6, y - ny * 0.6);
+      ctx.lineTo(x + Math.cos(ang) * len - nx * 2.2, y + Math.sin(ang) * len - ny * 2.2); ctx.lineTo(x + Math.cos(ang) * len + nx * 2.2, y + Math.sin(ang) * len + ny * 2.2);
+      ctx.fill();
+    };
+    if (jets.lift && d.lift) {
+      const n = d.lift, down = jets.vector ? Math.PI / 2 + p : Math.PI / 2; // vectored jets point straight down in the world
+      for (let i = 0; i < n; i++) {
+        const x = -L * 0.4 + (i * L * 0.8) / Math.max(1, n - 1);
+        jet(x, H * 0.45, down, ppm * (1.1 + Math.random() * 0.7) * (jets.cushion ? 1.3 : 1), jets.cushion ? "rgba(255,210,63,.9)" : "rgba(191,230,255,.95)");
+      }
+    }
+    if (jets.push && d.push) for (let i = 0; i < d.push; i++) jet(-L * 0.5, -H * 0.05 + (i - (d.push - 1) / 2) * H * 0.14, Math.PI, ppm * (1 + Math.random() * 0.6), "rgba(191,230,255,.95)");
+    if (jets.flip && d.flip) {
+      const dir = jets.flip;
+      jet(L * 0.45, dir > 0 ? H * 0.4 : -H * 0.4, dir > 0 ? Math.PI / 2 : -Math.PI / 2, ppm * 1.2, "rgba(197,140,255,.95)");
+      jet(-L * 0.45, dir > 0 ? -H * 0.4 : H * 0.4, dir > 0 ? -Math.PI / 2 : Math.PI / 2, ppm * 1.2, "rgba(197,140,255,.95)");
+    }
+    // body
+    const mat = d.material, bodyCol = ["#e9e6ee", "#c7ccd4", "#7f8794", "#2c2c34"][mat];
+    const g = ctx.createLinearGradient(0, -H / 2, 0, H / 2);
+    g.addColorStop(0, "#ff8a50"); g.addColorStop(0.55, "#f46524"); g.addColorStop(1, "#a93d0c");
+    ctx.fillStyle = g; ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, ppm * 0.07);
+    ctx.beginPath();
+    ctx.moveTo(-L / 2, H * 0.3);
+    ctx.quadraticCurveTo(-L / 2, -H * 0.15, -L * 0.25, -H * 0.18);
+    ctx.quadraticCurveTo(-L * 0.04, -H * 0.62, L * 0.2, -H * 0.24);
+    ctx.quadraticCurveTo(L / 2, -H * 0.12, L / 2 + L * 0.02, H * 0.22);
+    ctx.lineTo(L / 2, H * 0.32); ctx.lineTo(-L / 2, H * 0.32); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // material stripe (shows what it's made of)
+    ctx.fillStyle = bodyCol; ctx.fillRect(-L * 0.46, H * 0.06, L * 0.9, H * 0.1);
+    if (mat === 3) { ctx.strokeStyle = "rgba(255,255,255,.15)"; ctx.lineWidth = 1; for (let k = -L * 0.46; k < L * 0.44; k += ppm * 0.18) { ctx.beginPath(); ctx.moveTo(k, H * 0.06); ctx.lineTo(k + ppm * 0.1, H * 0.16); ctx.stroke(); } }
+    // window
+    const wg = ctx.createLinearGradient(0, -H * 0.55, 0, -H * 0.2); wg.addColorStop(0, "#9fd3f5"); wg.addColorStop(1, "#1d3550");
+    ctx.fillStyle = wg; ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, ppm * 0.06);
+    ctx.beginPath(); ctx.moveTo(-L * 0.17, -H * 0.2); ctx.quadraticCurveTo(-L * 0.02, -H * 0.56, L * 0.14, -H * 0.24); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // passengers
+    for (let i = 0; i < d.people; i++) { ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(-L * 0.06 + i * L * 0.11, -H * 0.3, H * 0.08, 0, 7); ctx.fill(); }
+    // tanks hint (dots along the bottom)
+    ctx.fillStyle = "#38a7f0"; for (let i = 0; i < d.tanks; i++) ctx.fillRect(-L * 0.3 + i * L * 0.075, H * 0.2, L * 0.05, H * 0.07);
+    // lights
+    ctx.save(); ctx.shadowColor = "#fff6c0"; ctx.shadowBlur = 12; ctx.fillStyle = "#fff6c0"; rr(ctx, L * 0.43, -H * 0.06, L * 0.06, H * 0.1, 2); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#ff3030"; rr(ctx, -L * 0.5, -H * 0.06, L * 0.04, H * 0.1, 2); ctx.fill();
+    // wheels
+    [-0.3, 0.3].forEach((k) => {
+      ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(L * k, H * 0.36, H * 0.24, 0, 7); ctx.fill();
+      ctx.fillStyle = "#9a96a3"; ctx.beginPath(); ctx.arc(L * k, H * 0.36, H * 0.11, 0, 7); ctx.fill();
+    });
+    if (wrecked) { ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-L * 0.1, -H * 0.1); ctx.lineTo(L * 0.02, H * 0.05); ctx.lineTo(-L * 0.04, H * 0.2); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawVehicle(ctx, o, X, Y, ppm) {
+    const x0 = X(o.x), x1 = X(o.x + o.w), base = Y(0), top = Y(o.h), W = x1 - x0, Hh = base - top;
+    ctx.save(); ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, ppm * 0.06);
+    const wheel = (cx, r) => { ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(cx, base - r, r, 0, 7); ctx.fill(); ctx.fillStyle = "#6f6b77"; ctx.beginPath(); ctx.arc(cx, base - r, r * 0.45, 0, 7); ctx.fill(); };
+    const glass = "rgba(159,196,221,.45)";
+    if (o.kind === "semi" || o.kind === "tractor") {
+      const cabW = Math.min(W, 6.5 * ppm), cabX = o.kind === "semi" ? x0 + W - cabW : x0;
+      if (o.kind === "semi") { // trailer
+        ctx.fillStyle = "#c9ccd3"; ctx.fillRect(x0, top, W - cabW - 0.3 * ppm, Hh * 0.82); ctx.strokeRect(x0, top, W - cabW - 0.3 * ppm, Hh * 0.82);
+        ctx.fillStyle = "rgba(0,0,0,.08)"; for (let k = 1; k < 8; k++) ctx.fillRect(x0 + ((W - cabW) * k) / 8, top, 2, Hh * 0.82);
+        ctx.fillStyle = "#3a3842"; ctx.fillRect(x0, top + Hh * 0.82, W - cabW, Hh * 0.05);
+        wheel(x0 + 1.2 * ppm, Hh * 0.13); wheel(x0 + 2.6 * ppm, Hh * 0.13);
+      }
+      ctx.fillStyle = "#e7e9ee";
+      ctx.beginPath(); ctx.moveTo(cabX, base - Hh * 0.15); ctx.lineTo(cabX, top + Hh * 0.08); ctx.quadraticCurveTo(cabX + cabW * 0.1, top, cabX + cabW * 0.45, top);
+      ctx.lineTo(cabX + cabW * 0.8, top + Hh * 0.1); ctx.quadraticCurveTo(cabX + cabW, top + Hh * 0.35, cabX + cabW, base - Hh * 0.15); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = glass; ctx.beginPath(); ctx.moveTo(cabX + cabW * 0.62, top + Hh * 0.1); ctx.lineTo(cabX + cabW * 0.8, top + Hh * 0.13); ctx.quadraticCurveTo(cabX + cabW * 0.95, top + Hh * 0.33, cabX + cabW * 0.97, top + Hh * 0.45); ctx.lineTo(cabX + cabW * 0.62, top + Hh * 0.45); ctx.closePath(); ctx.fill();
+      wheel(cabX + cabW * 0.22, Hh * 0.13); wheel(cabX + cabW * 0.78, Hh * 0.13);
+    } else {
+      const col = { sedan: "#5d6b82", suv: "#6e5a7a", pickup: "#7a6a52", cab: "#d9dbe0" }[o.kind] || "#666";
+      ctx.fillStyle = col;
+      const roofStart = o.kind === "pickup" ? 0.42 : o.kind === "cab" ? 0.12 : 0.28, roofEnd = o.kind === "pickup" ? 0.75 : o.kind === "cab" ? 0.88 : o.kind === "suv" ? 0.88 : 0.72;
+      const belt = o.kind === "cab" ? 0.5 : 0.55;
+      ctx.beginPath(); ctx.moveTo(x0, base - Hh * 0.18); ctx.lineTo(x0 + W * 0.02, top + Hh * belt);
+      if (o.kind === "pickup") { ctx.lineTo(x0 + W * roofStart - W * 0.02, top + Hh * belt); ctx.lineTo(x0 + W * roofStart, top + Hh * 0.05); }
+      else ctx.lineTo(x0 + W * roofStart, top + Hh * (o.kind === "cab" ? 0.05 : 0.08));
+      ctx.quadraticCurveTo(x0 + W * (roofStart + roofEnd) / 2, top - Hh * 0.04, x0 + W * roofEnd, top + Hh * 0.06);
+      ctx.lineTo(x0 + W * 0.97, top + Hh * belt); ctx.lineTo(x1, base - Hh * 0.18); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = glass; ctx.beginPath();
+      ctx.moveTo(x0 + W * (roofStart + 0.04), top + Hh * belt - 2); ctx.lineTo(x0 + W * (roofStart + 0.05), top + Hh * 0.16); ctx.lineTo(x0 + W * (roofEnd - 0.04), top + Hh * 0.16); ctx.lineTo(x0 + W * (roofEnd + 0.02), top + Hh * belt - 2); ctx.closePath(); ctx.fill();
+      wheel(x0 + W * 0.2, Hh * 0.2); wheel(x0 + W * 0.8, Hh * 0.2);
+    }
+    // label
+    const fs = Math.max(10, Math.round(Math.min(ppm * 0.62, 16)));
+    ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,210,63,.9)";
+    ctx.fillText(`${o.label.toUpperCase()} · ${F.fmt(o.h)} m`, (x0 + x1) / 2, top - fs * 0.6);
+    ctx.restore();
+  }
+
+  // ---------------- report ----------------
+  function showReport(r) {
+    const g = F.grade(r), e = F.explain(r, g), m = r.mission;
+    const best = stars[m.id] || [false, false, false];
+    const merged = best.map((b, i) => b || g.stars[i]);
+    const newStar = merged.some((b, i) => b && !best[i]);
+    stars[m.id] = merged; ls.set("fcl-stars", stars);
+    renderMissions(); renderGoal();
+    if (g.complete) { Sound.play("win"); fx.burst($("track").getBoundingClientRect().width / 2, 30, 80, { colors: E.COLORS, kind: "confetti", speed: 380, g: 320, life: 2.2, size: 6, drag: 0.93 }); }
+
+    const P = prevResult && prevResult.mission.id === m.id ? prevResult : null;
+    const cmp = (a, b, better, dp = 1) => {
+      if (!P) return "";
+      const diff = a - b; if (Math.abs(diff) < 0.05) return `<i>same as last</i>`;
+      const good = better === "up" ? diff > 0 : diff < 0;
+      return `<i class="${good ? "up" : "down"}">${diff > 0 ? "+" : ""}${F.fmt(diff, dp)} vs last</i>`;
+    };
+    const rep = $("report"); rep.innerHTML = "";
+    const hd = document.createElement("div"); hd.className = "headline " + e.headline.tone;
+    hd.innerHTML = `<span></span><span class="stars">${starStr(g.stars)}</span>`; hd.firstChild.textContent = e.headline.text + (newStar ? "  New star!" : "");
+    rep.appendChild(hd);
+    const nums = document.createElement("div"); nums.className = "nums";
+    nums.innerHTML = `
+      <div><b>${F.fmt(r.maxY)} m</b><span>peak height</span> ${cmp(r.maxY, P && P.maxY, "up")}</div>
+      <div><b>${F.fmt(r.flightTime)} s</b><span>air time</span> ${cmp(r.flightTime, P && P.flightTime, "up")}</div>
+      <div><b>${F.fmt(r.landX, 0)} m</b><span>distance</span> ${cmp(r.landX, P && P.landX, "up", 0)}</div>
+      <div><b>${F.fmt(r.vImp)} m/s</b><span>landing speed (max ${F.fmt(r.sheet.strength)})</span> ${cmp(r.vImp, P && P.vImp, "down")}</div>`;
+    rep.appendChild(nums);
+    e.items.forEach((it, i) => {
+      const d = document.createElement("div"); d.className = "finding " + it.tone; d.style.animationDelay = i * 0.06 + "s";
+      d.innerHTML = `<span class="ic">${it.tone === "good" ? "✓" : it.tone === "bad" ? "✗" : "i"}</span><div><h4></h4><p></p></div>`;
+      d.querySelector("h4").textContent = it.title; d.querySelector("p").textContent = it.text;
+      rep.appendChild(d);
+    });
+    const tip = document.createElement("div"); tip.className = "tipbox"; tip.innerHTML = "<b>Try this next</b><span></span>"; tip.lastChild.textContent = e.tip;
+    rep.appendChild(tip);
+    if (g.complete && mIdx < F.MISSIONS.length - 1) {
+      const nb = document.createElement("button"); nb.type = "button"; nb.className = "btn"; nb.textContent = `Next mission: ${F.MISSIONS[mIdx + 1].n}`;
+      nb.onclick = () => { $("missions").children[mIdx + 1].click(); window.scrollTo({ top: 0, behavior: RM ? "auto" : "smooth" }); };
+      rep.appendChild(nb);
+    }
+  }
+
+  // ---------------- boot ----------------
+  $("sound").onclick = () => { const on = Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
+  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === document.body) launch(); });
+  renderMissions(); renderGoal(); renderBuilder(); renderSheet();
+  let last = performance.now();
+  (function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    try { draw(now / 1000, dt); } catch (err) { console.error(err); }
+    requestAnimationFrame(loop);
+  })(last);
+  window.__lab = { get design() { return design; }, setDesign(d) { design = F.clampDesign({ ...design, ...d }); changed(); }, launch, get run() { return run; } };
+})();
+
+</script>
+</body>
+</html>

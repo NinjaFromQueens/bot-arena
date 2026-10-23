@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Offline backup of Bot Arena. Built by scripts/build-offline.js -->
+<title>Practice · Bot Arena</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a workshop "garage" on a blueprint floor. Three bays behind numbered tabs: Build (parts left, sticky live preview right), Arena (stadium stage + corners + roster), Flying Car Lab (test track + controls). */
+:root {
+  color-scheme: dark;
+  --bg: #1b1a1e;
+  --floor: #242328;
+  --panel: #2b2a30;
+  --panel-hi: #33323a;
+  --line: #44424b;
+  --fg: #f4f1ea;
+  --muted: #aaa6b0;
+  --orange: #f46524;
+  --orange-hi: #ff8a50;
+  --orange-soft: #f4652429;
+  --blue: #38a7f0;
+  --blue-soft: #38a7f029;
+  --purple: #c58cff;
+  --good: #4fd18b;
+  --bad: #ff5d5d;
+  --ink: #141316;
+  --display: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --mono: "JetBrains Mono", "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 500px at 50% -200px, #f4652418, transparent 70%),
+    linear-gradient(var(--floor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--floor) 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px, 28px 28px;
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.45;
+}
+button { font: inherit; color: inherit; }
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 18px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin-bottom: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 46px; height: 46px; flex: none; }
+.brand small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 6vw, 44px); line-height: 1; margin: 2px 0 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-size: 21px; margin: 0; line-height: 1.2; }
+h3 { font-family: var(--display); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+p { margin: 0; }
+.headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; flex-wrap: wrap; }
+.tab {
+  font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .03em;
+  background: transparent; color: var(--muted); border: 0;
+  padding: 9px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  transition: background .2s, color .2s;
+}
+.tab i { font-style: normal; font-family: var(--mono); font-size: 11px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); }
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] { background: var(--orange); color: var(--ink); }
+.tab[aria-selected="true"] i { border-color: var(--ink); }
+.soundbtn { font-family: var(--mono); font-size: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.soundbtn[aria-pressed="true"] { color: var(--good); border-color: #4fd18b66; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.bay { display: grid; gap: 14px; animation: bayIn .35s ease-out; }
+@keyframes bayIn { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.intro { color: var(--muted); max-width: 70ch; }
+.intro b { color: var(--fg); font-weight: 600; }
+.panel { background: linear-gradient(180deg, var(--panel-hi), var(--panel) 120px); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.chip { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; line-height: 1.5; text-transform: uppercase; }
+.c-sense { background: var(--blue-soft); color: var(--blue); }
+.c-think { background: #c58cff26; color: var(--purple); }
+.c-act { background: var(--orange-soft); color: var(--orange-hi); }
+.c-win { background: #4fd18b26; color: var(--good); }
+.c-move { background: #ffffff14; color: var(--fg); }
+.btn {
+  font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .03em;
+  background: var(--orange); color: var(--ink); border: 0; border-radius: 9px; padding: 11px 18px; cursor: pointer;
+  box-shadow: 0 3px 0 #a93d0c; transition: transform .08s, box-shadow .08s, filter .15s;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 #a93d0c; }
+.btn.ghost { background: var(--panel-hi); color: var(--fg); box-shadow: 0 3px 0 #18171b; border: 1px solid var(--line); }
+.btn.big { font-size: 19px; padding: 13px 26px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.small { font-size: 13px; color: var(--muted); }
+input[type=text] {
+  font-family: var(--mono); font-size: 17px; text-transform: uppercase; letter-spacing: .06em;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; width: 100%;
+}
+canvas { display: block; width: 100%; max-width: 100%; }
+
+/* BUILD */
+.build { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.build .right { display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 10px); }
+.slot { margin-top: 16px; }
+.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.choice {
+  text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 10px; cursor: pointer; line-height: 1.2; display: grid; gap: 3px; position: relative;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.choice:hover { border-color: #6a6772; transform: translateY(-1px); }
+.choice b { font-family: var(--display); font-size: 16px; }
+.choice span { color: var(--muted); font-size: 13px; }
+.choice em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.choice[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+.choice[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.swatch { width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: inset 0 -4px 0 #0003; transition: transform .15s; }
+.swatch[aria-pressed="true"] { transform: scale(1.12); outline: 3px solid var(--fg); outline-offset: 3px; }
+.namerow { display: flex; gap: 8px; }
+.preview-card { padding: 0; overflow: hidden; }
+.preview { aspect-ratio: 5 / 4; }
+.weight { padding: 12px 16px 14px; border-top: 1px solid var(--line); }
+.wrow { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .06em; }
+.meter { height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); position: relative; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, #3cb877, var(--good)); transition: width .35s cubic-bezier(.3,1.4,.5,1), background .25s; border-radius: 7px; }
+.meter.over > i { background: linear-gradient(90deg, #d93f3f, var(--bad)); }
+.meter.over { animation: buzz .3s linear 2; }
+@keyframes buzz { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.warn { color: var(--bad); font-weight: 600; font-size: 15px; min-height: 1.45em; margin-top: 6px; }
+.stats { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 2em; gap: 8px 10px; align-items: center; font-size: 15px; }
+.stats .bar { height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+.stats .bar i { display: block; height: 100%; border-radius: 5px; transition: width .4s cubic-bezier(.3,1.4,.5,1); }
+.stats .n { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.codebox { display: grid; gap: 10px; margin-top: 16px; padding: 14px; border: 1.5px dashed var(--orange); border-radius: 12px; background: var(--orange-soft); }
+.coderow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.code { font-family: var(--mono); font-size: 24px; font-weight: 700; letter-spacing: .06em; color: var(--orange-hi); user-select: all; word-break: break-all; }
+.toast { color: var(--good); font-weight: 600; font-size: 15px; min-height: 1.45em; }
+
+/* ARENA */
+.arena-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.stage-card { padding: 0; overflow: hidden; }
+.arena-stage { aspect-ratio: 16 / 9; }
+.huds { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.hud .who { display: flex; justify-content: space-between; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 17px; }
+.hud .who span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .who span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.hud.b .who { flex-direction: row-reverse; }
+.hpbar { height: 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 5px; position: relative; }
+.hpbar i { position: absolute; inset: 0 auto 0 0; display: block; height: 100%; border-radius: 8px; }
+.hpbar .ghost { background: #fff8; transition: width .7s ease .35s; }
+.hpbar .main { transition: width .25s ease; }
+.hud.b .hpbar i { inset: 0 0 0 auto; }
+.vs-mini { font-family: var(--display); font-weight: 700; color: var(--muted); font-size: 14px; }
+.stage-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 16px 16px; }
+.stage-ctrl .spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { background: var(--bg); border: 0; padding: 8px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--panel-hi); color: var(--fg); }
+.log { padding: 12px 16px 16px; border-top: 1px solid var(--line); font-size: 15px; max-height: 210px; overflow-y: auto; display: grid; gap: 5px; }
+.log:empty::before { content: "The battle log will show every Sense, Think, and Act move here."; color: var(--muted); font-size: 14px; }
+.log div { display: grid; grid-template-columns: 4.8em minmax(0, 1fr); gap: 8px; align-items: baseline; animation: logIn .25s ease-out; }
+.log .chip { text-align: center; }
+.log .a { color: var(--orange-hi); font-weight: 600; }
+.log .b { color: var(--blue); font-weight: 600; }
+@keyframes logIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+.corners { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin: 12px 0 14px; }
+.corner { text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; min-width: 0; transition: border-color .15s, box-shadow .15s; }
+.corner .lbl { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.corner .cn { display: block; font-family: var(--display); font-weight: 700; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.corner.a .lbl { color: var(--orange-hi); }
+.corner.b .lbl { color: var(--blue); }
+.corner.a[aria-pressed="true"] { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
+.corner.b[aria-pressed="true"] { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.corners .vs { font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--muted); }
+.addrow { display: flex; gap: 8px; }
+.addrow input { flex: 1; min-width: 0; }
+.roster { display: grid; gap: 6px; max-height: 360px; overflow-y: auto; margin-top: 10px; padding-right: 2px; }
+.rbot { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 10px 6px 6px; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; text-align: left; width: 100%; transition: border-color .15s, transform .1s; }
+.rbot:hover { border-color: #6a6772; transform: translateX(2px); }
+.rbot.in-a { border-color: var(--orange); }
+.rbot.in-b { border-color: var(--blue); }
+.rbot canvas { width: 40px; height: 40px; }
+.rbot .nm { font-family: var(--display); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.rbot .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rbot .rec { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.tag { font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 4px; font-weight: 500; }
+
+/* LAB */
+.lab-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.lab-stage { aspect-ratio: 16 / 9; }
+.lab-body { padding: 14px 16px 16px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
+.forces { display: grid; grid-template-columns: 4.2em minmax(0, 1fr) 4.6em; gap: 6px 10px; align-items: center; font-size: 15px; }
+.forces .bar { height: 16px; background: var(--bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.forces .bar i { display: block; height: 100%; border-radius: 8px; transition: width .4s cubic-bezier(.3,1.3,.5,1); }
+.forces .n { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.verdict { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 16px; }
+.verdict b { font-family: var(--display); }
+.launchrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.launchrow .small { font-size: 15px; color: var(--fg); }
+.results { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 480px) { .results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.results div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.results b { display: block; font-family: var(--mono); font-size: 20px; color: var(--orange-hi); font-variant-numeric: tabular-nums; }
+.results span { font-size: 12px; color: var(--muted); }
+.slider { display: grid; gap: 6px; margin-top: 14px; }
+.slider .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; font-weight: 500; }
+.slider .lbl b { font-family: var(--mono); color: var(--ink); background: var(--orange); border-radius: 6px; padding: 0 7px; font-variant-numeric: tabular-nums; font-size: 14px; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--orange) var(--p, 50%), var(--bg) var(--p, 50%)); border: 1px solid var(--line); }
+input[type=range]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); }
+input[type=range]::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--orange); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); margin-top: -9px; box-shadow: 0 2px 6px #0008; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); }
+.missions { display: grid; gap: 8px; }
+.mission { display: flex; gap: 10px; align-items: center; font-size: 15px; padding: 8px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+.mission .box { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line); display: grid; place-items: center; flex: none; font-weight: 700; color: var(--ink); }
+.mission.done { border-color: #4fd18b66; }
+.mission.done .box { background: var(--good); border-color: var(--good); }
+.mission.pop .box { animation: pop .5s cubic-bezier(.3,1.8,.5,1); }
+@keyframes pop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
+
+@media (max-width: 820px) {
+  .build, .arena-grid, .lab-grid { grid-template-columns: minmax(0, 1fr); }
+  .build .right { display: contents; }
+  .build .preview-card { order: -1; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 6px); z-index: 5; box-shadow: 0 10px 24px #000a; }
+  .build .preview { aspect-ratio: 16 / 7; }
+  .build .weight { padding: 8px 14px 10px; }
+  .build .warn { min-height: 0; }
+}
+@media (max-width: 440px) {
+  .choice { padding: 8px; }
+  .choice span { display: none; }
+  .tab { padding: 8px 10px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.why { padding: 14px 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; background: linear-gradient(180deg, #ffd23f10, transparent); }
+.why h4 { margin: 0; font-family: var(--display); font-size: 19px; color: #ffd23f; }
+.why ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.why li { font-size: 16px; }
+.why .tip { margin: 0; font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
+.why .tip b { font-family: var(--display); color: var(--orange-hi); }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 46 46" aria-hidden="true">
+        <rect x="1" y="1" width="44" height="44" rx="12" fill="#f46524"/>
+        <rect x="11" y="15" width="24" height="18" rx="5" fill="#141316"/>
+        <circle cx="18" cy="24" r="3.5" fill="#38a7f0"/><circle cx="28" cy="24" r="3.5" fill="#38a7f0"/>
+        <rect x="21.5" y="7" width="3" height="8" rx="1.5" fill="#141316"/><circle cx="23" cy="7" r="3" fill="#fff"/>
+        <rect x="15" y="35" width="16" height="3" rx="1.5" fill="#141316"/>
+      </svg>
+      <div><small><a href="bot-arena-offline.html" style="color:inherit;text-decoration:none">← Fall Robotics Academy</a></small><h1>Practice Mode</h1></div>
+    </div>
+    <div class="headright">
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true"><i>1</i>Build</button>
+        <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false"><i>2</i>Arena</button>
+        <a class="tab" href="flying-car-lab-offline.html" style="text-decoration:none"><i>3</i>Flying Car Lab</a>
+      </nav>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+    </div>
+  </header>
+
+  <!-- BUILD -->
+  <section class="bay" id="bay-build">
+    <p class="intro">Every robot needs to <b>Sense</b>, <b>Think</b>, and <b>Act</b>. Pick one part for each job, but watch the weight: heavy parts hit hard, and a bot over 75 kg is too heavy for its motors.</p>
+    <div class="build">
+      <div class="panel">
+        <h3>Name</h3>
+        <div class="namerow">
+          <input type="text" id="bot-name" maxlength="10" value="BOLT" autocomplete="off" aria-label="Robot name, up to 10 letters or numbers">
+          <button class="btn ghost" id="random" type="button">Random</button>
+        </div>
+        <div class="slot"><h3>Color</h3><div class="swatches" id="sw"></div></div>
+        <div class="slot"><h3><span class="chip c-move">Move</span> Body</h3><div class="choices" id="c-body"></div></div>
+        <div class="slot"><h3><span class="chip c-sense">Sense</span> Sensor</h3><div class="choices" id="c-sensor"></div></div>
+        <div class="slot"><h3><span class="chip c-think">Think</span> Brain</h3><div class="choices" id="c-brain"></div></div>
+        <div class="slot"><h3><span class="chip c-act">Act</span> Tool</h3><div class="choices" id="c-tool"></div></div>
+      </div>
+      <div class="right">
+        <div class="panel preview-card">
+          <canvas id="preview" class="preview" aria-label="Your robot"></canvas>
+          <div class="weight">
+            <div class="wrow"><span>WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
+            <div class="meter" id="wmeter"><i></i></div>
+            <div class="warn" id="warn" role="status"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="stats" id="stats"></div>
+          <div class="codebox">
+            <div class="small">Your bot code. Read it to your teacher to enter the Arena.</div>
+            <div class="coderow">
+              <div class="code" id="code">BOLT-00220</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn ghost" id="copy" type="button">Copy</button>
+                <button class="btn" id="save" type="button">Send to Arena</button>
+              </div>
+            </div>
+            <div class="toast" id="toast" role="status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARENA -->
+  <section class="bay" id="bay-arena" hidden>
+    <p class="intro">Tap a corner, then tap a bot from the roster to put it there. Every move in the fight is a <b>Sense</b>, <b>Think</b>, or <b>Act</b> step.</p>
+    <div class="arena-grid">
+      <div class="panel stage-card">
+        <canvas id="arena" class="arena-stage" aria-label="Battle arena"></canvas>
+        <div class="huds">
+          <div class="hud a"><div class="who"><span id="na">—</span><span id="ha">100</span></div><div class="hpbar"><i class="ghost" id="ga" style="width:100%"></i><i class="main" id="ba" style="width:100%;background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div></div>
+          <span class="vs-mini">VS</span>
+          <div class="hud b"><div class="who"><span id="nb">—</span><span id="hb">100</span></div><div class="hpbar"><i class="ghost" id="gb" style="width:100%"></i><i class="main" id="bb" style="width:100%;background:linear-gradient(270deg,#1d7fc4,var(--blue))"></i></div></div>
+        </div>
+        <div class="stage-ctrl">
+          <button class="btn big" id="fight" type="button">Fight!</button>
+          <button class="btn ghost" id="skip" type="button" disabled>Skip to end</button>
+          <span class="spacer"></span>
+          <div class="seg" role="group" aria-label="Battle speed">
+            <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button>
+          </div>
+        </div>
+        <div class="why" id="why" hidden><h4 id="why-h"></h4><ul id="why-r"></ul><p class="tip" id="why-t"></p></div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+      <div class="panel">
+        <h2>Matchup</h2>
+        <div class="corners">
+          <button class="corner a" id="cornerA" type="button" aria-pressed="true"><span class="lbl">Orange corner</span><span class="cn" id="cna">—</span></button>
+          <span class="vs">VS</span>
+          <button class="corner b" id="cornerB" type="button" aria-pressed="false"><span class="lbl">Blue corner</span><span class="cn" id="cnb">—</span></button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+          <h2>Class Roster</h2>
+          <button class="btn ghost" id="randmatch" type="button" style="padding:7px 12px;font-size:13px">Random match</button>
+        </div>
+        <div class="addrow">
+          <input type="text" id="addcode" placeholder="ZAP-21013" autocomplete="off" aria-label="Classmate's bot code">
+          <button class="btn" id="add" type="button">Add</button>
+        </div>
+        <p class="warn" id="addmsg" role="status"></p>
+        <div class="roster" id="roster"></div>
+        <p class="small" style="margin-top:10px">Bots are saved on this device. Bots marked "sample" are for practice.</p>
+      </div>
+    </div>
+  </section>
+
+
+</div>
+
+<script>
+/*
+ * Bot Arena engine — shared by the server (Node) and the browser.
+ * - Part data, bot codes, stats
+ * - Deterministic battle simulation (seeded), so the server decides the
+ *   winner and the host screen replays the exact same fight.
+ * - Browser-only: robot drawing, particle effects, sound.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Engine = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const isBrowser = typeof window !== "undefined";
+  const RM = isBrowser && window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+
+  // ---------------- data ----------------
+  const COLORS = ["#f46524", "#38a7f0", "#4fd18b", "#c58cff", "#ffd23f", "#ff5d8f"];
+  const BRAIN_COL = ["#ff5d5d", "#4fd18b", "#c58cff"];
+  // Battle numbers live here so balance can be tuned in one place (see test/balance.js).
+  //   dodge: harder to hit   burst: chance of a speed-burst bonus attack   heavy: can't be grabbed
+  //   acc: hit-chance bonus  swings: attacks per turn   mult: damage per swing   grab: chance to stall the enemy
+  //   tip: one line shown to students explaining the part's strength and weakness
+  const PARTS = {
+    body: [
+      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but light armor.", wt: 25, spd: 7, def: 1, dodge: 1, burst: 0.3 },
+      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 0, def: 7, dodge: 0, heavy: true },
+      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 6, def: 4, dodge: 7 },
+    ],
+    sensor: [
+      { n: "Camera", d: "Best aim", tip: "Sees the target clearly, so it hits more often.", wt: 10, aim: 7 },
+      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 4, dodge: 7 },
+      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 3, def: 3 },
+    ],
+    brain: [
+      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -3 },
+      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 2, shieldAt: 65, shieldP: 0.4, counter: 5 },
+      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.3, waitAim: 24 },
+    ],
+    tool: [
+      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 16, swings: 1, mult: 1, grab: 0.3 },
+      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -14, swings: 1, mult: 1 },
+      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder with no big weakness.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.71 },
+    ],
+  };
+  const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  const MAXW = 75;
+  const SLOTS = ["body", "sensor", "brain", "tool"];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  function statsOf(b) {
+    const s = { atk: 0, def: 0, spd: 0, aim: 0, wt: 0 };
+    SLOTS.forEach((k) => { const p = PARTS[k][b[k]]; for (const f in s) s[f] += p[f] || 0; });
+    return s;
+  }
+  function cleanName(n, max = 10) {
+    return String(n || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, max);
+  }
+  // Validate anything that arrives from a client.
+  function sanitizeBot(b) {
+    if (!b || typeof b !== "object") return null;
+    const out = { name: cleanName(b.name) || "BOT" };
+    for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v > 2) return null; out[k] = v; }
+    const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
+    if (statsOf(out).wt > MAXW) return null;
+    return out;
+  }
+  const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}`;
+  function parseCode(c) {
+    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-2])([0-2])([0-2])([0-2])([0-5])$/);
+    return m ? { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
+  }
+
+  // ---------------- deterministic battle ----------------
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function simulate(a, b, seed) {
+    const rnd = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
+    const S = [statsOf(a), statsOf(b)], bots = [a, b], H = [100, 100], ev = [];
+    const brace = [false, false], stall = [false, false];
+    const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
+    let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
+    const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
+    // one attack: returns true if the target was knocked out
+    function attack(me, op, burst) {
+      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool];
+      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]), 20, 95);
+      let bonus = 0;
+      if (!burst) {
+        push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
+        const BR = PARTS.brain[m.brain];
+        if (BR.shieldAt && H[me] < BR.shieldAt && !brace[me] && !shieldUsed[me] && rnd() < BR.shieldP) {
+          brace[me] = true; shieldUsed[me] = true;
+          push({ me, kind: "think", txt: " is hurt, so it raises its shield.", bubble: "SHIELD!" });
+          return false;
+        }
+        if (BR.waitP && chance < 70 && rnd() < BR.waitP) { chance = Math.min(95, chance + BR.waitAim); bonus = 3; push({ me, kind: "think", txt: " waits for a clear shot. Aim goes up!", bubble: "AIMING..." }); }
+        else if (BR.counter && counter[me]) { bonus = BR.counter; shieldUsed[me] = false; push({ me, kind: "think", txt: " blocked that hit, so it counterattacks!", bubble: "COUNTER!" }); }
+        else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
+        else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
+        counter[me] = false;
+      }
+      let total = 0, hits = 0;
+      for (let k = 0; k < T.swings; k++) {
+        if (rnd() * 100 < chance) {
+          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def;
+          if (brace[op]) dmg /= 2;
+          total += Math.max(2, Math.round(dmg)); hits++;
+        }
+      }
+      if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
+      H[op] = Math.max(0, H[op] - total);
+      const tool = T.n.toLowerCase();
+      let grab = false;
+      if (hits && T.grab && H[op] > 0) {
+        if (PARTS.body[o.body].heavy) grab = "heavy";
+        else if (rnd() < T.grab) { stall[op] = true; grab = true; }
+      }
+      let txt = hits ? `'s ${tool} hits${T.swings > 1 ? ` ${hits}x` : ""} for ${total} damage!` : ` swings the ${tool}... and misses!`;
+      if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
+      if (grab === true) txt += " It grabs the enemy!";
+      if (grab === "heavy") txt += " Too heavy to grab!";
+      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", crit: total >= 22, burst: !!burst, txt });
+      return H[op] <= 0;
+    }
+    const counter = [false, false], shieldUsed = [false, false];
+    for (let round = 0; round < 40 && H[0] > 0 && H[1] > 0; round++) {
+      const me = turn, op = 1 - turn, m = bots[me];
+      turn = op;
+      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
+      if (attack(me, op, false)) break;
+      const B = PARTS.body[m.body];
+      if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
+    }
+    const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
+    push({ me: w, kind: "win", txt: " WINS!" });
+    return { events: ev, winner: w };
+  }
+
+
+  // ---------------- why did it win? ----------------
+  // Looks at what actually happened in the fight and returns plain-language reasons
+  // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
+  function explainBattle(a, b, sim) {
+    const bots = [a, b], w = sim.winner, l = 1 - w;
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0 }));
+    let endHp = [100, 100], first = null;
+    for (const e of sim.events) {
+      if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
+      const s = st[e.me];
+      if (e.kind === "act") {
+        s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
+        if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
+      }
+      if (e.kind === "stall") s.stalled++;
+      if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
+      endHp = e.hp;
+    }
+    const acc = (k) => (st[k].swings ? st[k].hits / st[k].swings : 0);
+    const avg = (k) => (st[k].hits ? st[k].dmg / st[k].hits : 0);
+    const pct = (x) => Math.round(x * 100) + "%";
+    const N = (k) => bots[k].name, part = (k, slot) => PARTS[slot][bots[k][slot]].n;
+    const W = bots[w], L = bots[l];
+    const R = []; // [score, text, key]
+    const dAcc = acc(w) - acc(l);
+    if (dAcc >= 0.12 && st[l].swings >= 3) {
+      let why = "";
+      if (L.tool === 1) why = " Hammers swing slowly and miss a lot.";
+      else if (W.body === 2) why = ` ${N(w)}'s legs made it hard to hit.`;
+      else if (W.sensor === 1) why = ` ${N(w)}'s ultrasonic sensor helped it dodge.`;
+      else if (L.sensor === 2) why = ` ${N(l)}'s touch sensor has weak aim.`;
+      else if (W.sensor === 0) why = ` ${N(w)}'s camera aimed well.`;
+      R.push([dAcc * 10, `${N(w)} hit ${pct(acc(w))} of its attacks, but ${N(l)} only hit ${pct(acc(l))}.${why}`, "acc"]);
+    }
+    const dAvg = avg(w) - avg(l);
+    if (dAvg >= 4 && st[w].hits) {
+      let why = W.tool === 1 ? " The hammer hits huge." : PARTS.body[W.body].def >= 6 ? ` ${N(w)}'s thick treads armor blocked a lot of each hit.` : W.brain === 0 ? " Its aggressive brain hits harder." : "";
+      const vs = st[l].hits ? `, vs ${Math.round(avg(l))} for ${N(l)}` : `, and ${N(l)} never landed a hit`;
+      R.push([dAvg / 3, `${N(w)} hit harder: about ${Math.round(avg(w))} damage per hit${vs}.${why}`, "dmg"]);
+    }
+    const ratio = st[w].swings / Math.max(1, st[l].swings);
+    if (ratio >= 1.5 && st[w].swings - st[l].swings >= 3) {
+      const why = [W.tool === 2 ? "the spinner hits twice every turn" : "", st[w].bursts ? `its wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}` : ""].filter(Boolean);
+      R.push([(ratio - 1) * 1.6, `${N(w)} got ${st[w].swings} attacks to ${N(l)}'s ${st[l].swings}${why.length ? ": " + why.join(" and ") : ""}.`, "attacks"]);
+    }
+    if (first === w && st[l].swings <= 3 && sim.events.length < 18) R.push([1.3, `${N(w)} was faster, so it attacked first and ${N(l)} barely got a turn.`, "first"]);
+    if (st[w].grabs >= 1) R.push([1.2 + st[w].grabs, `${N(w)}'s gripper grabbed ${N(l)} ${st[w].grabs} time${st[w].grabs === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].grabs === 1 ? "a turn" : st[w].grabs + " turns"}.`, "grab"]);
+    if (st[l].heavyFail >= 1) R.push([1.5 + st[l].heavyFail * 0.5, `${N(l)}'s gripper couldn't grab ${N(w)}. Treads are too heavy to grab.`, "heavy"]);
+    if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
+    if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
+    if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(l)}'s small spinner hits bounced off ${N(w)}'s thick treads armor.`, "armor"]);
+    if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
+    R.sort((x, y) => y[0] - x[0]);
+    let reasons = R.slice(0, 3).map((r) => r[1]);
+    const close = endHp[w] <= 25, even = !R.length || R[0][0] < 1.1;
+    if (even) reasons = [`It was almost even. Both robots hit about the same, so a few lucky hits decided it. A rematch could go the other way!`, ...reasons].slice(0, 3);
+    const top = R.length ? R[0][2] : "luck";
+
+    const has = (slot, i) => L[slot] === i;
+    const loserTip = ({
+      acc: () => has("tool", 1) ? "Your Hammer missed a lot. A Gripper or Spinner hits more often." : !has("sensor", 0) ? `A Camera aims better than your ${part(l, "sensor")} sensor.` : !has("brain", 2) ? "The Smart brain waits for clear shots, so it misses less." : "Legs or an Ultrasonic sensor help you dodge.",
+      dmg: () => W.body === 1 && !has("tool", 1) ? "Against Treads, a Hammer smashes through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
+      attacks: () => !has("tool", 2) ? "A Spinner hits twice every turn, so you get more attacks." : !has("body", 0) ? "Wheels are fast and sometimes attack twice." : "Add armor so you survive long enough to hit back.",
+      first: () => !has("body", 0) ? "Wheels are the fastest body, so they usually attack first." : "Add armor so you can survive the first hits.",
+      grab: () => !has("body", 1) ? "Treads can't be grabbed. They're a good counter to Grippers." : "Finish fights faster with a Hammer before the gripper gets you.",
+      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer.",
+      burst: () => !has("tool", 1) ? "Wheels have light armor. A Hammer punishes them." : "Your Hammer struggles to hit fast Wheels. A Gripper is more accurate.",
+      shield: () => !has("tool", 1) ? "Defensive robots get tough when hurt. Finish them fast with a Hammer." : "Defensive robots get tough when hurt. The Aggressive brain hits harder through shields.",
+      aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
+      armor: () => "Spinner hits are small, so thick armor blocks them. Try a Hammer against Treads.",
+      luck: () => "Your robot was a good match. Ask for a rematch!",
+    }[top] || (() => "Every robot has a counter. Try a different part!"))();
+    const counter = W.body === 1 ? "Hammers beat Treads." : W.body === 0 ? "Hammers and big hits hurt light Wheels." : W.body === 2 ? "Accurate Grippers can still catch Legs." : "Every robot has a counter.";
+    const headline = (k) => k === w
+      ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
+      : `Why ${N(w)} beat ${N(l)}`;
+    return {
+      winner: w,
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : loserTip })),
+      stats: st,
+    };
+  }
+
+  // ---------------- browser-only: drawing, effects, sound ----------------
+  function fit(c) {
+    const r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const ctx = c.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: r.width, h: r.height };
+  }
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const f = (c) => clamp(Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt), 0, 255);
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+  const ease = { out: (t) => 1 - Math.pow(1 - t, 3), back: (t) => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
+  function bigText(ctx, lbl, x, y, size, color, scale = 1, alpha = 1) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha;
+    ctx.font = `700 ${Math.round(size)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineWidth = Math.max(4, size * 0.08); ctx.lineJoin = "round"; ctx.strokeStyle = "#141316"; ctx.strokeText(lbl, 0, 0);
+    ctx.fillStyle = color; ctx.fillText(lbl, 0, 0); ctx.restore();
+  }
+
+  class FX {
+    constructor() { this.p = []; this.txt = []; this.shake = 0; }
+    burst(x, y, n, o = {}) {
+      if (RM) n = Math.ceil(n / 3);
+      for (let i = 0; i < n; i++) {
+        const a = (o.angle ?? 0) + (Math.random() - 0.5) * (o.spread ?? Math.PI * 2), sp = (o.speed ?? 200) * (0.4 + Math.random() * 0.8);
+        const cols = o.colors || ["#ffd23f"];
+        this.p.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: (o.life ?? 0.6) * (0.6 + Math.random() * 0.6),
+          size: (o.size ?? 4) * (0.6 + Math.random() * 0.8), color: cols[(Math.random() * cols.length) | 0], g: o.g ?? 400,
+          kind: o.kind || "spark", rot: Math.random() * 6, vr: (Math.random() - 0.5) * 12, drag: o.drag ?? 0.9 });
+      }
+    }
+    text(x, y, s, color, size = 28) { this.txt.push({ x, y, s, color, size, life: 0, max: 1.1 }); }
+    update(dt) {
+      this.shake = Math.max(0, this.shake - dt * 30);
+      this.p = this.p.filter((q) => (q.life += dt) < q.max);
+      for (const q of this.p) {
+        const d = Math.pow(q.drag, dt * 10); q.vx *= d; q.vy = q.vy * d + q.g * dt;
+        q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt;
+      }
+      this.txt = this.txt.filter((t) => (t.life += dt) < t.max);
+    }
+    draw(ctx) {
+      for (const q of this.p) {
+        const k = 1 - q.life / q.max, soft = q.kind === "smoke" || q.kind === "dust";
+        ctx.globalAlpha = soft ? k * 0.55 : Math.min(1, k * 1.6);
+        ctx.fillStyle = q.color;
+        if (q.kind === "spark") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(Math.atan2(q.vy, q.vx)); ctx.fillRect(-q.size * 1.6, -q.size / 3, q.size * 3.2, q.size / 1.5); ctx.restore(); }
+        else if (q.kind === "confetti") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.fillRect(-q.size, -q.size / 2, q.size * 2, q.size); ctx.restore(); }
+        else { ctx.beginPath(); ctx.arc(q.x, q.y, q.size * (soft ? 1 + q.life * 2.5 : 1), 0, 7); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      for (const t of this.txt) {
+        const k = t.life / t.max, sc = k < 0.15 ? ease.back(k / 0.15) : 1;
+        bigText(ctx, t.s, t.x, t.y - k * 50, t.size, t.color, sc, k > 0.7 ? (1 - k) / 0.3 : 1);
+      }
+    }
+  }
+
+  // x = center, gy = ground y, s = unit size, dir 1 faces right.
+  // o: lunge 0..1, hurt 0..1, tilt (rad), shield, bob
+  function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
+    const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
+    const lw = Math.max(1.5, s * 0.05);
+    ctx.save(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath();
+    ctx.ellipse(x, gy + 2, s * 1.05 * (o.tilt ? 1.3 : 1), s * 0.14, 0, 0, 7); ctx.fill(); ctx.restore();
+
+    ctx.save(); ctx.translate(x, gy);
+    if (o.tilt) ctx.rotate(o.tilt * dir);
+    ctx.scale(dir, 1);
+    const bob = o.bob ?? Math.sin(t * 3 + b.color) * s * 0.025;
+    ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = ink;
+
+    let torsoBottom;
+    if (b.body === 0) {
+      [-0.55, 0.55].forEach((wx) => {
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.32 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = metal; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.14 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = metalHi; ctx.lineWidth = lw * 0.8;
+        for (let k = 0; k < 3; k++) { const a = t * 5 + k * 2.09; ctx.beginPath(); ctx.moveTo(wx * s + Math.cos(a) * 0.16 * s, -0.32 * s + Math.sin(a) * 0.16 * s); ctx.lineTo(wx * s + Math.cos(a) * 0.27 * s, -0.32 * s + Math.sin(a) * 0.27 * s); ctx.stroke(); }
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+      ctx.fillStyle = metal; rr(ctx, -0.6 * s, -0.5 * s, 1.2 * s, 0.14 * s, 0.05 * s); ctx.fill(); ctx.stroke();
+      torsoBottom = -0.48 * s;
+    } else if (b.body === 1) {
+      ctx.fillStyle = "#222126"; rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.fill(); ctx.stroke();
+      ctx.save(); rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.clip();
+      ctx.fillStyle = "#3a3940"; const off = (t * 40) % (0.2 * s);
+      for (let k = -1; k < 12; k++) ctx.fillRect(-0.98 * s + k * 0.2 * s + off, -0.52 * s, 0.08 * s, 0.07 * s);
+      ctx.restore();
+      for (let k = 0; k < 5; k++) { ctx.fillStyle = metal; ctx.beginPath(); ctx.arc((-0.68 + k * 0.34) * s, -0.26 * s, 0.11 * s, 0, 7); ctx.fill(); ctx.stroke(); }
+      torsoBottom = -0.5 * s;
+    } else {
+      const st = Math.sin(t * 5) * 0.1 * s;
+      [[-0.38, st], [0.38, -st]].forEach(([lx, sv]) => {
+        ctx.strokeStyle = ink; ctx.lineWidth = s * 0.17;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.strokeStyle = metal; ctx.lineWidth = s * 0.11;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(lx * s + sv, -0.4 * s, 0.07 * s, 0, 7); ctx.fill();
+        ctx.fillStyle = "#222126"; rr(ctx, lx * s - 0.22 * s, -0.1 * s, 0.44 * s, 0.1 * s, 0.04 * s); ctx.fill();
+      });
+      ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      torsoBottom = -0.74 * s;
+    }
+    ctx.translate(0, bob);
+
+    const tw = 1.3 * s, th = 0.95 * s, ty = torsoBottom - th;
+    const g = ctx.createLinearGradient(0, ty, 0, ty + th);
+    g.addColorStop(0, shade(col, 0.28)); g.addColorStop(0.55, col); g.addColorStop(1, shade(col, -0.3));
+    ctx.fillStyle = g; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.stroke();
+    if (o.hurt) { ctx.globalAlpha = o.hurt * 0.8; ctx.fillStyle = "#fff"; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = "rgba(0,0,0,.25)"; rr(ctx, -tw / 2 + 0.14 * s, ty + 0.42 * th, tw - 0.28 * s, 0.4 * th, 0.07 * s); ctx.fill();
+    for (let k = 0; k < 3; k++) {
+      const on = (Math.floor(t * 3) + k) % 3 === 0;
+      ctx.fillStyle = on ? BRAIN_COL[b.brain] : "rgba(255,255,255,.18)";
+      ctx.beginPath(); ctx.arc(-0.3 * s + k * 0.2 * s, ty + 0.62 * th, 0.055 * s, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = "rgba(255,255,255,.35)"; rr(ctx, -tw / 2 + 0.1 * s, ty + 0.08 * s, tw * 0.45, 0.07 * s, 0.03 * s); ctx.fill();
+    ctx.fillStyle = ink; [-1, 1].forEach((sx) => { ctx.beginPath(); ctx.arc(sx * (tw / 2 - 0.1 * s), ty + 0.24 * s, 0.03 * s, 0, 7); ctx.fill(); });
+
+    const hw = 0.82 * s, hh = 0.56 * s, hy = ty - hh - 0.1 * s;
+    ctx.fillStyle = metal; rr(ctx, -0.1 * s, ty - 0.13 * s, 0.2 * s, 0.16 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+    const hg = ctx.createLinearGradient(0, hy, 0, hy + hh); hg.addColorStop(0, "#ece8f0"); hg.addColorStop(1, "#a9a5b2");
+    ctx.fillStyle = hg; rr(ctx, -hw / 2, hy, hw, hh, 0.14 * s); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-0.18 * s, hy); ctx.lineTo(-0.24 * s, hy - 0.22 * s); ctx.stroke();
+    ctx.save(); ctx.shadowColor = BRAIN_COL[b.brain]; ctx.shadowBlur = 10 + 6 * Math.sin(t * 5);
+    ctx.fillStyle = BRAIN_COL[b.brain]; ctx.beginPath(); ctx.arc(-0.24 * s, hy - 0.26 * s, 0.07 * s, 0, 7); ctx.fill(); ctx.restore();
+    const blink = (t % 3.7) < 0.12 ? 0.15 : 1;
+    if (b.sensor === 0) {
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0.12 * s, hy + hh / 2, 0.2 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(0.12 * s, hy + hh / 2); ctx.scale(1, blink);
+      const eg = ctx.createRadialGradient(-0.03 * s, -0.03 * s, 0, 0, 0, 0.11 * s); eg.addColorStop(0, "#bfe6ff"); eg.addColorStop(1, "#1d7fc4");
+      ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(0, 0, 0.11 * s, 0, 7); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-0.04 * s, -0.04 * s, 0.03 * s, 0, 7); ctx.fill(); ctx.restore();
+    } else if (b.sensor === 1) {
+      [-0.1, 0.22].forEach((ex) => {
+        ctx.fillStyle = "#c9c5d1"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.15 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.1 * s, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#555"; ctx.lineWidth = lw * 0.6; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.06 * s, 0, 7); ctx.stroke();
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+    } else {
+      ctx.save(); ctx.translate(0.12 * s, hy + hh * 0.42); ctx.scale(1, blink);
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0, 0, 0.075 * s, 0, 7); ctx.fill(); ctx.restore();
+      ctx.lineWidth = lw * 0.8;
+      [-0.22, 0, 0.22].forEach((a, k) => {
+        const wig = Math.sin(t * 6 + k) * 0.04 * s;
+        ctx.beginPath(); ctx.moveTo(hw / 2 - 0.02 * s, hy + hh * 0.66); ctx.quadraticCurveTo(hw / 2 + 0.2 * s, hy + hh * 0.66 + a * s * 0.5 + wig, hw / 2 + 0.38 * s, hy + hh * 0.66 + a * s + wig); ctx.stroke();
+      });
+      ctx.lineWidth = lw;
+    }
+    ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
+
+    const l = o.lunge || 0, reach = Math.sin(l * Math.PI) * 0.5 * s;
+    const sx = tw / 2 - 0.06 * s, sy = ty + 0.32 * th, ex = sx + 0.45 * s + reach, ey = sy + 0.05 * s;
+    ctx.strokeStyle = ink; ctx.lineWidth = s * 0.16; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = metal; ctx.lineWidth = s * 0.1; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, 0.07 * s, 0, 7); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    if (b.tool === 0) {
+      const open = (0.18 - 0.14 * Math.sin(l * Math.PI)) * s;
+      ctx.lineWidth = s * 0.1;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey - open); ctx.lineTo(ex + 0.4 * s, ey - 0.03 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey + open); ctx.lineTo(ex + 0.4 * s, ey + 0.03 * s); ctx.stroke();
+      ctx.lineWidth = lw;
+    } else if (b.tool === 1) {
+      const sw = -0.5 + Math.sin(l * Math.PI) * 1.1;
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(sw);
+      ctx.fillStyle = "#6b4a2f"; rr(ctx, 0, -0.05 * s, 0.28 * s, 0.1 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+      const hg2 = ctx.createLinearGradient(0.24 * s, 0, 0.52 * s, 0); hg2.addColorStop(0, "#5c5a63"); hg2.addColorStop(1, "#2a292e");
+      ctx.fillStyle = hg2; rr(ctx, 0.24 * s, -0.3 * s, 0.28 * s, 0.6 * s, 0.06 * s); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save(); ctx.translate(ex + 0.24 * s, ey); ctx.rotate(t * (l > 0 ? 40 : 9));
+      ctx.fillStyle = "#3a3940"; ctx.beginPath(); ctx.arc(0, 0, 0.28 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#e9e6ee";
+      for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.moveTo(0.1 * s, -0.06 * s); ctx.lineTo(0.36 * s, -0.02 * s); ctx.lineTo(0.3 * s, 0.07 * s); ctx.lineTo(0.1 * s, 0.06 * s); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0, 0.07 * s, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+    if (o.shield) {
+      ctx.save(); ctx.globalAlpha = 0.22 + 0.1 * Math.sin(t * 8);
+      ctx.fillStyle = "#4fd18b"; ctx.strokeStyle = "#4fd18b"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, (hy + torsoBottom) / 2 - 0.05 * s, 1.2 * s, 1.25 * s, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 0.8; ctx.stroke(); ctx.restore();
+    }
+    ctx.restore();
+    return { headX: x + dir * 0.12 * s, headY: gy + hy + bob + hh / 2 };
+  }
+
+  // Small static portrait of a bot on a canvas element (lobby cards, roster rows).
+  function portrait(canvas, b, bg = "#2b2a30", dir = 1, scale = 1) {
+    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = bg; rr(ctx, 0, 0, w, h, w * 0.18); ctx.fill();
+    const s = Math.min(w, h) * 0.27 * scale;
+    drawBot(ctx, b, w * (dir === 1 ? 0.43 : 0.57), h * 0.92, s, dir, 0, { bob: 0 });
+  }
+
+  // ---------------- sound (off until turned on) ----------------
+  const Sound = (() => {
+    let actx = null, on = false;
+    function tone(freq, dur, type = "square", vol = 0.08, slideTo) {
+      if (!on || !actx) return;
+      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+    }
+    function noise(dur, vol = 0.12, hp = 600) {
+      if (!on || !actx) return;
+      const len = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
+      src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start();
+    }
+    const fx = {
+      click: () => tone(660, 0.05, "square", 0.04),
+      beep: () => tone(520, 0.12, "square", 0.06),
+      go: () => tone(880, 0.25, "square", 0.07),
+      join: () => { tone(660, 0.08, "square", 0.05); setTimeout(() => tone(990, 0.12, "square", 0.05), 80); },
+      scan: () => tone(1200, 0.18, "sine", 0.04, 1800),
+      think: () => tone(420, 0.1, "triangle", 0.05, 560),
+      hit: () => { noise(0.18, 0.18, 300); tone(140, 0.18, "sawtooth", 0.08, 60); },
+      miss: () => tone(900, 0.18, "sine", 0.05, 300),
+      ko: () => { tone(400, 0.7, "sawtooth", 0.07, 60); noise(0.5, 0.1, 200); },
+      win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 120)); },
+      whoosh: () => noise(1.2, 0.08, 900),
+      thud: () => { tone(90, 0.25, "sine", 0.12, 40); noise(0.2, 0.08, 150); },
+      fanfare: () => { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.22, "square", 0.07), i * 140)); },
+    };
+    return {
+      get on() { return on; },
+      toggle() {
+        on = !on;
+        if (on && !actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { on = false; } }
+        if (on) fx.go();
+        return on;
+      },
+      play(name) { try { fx[name] && fx[name](); } catch {} },
+    };
+  })();
+
+  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+    fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
+});
+
+</script>
+<script>
+/* Robot builder UI: part pickers, live preview, weight meter, stats.
+   Expects these ids in the page: bot-name, random, sw, c-body, c-sensor, c-brain, c-tool,
+   preview, wtxt, wmeter, warn, stats. */
+(function () {
+  const E = window.Engine;
+  const { PARTS, SLOTS, COLORS, MAXW, statsOf, clamp, FX, drawBot, bigText, Sound } = E;
+  const $ = (id) => document.getElementById(id);
+
+  function mount(opts = {}) {
+    let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
+    const pv = { fx: new FX(), pop: 0, w: 300, h: 240 };
+    const rand3 = () => (Math.random() * 3) | 0;
+    $("bot-name").value = bot.name;
+
+    function renderChoices() {
+      SLOTS.forEach((slot) => {
+        const el = $("c-" + slot); el.innerHTML = "";
+        PARTS[slot].forEach((p, i) => {
+          const b = document.createElement("button");
+          b.className = "choice"; b.type = "button"; b.setAttribute("aria-pressed", bot[slot] === i);
+          b.innerHTML = `<b></b><span></span><em>${p.wt} kg</em>`;
+          b.querySelector("b").textContent = p.n; b.querySelector("span").textContent = p.d;
+          b.onclick = () => { bot[slot] = i; pv.pop = 1; Sound.play("click"); update(); };
+          el.appendChild(b);
+        });
+      });
+      const sw = $("sw"); sw.innerHTML = "";
+      COLORS.forEach((c, i) => {
+        const b = document.createElement("button");
+        b.className = "swatch"; b.type = "button"; b.style.background = c; b.setAttribute("aria-label", "Color " + (i + 1));
+        b.setAttribute("aria-pressed", bot.color === i);
+        b.onclick = () => { bot.color = i; pv.pop = 1; Sound.play("click"); update(); };
+        sw.appendChild(b);
+      });
+    }
+    function update() {
+      bot.name = E.cleanName($("bot-name").value) || "BOT";
+      renderChoices();
+      const s = statsOf(bot), over = s.wt > MAXW;
+      $("wtxt").textContent = `${s.wt} / ${MAXW} kg`;
+      $("wmeter").classList.toggle("over", over);
+      $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / MAXW) * 100) + "%";
+      $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
+      const rows = [["Attack", s.atk, 12, "var(--orange)"], ["Defense", s.def, 11, "var(--good)"], ["Speed", s.spd, 10, "var(--blue)"], ["Aim", s.aim, 10, "var(--purple)"]];
+      $("stats").innerHTML = rows.map(([l, v, mx, c]) => `<span>${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
+      opts.onChange && opts.onChange(bot, over);
+    }
+    $("bot-name").addEventListener("input", update);
+    $("random").onclick = () => {
+      let b; do { b = { ...bot, body: rand3(), sensor: rand3(), brain: rand3(), tool: rand3(), color: (Math.random() * 6) | 0 }; } while (statsOf(b).wt > MAXW);
+      bot = b; pv.pop = 1; Sound.play("go"); update();
+    };
+
+    let last = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
+      const c = $("preview");
+      if (c.offsetParent) {
+        const { ctx, w, h } = E.fit(c); pv.w = w; pv.h = h;
+        pv.fx.update(dt); pv.pop = Math.max(0, pv.pop - dt * 3);
+        const bg = ctx.createRadialGradient(w / 2, h * 0.45, 10, w / 2, h * 0.5, w * 0.7); bg.addColorStop(0, "#34323c"); bg.addColorStop(1, "#1b1a1e");
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+        const gy = h * 0.86;
+        ctx.fillStyle = "#2b2a30"; ctx.fillRect(0, gy, w, h - gy);
+        ctx.fillStyle = "#3a3842"; ctx.beginPath(); ctx.ellipse(w * 0.55, gy + 2, Math.min(w * 0.3, h * 0.7), h * 0.045, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = "rgba(244,101,36,.4)"; ctx.lineWidth = 2; ctx.stroke();
+        const s = Math.min(w / 4.6, h / 3.3) * (1 + Math.sin(pv.pop * Math.PI) * 0.08);
+        const ph = t % 3.2, lunge = ph < 0.55 ? ph / 0.55 : 0;
+        drawBot(ctx, bot, w * 0.55 - s * 0.25, gy, s, 1, t, { lunge });
+        const fs = Math.round(clamp(h * 0.075, 14, 26));
+        ctx.font = `700 ${fs}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = "#ffffff"; ctx.fillText(bot.name, 14, 10 + fs);
+        ctx.font = `500 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
+        [PARTS.body[bot.body].n, PARTS.sensor[bot.sensor].n, PARTS.brain[bot.brain].n, PARTS.tool[bot.tool].n].forEach((p, i) => ctx.fillText(p.toUpperCase(), 14, 14 + fs + (i + 1) * fs * 0.62));
+        if (statsOf(bot).wt > MAXW) { ctx.fillStyle = "rgba(255,93,93,.14)"; ctx.fillRect(0, 0, w, h); bigText(ctx, "TOO HEAVY", w / 2, h * 0.5, h * 0.11, "#ff5d5d"); }
+        pv.fx.draw(ctx);
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    update();
+
+    return {
+      get bot() { return { ...bot }; },
+      set(b) { bot = { ...b }; $("bot-name").value = bot.name; update(); },
+      celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
+      overweight() { return statsOf(bot).wt > MAXW; },
+    };
+  }
+  window.Builder = { mount };
+})();
+
+</script>
+<script>
+/*
+ * BattleStage — draws the arena and plays a list of battle events
+ * (from Engine.simulate) with intro, Sense/Think/Act animation and KO.
+ * Also shows a champion scene for the end of a tournament.
+ */
+(function () {
+  const E = window.Engine;
+  const { clamp, ease, bigText, rr, FX, drawBot, COLORS, Sound, RM } = E;
+  const DUR = { sense: 0.65, think: 0.75, act: 1.0, stall: 0.8 };
+
+  class BattleStage {
+    constructor(canvas, cb = {}) {
+      this.c = canvas; this.cb = cb; this.fx = new FX();
+      this.bots = [null, null]; this.state = "idle"; this.speed = 1;
+      this.hp = [100, 100]; this.brace = [false, false]; this.hurt = [0, 0]; this.dodge = [0, 0]; this.head = [null, null];
+      this.queue = []; this.ev = null; this.evT = 0; this.timer = null; this.banner = "";
+      this.w = 640; this.h = 360; this.last = performance.now();
+      const loop = (now) => {
+        const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now;
+        try { this.draw(now / 1000, dt); } catch (e) { console.error(e); }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    }
+    setBots(a, b, banner = "") {
+      clearTimeout(this.timer);
+      Object.assign(this, { bots: [a, b], state: a && b ? "idle" : "empty", hp: [100, 100], brace: [false, false], queue: [], ev: null, banner, champ: null });
+      this.cb.onHP && this.cb.onHP(this.hp, true);
+    }
+    play(events) {
+      if (!this.bots[0] || !this.bots[1]) return;
+      clearTimeout(this.timer);
+      Object.assign(this, { state: "intro", introT: 0, lastCount: -1, queue: events.slice(), ev: null, hp: [100, 100], brace: [false, false] });
+      this.cb.onHP && this.cb.onHP(this.hp, true);
+    }
+    skip() {
+      if (this.state !== "intro" && this.state !== "fight") return;
+      clearTimeout(this.timer); this.ev = null;
+      const win = this.queue.pop();
+      while (this.queue.length) this.log(this.queue.shift());
+      if (win && win.kind === "win") { this.log(win); this.hp = win.hp; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(win.me); }
+    }
+    showChampion(bot, label) {
+      clearTimeout(this.timer);
+      Object.assign(this, { state: "champ", champ: bot, champLabel: label || "", champT: 0, queue: [], ev: null });
+      Sound.play("fanfare");
+      this.confetti(140);
+    }
+    confetti(n) { this.fx.burst(this.w / 2, this.h * 0.12, n, { colors: COLORS, kind: "confetti", speed: 420, g: 320, life: 2.6, size: 6, drag: 0.93 }); }
+    log(e) { this.cb.onLog && this.cb.onLog(e, this.bots[e.me]); }
+    pos(k) {
+      const w = this.w, h = this.h, s = Math.min(w / 8.5, h / 3.3), gy = h * 0.82;
+      return { x: k === 0 ? w * 0.28 : w * 0.72, gy, s, mid: gy - s * 1.2, top: gy - s * 2.75 };
+    }
+    next() {
+      if (!this.queue.length) return;
+      const e = this.queue.shift(); this.ev = e; this.evT = 0; this.impactDone = false;
+      this.log(e);
+      if (e.kind === "sense") Sound.play("scan");
+      if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; }
+      if (e.kind === "stall") { const p = this.pos(e.me); this.fx.text(p.x, p.top, "STUCK!", "#c58cff", 26); }
+      if (e.kind === "win") { this.hp = e.hp; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(e.me); return; }
+      this.timer = setTimeout(() => this.next(), (DUR[e.kind] * 1000) / this.speed);
+    }
+    impact(e) {
+      const op = 1 - e.me, p = this.pos(op);
+      this.hp = e.hp; this.brace = e.brace; this.cb.onHP && this.cb.onHP(this.hp);
+      if (e.hits) {
+        this.hurt[op] = 1; this.fx.shake = e.crit ? 14 : 8;
+        this.fx.burst(p.x + (op === 1 ? -1 : 1) * p.s * 0.6, p.mid, e.crit ? 36 : 22, { colors: ["#ffd23f", "#fff", "#ff8a50"], speed: 320, g: 500, life: 0.6, size: 4 });
+        this.fx.text(p.x, p.top, "-" + e.dmg, e.crit ? "#ffd23f" : "#ffffff", e.crit ? 40 : 32);
+        if (e.crit) this.fx.text(p.x, p.top - 34, "CRITICAL!", "#ff8a50", 20);
+        if (e.grab) this.fx.text(p.x, p.top - 34, "GRABBED!", "#c58cff", 22);
+        Sound.play("hit");
+      } else {
+        this.dodge[op] = 1; this.fx.text(p.x, p.top, "MISS", "#aaa6b0", 28); Sound.play("miss");
+      }
+    }
+    startKO(w) {
+      this.state = "ko"; this.winner = w; this.koT = 0; this.brace = [false, false];
+      Sound.play("ko"); setTimeout(() => Sound.play("win"), 700);
+      this.fx.shake = 16;
+      setTimeout(() => this.confetti(80), 500);
+      this.cb.onDone && setTimeout(() => this.cb.onDone(w), 1600 / this.speed);
+    }
+    drawStage(ctx, w, h, t) {
+      const bg = ctx.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#151419"); bg.addColorStop(0.7, "#24222a"); bg.addColorStop(1, "#1b1a1e");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+      [[w * 0.22, "rgba(244,101,36,.19)"], [w * 0.78, "rgba(56,167,240,.19)"]].forEach(([sx, c], k) => {
+        const sway = Math.sin(t * 0.7 + k * 2) * w * 0.03;
+        const g = ctx.createLinearGradient(0, 0, 0, h * 0.85); g.addColorStop(0, c); g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(sx - w * 0.03, 0); ctx.lineTo(sx + w * 0.03, 0); ctx.lineTo(sx + w * 0.17 + sway, h * 0.85); ctx.lineTo(sx - w * 0.17 + sway, h * 0.85); ctx.fill();
+      });
+      ctx.font = `700 ${Math.round(h * 0.04)}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.18)";
+      if (this.state !== "champ") ctx.fillText(this.banner || "FALL ROBOTICS ACADEMY  ·  BOT ARENA", w / 2, h * 0.08);
+      const fy = h * 0.66;
+      const fg = ctx.createLinearGradient(0, fy, 0, h); fg.addColorStop(0, "#2e2c35"); fg.addColorStop(1, "#3a3842");
+      ctx.fillStyle = fg; ctx.fillRect(0, fy, w, h - fy);
+      ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.lineWidth = 1;
+      for (let k = -10; k <= 10; k++) { ctx.beginPath(); ctx.moveTo(w / 2 + k * w * 0.05, fy); ctx.lineTo(w / 2 + k * w * 0.16, h); ctx.stroke(); }
+      for (let k = 0; k < 5; k++) { const y = fy + (h - fy) * Math.pow(k / 5, 1.6); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      if (this.state !== "champ") {
+        ctx.strokeStyle = "rgba(244,101,36,.4)"; ctx.lineWidth = 2; ctx.setLineDash([10, 8]);
+        ctx.beginPath(); ctx.moveTo(w / 2, fy); ctx.lineTo(w / 2, h); ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.textAlign = "left";
+    }
+    draw(t, dt) {
+      if (!this.c.offsetParent) return;
+      const { ctx, w, h } = E.fit(this.c); this.w = w; this.h = h;
+      this.fx.update(dt);
+      const sp = this.speed;
+      ctx.save();
+      if (this.fx.shake && !RM) ctx.translate((Math.random() - 0.5) * this.fx.shake, (Math.random() - 0.5) * this.fx.shake);
+      this.drawStage(ctx, w, h, t);
+
+      if (this.state === "champ") { this.drawChampion(ctx, w, h, t, dt); this.fx.draw(ctx); ctx.restore(); return; }
+      if (this.state === "empty") {
+        bigText(ctx, "WAITING FOR BOTS", w / 2, h * 0.45, h * 0.08, "rgba(255,255,255,.35)");
+        ctx.restore(); return;
+      }
+      const [a, b] = this.bots;
+      let slide = [0, 0], countdown = null;
+      if (this.state === "intro") {
+        this.introT += dt * sp;
+        const k = ease.out(clamp(this.introT / 0.6, 0, 1));
+        slide = [-(1 - k) * w * 0.5, (1 - k) * w * 0.5];
+        const ct = this.introT - 0.7, n = Math.floor(ct / 0.55);
+        if (ct >= 0 && n !== this.lastCount) { this.lastCount = n; Sound.play(n < 3 ? "beep" : "go"); }
+        if (ct >= 0 && n <= 3) countdown = { n, f: (ct % 0.55) / 0.55 };
+        if (ct > 0.55 * 4) { this.state = "fight"; this.next(); }
+      }
+      if (this.ev && this.state === "fight") {
+        this.evT += dt * sp;
+        if (this.ev.kind === "act" && !this.impactDone && this.evT > 0.22) { this.impactDone = true; this.impact(this.ev); }
+      }
+      for (let k = 0; k < 2; k++) { this.hurt[k] = Math.max(0, this.hurt[k] - dt * 4); this.dodge[k] = Math.max(0, this.dodge[k] - dt * 2.5); }
+      if (this.state === "ko") this.koT += dt;
+      [[a, 0], [b, 1]].forEach(([bt, k]) => {
+        if (!bt) return;
+        const p = this.pos(k), dir = k === 0 ? 1 : -1;
+        let x = p.x + slide[k], lunge = 0, tilt = 0, hop = 0;
+        const e = this.ev;
+        if (e && this.state === "fight" && e.kind === "act" && e.me === k) { lunge = clamp(this.evT / 0.5, 0, 1); x += dir * Math.sin(lunge * Math.PI) * w * 0.14; }
+        if (this.dodge[k]) hop = Math.sin(this.dodge[k] * Math.PI) * p.s * 0.5;
+        if (this.hurt[k]) x -= dir * this.hurt[k] * p.s * 0.25;
+        if (this.state === "ko") {
+          if (k !== this.winner) {
+            tilt = -ease.out(clamp(this.koT / 0.6, 0, 1)) * 1.45;
+            if (Math.random() < 0.3) this.fx.burst(x, p.gy - p.s * 0.8, 1, { colors: ["#55535c", "#7a7782"], kind: "smoke", speed: 30, g: -60, life: 1.6, size: 8, drag: 0.95, angle: -Math.PI / 2, spread: 1 });
+          } else hop = Math.abs(Math.sin(this.koT * 6)) * p.s * 0.35 * Math.max(0, 1 - this.koT / 4);
+        }
+        this.head[k] = drawBot(ctx, bt, x, p.gy - hop, p.s, dir, t, { lunge, hurt: this.hurt[k], tilt, shield: this.brace[k] && this.state !== "ko" });
+        // name plate under each bot
+        ctx.font = `700 ${Math.round(p.s * 0.28)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center";
+        ctx.fillStyle = k === 0 ? "#ff8a50" : "#38a7f0"; ctx.fillText(bt.name, p.x + slide[k], p.gy + p.s * 0.45);
+        if (bt.builder) { ctx.font = `500 ${Math.round(p.s * 0.18)}px "JetBrains Mono", monospace`; ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.fillText("by " + bt.builder, p.x + slide[k], p.gy + p.s * 0.7); }
+        ctx.textAlign = "left";
+      });
+      const e = this.ev;
+      if (e && this.state === "fight" && (e.kind === "sense" || e.kind === "think") && this.head[e.me]) {
+        const p = this.pos(e.me), q = this.pos(1 - e.me), dir = e.me === 0 ? 1 : -1, k = clamp(this.evT / 0.5, 0, 1);
+        if (e.kind === "sense") {
+          const { headX: hx, headY: hy } = this.head[e.me];
+          ctx.save(); ctx.globalAlpha = 0.55;
+          const g = ctx.createLinearGradient(hx, 0, q.x, 0); g.addColorStop(0, "rgba(56,167,240,.8)"); g.addColorStop(1, "rgba(56,167,240,.05)");
+          ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(hx, hy);
+          const reach = hx + (q.x - hx) * ease.out(k);
+          ctx.lineTo(reach, q.mid - q.s * 1.1); ctx.lineTo(reach, q.mid + q.s * 0.8); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = "#38a7f0"; ctx.globalAlpha = 0.9 * k; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+          ctx.strokeRect(q.x - q.s, q.mid - q.s * 1.55, q.s * 2, q.s * 2.45); ctx.setLineDash([]);
+          ctx.font = `700 ${Math.round(q.s * 0.22)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#38a7f0"; ctx.textAlign = "center";
+          ctx.fillText("TARGET", q.x, q.mid - q.s * 1.65); ctx.textAlign = "left";
+          ctx.restore();
+        } else {
+          const bx = p.x + dir * p.s * 0.2, by = p.top - p.s * 0.1, sc = ease.back(clamp(this.evT / 0.25, 0, 1));
+          ctx.save(); ctx.translate(bx, by); ctx.scale(sc, sc);
+          ctx.font = `700 ${Math.round(p.s * 0.32)}px "Chakra Petch", Arial, sans-serif`;
+          const tw = ctx.measureText(e.bubble).width + p.s * 0.45, th = p.s * 0.56;
+          ctx.fillStyle = "#f4f1ea"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 3;
+          rr(ctx, -tw / 2, -th, tw, th, th / 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-dir * tw * 0.22, p.s * 0.12, p.s * 0.07, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-dir * tw * 0.3, p.s * 0.28, p.s * 0.04, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = "#8e4fd6"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(e.bubble, 0, -th / 2 + 1);
+          ctx.restore();
+        }
+      }
+      this.fx.draw(ctx);
+      if (countdown) {
+        const { n, f } = countdown, lbl = n < 3 ? String(3 - n) : "FIGHT!", sc = 0.6 + ease.back(Math.min(1, f * 2.2)) * 0.5;
+        bigText(ctx, lbl, w / 2, h * 0.38, h * (n < 3 ? 0.26 : 0.17), n < 3 ? "#f4f1ea" : "#ffd23f", sc, f > 0.75 ? (1 - f) / 0.25 : 1);
+      }
+      if (this.state === "ko" && this.koT > 0.4) {
+        const wb = this.bots[this.winner], k = ease.back(clamp((this.koT - 0.4) / 0.4, 0, 1));
+        if (wb) bigText(ctx, wb.name + " WINS!", w / 2, h * 0.22, h * 0.12, this.winner === 0 ? "#ff8a50" : "#38a7f0", k);
+      }
+      if (this.state === "idle" && a && b) bigText(ctx, "VS", w / 2, h * 0.42, h * 0.11, "rgba(255,255,255,.3)");
+      ctx.restore();
+    }
+    drawChampion(ctx, w, h, t, dt) {
+      this.champT += dt;
+      const b = this.champ, s = Math.min(w / 9, h / 5.6), gy = h * 0.84;
+      const k = ease.back(clamp(this.champT / 0.6, 0, 1));
+      // glow
+      const g = ctx.createRadialGradient(w / 2, gy - s * 1.4, 10, w / 2, gy - s * 1.4, s * 3);
+      g.addColorStop(0, "rgba(255,210,63,.35)"); g.addColorStop(1, "rgba(255,210,63,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      // rays
+      ctx.save(); ctx.translate(w / 2, gy - s * 1.4); ctx.rotate(t * 0.2); ctx.fillStyle = "rgba(255,210,63,.08)";
+      for (let i = 0; i < 12; i++) { ctx.rotate(Math.PI / 6); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w, -w * 0.08); ctx.lineTo(w, w * 0.08); ctx.fill(); }
+      ctx.restore();
+      // podium
+      ctx.fillStyle = "#ffd23f"; rr(ctx, w / 2 - s * 1.5, gy, s * 3, h - gy + 10, 8); ctx.fill();
+      ctx.font = `700 ${Math.round(s * 0.35)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#141316";
+      ctx.fillText("1", w / 2, gy + s * 0.38);
+      const hop = Math.abs(Math.sin(this.champT * 4)) * s * 0.15;
+      drawBot(ctx, b, w / 2 - s * 0.2, gy - hop, s * k, 1, t, { lunge: (t % 2) < 0.5 ? (t % 2) / 0.5 : 0 });
+      // crown
+      ctx.save(); ctx.translate(w / 2 - s * 0.2, gy - hop - s * 2.95 * k); ctx.scale(k, k);
+      ctx.fillStyle = "#ffd23f"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-s * 0.4, 0); ctx.lineTo(-s * 0.4, -s * 0.3); ctx.lineTo(-s * 0.2, -s * 0.12); ctx.lineTo(0, -s * 0.38); ctx.lineTo(s * 0.2, -s * 0.12); ctx.lineTo(s * 0.4, -s * 0.3); ctx.lineTo(s * 0.4, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      bigText(ctx, "CHAMPION", w / 2, h * 0.1, h * 0.085, "#ffd23f", k);
+      bigText(ctx, b.name + (b.builder ? "  ·  " + b.builder : ""), w / 2, h * 0.19, h * 0.055, "#f4f1ea", k);
+      if (Math.random() < 0.08 && !RM) this.fx.burst(Math.random() * w, -10, 6, { colors: COLORS, kind: "confetti", speed: 60, g: 160, life: 3, size: 6, drag: 0.97, angle: Math.PI / 2, spread: 1 });
+    }
+  }
+  window.BattleStage = BattleStage;
+})();
+
+</script>
+<script>
+/* Practice mode (one device): build bots and battle them.
+   Uses the same engine as the tournament, so the rules match. */
+(function () {
+  const E = window.Engine;
+  const { fit, rr, ease, clamp, bigText, FX, RM, COLORS, PARTS, statsOf, MAXW, codeOf, parseCode } = E;
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+
+  // ---------------- BUILD ----------------
+  const builder = Builder.mount({
+    bot: store.get("rba-bot", null) || undefined,
+    onChange(bot, over) {
+      store.set("rba-bot", bot);
+      $("code").textContent = codeOf(bot);
+      $("save").disabled = over; $("copy").disabled = over;
+    },
+  });
+  let toastT;
+  function toast(msg) { $("toast").textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => ($("toast").textContent = ""), 3500); }
+  $("copy").onclick = async () => {
+    try { await navigator.clipboard.writeText(codeOf(builder.bot)); toast("Copied!"); }
+    catch { const r = document.createRange(); r.selectNodeContents($("code")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Code selected. Press Ctrl+C to copy."); }
+  };
+  $("save").onclick = () => {
+    if (builder.overweight()) return;
+    addToRoster(builder.bot, false); E.Sound.play("win"); builder.celebrate();
+    toast(`${builder.bot.name} joined the Arena roster!`);
+  };
+
+  // ---------------- ROSTER ----------------
+  const SAMPLES = ["CRUSHER-12011", "ZIPZAP-00222", "SPIDEY-22113"];
+  let roster = store.get("rba-roster", null);
+  if (!Array.isArray(roster) || !roster.length) roster = SAMPLES.map((c) => ({ ...parseCode(c), sample: true, w: 0, l: 0 }));
+  roster = roster.filter((r) => E.sanitizeBot(r)); // drop bots made under old rules that are now invalid
+  if (roster.length < 2) roster = SAMPLES.map((c) => ({ ...parseCode(c), sample: true, w: 0, l: 0 }));
+  let pick = [0, Math.min(1, roster.length - 1)], activeCorner = 0, busy = false;
+
+  function addToRoster(b, isSample) {
+    const code = codeOf(b), i = roster.findIndex((r) => codeOf(r) === code);
+    if (i >= 0) return i;
+    roster.push({ ...b, sample: !!isSample, w: 0, l: 0 }); store.set("rba-roster", roster); renderRoster();
+    return roster.length - 1;
+  }
+  function setCorner(k) { activeCorner = k; $("cornerA").setAttribute("aria-pressed", k === 0); $("cornerB").setAttribute("aria-pressed", k === 1); }
+  $("cornerA").onclick = () => { E.Sound.play("click"); setCorner(0); };
+  $("cornerB").onclick = () => { E.Sound.play("click"); setCorner(1); };
+  function renderRoster() {
+    pick = pick.map((p) => clamp(p, 0, roster.length - 1));
+    const el = $("roster"); el.innerHTML = "";
+    roster.forEach((r, i) => {
+      const row = document.createElement("button"); row.type = "button";
+      row.className = "rbot" + (pick[0] === i ? " in-a" : "") + (pick[1] === i ? " in-b" : "");
+      row.innerHTML = `<canvas width="80" height="80" aria-hidden="true"></canvas><div style="min-width:0"><div class="nm"></div><div class="meta"></div></div><div class="rec"></div>`;
+      const nm = row.querySelector(".nm"); nm.textContent = r.name;
+      if (r.sample) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "sample"; nm.appendChild(t); }
+      row.querySelector(".meta").textContent = `${PARTS.body[r.body].n} · ${PARTS.sensor[r.sensor].n} · ${PARTS.tool[r.tool].n}`;
+      row.querySelector(".rec").innerHTML = `${r.w}W<br>${r.l}L`;
+      row.setAttribute("aria-label", `${r.name}: put in the active corner`);
+      E.portrait(row.querySelector("canvas"), r, "#2b2a30");
+      row.onclick = () => { if (busy) return; E.Sound.play("click"); pick[activeCorner] = i; setCorner(1 - activeCorner); renderRoster(); resetFight(); };
+      el.appendChild(row);
+    });
+    $("cna").textContent = roster[pick[0]]?.name || "—"; $("cnb").textContent = roster[pick[1]]?.name || "—";
+  }
+  $("add").onclick = () => {
+    const b = parseCode($("addcode").value);
+    if (!b) { $("addmsg").textContent = "That code doesn't look right. It should look like ZAP-21013."; return; }
+    if (statsOf(b).wt > MAXW) { $("addmsg").textContent = "That bot is over 75 kg, so it can't fight."; return; }
+    if (busy) return;
+    $("addmsg").textContent = ""; $("addcode").value = "";
+    const i = addToRoster(b, false); pick[activeCorner] = i; setCorner(1 - activeCorner); renderRoster(); resetFight(); E.Sound.play("go");
+  };
+  $("addcode").addEventListener("keydown", (e) => { if (e.key === "Enter") $("add").click(); });
+  $("randmatch").onclick = () => {
+    if (busy || roster.length < 2) return;
+    const a = (Math.random() * roster.length) | 0; let b; do { b = (Math.random() * roster.length) | 0; } while (b === a);
+    pick = [a, b]; renderRoster(); resetFight(); E.Sound.play("go");
+  };
+
+
+  function showWhy(x, A, B) {
+    const L = 1 - x.winner, loser = [A, B][L];
+    $("why-h").textContent = `Why ${[A, B][x.winner].name} won`;
+    $("why-r").innerHTML = "";
+    x.sides[0].reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $("why-r").appendChild(li); });
+    $("why-t").innerHTML = "<b></b> <span></span>"; $("why-t").firstChild.textContent = `Tip for ${loser.name}:`; $("why-t").lastChild.textContent = x.sides[L].tip;
+    $("why").hidden = false;
+  }
+
+  // ---------------- BATTLE ----------------
+  const stage = new BattleStage($("arena"), {
+    onHP(hp, instant) {
+      [["ba", "ga", 0], ["bb", "gb", 1]].forEach(([m, g, k]) => {
+        if (instant) { $(g).style.transition = "none"; $(m).style.transition = "none"; }
+        $(m).style.width = hp[k] + "%"; $(g).style.width = hp[k] + "%";
+        if (instant) { void $(m).offsetWidth; $(g).style.transition = ""; $(m).style.transition = ""; }
+      });
+      $("ha").textContent = Math.round(hp[0]); $("hb").textContent = Math.round(hp[1]);
+    },
+    onLog(e, bot) {
+      const d = document.createElement("div"), labels = { sense: "SENSE", think: "THINK", act: "ACT", win: "WINNER", stall: "STUCK" };
+      d.innerHTML = `<span class="chip c-${e.kind === "stall" ? "act" : e.kind}">${labels[e.kind]}</span><span><span class="${e.me === 0 ? "a" : "b"}"></span><span></span></span>`;
+      const p = d.lastElementChild.children; p[0].textContent = bot.name; p[1].textContent = e.txt;
+      $("log").appendChild(d); $("log").scrollTop = $("log").scrollHeight;
+    },
+    onDone(w) {
+      if (lastFight) showWhy(lastFight.why, lastFight.A, lastFight.B);
+      busy = false; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Rematch";
+      if (pick[0] !== pick[1]) { roster[pick[w]].w++; roster[pick[1 - w]].l++; store.set("rba-roster", roster); renderRoster(); }
+    },
+  });
+  let lastFight = null;
+  function resetFight() {
+    busy = false; $("log").innerHTML = ""; $("why").hidden = true; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Fight!";
+    const a = roster[pick[0]], b = roster[pick[1]];
+    $("na").textContent = a?.name || "—"; $("nb").textContent = b?.name || "—";
+    stage.setBots(a, b);
+  }
+  $("fight").onclick = () => {
+    const a = roster[pick[0]], b = roster[pick[1]]; if (!a || !b) return;
+    resetFight(); busy = true; $("fight").disabled = true; $("skip").disabled = false;
+    const sim = E.simulate(a, b);
+    lastFight = { why: E.explainBattle(a, b, sim), A: a, B: b };
+    stage.play(sim.events);
+  };
+  $("skip").onclick = () => stage.skip();
+  [["sp1", 1], ["sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { stage.speed = v; $("sp1").setAttribute("aria-pressed", v === 1); $("sp2").setAttribute("aria-pressed", v === 2); }));
+
+  // ---------------- tabs + loop ----------------
+  function show(bay) {
+    ["build", "arena"].forEach((k) => { $("bay-" + k).hidden = k !== bay; $("tab-" + k).setAttribute("aria-selected", k === bay); });
+    try { history.replaceState(null, "", "#" + bay); } catch {}
+  }
+  document.querySelectorAll(".tab[data-bay]").forEach((t) => (t.onclick = () => { E.Sound.play("click"); show(t.dataset.bay); }));
+  const start = (location.hash || "").replace("#", "");
+  show(["build", "arena"].includes(start) ? start : "build");
+  $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
+
+  renderRoster(); resetFight();
+})();
+
+</script>
+</body>
+</html>
