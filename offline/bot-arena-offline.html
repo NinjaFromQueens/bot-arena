@@ -247,6 +247,19 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .why li { font-size: 16px; }
 .why .tip { margin: 0; font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
 .why .tip b { font-family: var(--display); color: var(--orange-hi); }
+.pdesc { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.pdesc b { color: var(--fg); font-family: var(--display); font-weight: 700; }
+/* phones: title and Sound on one row, the three tabs as an even row underneath */
+@media (max-width: 560px) {
+  header .headright { display: contents; }
+  header .brand { flex: 1; min-width: 0; }
+  header h1 { font-size: 24px; white-space: nowrap; }
+  header .brand small { letter-spacing: .08em; white-space: nowrap; }
+  header #sound { order: 1; padding: 8px 9px; font-size: 11px; }
+  header .tabs { order: 2; flex-basis: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tab { justify-content: center; padding: 9px 2px; font-size: 13px; white-space: nowrap; }
+  .tab i { display: none; }
+}
 </style>
 
 </head>
@@ -265,11 +278,11 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     </div>
     <div class="headright">
       <nav class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true"><i>1</i>Build</button>
-        <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false"><i>2</i>Arena</button>
-        <a class="tab" href="flying-car-lab-offline.html" style="text-decoration:none"><i>3</i>Flying Car Lab</a>
+        <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true" data-tip="Design a robot and get its bot code."><i>1</i>Build</button>
+        <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false" data-tip="Battle robots from your roster."><i>2</i>Arena</button>
+        <a class="tab" href="flying-car-lab-offline.html" style="text-decoration:none" data-tip="Engineer a flying car and try its missions."><i>3</i>Flying Car Lab</a>
       </nav>
-      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
 
@@ -280,20 +293,20 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <div class="panel">
         <h3>Name</h3>
         <div class="namerow">
-          <input type="text" id="bot-name" maxlength="10" value="BOLT" autocomplete="off" aria-label="Robot name, up to 10 letters or numbers">
-          <button class="btn ghost" id="random" type="button">Random</button>
+          <input type="text" id="bot-name" maxlength="10" value="BOLT" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Robot name, up to 10 letters or numbers" data-tip="Up to 10 letters or numbers. It becomes the start of your bot code.">
+          <button class="btn ghost" id="random" type="button" data-tip="Pick random parts that fit under 75 kg.">Random</button>
         </div>
         <div class="slot"><h3>Color</h3><div class="swatches" id="sw"></div></div>
-        <div class="slot"><h3><span class="chip c-move">Move</span> Body</h3><div class="choices" id="c-body"></div></div>
-        <div class="slot"><h3><span class="chip c-sense">Sense</span> Sensor</h3><div class="choices" id="c-sensor"></div></div>
-        <div class="slot"><h3><span class="chip c-think">Think</span> Brain</h3><div class="choices" id="c-brain"></div></div>
-        <div class="slot"><h3><span class="chip c-act">Act</span> Tool</h3><div class="choices" id="c-tool"></div></div>
+        <div class="slot"><h3><span class="chip c-move">Move</span> <span class="hastip" tabindex="0" data-tip="How your robot moves. Changes speed, armor and dodging.">Body</span></h3><div class="choices" id="c-body"></div></div>
+        <div class="slot"><h3><span class="chip c-sense">Sense</span> <span class="hastip" tabindex="0" data-tip="How your robot notices the enemy. Changes aim, plus dodging (Ultrasonic) or armor (Touch).">Sensor</span></h3><div class="choices" id="c-sensor"></div></div>
+        <div class="slot"><h3><span class="chip c-think">Think</span> <span class="hastip" tabindex="0" data-tip="How your robot decides what to do each turn. Brains weigh 0 kg.">Brain</span></h3><div class="choices" id="c-brain"></div></div>
+        <div class="slot"><h3><span class="chip c-act">Act</span> <span class="hastip" tabindex="0" data-tip="What your robot fights with. Changes damage and how often it hits.">Tool</span></h3><div class="choices" id="c-tool"></div></div>
       </div>
       <div class="right">
         <div class="panel preview-card">
           <canvas id="preview" class="preview" aria-label="Your robot"></canvas>
           <div class="weight">
-            <div class="wrow"><span>WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
+            <div class="wrow"><span class="hastip" tabindex="0" data-tip="All your parts added up. Over 75 kg is too heavy for the motors.">WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
             <div class="meter" id="wmeter"><i></i></div>
             <div class="warn" id="warn" role="status"></div>
           </div>
@@ -303,10 +316,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           <div class="codebox">
             <div class="small">Your bot code. Read it to your teacher to enter the Arena.</div>
             <div class="coderow">
-              <div class="code" id="code">BOLT-00220</div>
+              <div class="code" id="code" data-tip="Your bot code: your robot's name, then one number for each part and the color. Anyone who types it gets your exact robot.">BOLT-00220</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn ghost" id="copy" type="button">Copy</button>
-                <button class="btn" id="save" type="button">Send to Arena</button>
+                <button class="btn ghost" id="copy" type="button" data-tip="Copy the code so you can paste or share it.">Copy</button>
+                <button class="btn" id="save" type="button" data-tip="Add this robot to the roster in the Arena tab.">Send to Arena</button>
               </div>
             </div>
             <div class="toast" id="toast" role="status"></div>
@@ -328,10 +341,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           <div class="hud b"><div class="who"><span id="nb">—</span><span id="hb">100</span></div><div class="hpbar"><i class="ghost" id="gb" style="width:100%"></i><i class="main" id="bb" style="width:100%;background:linear-gradient(270deg,#1d7fc4,var(--blue))"></i></div></div>
         </div>
         <div class="stage-ctrl">
-          <button class="btn big" id="fight" type="button">Fight!</button>
-          <button class="btn ghost" id="skip" type="button" disabled>Skip to end</button>
+          <button class="btn big" id="fight" type="button" data-tip="Start the battle between the two corners.">Fight!</button>
+          <button class="btn ghost" id="skip" type="button" disabled data-tip="Jump to the end of this fight.">Skip to end</button>
           <span class="spacer"></span>
-          <div class="seg" role="group" aria-label="Battle speed">
+          <div class="seg" role="group" aria-label="Battle speed" data-tip="Battle speed. The winner is the same at any speed.">
             <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button>
           </div>
         </div>
@@ -341,17 +354,17 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <div class="panel">
         <h2>Matchup</h2>
         <div class="corners">
-          <button class="corner a" id="cornerA" type="button" aria-pressed="true"><span class="lbl">Orange corner</span><span class="cn" id="cna">—</span></button>
+          <button class="corner a" id="cornerA" type="button" aria-pressed="true" data-tip="Tap a corner, then tap a robot in the roster to put it here."><span class="lbl">Orange corner</span><span class="cn" id="cna">—</span></button>
           <span class="vs">VS</span>
-          <button class="corner b" id="cornerB" type="button" aria-pressed="false"><span class="lbl">Blue corner</span><span class="cn" id="cnb">—</span></button>
+          <button class="corner b" id="cornerB" type="button" aria-pressed="false" data-tip="Tap a corner, then tap a robot in the roster to put it here."><span class="lbl">Blue corner</span><span class="cn" id="cnb">—</span></button>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
           <h2>Class Roster</h2>
-          <button class="btn ghost" id="randmatch" type="button" style="padding:7px 12px;font-size:13px">Random match</button>
+          <button class="btn ghost" id="randmatch" type="button" data-tip="Put two random robots from the roster in the corners." style="padding:7px 12px;font-size:13px">Random match</button>
         </div>
         <div class="addrow">
-          <input type="text" id="addcode" placeholder="ZAP-21013" autocomplete="off" aria-label="Classmate's bot code">
-          <button class="btn" id="add" type="button">Add</button>
+          <input type="text" id="addcode" placeholder="ZAP-21013" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" data-tip="Type a classmate's bot code to add their robot." aria-label="Classmate's bot code">
+          <button class="btn" id="add" type="button" data-tip="Add the robot for this bot code to your roster.">Add</button>
         </div>
         <p class="warn" id="addmsg" role="status"></p>
         <div class="roster" id="roster"></div>
@@ -859,6 +872,13 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   const E = window.Engine;
   const { PARTS, SLOTS, COLORS, MAXW, statsOf, clamp, FX, drawBot, bigText, Sound } = E;
   const $ = (id) => document.getElementById(id);
+  // what each stat does in Engine.simulate
+  const STAT_TIPS = {
+    atk: "Damage each hit does. Your tool matters most.",
+    def: "Takes away some damage from every hit you get. Your body matters most.",
+    spd: "The faster robot usually attacks first, and speed helps you dodge. Comes from your body.",
+    aim: "Your chance to hit. Comes from your sensor.",
+  };
 
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
@@ -874,14 +894,21 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           b.className = "choice"; b.type = "button"; b.setAttribute("aria-pressed", bot[slot] === i);
           b.innerHTML = `<b></b><span></span><em>${p.wt} kg</em>`;
           b.querySelector("b").textContent = p.n; b.querySelector("span").textContent = p.d;
+          b.setAttribute("data-tip", `${p.n} (${p.wt} kg): ${p.tip}`);
           b.onclick = () => { bot[slot] = i; pv.pop = 1; Sound.play("click"); update(); };
           el.appendChild(b);
         });
+        // the picked part's full description, so phones (which hide the short text) still explain each part
+        let d = $("d-" + slot);
+        if (!d) { d = document.createElement("p"); d.className = "pdesc"; d.id = "d-" + slot; d.setAttribute("aria-live", "polite"); el.after(d); }
+        const p = PARTS[slot][bot[slot]];
+        d.innerHTML = "<b></b> <span></span>"; d.firstChild.textContent = p.n + ":"; d.lastChild.textContent = p.tip;
       });
       const sw = $("sw"); sw.innerHTML = "";
       COLORS.forEach((c, i) => {
         const b = document.createElement("button");
         b.className = "swatch"; b.type = "button"; b.style.background = c; b.setAttribute("aria-label", "Color " + (i + 1));
+        b.setAttribute("data-tip", "Color only changes how your robot looks. It doesn't change any stats.");
         b.setAttribute("aria-pressed", bot.color === i);
         b.onclick = () => { bot.color = i; pv.pop = 1; Sound.play("click"); update(); };
         sw.appendChild(b);
@@ -895,8 +922,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       $("wmeter").classList.toggle("over", over);
       $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / MAXW) * 100) + "%";
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
-      const rows = [["Attack", s.atk, 12, "var(--orange)"], ["Defense", s.def, 11, "var(--good)"], ["Speed", s.spd, 10, "var(--blue)"], ["Aim", s.aim, 10, "var(--purple)"]];
-      $("stats").innerHTML = rows.map(([l, v, mx, c]) => `<span>${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
+      const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
+      $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
       opts.onChange && opts.onChange(bot, over);
     }
     $("bot-name").addEventListener("input", update);
@@ -1178,6 +1205,77 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 
 </script>
 <script>
+/*
+ * Tooltips for every page. Put data-tip="..." on any element (a "\n" starts a new line).
+ * Mouse: hover. Keyboard: focus. Touch: a tap shows the tip for a few seconds, and the tap still works as normal.
+ * Carries its own styles so it also works in practice mode and the offline backups.
+ */
+(function () {
+  const css = `
+  .tipbub { position: fixed; z-index: 1000; left: 0; top: 0; max-width: min(290px, calc(100vw - 12px)); padding: 8px 11px; border-radius: 9px;
+    background: #0f0e11; color: #f4f1ea; border: 1px solid #5a5762; box-shadow: 0 8px 24px rgba(0,0,0,.55);
+    font: 500 14px/1.35 "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif; letter-spacing: 0; text-transform: none; text-align: left;
+    white-space: pre-line; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+  .tipbub.on { opacity: 1; transform: none; }
+  .tipbub::after { content: ""; position: absolute; left: var(--ax, 50%); top: 100%; width: 10px; height: 10px; background: inherit;
+    border-right: 1px solid #5a5762; border-bottom: 1px solid #5a5762; transform: translate(-50%, -5px) rotate(45deg); }
+  .tipbub.below::after { top: auto; bottom: 100%; transform: translate(-50%, 5px) rotate(225deg); }
+  .hastip { text-decoration: underline dotted rgba(255,255,255,.45); text-underline-offset: 3px; cursor: help; }
+  @media (prefers-reduced-motion: reduce) { .tipbub { transition: none; } }`;
+  const style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
+
+  let bub = null, cur = null, showT = 0, hideT = 0, byTouch = false;
+  function bubble() {
+    if (!bub) { bub = document.createElement("div"); bub.className = "tipbub"; bub.id = "tipbub"; bub.setAttribute("role", "tooltip"); document.body.appendChild(bub); }
+    return bub;
+  }
+  function show(t) {
+    const text = t.getAttribute("data-tip");
+    if (!text || !t.isConnected) return;
+    const b = bubble(); hide(); cur = t;
+    b.textContent = text; b.classList.remove("on", "below"); b.style.left = "0px"; b.style.top = "0px";
+    const r = t.getBoundingClientRect(), bw = b.offsetWidth, bh = b.offsetHeight, W = document.documentElement.clientWidth;
+    let top = r.top - bh - 9, below = false;
+    if (top < 6) { top = r.bottom + 9; below = true; }
+    const left = Math.max(6, Math.min(W - bw - 6, r.left + r.width / 2 - bw / 2));
+    b.style.left = left + "px"; b.style.top = top + "px";
+    b.style.setProperty("--ax", Math.max(12, Math.min(bw - 12, r.left + r.width / 2 - left)) + "px");
+    b.classList.toggle("below", below); b.classList.add("on");
+    t.setAttribute("aria-describedby", "tipbub");
+  }
+  function hide() {
+    clearTimeout(showT); clearTimeout(hideT);
+    if (cur) cur.removeAttribute("aria-describedby");
+    cur = null; byTouch = false; if (bub) bub.classList.remove("on");
+  }
+  const tipOf = (e) => (e.target && e.target.closest ? e.target.closest("[data-tip]") : null);
+
+  document.addEventListener("pointerover", (e) => {
+    if (e.pointerType === "touch") return;
+    const t = tipOf(e); if (!t || t === cur) return;
+    clearTimeout(showT); showT = setTimeout(() => show(t), 280);
+  });
+  document.addEventListener("pointerout", (e) => {
+    if (e.pointerType === "touch") return;
+    const t = tipOf(e); if (!t || (e.relatedTarget && t.contains(e.relatedTarget))) return;
+    clearTimeout(showT); if (t === cur) hide();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    const t = tipOf(e);
+    if (e.pointerType !== "touch" || !t) { hide(); return; } // a click hides the tip so it never covers the result
+    show(t); byTouch = true; hideT = setTimeout(hide, 3500);
+  }, true);
+  document.addEventListener("focusin", (e) => { const t = tipOf(e); if (t && t.matches(":focus-visible")) show(t); });
+  // a tapped button often gets redrawn (part pickers), which drops focus; the touch timer hides those tips instead
+  document.addEventListener("focusout", (e) => { if (!byTouch && tipOf(e) === cur) hide(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  // only when the scrolling area holds the tipped element (the battle log scrolls on its own during fights)
+  window.addEventListener("scroll", (e) => { if (cur && (e.target === document || (e.target.contains && e.target.contains(cur)))) hide(); }, true);
+  window.addEventListener("resize", hide);
+})();
+
+</script>
+<script>
 /* Practice mode (one device): build bots and battle them.
    Uses the same engine as the tournament, so the rules match. */
 (function () {
@@ -1239,6 +1337,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       row.querySelector(".meta").textContent = `${PARTS.body[r.body].n} · ${PARTS.sensor[r.sensor].n} · ${PARTS.tool[r.tool].n}`;
       row.querySelector(".rec").innerHTML = `${r.w}W<br>${r.l}L`;
       row.setAttribute("aria-label", `${r.name}: put in the active corner`);
+      row.setAttribute("data-tip", `Put ${r.name} in the selected corner. W and L are its wins and losses on this device.`);
       E.portrait(row.querySelector("canvas"), r, "#2b2a30");
       row.onclick = () => { if (busy) return; E.Sound.play("click"); pick[activeCorner] = i; setCorner(1 - activeCorner); renderRoster(); resetFight(); };
       el.appendChild(row);

@@ -12,7 +12,11 @@
   .hero h1 { font-size: clamp(40px, 9vw, 72px); }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
   
-  .card { display: grid; gap: 12px; align-content: start; }
+  .card { display: flex; flex-direction: column; gap: 12px; }
+  .card .btn { margin-top: auto; } /* buttons line up along the bottom of each row */
+  .teacher { display: flex; align-items: center; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; margin-top: 14px; }
+  .teacher > div { display: grid; gap: 4px; flex: 1 1 320px; }
+  .teacher h2 { font-size: 22px; }
   .card h2 { font-size: 26px; }
   .card.join { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
   .codein { font-size: 34px !important; text-align: center; letter-spacing: .3em !important; font-weight: 700; padding: 12px !important; }
@@ -36,18 +40,13 @@
     <form class="panel card join" id="joinform" autocomplete="off">
       <h2>Join a game</h2>
       <label class="small" for="code">Type the code on the board</label>
-      <input type="text" id="code" class="codein upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code">
+      <input type="text" id="code" class="codein upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
       <p class="warn" id="msg" role="status"></p>
       <button class="btn big" type="submit">Join</button>
     </form>
     <div class="panel card">
-      <h2>Host a tournament</h2>
-      <p class="intro">For teachers. Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.</p>
-      <a class="btn big ghost" href="/host">Host on the board</a>
-    </div>
-    <div class="panel card">
       <h2>Robot Lessons</h2>
-      <p class="intro">Six short lessons you can do on your own: Sense-Think-Act, sensors, trade-offs, thrust, landing, and thinking like an engineer.</p>
+      <p class="intro">Nine short lessons you can do on your own: Sense-Think-Act, sensors like ultrasonic and lidar (with simulators), trade-offs, thrust, landing, and thinking like an engineer.</p>
       <a class="btn big ghost" href="/learn">Start learning</a>
     </div>
     <div class="panel card">
@@ -58,8 +57,13 @@
     <div class="panel card">
       <h2>Practice mode</h2>
       <p class="intro">Build robots and battle them on one device by trading bot codes.</p>
-      <a class="btn big ghost" href="/practice">Open practice mode</a>
+      <a class="btn big ghost" href="/practice">Start practicing</a>
     </div>
+  </div>
+  <div class="panel teacher">
+    <div><h2>Teachers: host a tournament</h2>
+    <p class="intro">Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.</p></div>
+    <a class="btn big ghost" href="/host">Host on the board</a>
   </div>
 </div>
 <script src="/socket.io/socket.io.js"></script>

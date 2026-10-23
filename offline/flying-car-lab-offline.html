@@ -111,6 +111,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
 .choice[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
 .choice[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
 .choices.locked { pointer-events: none; opacity: .55; }
+.pdesc { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.pdesc b { color: var(--fg); font-family: var(--display); font-weight: 700; }
 .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
 .swatch { width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: inset 0 -4px 0 #0003; transition: transform .15s; }
 .swatch[aria-pressed="true"] { transform: scale(1.12); outline: 3px solid var(--fg); outline-offset: 3px; }
@@ -298,8 +300,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
       <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Flying Car Lab</h1></div>
     </a>
     <div class="headright">
-      <a class="btn ghost" href="robot-lessons-offline.html" style="padding:8px 14px">Lessons</a>
-      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+      <a class="btn ghost" href="robot-lessons-offline.html" style="padding:8px 14px" data-tip="Robot Lessons: short lessons about thrust, landing, sensors and more.">Lessons</a>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
 
@@ -314,11 +316,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
       <div class="panel stagecard stagewrap">
         <canvas id="track" aria-label="Test track"></canvas>
         <div class="ctrl">
-          <button class="btn big" id="launch" type="button">Launch</button>
-          <button class="btn ghost" id="replay" type="button" disabled>Replay</button>
+          <button class="btn big" id="launch" type="button" data-tip="Drive up the ramp and fly with this design.">Launch</button>
+          <button class="btn ghost" id="replay" type="button" disabled data-tip="Watch your last flight again.">Replay</button>
           <span class="spacer"></span>
-          <label class="toggle"><input type="checkbox" id="forces" checked> Show forces</label>
-          <label class="toggle"><input type="checkbox" id="slowmo"> Slow motion</label>
+          <label class="toggle" data-tip="Draw arrows on the car: thrust (orange) and weight (blue)."><input type="checkbox" id="forces" checked> Show forces</label>
+          <label class="toggle" data-tip="Play flights at about one third speed."><input type="checkbox" id="slowmo"> Slow motion</label>
         </div>
       </div>
       <section class="panel report" id="report" aria-live="polite"></section>
@@ -326,16 +328,16 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
     <div class="builder">
       <div class="panel sheet">
-        <h2>Design sheet <small id="sheetcost"></small></h2>
+        <h2>Design sheet <small id="sheetcost" class="hastip" tabindex="0" data-tip="Strength: the fastest landing your car survives. Landing gear plus body strength."></small></h2>
         <div class="meters">
-          <span>Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
-          <span>Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
+          <span class="hastip" tabindex="0" data-tip="Total upward push from all your lift nozzles.">Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
+          <span class="hastip" tabindex="0" data-tip="How hard gravity pulls on the car: mass × 9.81.">Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
         </div>
         <div class="sheetnums">
-          <div><b id="s-tw"></b><span>thrust ÷ weight</span></div>
-          <div><b id="s-kg"></b><span>total mass</span></div>
-          <div><b id="s-burn"></b><span>push time</span></div>
-          <div id="s-costbox"><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
+          <div tabindex="0" data-tip="Lift divided by weight. Above 1.00 the thrusters can lift the car on their own."><b id="s-tw"></b><span>thrust ÷ weight</span></div>
+          <div tabindex="0" data-tip="Frame, body, tanks, nozzles, computer, landing gear and passengers, added up."><b id="s-kg"></b><span>total mass</span></div>
+          <div tabindex="0" data-tip="How long the nozzles can fire before the air runs out."><b id="s-burn"></b><span>push time</span></div>
+          <div id="s-costbox" tabindex="0" data-tip="What all the parts cost. Budget missions set a limit."><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
         </div>
         <div class="warns" id="warns"></div>
       </div>
@@ -363,17 +365,17 @@ canvas { display: block; width: 100%; max-width: 100%; }
       <div class="panel sec">
         <h3>6 · Flight plan</h3>
         <div class="planrow">
-          <div class="slider"><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
+          <div class="slider" data-tip="How fast the car is going when it leaves the ramp."><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
         </div>
         <div class="planrow"><div class="t">Ramp angle <small>steeper = higher, shorter</small></div><div class="seg" id="o-ramp"></div></div>
         <div class="planrow"><div class="t">Save air for landing <small>needs a flight computer</small></div><div class="seg" id="o-reserve"></div></div>
         <div class="planrow">
           <div class="flipbox" id="flipbox">
             <div><b style="font-family:var(--display)">Backflip</b><p id="fliphelp">Needs the Pro computer and 2+ flip nozzles.</p></div>
-            <label class="switch2"><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
+            <label class="switch2" data-tip="Spin one full turn in the air. Needs the Pro computer and 2 or more flip nozzles."><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
           </div>
         </div>
-        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button">Reset to starting car</button></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button" data-tip="Go back to the starting car.">Reset to starting car</button></div>
       </div>
     </div>
   </div>
@@ -381,7 +383,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
 <div class="mobilebar" id="mobilebar">
   <div class="mb"><span><b id="mb-tw">0.00</b>thrust ÷ wt</span><span><b id="mb-kg">0 kg</b>mass</span><span><b id="mb-cost">$0k</b>cost</span></div>
-  <button class="btn big" id="mb-launch" type="button">Launch</button>
+  <button class="btn big" id="mb-launch" type="button" data-tip="Drive up the ramp and fly with this design.">Launch</button>
 </div>
 <script>
 /*
@@ -1251,6 +1253,77 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
 </script>
 <script>
+/*
+ * Tooltips for every page. Put data-tip="..." on any element (a "\n" starts a new line).
+ * Mouse: hover. Keyboard: focus. Touch: a tap shows the tip for a few seconds, and the tap still works as normal.
+ * Carries its own styles so it also works in practice mode and the offline backups.
+ */
+(function () {
+  const css = `
+  .tipbub { position: fixed; z-index: 1000; left: 0; top: 0; max-width: min(290px, calc(100vw - 12px)); padding: 8px 11px; border-radius: 9px;
+    background: #0f0e11; color: #f4f1ea; border: 1px solid #5a5762; box-shadow: 0 8px 24px rgba(0,0,0,.55);
+    font: 500 14px/1.35 "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif; letter-spacing: 0; text-transform: none; text-align: left;
+    white-space: pre-line; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+  .tipbub.on { opacity: 1; transform: none; }
+  .tipbub::after { content: ""; position: absolute; left: var(--ax, 50%); top: 100%; width: 10px; height: 10px; background: inherit;
+    border-right: 1px solid #5a5762; border-bottom: 1px solid #5a5762; transform: translate(-50%, -5px) rotate(45deg); }
+  .tipbub.below::after { top: auto; bottom: 100%; transform: translate(-50%, 5px) rotate(225deg); }
+  .hastip { text-decoration: underline dotted rgba(255,255,255,.45); text-underline-offset: 3px; cursor: help; }
+  @media (prefers-reduced-motion: reduce) { .tipbub { transition: none; } }`;
+  const style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
+
+  let bub = null, cur = null, showT = 0, hideT = 0, byTouch = false;
+  function bubble() {
+    if (!bub) { bub = document.createElement("div"); bub.className = "tipbub"; bub.id = "tipbub"; bub.setAttribute("role", "tooltip"); document.body.appendChild(bub); }
+    return bub;
+  }
+  function show(t) {
+    const text = t.getAttribute("data-tip");
+    if (!text || !t.isConnected) return;
+    const b = bubble(); hide(); cur = t;
+    b.textContent = text; b.classList.remove("on", "below"); b.style.left = "0px"; b.style.top = "0px";
+    const r = t.getBoundingClientRect(), bw = b.offsetWidth, bh = b.offsetHeight, W = document.documentElement.clientWidth;
+    let top = r.top - bh - 9, below = false;
+    if (top < 6) { top = r.bottom + 9; below = true; }
+    const left = Math.max(6, Math.min(W - bw - 6, r.left + r.width / 2 - bw / 2));
+    b.style.left = left + "px"; b.style.top = top + "px";
+    b.style.setProperty("--ax", Math.max(12, Math.min(bw - 12, r.left + r.width / 2 - left)) + "px");
+    b.classList.toggle("below", below); b.classList.add("on");
+    t.setAttribute("aria-describedby", "tipbub");
+  }
+  function hide() {
+    clearTimeout(showT); clearTimeout(hideT);
+    if (cur) cur.removeAttribute("aria-describedby");
+    cur = null; byTouch = false; if (bub) bub.classList.remove("on");
+  }
+  const tipOf = (e) => (e.target && e.target.closest ? e.target.closest("[data-tip]") : null);
+
+  document.addEventListener("pointerover", (e) => {
+    if (e.pointerType === "touch") return;
+    const t = tipOf(e); if (!t || t === cur) return;
+    clearTimeout(showT); showT = setTimeout(() => show(t), 280);
+  });
+  document.addEventListener("pointerout", (e) => {
+    if (e.pointerType === "touch") return;
+    const t = tipOf(e); if (!t || (e.relatedTarget && t.contains(e.relatedTarget))) return;
+    clearTimeout(showT); if (t === cur) hide();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    const t = tipOf(e);
+    if (e.pointerType !== "touch" || !t) { hide(); return; } // a click hides the tip so it never covers the result
+    show(t); byTouch = true; hideT = setTimeout(hide, 3500);
+  }, true);
+  document.addEventListener("focusin", (e) => { const t = tipOf(e); if (t && t.matches(":focus-visible")) show(t); });
+  // a tapped button often gets redrawn (part pickers), which drops focus; the touch timer hides those tips instead
+  document.addEventListener("focusout", (e) => { if (!byTouch && tipOf(e) === cur) hide(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  // only when the scrolling area holds the tipped element (the battle log scrolls on its own during fights)
+  window.addEventListener("scroll", (e) => { if (cur && (e.target === document || (e.target.contains && e.target.contains(cur)))) hide(); }, true);
+  window.addEventListener("resize", hide);
+})();
+
+</script>
+<script>
 /* Flying Car Lab: build a car, pick a mission, launch, and read the flight report. */
 (function () {
   const E = window.Engine, F = window.Flight;
@@ -1275,7 +1348,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     F.MISSIONS.forEach((m, i) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
-      b.querySelector(".nm").textContent = m.n;
+      b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
       b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
       el.appendChild(b);
     });
@@ -1285,23 +1358,24 @@ canvas { display: block; width: 100%; max-width: 100%; }
     const m = mission(), got = stars[m.id] || [];
     $("goal").innerHTML = `<b>${m.n}</b><span></span>`; $("goal").lastChild.textContent = m.goal;
     const crit = ["Complete the mission", "Smooth landing", m.eff.text];
-    $("crit").innerHTML = crit.map((c, i) => `<span class="${got[i] ? "got" : ""}">${got[i] ? "★" : "☆"} ${c}</span>`).join("");
+    const why = ["Reach the goal and land without crashing.", "Land at no more than 75% of the speed your car can take (its strength on the design sheet).", "Bonus star for an efficient design."];
+    $("crit").innerHTML = crit.map((c, i) => `<span class="${got[i] ? "got" : ""}" tabindex="0" data-tip="${why[i]}">${got[i] ? "★" : "☆"} ${c}</span>`).join("");
   }
 
   // ---------------- builder ----------------
-  function opt(container, list, key, extra) {
+  function opt(container, list, key, extra, tip) {
     const el = $(container); el.innerHTML = "";
     list.forEach((o, i) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", design[key] === i);
       b.innerHTML = `<b></b><span></span><em></em>`;
       b.querySelector("b").textContent = o.n; b.querySelector("span").textContent = o.d;
-      b.querySelector("em").textContent = extra(o);
+      b.querySelector("em").textContent = extra(o); b.setAttribute("data-tip", tip(o));
       b.onclick = () => { design[key] = i; changed(); };
       el.appendChild(b);
     });
   }
-  function seg(container, labels, key, values) {
-    const el = $(container); el.innerHTML = "";
+  function seg(container, labels, key, values, tip) {
+    const el = $(container); el.innerHTML = ""; el.setAttribute("data-tip", tip);
     labels.forEach((l, i) => {
       const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.setAttribute("aria-pressed", design[key] === values[i]);
       b.onclick = () => { design[key] = values[i]; changed(); };
@@ -1310,10 +1384,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
   function stepper(container, rows) {
     const el = $(container); el.innerHTML = "";
-    rows.forEach(([key, title, sub, max]) => {
+    rows.forEach(([key, title, sub, max, tip]) => {
       const row = document.createElement("div"); row.className = "steprow";
       row.innerHTML = `<div><b></b><span></span></div><div class="stepper"><button type="button" aria-label="Fewer">−</button><output></output><button type="button" aria-label="More">+</button></div>`;
       row.querySelector("b").textContent = title; row.querySelector("span").textContent = sub;
+      row.setAttribute("data-tip", tip);
       const [minus, plus] = row.querySelectorAll("button");
       row.querySelector("output").textContent = design[key];
       minus.disabled = design[key] <= 0; plus.disabled = design[key] >= max;
@@ -1325,20 +1400,20 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
   const k$ = (n) => "$" + Math.round(n / 1000) + "k";
   function renderBuilder() {
-    opt("o-material", F.MATERIALS, "material", (o) => `${o.kg} kg · ${k$(o.cost)} · strength +${o.str}`);
+    opt("o-material", F.MATERIALS, "material", (o) => `${o.kg} kg · ${k$(o.cost)} · strength +${o.str}`, (o) => `${o.n}: ${o.d}. The body adds ${o.str} m/s to the landing speed your car can survive.`);
     stepper("steppers1", [
-      ["tanks", "Air tanks", `${F.TANK.liters} L of air each · ${F.TANK.kg} kg · ${k$(F.TANK.cost)}`, F.TANK.max],
-      ["lift", "Lift nozzles (point down)", `Push the car UP · ${F.fmt(F.NOZZLE.thrust / 1000)} kN each`, F.LIMITS.lift],
-      ["push", "Push nozzles (point back)", "Push the car FORWARD", F.LIMITS.push],
-      ["flip", "Flip nozzles (front + back)", "Spin the car for flips", F.LIMITS.flip],
+      ["tanks", "Air tanks", `${F.TANK.liters} L of air each · ${F.TANK.kg} kg · ${k$(F.TANK.cost)}`, F.TANK.max, `Each tank holds ${F.TANK.liters} L of squeezed air and weighs ${F.TANK.kg} kg. More air means a longer push, but a heavier car.`],
+      ["lift", "Lift nozzles (point down)", `Push the car UP · ${F.fmt(F.NOZZLE.thrust / 1000)} kN each`, F.LIMITS.lift, `Each lift nozzle points down and pushes the car up with ${F.fmt(F.NOZZLE.thrust / 1000)} kN. More nozzles push harder but use the air faster.`],
+      ["push", "Push nozzles (point back)", "Push the car FORWARD", F.LIMITS.push, "Push nozzles point backward and speed the car forward in the air, so it flies farther."],
+      ["flip", "Flip nozzles (front + back)", "Spin the car for flips", F.LIMITS.flip, "Flip nozzles at the front and back spin the car. A backflip needs the Pro computer and at least 2."],
     ]);
-    opt("o-computer", F.COMPUTERS, "computer", (o) => `${o.kg} kg · ${k$(o.cost)}`);
-    opt("o-gear", F.GEARS, "gear", (o) => `takes ${o.absorb} m/s · ${o.kg} kg · ${k$(o.cost)}`);
-    stepper("steppers2", [["people", "Passengers", `${F.PERSON_KG} kg each`, 2]]);
+    opt("o-computer", F.COMPUTERS, "computer", (o) => `${o.kg} kg · ${k$(o.cost)}`, (o) => `${o.n}: ${o.d}`);
+    opt("o-gear", F.GEARS, "gear", (o) => `takes ${o.absorb} m/s · ${o.kg} kg · ${k$(o.cost)}`, (o) => `${o.n}: ${o.d}. Soaks up a landing at up to ${o.absorb} m/s, and the body's strength adds more.`);
+    stepper("steppers2", [["people", "Passengers", `${F.PERSON_KG} kg each`, 2, `Each passenger adds ${F.PERSON_KG} kg. Some missions need passengers and a gentle landing.`]]);
     $("i-speed").value = design.speed; $("v-speed").textContent = design.speed + " km/h";
     const sp = $("i-speed"); sp.style.setProperty("--p", ((design.speed - 20) / 40) * 100 + "%");
-    seg("o-ramp", F.RAMPS.map((r) => `${r.n} ${r.deg}°`), "ramp", [0, 1, 2]);
-    seg("o-reserve", ["0%", "15%", "30%", "45%"], "reserve", [0, 15, 30, 45]);
+    seg("o-ramp", F.RAMPS.map((r) => `${r.n} ${r.deg}°`), "ramp", [0, 1, 2], "Steeper ramps throw the car higher, but not as far.");
+    seg("o-reserve", ["0%", "15%", "30%", "45%"], "reserve", [0, 15, 30, 45], "Air kept back in the tanks. The flight computer fires it just before landing as a soft cushion. Needs a flight computer.");
     const canFlip = design.computer === 2 && design.flip >= 2;
     $("i-flip").disabled = !canFlip; $("i-flip").checked = design.flipOn && canFlip;
     $("flipbox").classList.toggle("off", !canFlip);
@@ -1528,9 +1603,10 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ctx.globalAlpha = 1;
       // peak marker
       if (upto >= fr.length - 1 || run.phase === "after") {
-        const px = X(run.r.maxYx), py = Y(run.r.maxY + F.CAR_H + 0.4);
+        const label = `PEAK ${F.fmt(run.r.maxY)} m`, py = Y(run.r.maxY + F.CAR_H + 0.4);
         ctx.font = `700 ${Math.max(11, Math.round(h * 0.03))}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "#ffd23f";
-        ctx.fillText(`PEAK ${F.fmt(run.r.maxY)} m`, px, py); ctx.textAlign = "left";
+        const tw = ctx.measureText(label).width, px = clamp(X(run.r.maxYx), tw / 2 + 64, w - tw / 2 - 8); // keep clear of the height scale on the left
+        ctx.fillText(label, px, py); ctx.textAlign = "left";
       }
     }
 

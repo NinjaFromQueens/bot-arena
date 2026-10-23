@@ -5,6 +5,13 @@
   const E = window.Engine;
   const { PARTS, SLOTS, COLORS, MAXW, statsOf, clamp, FX, drawBot, bigText, Sound } = E;
   const $ = (id) => document.getElementById(id);
+  // what each stat does in Engine.simulate
+  const STAT_TIPS = {
+    atk: "Damage each hit does. Your tool matters most.",
+    def: "Takes away some damage from every hit you get. Your body matters most.",
+    spd: "The faster robot usually attacks first, and speed helps you dodge. Comes from your body.",
+    aim: "Your chance to hit. Comes from your sensor.",
+  };
 
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
@@ -20,14 +27,21 @@
           b.className = "choice"; b.type = "button"; b.setAttribute("aria-pressed", bot[slot] === i);
           b.innerHTML = `<b></b><span></span><em>${p.wt} kg</em>`;
           b.querySelector("b").textContent = p.n; b.querySelector("span").textContent = p.d;
+          b.setAttribute("data-tip", `${p.n} (${p.wt} kg): ${p.tip}`);
           b.onclick = () => { bot[slot] = i; pv.pop = 1; Sound.play("click"); update(); };
           el.appendChild(b);
         });
+        // the picked part's full description, so phones (which hide the short text) still explain each part
+        let d = $("d-" + slot);
+        if (!d) { d = document.createElement("p"); d.className = "pdesc"; d.id = "d-" + slot; d.setAttribute("aria-live", "polite"); el.after(d); }
+        const p = PARTS[slot][bot[slot]];
+        d.innerHTML = "<b></b> <span></span>"; d.firstChild.textContent = p.n + ":"; d.lastChild.textContent = p.tip;
       });
       const sw = $("sw"); sw.innerHTML = "";
       COLORS.forEach((c, i) => {
         const b = document.createElement("button");
         b.className = "swatch"; b.type = "button"; b.style.background = c; b.setAttribute("aria-label", "Color " + (i + 1));
+        b.setAttribute("data-tip", "Color only changes how your robot looks. It doesn't change any stats.");
         b.setAttribute("aria-pressed", bot.color === i);
         b.onclick = () => { bot.color = i; pv.pop = 1; Sound.play("click"); update(); };
         sw.appendChild(b);
@@ -41,8 +55,8 @@
       $("wmeter").classList.toggle("over", over);
       $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / MAXW) * 100) + "%";
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
-      const rows = [["Attack", s.atk, 12, "var(--orange)"], ["Defense", s.def, 11, "var(--good)"], ["Speed", s.spd, 10, "var(--blue)"], ["Aim", s.aim, 10, "var(--purple)"]];
-      $("stats").innerHTML = rows.map(([l, v, mx, c]) => `<span>${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
+      const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
+      $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
       opts.onChange && opts.onChange(bot, over);
     }
     $("bot-name").addEventListener("input", update);

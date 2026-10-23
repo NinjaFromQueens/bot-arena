@@ -33,7 +33,7 @@ Quick health check: `https://<your-app>.onrender.com/healthz` should show `{"ok"
 npm install          # first time only
 npm start            # run locally at http://localhost:3000
 # ...edit files...
-npm test             # must say "All tests passed" and "Lab tests passed"
+npm test             # must end with "All tests passed", "Lab tests passed", "Music tests passed", "Sensor tests passed"
 npm run offline      # rebuild the offline backup files
 git add -A
 git commit -m "Describe what you changed"
@@ -50,6 +50,9 @@ git push             # Render deploys in ~2 minutes
 | Flight report wording | `public/js/flight.js` → `explain()` and `tipFor()` |
 | "Why ___ won" battle wording | `public/js/engine.js` → `explainBattle()` |
 | Lessons (text, questions, answers) | `public/js/learn.js` → `LESSONS`. Each question has `options` and `answer` (0 = first option). |
+| What each sensor can and can't detect (sensor lesson simulators) | `public/js/sensors.js` → `SENSORS` (range, speed) and `SURFACES` (what fools what). Then run `npm test`; it checks the lessons still tell the truth. |
+| Tooltip text (the hint that pops up on hover or tap) | The `data-tip="..."` on that element in the page's HTML, or where the page's JS builds it (`builder.js` for robot parts and stats, `lab.js` for car parts). |
+| Background music on the board | `public/js/music.js` → `TRACKS` (tempo, chords, note patterns) and `VOL` (overall loudness). Run `npm test` after editing. |
 | Name filter words | `server.js` → `SUB` (blocked anywhere) and `WORD` (blocked as whole words) |
 | Colors and fonts | `public/css/style.css` → the `:root` block |
 | Home page text | `public/index.html` |

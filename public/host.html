@@ -29,6 +29,7 @@
   .pcard.off { opacity: .5; }
   .pcard .kick { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; opacity: 0; transition: opacity .15s; font-size: 14px; }
   .pcard:hover .kick, .pcard .kick:focus-visible { opacity: 1; }
+  @media (hover: none) { .pcard .kick { opacity: .8; } } /* touch boards have no hover */
   .pcard .kick.confirm { opacity: 1; background: var(--bad); color: var(--ink); width: auto; border-radius: 8px; padding: 0 8px; font-family: var(--display); font-weight: 700; }
   .empty { border: 2px dashed var(--line); border-radius: 14px; padding: 40px 20px; text-align: center; color: var(--muted); font-size: 18px; }
   /* tournament */
@@ -112,8 +113,9 @@
       <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Bot Arena</h1></div>
     </a>
     <div class="headright">
-      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
-      <button class="btn ghost" id="fullscreen" type="button">Full screen</button>
+      <button class="soundbtn" id="music" type="button" aria-pressed="false" data-tip="Background music on the board: a groove in the lobby, suspense during predictions, battle music in fights, and a victory song for the champion.">Music: off</button>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Sound effects: joins, countdown beeps, hits and KOs.">Sound: off</button>
+      <button class="btn ghost" id="fullscreen" type="button" data-tip="Fill the whole screen. Press Esc to leave.">Full screen</button>
     </div>
   </header>
 
@@ -133,11 +135,11 @@
       <div class="panel">
         <div class="lobbyhead">
           <div class="count"><b id="pcount">0</b> robots ready</div>
-          <button class="btn huge" id="start" type="button" disabled>Start tournament</button>
+          <button class="btn huge" id="start" type="button" disabled data-tip="Build the bracket and begin. Needs at least 2 robots. New students can't join after this.">Start tournament</button>
         </div>
         <div class="grid" id="players"></div>
         <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
-        <p class="small" style="margin-top:12px">Hover a robot and click × to remove it (for example, an inappropriate name).</p>
+        <p class="small" style="margin-top:12px">To remove a robot (for example, an inappropriate name), click the × on its card twice.</p>
       </div>
     </div>
   </section>
@@ -168,14 +170,15 @@
           <div class="hud b"><div class="who"><span id="nb">—</span><span id="hb">100</span></div><div class="hpbar"><i class="ghost" id="gb" style="width:100%"></i><i class="main" id="bb" style="width:100%"></i></div></div>
         </div>
         <div class="stage-ctrl">
-          <button class="btn big" id="next" type="button">Next match</button>
-          <button class="btn ghost" id="skip" type="button" disabled>Skip to end</button>
+          <button class="btn big" id="next" type="button" data-tip="Show the next matchup and open predictions. While the Up Next card is up, this starts the fight right away.
+Shortcut: Space or → (works with a presentation clicker).">Next match</button>
+          <button class="btn ghost" id="skip" type="button" disabled data-tip="Jump straight to the end of this fight.">Skip to end</button>
           <span class="spacer"></span>
-          <label class="switch">Predict time
+          <label class="switch" id="ptimewrap" data-tip="How long students get to predict the winner before each fight.">Predict time
             <select id="ptime" aria-label="Prediction time"><option value="0">Off</option><option value="8">8 s</option><option value="12" selected>12 s</option><option value="20">20 s</option></select>
           </label>
-          <label class="switch"><input type="checkbox" id="auto"> Auto-play</label>
-          <div class="seg" role="group" aria-label="Battle speed">
+          <label class="switch" id="autowrap" data-tip="Plays every match by itself. After each fight it waits 7 seconds so the class can read why the robot won."><input type="checkbox" id="auto"> Auto-play</label>
+          <div class="seg" role="group" aria-label="Battle speed" id="speedseg" data-tip="Battle speed. The winner is the same at any speed.">
             <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button><button type="button" id="sp3" aria-pressed="false">3x</button>
           </div>
         </div>
@@ -190,13 +193,13 @@
           <div class="bracket" id="bracket"></div>
         </div>
         <div class="panel" id="leaders">
-          <h2 style="margin-bottom:10px">Top Predictors</h2>
+          <h2 style="margin-bottom:10px"><span class="hastip" tabindex="0" data-tip="Students who aren't fighting pick a winner on their device. Each right pick is 1 point.">Top Predictors</span></h2>
           <ol class="leaders" id="leaderlist"></ol>
           <p class="small" id="leaderempty">Students pick a winner on their device before each match. Correct picks earn a point.</p>
         </div>
         <div class="panel tourctl" id="donectl" hidden>
-          <button class="btn big" id="again" type="button">New tournament, same robots</button>
-          <button class="btn ghost" id="newgame" type="button">New game code</button>
+          <button class="btn big" id="again" type="button" data-tip="Back to the lobby with the same robots and code, ready for a new bracket. Students can change robots first. Prediction points go back to 0.">New tournament, same robots</button>
+          <button class="btn ghost" id="newgame" type="button" data-tip="End this game and make a new join code. Students will need to join again.">New game code</button>
         </div>
       </div>
       <div class="panel awardsp" id="awardsp" hidden>
@@ -210,7 +213,9 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/vendor/qrcode.js"></script>
 <script src="/js/engine.js"></script>
+<script src="/js/music.js"></script>
 <script src="/js/battle.js"></script>
+<script src="/js/tips.js"></script>
 <script src="/js/host.js"></script>
 </body>
 </html>

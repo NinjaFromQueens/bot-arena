@@ -246,6 +246,19 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .why li { font-size: 16px; }
 .why .tip { margin: 0; font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
 .why .tip b { font-family: var(--display); color: var(--orange-hi); }
+.pdesc { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.pdesc b { color: var(--fg); font-family: var(--display); font-weight: 700; }
+/* phones: title and Sound on one row, the three tabs as an even row underneath */
+@media (max-width: 560px) {
+  header .headright { display: contents; }
+  header .brand { flex: 1; min-width: 0; }
+  header h1 { font-size: 24px; white-space: nowrap; }
+  header .brand small { letter-spacing: .08em; white-space: nowrap; }
+  header #sound { order: 1; padding: 8px 9px; font-size: 11px; }
+  header .tabs { order: 2; flex-basis: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tab { justify-content: center; padding: 9px 2px; font-size: 13px; white-space: nowrap; }
+  .tab i { display: none; }
+}
 </style>
 
 </head>
@@ -264,11 +277,11 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     </div>
     <div class="headright">
       <nav class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true"><i>1</i>Build</button>
-        <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false"><i>2</i>Arena</button>
-        <a class="tab" href="/lab" style="text-decoration:none"><i>3</i>Flying Car Lab</a>
+        <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true" data-tip="Design a robot and get its bot code."><i>1</i>Build</button>
+        <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false" data-tip="Battle robots from your roster."><i>2</i>Arena</button>
+        <a class="tab" href="/lab" style="text-decoration:none" data-tip="Engineer a flying car and try its missions."><i>3</i>Flying Car Lab</a>
       </nav>
-      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
 
@@ -279,20 +292,20 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <div class="panel">
         <h3>Name</h3>
         <div class="namerow">
-          <input type="text" id="bot-name" maxlength="10" value="BOLT" autocomplete="off" aria-label="Robot name, up to 10 letters or numbers">
-          <button class="btn ghost" id="random" type="button">Random</button>
+          <input type="text" id="bot-name" maxlength="10" value="BOLT" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Robot name, up to 10 letters or numbers" data-tip="Up to 10 letters or numbers. It becomes the start of your bot code.">
+          <button class="btn ghost" id="random" type="button" data-tip="Pick random parts that fit under 75 kg.">Random</button>
         </div>
         <div class="slot"><h3>Color</h3><div class="swatches" id="sw"></div></div>
-        <div class="slot"><h3><span class="chip c-move">Move</span> Body</h3><div class="choices" id="c-body"></div></div>
-        <div class="slot"><h3><span class="chip c-sense">Sense</span> Sensor</h3><div class="choices" id="c-sensor"></div></div>
-        <div class="slot"><h3><span class="chip c-think">Think</span> Brain</h3><div class="choices" id="c-brain"></div></div>
-        <div class="slot"><h3><span class="chip c-act">Act</span> Tool</h3><div class="choices" id="c-tool"></div></div>
+        <div class="slot"><h3><span class="chip c-move">Move</span> <span class="hastip" tabindex="0" data-tip="How your robot moves. Changes speed, armor and dodging.">Body</span></h3><div class="choices" id="c-body"></div></div>
+        <div class="slot"><h3><span class="chip c-sense">Sense</span> <span class="hastip" tabindex="0" data-tip="How your robot notices the enemy. Changes aim, plus dodging (Ultrasonic) or armor (Touch).">Sensor</span></h3><div class="choices" id="c-sensor"></div></div>
+        <div class="slot"><h3><span class="chip c-think">Think</span> <span class="hastip" tabindex="0" data-tip="How your robot decides what to do each turn. Brains weigh 0 kg.">Brain</span></h3><div class="choices" id="c-brain"></div></div>
+        <div class="slot"><h3><span class="chip c-act">Act</span> <span class="hastip" tabindex="0" data-tip="What your robot fights with. Changes damage and how often it hits.">Tool</span></h3><div class="choices" id="c-tool"></div></div>
       </div>
       <div class="right">
         <div class="panel preview-card">
           <canvas id="preview" class="preview" aria-label="Your robot"></canvas>
           <div class="weight">
-            <div class="wrow"><span>WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
+            <div class="wrow"><span class="hastip" tabindex="0" data-tip="All your parts added up. Over 75 kg is too heavy for the motors.">WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
             <div class="meter" id="wmeter"><i></i></div>
             <div class="warn" id="warn" role="status"></div>
           </div>
@@ -302,10 +315,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           <div class="codebox">
             <div class="small">Your bot code. Read it to your teacher to enter the Arena.</div>
             <div class="coderow">
-              <div class="code" id="code">BOLT-00220</div>
+              <div class="code" id="code" data-tip="Your bot code: your robot's name, then one number for each part and the color. Anyone who types it gets your exact robot.">BOLT-00220</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn ghost" id="copy" type="button">Copy</button>
-                <button class="btn" id="save" type="button">Send to Arena</button>
+                <button class="btn ghost" id="copy" type="button" data-tip="Copy the code so you can paste or share it.">Copy</button>
+                <button class="btn" id="save" type="button" data-tip="Add this robot to the roster in the Arena tab.">Send to Arena</button>
               </div>
             </div>
             <div class="toast" id="toast" role="status"></div>
@@ -327,10 +340,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           <div class="hud b"><div class="who"><span id="nb">—</span><span id="hb">100</span></div><div class="hpbar"><i class="ghost" id="gb" style="width:100%"></i><i class="main" id="bb" style="width:100%;background:linear-gradient(270deg,#1d7fc4,var(--blue))"></i></div></div>
         </div>
         <div class="stage-ctrl">
-          <button class="btn big" id="fight" type="button">Fight!</button>
-          <button class="btn ghost" id="skip" type="button" disabled>Skip to end</button>
+          <button class="btn big" id="fight" type="button" data-tip="Start the battle between the two corners.">Fight!</button>
+          <button class="btn ghost" id="skip" type="button" disabled data-tip="Jump to the end of this fight.">Skip to end</button>
           <span class="spacer"></span>
-          <div class="seg" role="group" aria-label="Battle speed">
+          <div class="seg" role="group" aria-label="Battle speed" data-tip="Battle speed. The winner is the same at any speed.">
             <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button>
           </div>
         </div>
@@ -340,17 +353,17 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <div class="panel">
         <h2>Matchup</h2>
         <div class="corners">
-          <button class="corner a" id="cornerA" type="button" aria-pressed="true"><span class="lbl">Orange corner</span><span class="cn" id="cna">—</span></button>
+          <button class="corner a" id="cornerA" type="button" aria-pressed="true" data-tip="Tap a corner, then tap a robot in the roster to put it here."><span class="lbl">Orange corner</span><span class="cn" id="cna">—</span></button>
           <span class="vs">VS</span>
-          <button class="corner b" id="cornerB" type="button" aria-pressed="false"><span class="lbl">Blue corner</span><span class="cn" id="cnb">—</span></button>
+          <button class="corner b" id="cornerB" type="button" aria-pressed="false" data-tip="Tap a corner, then tap a robot in the roster to put it here."><span class="lbl">Blue corner</span><span class="cn" id="cnb">—</span></button>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
           <h2>Class Roster</h2>
-          <button class="btn ghost" id="randmatch" type="button" style="padding:7px 12px;font-size:13px">Random match</button>
+          <button class="btn ghost" id="randmatch" type="button" data-tip="Put two random robots from the roster in the corners." style="padding:7px 12px;font-size:13px">Random match</button>
         </div>
         <div class="addrow">
-          <input type="text" id="addcode" placeholder="ZAP-21013" autocomplete="off" aria-label="Classmate's bot code">
-          <button class="btn" id="add" type="button">Add</button>
+          <input type="text" id="addcode" placeholder="ZAP-21013" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" data-tip="Type a classmate's bot code to add their robot." aria-label="Classmate's bot code">
+          <button class="btn" id="add" type="button" data-tip="Add the robot for this bot code to your roster.">Add</button>
         </div>
         <p class="warn" id="addmsg" role="status"></p>
         <div class="roster" id="roster"></div>
@@ -365,6 +378,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 <script src="/js/engine.js"></script>
 <script src="/js/builder.js"></script>
 <script src="/js/battle.js"></script>
+<script src="/js/tips.js"></script>
 <script src="/js/practice.js"></script>
 </body>
 </html>

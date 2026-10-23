@@ -5,7 +5,7 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 ## Commands
 - `npm install` then `npm start` (port 3000, or `PORT`)
 - `npm run dev` restarts on file changes
-- `npm test` runs bracket + battle determinism tests
+- `npm test` runs bracket + battle determinism, Flying Car Lab, music pattern, and sensor lesson tests
 - `npm run balance` prints win rates for every legal build. Run it after ANY change to `PARTS` or battle rules. Target: every part 45–55%, most builds 40–60%, ~11–14 attacks per fight.
 - `node test/tune.js 250` hill-climbs the numbers in `PARTS` and prints a suggestion (does not edit files)
 
@@ -21,14 +21,19 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - `public/practice.html` + `public/js/practice.js` use the same engine/builder/battle code.
 - Flying Car Lab: `public/js/flight.js` (UMD, deterministic physics + missions + `grade` + `explain`) and `public/lab.html` / `public/js/lab.js` (UI + canvas). Single-device only; progress and design live in localStorage. After changing any number in flight.js run `npm test` (lab.test.js has a saved solution per mission) and `npm run lab` to see how hard each mission is. Explanations must stay true to the sim: if you add a mechanic, add a finding and a tip for it in `explain`/`tipFor`.
 
+- Sensor lessons (Ultrasonic, Lidar, Sensor showdown in `learn.js`): their simulators use `public/js/sensors.js` (UMD). `Sensors.read` decides what each sensor detects and writes the student-facing reason; `Sensors.cast` is the lidar ray caster. Lesson text and quizzes rely on these rules (ultrasonic: soft, tilted, past 4 m; lidar: glass; infrared: glass, black, past 0.8 m), and `test/sensors.test.js` checks them. Change a rule and the tests tell you which lesson claim broke.
+- Host-board music: `public/js/music.js` (UMD, browser-only synth, no audio files). Tracks are pattern strings in `TRACKS` (one chord per bar, 16 steps per bar; token key at the top of the file). `host.js` calls `Music.play(scene)`: `garage` in the lobby and between matches, `hype` on the Up Next card, `null` (silence) for the countdown and at each KO, `fight` from the first move, `champion` 1.5 s after the fanfare. `VOL` keeps it under the sound effects. `test/music.test.js` checks every pattern is well-formed.
+
 - `offline/*.html` are generated single-file backups (practice + Lab). Run `npm run offline` after changing anything in `public/` so they stay in sync; never edit them by hand.
 
 ## Conventions
 - Validate every client payload on the server (`Engine.sanitizeBot`, `cleanBuilder`, name filter).
 - Student-facing copy: short, plain sentences, encouraging tone. Kids are roughly grades 5–10.
+- Tooltips: every control gets `data-tip="..."` (handled by `public/js/tips.js`, loaded on every page; it works on hover, keyboard focus and touch). Give new buttons and settings a tip, and keep tip text true to the code, like part tips. Controls built in JS set it where they're created (`builder.js`, `lab.js`, `learn.js`, `practice.js`, `host.js`).
+- Host keyboard: Space / → / PageDown run Next match (for presentation clickers), ignored while focus is in a form control or button.
 - Visual style: dark "garage" theme, orange `#f46524` accent, Chakra Petch / Barlow Semi Condensed / JetBrains Mono. Tokens live in `public/css/style.css`.
 - Respect `prefers-reduced-motion` (Engine.RM) for shakes and particles.
-- Sound is off by default; the Sound button turns it on.
+- Sound and Music are off by default; their buttons turn them on. Music only plays on the host board, never on students' devices.
 
 ## Ideas not built yet
 - Persist rooms (Redis) so a server restart doesn't end a game

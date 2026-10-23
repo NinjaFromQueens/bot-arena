@@ -144,8 +144,8 @@
       <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Flying Car Lab</h1></div>
     </a>
     <div class="headright">
-      <a class="btn ghost" href="/learn" style="padding:8px 14px">Lessons</a>
-      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+      <a class="btn ghost" href="/learn" style="padding:8px 14px" data-tip="Robot Lessons: short lessons about thrust, landing, sensors and more.">Lessons</a>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
 
@@ -160,11 +160,11 @@
       <div class="panel stagecard stagewrap">
         <canvas id="track" aria-label="Test track"></canvas>
         <div class="ctrl">
-          <button class="btn big" id="launch" type="button">Launch</button>
-          <button class="btn ghost" id="replay" type="button" disabled>Replay</button>
+          <button class="btn big" id="launch" type="button" data-tip="Drive up the ramp and fly with this design.">Launch</button>
+          <button class="btn ghost" id="replay" type="button" disabled data-tip="Watch your last flight again.">Replay</button>
           <span class="spacer"></span>
-          <label class="toggle"><input type="checkbox" id="forces" checked> Show forces</label>
-          <label class="toggle"><input type="checkbox" id="slowmo"> Slow motion</label>
+          <label class="toggle" data-tip="Draw arrows on the car: thrust (orange) and weight (blue)."><input type="checkbox" id="forces" checked> Show forces</label>
+          <label class="toggle" data-tip="Play flights at about one third speed."><input type="checkbox" id="slowmo"> Slow motion</label>
         </div>
       </div>
       <section class="panel report" id="report" aria-live="polite"></section>
@@ -172,16 +172,16 @@
 
     <div class="builder">
       <div class="panel sheet">
-        <h2>Design sheet <small id="sheetcost"></small></h2>
+        <h2>Design sheet <small id="sheetcost" class="hastip" tabindex="0" data-tip="Strength: the fastest landing your car survives. Landing gear plus body strength."></small></h2>
         <div class="meters">
-          <span>Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
-          <span>Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
+          <span class="hastip" tabindex="0" data-tip="Total upward push from all your lift nozzles.">Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
+          <span class="hastip" tabindex="0" data-tip="How hard gravity pulls on the car: mass × 9.81.">Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
         </div>
         <div class="sheetnums">
-          <div><b id="s-tw"></b><span>thrust ÷ weight</span></div>
-          <div><b id="s-kg"></b><span>total mass</span></div>
-          <div><b id="s-burn"></b><span>push time</span></div>
-          <div id="s-costbox"><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
+          <div tabindex="0" data-tip="Lift divided by weight. Above 1.00 the thrusters can lift the car on their own."><b id="s-tw"></b><span>thrust ÷ weight</span></div>
+          <div tabindex="0" data-tip="Frame, body, tanks, nozzles, computer, landing gear and passengers, added up."><b id="s-kg"></b><span>total mass</span></div>
+          <div tabindex="0" data-tip="How long the nozzles can fire before the air runs out."><b id="s-burn"></b><span>push time</span></div>
+          <div id="s-costbox" tabindex="0" data-tip="What all the parts cost. Budget missions set a limit."><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
         </div>
         <div class="warns" id="warns"></div>
       </div>
@@ -209,17 +209,17 @@
       <div class="panel sec">
         <h3>6 · Flight plan</h3>
         <div class="planrow">
-          <div class="slider"><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
+          <div class="slider" data-tip="How fast the car is going when it leaves the ramp."><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
         </div>
         <div class="planrow"><div class="t">Ramp angle <small>steeper = higher, shorter</small></div><div class="seg" id="o-ramp"></div></div>
         <div class="planrow"><div class="t">Save air for landing <small>needs a flight computer</small></div><div class="seg" id="o-reserve"></div></div>
         <div class="planrow">
           <div class="flipbox" id="flipbox">
             <div><b style="font-family:var(--display)">Backflip</b><p id="fliphelp">Needs the Pro computer and 2+ flip nozzles.</p></div>
-            <label class="switch2"><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
+            <label class="switch2" data-tip="Spin one full turn in the air. Needs the Pro computer and 2 or more flip nozzles."><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
           </div>
         </div>
-        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button">Reset to starting car</button></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button" data-tip="Go back to the starting car.">Reset to starting car</button></div>
       </div>
     </div>
   </div>
@@ -227,10 +227,11 @@
 
 <div class="mobilebar" id="mobilebar">
   <div class="mb"><span><b id="mb-tw">0.00</b>thrust ÷ wt</span><span><b id="mb-kg">0 kg</b>mass</span><span><b id="mb-cost">$0k</b>cost</span></div>
-  <button class="btn big" id="mb-launch" type="button">Launch</button>
+  <button class="btn big" id="mb-launch" type="button" data-tip="Drive up the ramp and fly with this design.">Launch</button>
 </div>
 <script src="/js/engine.js"></script>
 <script src="/js/flight.js"></script>
+<script src="/js/tips.js"></script>
 <script src="/js/lab.js"></script>
 </body>
 </html>

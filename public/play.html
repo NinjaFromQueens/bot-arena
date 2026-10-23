@@ -70,7 +70,8 @@
       <img class="logo" src="/img/logo.svg" alt="">
       <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Bot Arena</h1></div>
     </a>
-    <span class="gamechip" id="gamechip" hidden><span class="dot"></span>Game <b id="gamecode"></b></span>
+    <span class="gamechip" id="gamechip" hidden tabindex="0" data-tip="Green dot: connected to your teacher's game.
+Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id="gamecode"></b></span>
   </header>
 
   <!-- 1. who are you -->
@@ -78,7 +79,7 @@
     <form class="panel narrow" id="nameform" autocomplete="off">
       <h2>Join game <span id="code1" style="color:var(--orange-hi);letter-spacing:.1em"></span></h2>
       <label class="small" for="builder">Your first name (shows on the board)</label>
-      <input type="text" id="builder" maxlength="14" placeholder="Maya">
+      <input type="text" id="builder" maxlength="14" placeholder="Maya" autocapitalize="words" spellcheck="false" enterkeyhint="next">
       <p class="warn" id="namemsg" role="status"></p>
       <button class="btn big" type="submit">Next: build my robot</button>
     </form>
@@ -91,20 +92,20 @@
       <div class="panel">
         <h3>Robot name</h3>
         <div style="display:flex;gap:8px">
-          <input type="text" id="bot-name" class="upper" maxlength="10" value="BOLT" autocomplete="off" aria-label="Robot name, up to 10 letters or numbers">
-          <button class="btn ghost" id="random" type="button">Random</button>
+          <input type="text" id="bot-name" class="upper" maxlength="10" value="BOLT" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Robot name, up to 10 letters or numbers" data-tip="Up to 10 letters or numbers. Your robot's name shows on the board.">
+          <button class="btn ghost" id="random" type="button" data-tip="Pick random parts that fit under 75 kg.">Random</button>
         </div>
         <div class="slot"><h3>Color</h3><div class="swatches" id="sw"></div></div>
-        <div class="slot"><h3><span class="chip c-move">Move</span> Body</h3><div class="choices" id="c-body"></div></div>
-        <div class="slot"><h3><span class="chip c-sense">Sense</span> Sensor</h3><div class="choices" id="c-sensor"></div></div>
-        <div class="slot"><h3><span class="chip c-think">Think</span> Brain</h3><div class="choices" id="c-brain"></div></div>
-        <div class="slot"><h3><span class="chip c-act">Act</span> Tool</h3><div class="choices" id="c-tool"></div></div>
+        <div class="slot"><h3><span class="chip c-move">Move</span> <span class="hastip" tabindex="0" data-tip="How your robot moves. Changes speed, armor and dodging.">Body</span></h3><div class="choices" id="c-body"></div></div>
+        <div class="slot"><h3><span class="chip c-sense">Sense</span> <span class="hastip" tabindex="0" data-tip="How your robot notices the enemy. Changes aim, plus dodging (Ultrasonic) or armor (Touch).">Sensor</span></h3><div class="choices" id="c-sensor"></div></div>
+        <div class="slot"><h3><span class="chip c-think">Think</span> <span class="hastip" tabindex="0" data-tip="How your robot decides what to do each turn. Brains weigh 0 kg.">Brain</span></h3><div class="choices" id="c-brain"></div></div>
+        <div class="slot"><h3><span class="chip c-act">Act</span> <span class="hastip" tabindex="0" data-tip="What your robot fights with. Changes damage and how often it hits.">Tool</span></h3><div class="choices" id="c-tool"></div></div>
       </div>
       <div class="right">
         <div class="panel preview-card">
           <canvas id="preview" class="preview" aria-label="Your robot"></canvas>
           <div class="weight">
-            <div class="wrow"><span>WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
+            <div class="wrow"><span class="hastip" tabindex="0" data-tip="All your parts added up. Over 75 kg is too heavy for the motors.">WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
             <div class="meter" id="wmeter"><i></i></div>
             <div class="warn" id="warn" role="status"></div>
           </div>
@@ -112,7 +113,7 @@
         <div class="panel">
           <div class="stats" id="stats"></div>
           <div class="joinbox">
-            <button class="btn huge" id="joinbtn" type="button">Join the tournament</button>
+            <button class="btn huge" id="joinbtn" type="button" data-tip="Send your robot to the board. You can still change it until the tournament starts.">Join the tournament</button>
             <button class="btn ghost" id="cancelEdit" type="button" hidden>Cancel</button>
             <p class="warn" id="joinmsg" role="status"></p>
           </div>
@@ -130,15 +131,15 @@
       <div class="predict" id="predict" hidden>
         <h3 style="justify-content:center;margin:0">Who will win?</h3>
         <div class="pickrow">
-          <button class="pick a" id="pick-a" type="button"><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>
-          <button class="pick b" id="pick-b" type="button"><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>
+          <button class="pick a" id="pick-a" type="button" data-tip="Tap the robot you think will win. A right pick earns 1 point."><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>
+          <button class="pick b" id="pick-b" type="button" data-tip="Tap the robot you think will win. A right pick earns 1 point."><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>
         </div>
         <p class="pmsg" id="pmsg" role="status"></p>
       </div>
       <div class="mywhy" id="mywhy" hidden><h4 id="mywhy-h"></h4><ul id="mywhy-r"></ul><p class="tip" id="mywhy-t"></p></div>
       <div class="myawards" id="myawards" hidden></div>
-      <div class="ptsline" id="ptsline" hidden>Prediction points: <b id="mypts">0</b></div>
-      <button class="btn ghost" id="editbtn" type="button">Change my robot</button>
+      <div class="ptsline" id="ptsline" hidden><span class="hastip" tabindex="0" data-tip="You get 1 point for every winner you predict right. The Top Predictor gets an award at the end.">Prediction points</span>: <b id="mypts">0</b></div>
+      <button class="btn ghost" id="editbtn" type="button" data-tip="Swap parts. You can change your robot until the tournament starts.">Change my robot</button>
       <p class="small" id="count"></p>
     </div>
   </section>
@@ -157,6 +158,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/engine.js"></script>
 <script src="/js/builder.js"></script>
+<script src="/js/tips.js"></script>
 <script src="/js/play.js"></script>
 </body>
 </html>

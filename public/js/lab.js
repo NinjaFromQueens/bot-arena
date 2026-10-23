@@ -22,7 +22,7 @@
     F.MISSIONS.forEach((m, i) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
-      b.querySelector(".nm").textContent = m.n;
+      b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
       b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
       el.appendChild(b);
     });
@@ -32,23 +32,24 @@
     const m = mission(), got = stars[m.id] || [];
     $("goal").innerHTML = `<b>${m.n}</b><span></span>`; $("goal").lastChild.textContent = m.goal;
     const crit = ["Complete the mission", "Smooth landing", m.eff.text];
-    $("crit").innerHTML = crit.map((c, i) => `<span class="${got[i] ? "got" : ""}">${got[i] ? "★" : "☆"} ${c}</span>`).join("");
+    const why = ["Reach the goal and land without crashing.", "Land at no more than 75% of the speed your car can take (its strength on the design sheet).", "Bonus star for an efficient design."];
+    $("crit").innerHTML = crit.map((c, i) => `<span class="${got[i] ? "got" : ""}" tabindex="0" data-tip="${why[i]}">${got[i] ? "★" : "☆"} ${c}</span>`).join("");
   }
 
   // ---------------- builder ----------------
-  function opt(container, list, key, extra) {
+  function opt(container, list, key, extra, tip) {
     const el = $(container); el.innerHTML = "";
     list.forEach((o, i) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", design[key] === i);
       b.innerHTML = `<b></b><span></span><em></em>`;
       b.querySelector("b").textContent = o.n; b.querySelector("span").textContent = o.d;
-      b.querySelector("em").textContent = extra(o);
+      b.querySelector("em").textContent = extra(o); b.setAttribute("data-tip", tip(o));
       b.onclick = () => { design[key] = i; changed(); };
       el.appendChild(b);
     });
   }
-  function seg(container, labels, key, values) {
-    const el = $(container); el.innerHTML = "";
+  function seg(container, labels, key, values, tip) {
+    const el = $(container); el.innerHTML = ""; el.setAttribute("data-tip", tip);
     labels.forEach((l, i) => {
       const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.setAttribute("aria-pressed", design[key] === values[i]);
       b.onclick = () => { design[key] = values[i]; changed(); };
@@ -57,10 +58,11 @@
   }
   function stepper(container, rows) {
     const el = $(container); el.innerHTML = "";
-    rows.forEach(([key, title, sub, max]) => {
+    rows.forEach(([key, title, sub, max, tip]) => {
       const row = document.createElement("div"); row.className = "steprow";
       row.innerHTML = `<div><b></b><span></span></div><div class="stepper"><button type="button" aria-label="Fewer">−</button><output></output><button type="button" aria-label="More">+</button></div>`;
       row.querySelector("b").textContent = title; row.querySelector("span").textContent = sub;
+      row.setAttribute("data-tip", tip);
       const [minus, plus] = row.querySelectorAll("button");
       row.querySelector("output").textContent = design[key];
       minus.disabled = design[key] <= 0; plus.disabled = design[key] >= max;
@@ -72,20 +74,20 @@
   }
   const k$ = (n) => "$" + Math.round(n / 1000) + "k";
   function renderBuilder() {
-    opt("o-material", F.MATERIALS, "material", (o) => `${o.kg} kg · ${k$(o.cost)} · strength +${o.str}`);
+    opt("o-material", F.MATERIALS, "material", (o) => `${o.kg} kg · ${k$(o.cost)} · strength +${o.str}`, (o) => `${o.n}: ${o.d}. The body adds ${o.str} m/s to the landing speed your car can survive.`);
     stepper("steppers1", [
-      ["tanks", "Air tanks", `${F.TANK.liters} L of air each · ${F.TANK.kg} kg · ${k$(F.TANK.cost)}`, F.TANK.max],
-      ["lift", "Lift nozzles (point down)", `Push the car UP · ${F.fmt(F.NOZZLE.thrust / 1000)} kN each`, F.LIMITS.lift],
-      ["push", "Push nozzles (point back)", "Push the car FORWARD", F.LIMITS.push],
-      ["flip", "Flip nozzles (front + back)", "Spin the car for flips", F.LIMITS.flip],
+      ["tanks", "Air tanks", `${F.TANK.liters} L of air each · ${F.TANK.kg} kg · ${k$(F.TANK.cost)}`, F.TANK.max, `Each tank holds ${F.TANK.liters} L of squeezed air and weighs ${F.TANK.kg} kg. More air means a longer push, but a heavier car.`],
+      ["lift", "Lift nozzles (point down)", `Push the car UP · ${F.fmt(F.NOZZLE.thrust / 1000)} kN each`, F.LIMITS.lift, `Each lift nozzle points down and pushes the car up with ${F.fmt(F.NOZZLE.thrust / 1000)} kN. More nozzles push harder but use the air faster.`],
+      ["push", "Push nozzles (point back)", "Push the car FORWARD", F.LIMITS.push, "Push nozzles point backward and speed the car forward in the air, so it flies farther."],
+      ["flip", "Flip nozzles (front + back)", "Spin the car for flips", F.LIMITS.flip, "Flip nozzles at the front and back spin the car. A backflip needs the Pro computer and at least 2."],
     ]);
-    opt("o-computer", F.COMPUTERS, "computer", (o) => `${o.kg} kg · ${k$(o.cost)}`);
-    opt("o-gear", F.GEARS, "gear", (o) => `takes ${o.absorb} m/s · ${o.kg} kg · ${k$(o.cost)}`);
-    stepper("steppers2", [["people", "Passengers", `${F.PERSON_KG} kg each`, 2]]);
+    opt("o-computer", F.COMPUTERS, "computer", (o) => `${o.kg} kg · ${k$(o.cost)}`, (o) => `${o.n}: ${o.d}`);
+    opt("o-gear", F.GEARS, "gear", (o) => `takes ${o.absorb} m/s · ${o.kg} kg · ${k$(o.cost)}`, (o) => `${o.n}: ${o.d}. Soaks up a landing at up to ${o.absorb} m/s, and the body's strength adds more.`);
+    stepper("steppers2", [["people", "Passengers", `${F.PERSON_KG} kg each`, 2, `Each passenger adds ${F.PERSON_KG} kg. Some missions need passengers and a gentle landing.`]]);
     $("i-speed").value = design.speed; $("v-speed").textContent = design.speed + " km/h";
     const sp = $("i-speed"); sp.style.setProperty("--p", ((design.speed - 20) / 40) * 100 + "%");
-    seg("o-ramp", F.RAMPS.map((r) => `${r.n} ${r.deg}°`), "ramp", [0, 1, 2]);
-    seg("o-reserve", ["0%", "15%", "30%", "45%"], "reserve", [0, 15, 30, 45]);
+    seg("o-ramp", F.RAMPS.map((r) => `${r.n} ${r.deg}°`), "ramp", [0, 1, 2], "Steeper ramps throw the car higher, but not as far.");
+    seg("o-reserve", ["0%", "15%", "30%", "45%"], "reserve", [0, 15, 30, 45], "Air kept back in the tanks. The flight computer fires it just before landing as a soft cushion. Needs a flight computer.");
     const canFlip = design.computer === 2 && design.flip >= 2;
     $("i-flip").disabled = !canFlip; $("i-flip").checked = design.flipOn && canFlip;
     $("flipbox").classList.toggle("off", !canFlip);
@@ -275,9 +277,10 @@
       ctx.globalAlpha = 1;
       // peak marker
       if (upto >= fr.length - 1 || run.phase === "after") {
-        const px = X(run.r.maxYx), py = Y(run.r.maxY + F.CAR_H + 0.4);
+        const label = `PEAK ${F.fmt(run.r.maxY)} m`, py = Y(run.r.maxY + F.CAR_H + 0.4);
         ctx.font = `700 ${Math.max(11, Math.round(h * 0.03))}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "#ffd23f";
-        ctx.fillText(`PEAK ${F.fmt(run.r.maxY)} m`, px, py); ctx.textAlign = "left";
+        const tw = ctx.measureText(label).width, px = clamp(X(run.r.maxYx), tw / 2 + 64, w - tw / 2 - 8); // keep clear of the height scale on the left
+        ctx.fillText(label, px, py); ctx.textAlign = "left";
       }
     }
 

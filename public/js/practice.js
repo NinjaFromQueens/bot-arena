@@ -59,6 +59,7 @@
       row.querySelector(".meta").textContent = `${PARTS.body[r.body].n} · ${PARTS.sensor[r.sensor].n} · ${PARTS.tool[r.tool].n}`;
       row.querySelector(".rec").innerHTML = `${r.w}W<br>${r.l}L`;
       row.setAttribute("aria-label", `${r.name}: put in the active corner`);
+      row.setAttribute("data-tip", `Put ${r.name} in the selected corner. W and L are its wins and losses on this device.`);
       E.portrait(row.querySelector("canvas"), r, "#2b2a30");
       row.onclick = () => { if (busy) return; E.Sound.play("click"); pick[activeCorner] = i; setCorner(1 - activeCorner); renderRoster(); resetFight(); };
       el.appendChild(row);

@@ -13,6 +13,12 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 6b. After each battle a **"Why ___ won"** card appears on the board: 2–3 reasons taken from what actually happened (hit rates, damage per hit, number of attacks, grabs, dodges, shields, bonus speed attacks) and one tip for the loser that suggests a part they don't already have. The two fighters see it on their own devices ("Why you won" / "Try this"). Auto-play waits 7 seconds so the class can read it. When a fight was nearly even, the card says so: a rematch could go the other way.
 7. The champion gets a podium scene, then **Awards**: Champion, Runner-up, Heavy Hitter, Sharpshooter, Grab Master, Speed Demon, Shield Hero and Top Predictor (ties share the award). Students see their own awards on their device. **New tournament, same robots** runs it again.
 
+**Tooltips:** hover over (or tap, on a phone or Chromebook) any part, stat, button or setting in the games to see what it does. On the student build screen, the part you picked is always described under each slot.
+
+**Presentation clicker:** on the board, Space or → runs **Next match** (and starts the fight early while the Up Next card is up), so a clicker can drive the tournament.
+
+**Music:** the **Music** button on the board plays background loops made in the browser (no audio files): a laid-back groove in the lobby and between matches, a suspense loop while students predict, battle music during each fight (it cuts out at the KO so the win sound lands), and a victory anthem on the champion screen. Music and Sound are separate buttons, and both start off. Students' devices never play music.
+
 ## The parts (balanced)
 
 Every part has a strength and a weakness, and all 75 legal builds were tested against each other (`npm run balance`). Every part wins 47–53% of its fights overall, so there is no "best build", only good matchups.
@@ -34,7 +40,12 @@ Every part has a strength and a weakness, and all 75 legal builds were tested ag
 
 ## Robot Lessons (`/learn`)
 
-Six self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue. Scores count first tries. Progress is saved on the device, and each lesson ends with a link into the game where students use what they learned.
+Nine self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
+
+The three sensor lessons each have a visual simulator:
+- **Ultrasonic simulator:** ping a hard wall, a pillow, or a tilted wall at any distance and watch the sound travel in slow motion. Students time the echo, and discover that soft things, tilted walls, and anything past 4 m send back no echo.
+- **Lidar mystery room:** a spinning laser paints a point-cloud map of a room. Students drag the robot around to work out which shape is hiding in the middle, which teaches that lidar can't see behind things.
+- **Sensor showdown:** test ultrasonic, lidar, and infrared against a wall, a glass door, a couch, a black box, and a far wall, filling in a results grid until they've found every sensor's blind spot. Scores count first tries. Progress is saved on the device, and each lesson ends with a link into the game where students use what they learned.
 
 ## Flying Car Lab (`/lab`)
 
@@ -59,7 +70,7 @@ The physics (`public/js/flight.js`) is a deterministic 2D simulation: gravity, t
 Other pages:
 - `/practice` — single-device robot building and battles with the same rules as the tournament.
 
-Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (hover a robot in the lobby and click ×). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
+Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (click the × on its lobby card twice). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
 
 ## Backup plan (if students can't join)
 
@@ -112,12 +123,17 @@ public/js/practice.js  Single-device practice mode
 public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
 public/js/lab.js       Flying Car Lab page: builder, animation, report
 public/js/learn.js     Self-guided lessons (content + interactives)
+public/js/sensors.js   Sensor rules and ray casting for the sensor lesson simulators (shared with tests)
+public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files)
+public/js/tips.js      Tooltips for every page: any element with data-tip="..." gets one (hover, focus or tap)
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)
 test/tune.js           Automatic balance tuner; prints suggested numbers
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
 test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips
+test/music.test.js     Every music pattern is well-formed (part of npm test)
+test/sensors.test.js   Sensor simulators follow what the lessons teach (part of npm test)
 ```
 
 The server picks a random seed for each match and computes the winner. The host screen replays the exact same fight from that seed, so results can't be changed from a browser.

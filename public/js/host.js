@@ -1,6 +1,6 @@
 /* Teacher's board: create a game, show join code + QR, run the bracket, predictions and battles. */
 (function () {
-  const E = window.Engine;
+  const E = window.Engine, M = window.Music;
   const $ = (id) => document.getElementById(id);
   const socket = io();
   let state = null, code = null, playing = null, autoTimer = null, upnext = null;
@@ -29,6 +29,7 @@
       $("ha").textContent = Math.round(hp[0]); $("hb").textContent = Math.round(hp[1]);
     },
     onLog(e, bot) {
+      M.play(e.kind === "win" ? null : "fight"); // music cuts at the KO so the win sound lands
       const d = document.createElement("div"), labels = { sense: "SENSE", think: "THINK", act: "ACT", win: "WINNER", stall: "STUCK" };
       d.innerHTML = `<span class="chip c-${e.kind === "stall" ? "act" : e.kind}">${labels[e.kind]}</span><span><span class="${e.me === 0 ? "a" : "b"}"></span><span></span></span>`;
       const p = d.lastElementChild.children; p[0].textContent = bot.name; p[1].textContent = e.txt;
@@ -42,6 +43,7 @@
       $("skip").disabled = true;
       socket.emit("host:matchDone", { matchId: id }, (r) => {
         if (r && r.done) return; // champion screen comes from state
+        M.play("garage");
         $("next").disabled = false; $("next").textContent = "Next match";
         if ($("auto").checked) autoTimer = setTimeout(nextMatch, 7000); // time to read "why"
       });
@@ -84,6 +86,7 @@
   }
 
   function renderLobby() {
+    M.play("garage");
     const n = state.players.length;
     $("pcount").textContent = n; $("start").disabled = n < 2; $("emptymsg").hidden = n > 0;
     const grid = $("players"), have = new Map([...grid.children].map((el) => [el.dataset.id, el]));
@@ -92,7 +95,7 @@
       const sig = JSON.stringify(p.bot) + p.builder;
       if (!el) {
         el = document.createElement("div"); el.className = "pcard"; el.dataset.id = p.id;
-        el.innerHTML = `<button class="kick" type="button" aria-label="Remove">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div>`;
+        el.innerHTML = `<button class="kick" type="button" aria-label="Remove" data-tip="Remove this robot. Click twice to confirm.">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div>`;
         const k = el.querySelector(".kick");
         k.onclick = () => {
           if (!k.classList.contains("confirm")) { k.classList.add("confirm"); k.textContent = "Remove?"; setTimeout(() => { k.classList.remove("confirm"); k.textContent = "×"; }, 3000); return; }
@@ -140,11 +143,10 @@
     wrap.classList.toggle("many", wrap.children.length >= 3);
     $("left").textContent = state.phase === "done" ? "Finished" : `${remaining} match${remaining === 1 ? "" : "es"} left`;
     $("donectl").hidden = state.phase !== "done";
-    $("next").hidden = state.phase === "done";
-    $("skip").hidden = state.phase === "done";
+    ["next", "skip", "ptimewrap", "autowrap", "speedseg"].forEach((id) => ($(id).hidden = state.phase === "done")); // nothing left to play
     if (state.phase === "done" && stage.state !== "champ" && !playing) {
       const c = byId(state.championId);
-      if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
+      if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }); M.play("champion", 1.5); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
     }
   }
 
@@ -205,6 +207,7 @@
     $("un-stats").innerHTML = rows.map(([l, k, mx, c]) =>
       `<span class="n">${sa[k]}</span><div class="bar ra"><i style="width:${E.clamp((sa[k] / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="l">${l}</span><div class="bar"><i style="width:${E.clamp((sb[k] / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${sb[k]}</span>`).join("");
     $("upnext").hidden = false;
+    M.play("hype");
     renderVotes();
   }
   function hideUpNext() { $("upnext").hidden = true; clearInterval(upnext && upnext.iv); upnext = null; }
@@ -221,6 +224,7 @@
     socket.emit("host:lock", {});
     $("un-msg").textContent = "Predictions locked!";
     E.Sound.play("go");
+    M.play(null); // quiet for the 3-2-1 countdown; the fight track starts with the first move
     setTimeout(() => {
       hideUpNext();
       const sim = E.simulate(m.a.bot, m.b.bot, m.seed);
@@ -266,6 +270,13 @@
     });
   }
   $("next").onclick = nextMatch;
+  // Space or → runs Next match, so a presentation clicker can drive the tournament
+  document.addEventListener("keydown", (e) => {
+    if (![" ", "ArrowRight", "PageDown"].includes(e.key) || e.repeat || e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.target.closest("input, select, textarea, button, a")) return;
+    if ($("v-tour").hidden || $("next").hidden || $("next").disabled) return;
+    e.preventDefault(); nextMatch();
+  });
   $("skip").onclick = () => stage.skip();
   $("auto").onchange = () => { if ($("auto").checked && !playing && state && state.phase === "tournament") nextMatch(); else clearTimeout(autoTimer); };
   [["sp1", 1], ["sp2", 2], ["sp3", 3]].forEach(([id, v]) => ($(id).onclick = () => {
@@ -274,5 +285,6 @@
   $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; $("why").hidden = true; awardsShown = ""; });
   $("newgame").onclick = () => { ss.del("ba-host"); location.reload(); };
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
+  $("music").onclick = () => { const on = M.toggle(); $("music").textContent = "Music: " + (on ? "on" : "off"); $("music").setAttribute("aria-pressed", on); };
   $("fullscreen").onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };
 })();
