@@ -79,9 +79,22 @@
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
   socket.on("room:state", (s) => { state = s; render(); });
   socket.on("player:kicked", () => { store.del("ba-session"); session = null; fail("You were removed", "Your teacher removed your robot from this game. Ask them if you want to join again."); });
-  socket.on("room:result", ({ winnerId, matchId, correct }) => {
+  let myWhy = null; // { matchId, side }
+  function renderWhy() {
+    const box = $("mywhy");
+    const liveMine = state && state.currentMatchId && (() => { const m = findMatch(state.currentMatchId); return m && session && (m.a === session.playerId || m.b === session.playerId); })();
+    if (!myWhy || liveMine) { box.hidden = true; return; }
+    const s = myWhy.side;
+    $("mywhy-h").textContent = s.won ? "Why you won" : s.headline;
+    $("mywhy-r").innerHTML = "";
+    s.reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $("mywhy-r").appendChild(li); });
+    $("mywhy-t").innerHTML = "<b></b> <span></span>"; $("mywhy-t").firstChild.textContent = s.won ? "Next time:" : "Try this:"; $("mywhy-t").lastChild.textContent = s.tip;
+    box.hidden = false;
+  }
+  socket.on("room:result", ({ winnerId, matchId, correct, why }) => {
     if (!session || !state) return;
     const m = findMatch(matchId);
+    if (why && (why.aId === session.playerId || why.bId === session.playerId)) { myWhy = { matchId, side: why.aId === session.playerId ? why.a : why.b }; setTimeout(render, 50); }
     if (m && (m.a === session.playerId || m.b === session.playerId)) {
       flash(winnerId === session.playerId ? "YOU WON!" : "KNOCKED OUT", winnerId === session.playerId ? "var(--good)" : "var(--muted)");
       return;
@@ -178,6 +191,8 @@
     $("editbtn").hidden = !state || state.phase !== "lobby";
     const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
     renderPredict(me);
+    if (state && state.phase === "lobby") myWhy = null;
+    renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";
     if (me) $("mypts").textContent = me.pts || 0;
     const mine = state && state.phase === "done" && me ? (state.awards || []).filter((a) => a.playerId === me.id) : [];

@@ -311,7 +311,10 @@ io.on("connection", (socket) => {
     else settleForfeits(room);
     if (room.phase === "done") room.awards = computeAwards(room);
     cb && cb({ ok: true, winnerId: c.winnerId, done: room.phase === "done" });
-    io.to(room.code).emit("room:result", { matchId: c.matchId, winnerId: c.winnerId, correct });
+    const A = room.players.get(c.aId), B = room.players.get(c.bId);
+    let why = null;
+    if (A && B) { const x = Engine.explainBattle(A.bot, B.bot, c.sim); why = { aId: c.aId, bId: c.bId, a: x.sides[0], b: x.sides[1] }; }
+    io.to(room.code).emit("room:result", { matchId: c.matchId, winnerId: c.winnerId, correct, why });
     broadcast(room);
   });
 

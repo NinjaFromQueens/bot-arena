@@ -43,6 +43,11 @@
   .pickrow.locked .pick:not(.on) { opacity: .4; }
   .pickrow.locked .pick { cursor: default; }
   .pmsg { font-weight: 600; min-height: 1.4em; }
+  .mywhy { width: 100%; text-align: left; display: grid; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
+  .mywhy h4 { margin: 0; font-family: var(--display); font-size: 19px; color: var(--gold); }
+  .mywhy ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
+  .mywhy .tip { font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
+  .mywhy .tip b { font-family: var(--display); color: var(--orange-hi); }
   .ptsline { font-family: var(--display); font-size: 18px; }
   .ptsline b { color: var(--gold); font-family: var(--mono); }
   .myawards { display: grid; gap: 8px; width: 100%; }
@@ -130,6 +135,7 @@
         </div>
         <p class="pmsg" id="pmsg" role="status"></p>
       </div>
+      <div class="mywhy" id="mywhy" hidden><h4 id="mywhy-h"></h4><ul id="mywhy-r"></ul><p class="tip" id="mywhy-t"></p></div>
       <div class="myawards" id="myawards" hidden></div>
       <div class="ptsline" id="ptsline" hidden>Prediction points: <b id="mypts">0</b></div>
       <button class="btn ghost" id="editbtn" type="button">Change my robot</button>

@@ -36,12 +36,14 @@
     },
     onDone() {
       if (!playing) return;
-      const id = playing.id; playing = null;
+      const id = playing.id;
+      if (playing.why) showWhy(playing.why, playing.A, playing.B);
+      playing = null;
       $("skip").disabled = true;
       socket.emit("host:matchDone", { matchId: id }, (r) => {
         if (r && r.done) return; // champion screen comes from state
         $("next").disabled = false; $("next").textContent = "Next match";
-        if ($("auto").checked) autoTimer = setTimeout(nextMatch, 3000);
+        if ($("auto").checked) autoTimer = setTimeout(nextMatch, 7000); // time to read "why"
       });
     },
   });
@@ -179,6 +181,16 @@
     });
   }
 
+
+  function showWhy(x, A, B) {
+    const L = 1 - x.winner, loser = [A, B][L];
+    $("why-h").textContent = `Why ${[A, B][x.winner].name} won`;
+    $("why-r").innerHTML = "";
+    x.sides[0].reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $("why-r").appendChild(li); });
+    $("why-t").innerHTML = "<b></b> <span></span>"; $("why-t").firstChild.textContent = `Tip for ${loser.name}:`; $("why-t").lastChild.textContent = x.sides[L].tip;
+    $("why").hidden = false;
+  }
+
   // ---------- up next card + predictions ----------
   function partsList(b) { return E.SLOTS.map((k) => E.PARTS[k][b[k]].n); }
   function showUpNext(m) {
@@ -212,6 +224,7 @@
     setTimeout(() => {
       hideUpNext();
       const sim = E.simulate(m.a.bot, m.b.bot, m.seed);
+      playing.why = E.explainBattle(m.a.bot, m.b.bot, sim); playing.A = m.a.bot; playing.B = m.b.bot;
       setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match"; }, 300);
     }, 900);
   }
@@ -232,7 +245,7 @@
       if (r.done) return;
       const m = r.match;
       playing = { id: m.id };
-      $("log").innerHTML = "";
+      $("log").innerHTML = ""; $("why").hidden = true;
       $("na").textContent = m.a.bot.name; $("nb").textContent = m.b.bot.name;
       $("roundname").textContent = m.round;
       $("matchinfo").textContent = `${m.a.bot.name} (${m.a.bot.builder}) vs ${m.b.bot.name} (${m.b.bot.builder})`;
@@ -258,7 +271,7 @@
   [["sp1", 1], ["sp2", 2], ["sp3", 3]].forEach(([id, v]) => ($(id).onclick = () => {
     stage.speed = v; ["sp1", "sp2", "sp3"].forEach((x) => $(x).setAttribute("aria-pressed", x === id));
   }));
-  $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; awardsShown = ""; });
+  $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; $("why").hidden = true; awardsShown = ""; });
   $("newgame").onclick = () => { ss.del("ba-host"); location.reload(); };
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
   $("fullscreen").onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };

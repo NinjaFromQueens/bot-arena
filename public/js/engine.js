@@ -126,7 +126,7 @@
       if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
       if (grab === true) txt += " It grabs the enemy!";
       if (grab === "heavy") txt += " Too heavy to grab!";
-      push({ me, kind: "act", hits, dmg: total, grab: grab === true, crit: total >= 22, burst: !!burst, txt });
+      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", crit: total >= 22, burst: !!burst, txt });
       return H[op] <= 0;
     }
     const counter = [false, false], shieldUsed = [false, false];
@@ -141,6 +141,91 @@
     const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
     push({ me: w, kind: "win", txt: " WINS!" });
     return { events: ev, winner: w };
+  }
+
+
+  // ---------------- why did it win? ----------------
+  // Looks at what actually happened in the fight and returns plain-language reasons
+  // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
+  function explainBattle(a, b, sim) {
+    const bots = [a, b], w = sim.winner, l = 1 - w;
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0 }));
+    let endHp = [100, 100], first = null;
+    for (const e of sim.events) {
+      if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
+      const s = st[e.me];
+      if (e.kind === "act") {
+        s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
+        if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
+      }
+      if (e.kind === "stall") s.stalled++;
+      if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
+      endHp = e.hp;
+    }
+    const acc = (k) => (st[k].swings ? st[k].hits / st[k].swings : 0);
+    const avg = (k) => (st[k].hits ? st[k].dmg / st[k].hits : 0);
+    const pct = (x) => Math.round(x * 100) + "%";
+    const N = (k) => bots[k].name, part = (k, slot) => PARTS[slot][bots[k][slot]].n;
+    const W = bots[w], L = bots[l];
+    const R = []; // [score, text, key]
+    const dAcc = acc(w) - acc(l);
+    if (dAcc >= 0.12 && st[l].swings >= 3) {
+      let why = "";
+      if (L.tool === 1) why = " Hammers swing slowly and miss a lot.";
+      else if (W.body === 2) why = ` ${N(w)}'s legs made it hard to hit.`;
+      else if (W.sensor === 1) why = ` ${N(w)}'s ultrasonic sensor helped it dodge.`;
+      else if (L.sensor === 2) why = ` ${N(l)}'s touch sensor has weak aim.`;
+      else if (W.sensor === 0) why = ` ${N(w)}'s camera aimed well.`;
+      R.push([dAcc * 10, `${N(w)} hit ${pct(acc(w))} of its attacks, but ${N(l)} only hit ${pct(acc(l))}.${why}`, "acc"]);
+    }
+    const dAvg = avg(w) - avg(l);
+    if (dAvg >= 4 && st[w].hits) {
+      let why = W.tool === 1 ? " The hammer hits huge." : PARTS.body[W.body].def >= 6 ? ` ${N(w)}'s thick treads armor blocked a lot of each hit.` : W.brain === 0 ? " Its aggressive brain hits harder." : "";
+      const vs = st[l].hits ? `, vs ${Math.round(avg(l))} for ${N(l)}` : `, and ${N(l)} never landed a hit`;
+      R.push([dAvg / 3, `${N(w)} hit harder: about ${Math.round(avg(w))} damage per hit${vs}.${why}`, "dmg"]);
+    }
+    const ratio = st[w].swings / Math.max(1, st[l].swings);
+    if (ratio >= 1.5 && st[w].swings - st[l].swings >= 3) {
+      const why = [W.tool === 2 ? "the spinner hits twice every turn" : "", st[w].bursts ? `its wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}` : ""].filter(Boolean);
+      R.push([(ratio - 1) * 1.6, `${N(w)} got ${st[w].swings} attacks to ${N(l)}'s ${st[l].swings}${why.length ? ": " + why.join(" and ") : ""}.`, "attacks"]);
+    }
+    if (first === w && st[l].swings <= 3 && sim.events.length < 18) R.push([1.3, `${N(w)} was faster, so it attacked first and ${N(l)} barely got a turn.`, "first"]);
+    if (st[w].grabs >= 1) R.push([1.2 + st[w].grabs, `${N(w)}'s gripper grabbed ${N(l)} ${st[w].grabs} time${st[w].grabs === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].grabs === 1 ? "a turn" : st[w].grabs + " turns"}.`, "grab"]);
+    if (st[l].heavyFail >= 1) R.push([1.5 + st[l].heavyFail * 0.5, `${N(l)}'s gripper couldn't grab ${N(w)}. Treads are too heavy to grab.`, "heavy"]);
+    if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
+    if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
+    if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(l)}'s small spinner hits bounced off ${N(w)}'s thick treads armor.`, "armor"]);
+    if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
+    R.sort((x, y) => y[0] - x[0]);
+    let reasons = R.slice(0, 3).map((r) => r[1]);
+    const close = endHp[w] <= 25, even = !R.length || R[0][0] < 1.1;
+    if (even) reasons = [`It was almost even. Both robots hit about the same, so a few lucky hits decided it. A rematch could go the other way!`, ...reasons].slice(0, 3);
+    const top = R.length ? R[0][2] : "luck";
+
+    const has = (slot, i) => L[slot] === i;
+    const loserTip = ({
+      acc: () => has("tool", 1) ? "Your Hammer missed a lot. A Gripper or Spinner hits more often." : !has("sensor", 0) ? `A Camera aims better than your ${part(l, "sensor")} sensor.` : !has("brain", 2) ? "The Smart brain waits for clear shots, so it misses less." : "Legs or an Ultrasonic sensor help you dodge.",
+      dmg: () => W.body === 1 && !has("tool", 1) ? "Against Treads, a Hammer smashes through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
+      attacks: () => !has("tool", 2) ? "A Spinner hits twice every turn, so you get more attacks." : !has("body", 0) ? "Wheels are fast and sometimes attack twice." : "Add armor so you survive long enough to hit back.",
+      first: () => !has("body", 0) ? "Wheels are the fastest body, so they usually attack first." : "Add armor so you can survive the first hits.",
+      grab: () => !has("body", 1) ? "Treads can't be grabbed. They're a good counter to Grippers." : "Finish fights faster with a Hammer before the gripper gets you.",
+      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer.",
+      burst: () => !has("tool", 1) ? "Wheels have light armor. A Hammer punishes them." : "Your Hammer struggles to hit fast Wheels. A Gripper is more accurate.",
+      shield: () => !has("tool", 1) ? "Defensive robots get tough when hurt. Finish them fast with a Hammer." : "Defensive robots get tough when hurt. The Aggressive brain hits harder through shields.",
+      aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
+      armor: () => "Spinner hits are small, so thick armor blocks them. Try a Hammer against Treads.",
+      luck: () => "Your robot was a good match. Ask for a rematch!",
+    }[top] || (() => "Every robot has a counter. Try a different part!"))();
+    const counter = W.body === 1 ? "Hammers beat Treads." : W.body === 0 ? "Hammers and big hits hurt light Wheels." : W.body === 2 ? "Accurate Grippers can still catch Legs." : "Every robot has a counter.";
+    const headline = (k) => k === w
+      ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
+      : `Why ${N(w)} beat ${N(l)}`;
+    return {
+      winner: w,
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : loserTip })),
+      stats: st,
+    };
   }
 
   // ---------------- browser-only: drawing, effects, sound ----------------
@@ -395,6 +480,6 @@
     };
   })();
 
-  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate,
+  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });

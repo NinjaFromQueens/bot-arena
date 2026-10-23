@@ -80,6 +80,16 @@
     pick = [a, b]; renderRoster(); resetFight(); E.Sound.play("go");
   };
 
+
+  function showWhy(x, A, B) {
+    const L = 1 - x.winner, loser = [A, B][L];
+    $("why-h").textContent = `Why ${[A, B][x.winner].name} won`;
+    $("why-r").innerHTML = "";
+    x.sides[0].reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $("why-r").appendChild(li); });
+    $("why-t").innerHTML = "<b></b> <span></span>"; $("why-t").firstChild.textContent = `Tip for ${loser.name}:`; $("why-t").lastChild.textContent = x.sides[L].tip;
+    $("why").hidden = false;
+  }
+
   // ---------------- BATTLE ----------------
   const stage = new BattleStage($("arena"), {
     onHP(hp, instant) {
@@ -97,12 +107,14 @@
       $("log").appendChild(d); $("log").scrollTop = $("log").scrollHeight;
     },
     onDone(w) {
+      if (lastFight) showWhy(lastFight.why, lastFight.A, lastFight.B);
       busy = false; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Rematch";
       if (pick[0] !== pick[1]) { roster[pick[w]].w++; roster[pick[1 - w]].l++; store.set("rba-roster", roster); renderRoster(); }
     },
   });
+  let lastFight = null;
   function resetFight() {
-    busy = false; $("log").innerHTML = ""; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Fight!";
+    busy = false; $("log").innerHTML = ""; $("why").hidden = true; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Fight!";
     const a = roster[pick[0]], b = roster[pick[1]];
     $("na").textContent = a?.name || "—"; $("nb").textContent = b?.name || "—";
     stage.setBots(a, b);
@@ -110,7 +122,9 @@
   $("fight").onclick = () => {
     const a = roster[pick[0]], b = roster[pick[1]]; if (!a || !b) return;
     resetFight(); busy = true; $("fight").disabled = true; $("skip").disabled = false;
-    stage.play(E.simulate(a, b).events);
+    const sim = E.simulate(a, b);
+    lastFight = { why: E.explainBattle(a, b, sim), A: a, B: b };
+    stage.play(sim.events);
   };
   $("skip").onclick = () => stage.skip();
   [["sp1", 1], ["sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { stage.speed = v; $("sp1").setAttribute("aria-pressed", v === 1); $("sp2").setAttribute("aria-pressed", v === 2); }));
