@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Offline backup of Bot Arena. Built by scripts/build-offline.js -->
+<title>Robot Lessons</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Bot Arena — shared styles. Workshop "garage" on a blueprint floor; Fall Robotics orange. */
+:root {
+  color-scheme: dark;
+  --bg: #1b1a1e;
+  --floor: #242328;
+  --panel: #2b2a30;
+  --panel-hi: #33323a;
+  --line: #44424b;
+  --fg: #f4f1ea;
+  --muted: #aaa6b0;
+  --orange: #f46524;
+  --orange-hi: #ff8a50;
+  --orange-soft: #f4652429;
+  --blue: #38a7f0;
+  --blue-soft: #38a7f029;
+  --purple: #c58cff;
+  --gold: #ffd23f;
+  --good: #4fd18b;
+  --bad: #ff5d5d;
+  --ink: #141316;
+  --display: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --mono: "JetBrains Mono", "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; margin: 0; }
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 500px at 50% -200px, #f4652418, transparent 70%),
+    linear-gradient(var(--floor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--floor) 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px, 28px 28px;
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.45;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--orange-hi); }
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-block: 18px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin-bottom: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.logo { width: 46px; height: 46px; flex: none; }
+.brand small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 6vw, 44px); line-height: 1; margin: 2px 0 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-size: 21px; margin: 0; line-height: 1.2; }
+h3 { font-family: var(--display); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.intro { color: var(--muted); max-width: 70ch; }
+.intro b { color: var(--fg); font-weight: 600; }
+.panel { background: linear-gradient(180deg, var(--panel-hi), var(--panel) 120px); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.chip { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; line-height: 1.5; text-transform: uppercase; }
+.c-sense { background: var(--blue-soft); color: var(--blue); }
+.c-think { background: #c58cff26; color: var(--purple); }
+.c-act { background: var(--orange-soft); color: var(--orange-hi); }
+.c-win { background: #4fd18b26; color: var(--good); }
+.c-move { background: #ffffff14; color: var(--fg); }
+.btn {
+  font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .03em;
+  background: var(--orange); color: var(--ink); border: 0; border-radius: 9px; padding: 11px 18px; cursor: pointer;
+  box-shadow: 0 3px 0 #a93d0c; transition: transform .08s, box-shadow .08s, filter .15s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 #a93d0c; }
+.btn.ghost { background: var(--panel-hi); color: var(--fg); box-shadow: 0 3px 0 #18171b; border: 1px solid var(--line); }
+.btn.big { font-size: 19px; padding: 13px 26px; }
+.btn.huge { font-size: 24px; padding: 16px 30px; border-radius: 12px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.small { font-size: 13px; color: var(--muted); }
+.soundbtn { font-family: var(--mono); font-size: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.soundbtn[aria-pressed="true"] { color: var(--good); border-color: #4fd18b66; }
+input[type=text] {
+  font-family: var(--mono); font-size: 17px; letter-spacing: .04em;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; width: 100%;
+}
+input.upper { text-transform: uppercase; }
+canvas { display: block; width: 100%; max-width: 100%; }
+.warn { color: var(--bad); font-weight: 600; font-size: 15px; min-height: 1.45em; }
+.toast { color: var(--good); font-weight: 600; font-size: 15px; min-height: 1.45em; }
+
+/* builder */
+.slot { margin-top: 16px; }
+.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.choice {
+  text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 10px; cursor: pointer; line-height: 1.2; display: grid; gap: 3px; position: relative;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.choice:hover { border-color: #6a6772; transform: translateY(-1px); }
+.choice b { font-family: var(--display); font-size: 16px; }
+.choice span { color: var(--muted); font-size: 13px; }
+.choice em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.choice[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+.choice[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
+.choices.locked { pointer-events: none; opacity: .55; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.swatch { width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: inset 0 -4px 0 #0003; transition: transform .15s; }
+.swatch[aria-pressed="true"] { transform: scale(1.12); outline: 3px solid var(--fg); outline-offset: 3px; }
+.meter { height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); position: relative; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, #3cb877, var(--good)); transition: width .35s cubic-bezier(.3,1.4,.5,1); border-radius: 7px; }
+.meter.over > i { background: linear-gradient(90deg, #d93f3f, var(--bad)); }
+.wrow { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .06em; }
+.stats { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 2em; gap: 8px 10px; align-items: center; font-size: 15px; }
+.stats .bar { height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+.stats .bar i { display: block; height: 100%; border-radius: 5px; transition: width .4s cubic-bezier(.3,1.4,.5,1); }
+.stats .n { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* battle HUD */
+.stage-card { padding: 0; overflow: hidden; }
+.arena-stage { aspect-ratio: 16 / 9; }
+.huds { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.hud .who { display: flex; justify-content: space-between; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 17px; }
+.hud .who span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .who span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.hud.b .who { flex-direction: row-reverse; }
+.hpbar { height: 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 5px; position: relative; }
+.hpbar i { position: absolute; inset: 0 auto 0 0; display: block; height: 100%; border-radius: 8px; }
+.hpbar .ghost { background: #fff8; transition: width .7s ease .35s; }
+.hpbar .main { transition: width .25s ease; }
+.hud.b .hpbar i { inset: 0 0 0 auto; }
+.hud.a .main { background: linear-gradient(90deg, #c84a12, var(--orange)); }
+.hud.b .main { background: linear-gradient(270deg, #1d7fc4, var(--blue)); }
+.vs-mini { font-family: var(--display); font-weight: 700; color: var(--muted); font-size: 14px; }
+.stage-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 16px 16px; }
+.stage-ctrl .spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { background: var(--bg); border: 0; padding: 8px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--panel-hi); color: var(--fg); }
+.log { padding: 12px 16px 16px; border-top: 1px solid var(--line); font-size: 15px; max-height: 190px; overflow-y: auto; display: grid; gap: 5px; }
+.log:empty::before { content: "The battle log will show every Sense, Think, and Act move here."; color: var(--muted); font-size: 14px; }
+.log div { display: grid; grid-template-columns: 4.8em minmax(0, 1fr); gap: 8px; align-items: baseline; animation: logIn .25s ease-out; }
+.log .chip { text-align: center; }
+.log .a { color: var(--orange-hi); font-weight: 600; }
+.log .b { color: var(--blue); font-weight: 600; }
+.why { padding: 14px 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; animation: logIn .35s ease-out; background: linear-gradient(180deg, #ffd23f10, transparent); }
+.why h4 { margin: 0; font-family: var(--display); font-size: 19px; color: var(--gold); }
+.why ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.why li { font-size: 16px; }
+.why .tip { font-size: 15px; padding: 8px 10px; border-radius: 9px; border: 1.5px dashed var(--orange); background: var(--orange-soft); }
+.why .tip b { font-family: var(--display); color: var(--orange-hi); }
+@keyframes logIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { transform: scale(.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+</style>
+<style>
+  /* Layout: lesson list (cards with progress) <-> one lesson at a time, stepped like a book: one card per screen with Back/Next. */
+  .wrap { max-width: 980px; }
+  .lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .lcard { text-align: left; background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; display: grid; gap: 6px; position: relative; transition: border-color .15s, transform .1s; }
+  .lcard:hover { border-color: #6a6772; transform: translateY(-2px); }
+  .lcard .num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .12em; }
+  .lcard h2 { font-size: 21px; }
+  .lcard p { color: var(--muted); font-size: 15px; }
+  .lcard .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .lcard.done { border-color: #4fd18b77; }
+  .lcard .badge { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #4fd18b26; color: var(--good); }
+  .progressline { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
+  .pbar { flex: 1; height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: linear-gradient(90deg, #3cb877, var(--good)); transition: width .4s; }
+  .ptext { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+  .lesson { display: grid; gap: 14px; }
+  .lhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .lhead h2 { font-size: 26px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .dots i.on { background: var(--orange); }
+  .dots i.done { background: var(--good); }
+  .card { min-height: 340px; display: grid; gap: 14px; align-content: start; animation: cardIn .3s ease-out; }
+  @keyframes cardIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  .card h3 { font-size: 15px; color: var(--orange-hi); margin: 0; }
+  .card .big { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 4vw, 30px); line-height: 1.2; text-wrap: balance; }
+  .card p, .card li { font-size: 18px; max-width: 62ch; }
+  .card ul { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+  .stack3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 560px) { .stack3 { grid-template-columns: minmax(0, 1fr); } }
+  .sta { border-radius: 12px; padding: 12px; border: 1.5px solid var(--line); background: var(--bg); display: grid; gap: 4px; }
+  .sta b { font-family: var(--display); font-size: 20px; }
+  .sta.s b { color: var(--blue); } .sta.t b { color: var(--purple); } .sta.a b { color: var(--orange-hi); }
+  .nav { display: flex; justify-content: space-between; gap: 10px; }
+  .choices2 { display: grid; gap: 8px; }
+  .qopt { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; font-size: 17px; transition: border-color .15s; }
+  .qopt:hover { border-color: #6a6772; }
+  .qopt.right { border-color: var(--good); background: #4fd18b1f; }
+  .qopt.wrong { border-color: var(--bad); background: #ff5d5d1a; }
+  .qopt:disabled { cursor: default; }
+  .feedback { padding: 12px 14px; border-radius: 10px; font-size: 17px; animation: pop .35s cubic-bezier(.3,1.6,.5,1); }
+  .feedback.good { background: #4fd18b1f; border: 1px solid #4fd18b66; }
+  .feedback.bad { background: #ff5d5d14; border: 1px solid #ff5d5d55; }
+  .feedback b { font-family: var(--display); }
+  /* interactives */
+  .ron { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .ritem { border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; background: var(--bg); display: grid; gap: 8px; }
+  .ritem b { font-family: var(--display); font-size: 18px; }
+  .ritem .btns { display: flex; gap: 6px; }
+  .ritem .btns button { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-hi); cursor: pointer; font-weight: 600; }
+  .ritem.right { border-color: var(--good); } .ritem.wrong { border-color: var(--bad); }
+  .ritem small { font-size: 14px; color: #d9d5de; }
+  .match { display: grid; gap: 8px; }
+  .mrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .mrow.right { border-color: var(--good); } .mrow.wrong { border-color: var(--bad); }
+  .mrow select { font: inherit; font-size: 15px; background: var(--panel-hi); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .mini { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 640px) { .mini { grid-template-columns: minmax(0, 1fr); } }
+  .mini canvas { aspect-ratio: 4 / 3; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; font-size: 15px; }
+  .chips button[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .chips em { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .lbl { font-size: 14px; color: var(--muted); margin: 6px 0 4px; text-transform: uppercase; letter-spacing: .08em; font-family: var(--display); }
+  .readout { font-family: var(--mono); font-size: 15px; }
+  .readout b { font-size: 26px; display: block; }
+  .slider { display: grid; gap: 4px; }
+  .slider .row { display: flex; justify-content: space-between; font-size: 16px; }
+  .slider .row b { font-family: var(--mono); background: var(--orange); color: var(--ink); border-radius: 6px; padding: 0 7px; }
+  input[type=range] { width: 100%; accent-color: var(--orange); height: 28px; }
+  .verdict { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 17px; }
+  .done-card { text-align: center; justify-items: center; }
+  .done-card .medal { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #ffe680, #ffd23f 55%, #c99a12); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 34px; box-shadow: 0 6px 0 #8f6d0a; animation: pop .6s cubic-bezier(.3,1.8,.5,1); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="bot-arena-offline.html">
+      <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Robot Lessons</h1></div>
+    </a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn ghost" href="bot-arena-offline.html">Build robots</a>
+      <a class="btn ghost" href="flying-car-lab-offline.html">Flying Car Lab</a>
+    </div>
+  </header>
+
+  <section id="v-list">
+    <p class="intro" style="margin-bottom:10px">Short lessons you can do on your own. Each one takes about 5 minutes and ends with a challenge in the games.</p>
+    <div class="progressline"><div class="pbar"><i id="pbar"></i></div><span class="ptext" id="ptext"></span></div>
+    <div class="lessons" id="lessons"></div>
+  </section>
+
+  <section id="v-lesson" class="lesson" hidden>
+    <div class="lhead">
+      <button class="btn ghost" id="back" type="button">All lessons</button>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+    </div>
+    <h2 id="ltitle"></h2>
+    <div class="panel card" id="card" aria-live="polite"></div>
+    <div class="nav">
+      <button class="btn ghost" id="prev" type="button">Back</button>
+      <button class="btn big" id="next" type="button">Next</button>
+    </div>
+  </section>
+</div>
+<script>
+/*
+ * Bot Arena engine — shared by the server (Node) and the browser.
+ * - Part data, bot codes, stats
+ * - Deterministic battle simulation (seeded), so the server decides the
+ *   winner and the host screen replays the exact same fight.
+ * - Browser-only: robot drawing, particle effects, sound.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Engine = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const isBrowser = typeof window !== "undefined";
+  const RM = isBrowser && window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+
+  // ---------------- data ----------------
+  const COLORS = ["#f46524", "#38a7f0", "#4fd18b", "#c58cff", "#ffd23f", "#ff5d8f"];
+  const BRAIN_COL = ["#ff5d5d", "#4fd18b", "#c58cff"];
+  // Battle numbers live here so balance can be tuned in one place (see test/balance.js).
+  //   dodge: harder to hit   burst: chance of a speed-burst bonus attack   heavy: can't be grabbed
+  //   acc: hit-chance bonus  swings: attacks per turn   mult: damage per swing   grab: chance to stall the enemy
+  //   tip: one line shown to students explaining the part's strength and weakness
+  const PARTS = {
+    body: [
+      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but light armor.", wt: 25, spd: 7, def: 1, dodge: 1, burst: 0.3 },
+      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 0, def: 7, dodge: 0, heavy: true },
+      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 6, def: 4, dodge: 7 },
+    ],
+    sensor: [
+      { n: "Camera", d: "Best aim", tip: "Sees the target clearly, so it hits more often.", wt: 10, aim: 7 },
+      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 4, dodge: 7 },
+      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 3, def: 3 },
+    ],
+    brain: [
+      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -3 },
+      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 2, shieldAt: 65, shieldP: 0.4, counter: 5 },
+      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.3, waitAim: 24 },
+    ],
+    tool: [
+      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 16, swings: 1, mult: 1, grab: 0.3 },
+      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -14, swings: 1, mult: 1 },
+      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder with no big weakness.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.71 },
+    ],
+  };
+  const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  const MAXW = 75;
+  const SLOTS = ["body", "sensor", "brain", "tool"];
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  function statsOf(b) {
+    const s = { atk: 0, def: 0, spd: 0, aim: 0, wt: 0 };
+    SLOTS.forEach((k) => { const p = PARTS[k][b[k]]; for (const f in s) s[f] += p[f] || 0; });
+    return s;
+  }
+  function cleanName(n, max = 10) {
+    return String(n || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, max);
+  }
+  // Validate anything that arrives from a client.
+  function sanitizeBot(b) {
+    if (!b || typeof b !== "object") return null;
+    const out = { name: cleanName(b.name) || "BOT" };
+    for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v > 2) return null; out[k] = v; }
+    const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
+    if (statsOf(out).wt > MAXW) return null;
+    return out;
+  }
+  const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}`;
+  function parseCode(c) {
+    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-2])([0-2])([0-2])([0-2])([0-5])$/);
+    return m ? { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
+  }
+
+  // ---------------- deterministic battle ----------------
+  function rng(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function simulate(a, b, seed) {
+    const rnd = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
+    const S = [statsOf(a), statsOf(b)], bots = [a, b], H = [100, 100], ev = [];
+    const brace = [false, false], stall = [false, false];
+    const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
+    let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
+    const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
+    // one attack: returns true if the target was knocked out
+    function attack(me, op, burst) {
+      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool];
+      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]), 20, 95);
+      let bonus = 0;
+      if (!burst) {
+        push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
+        const BR = PARTS.brain[m.brain];
+        if (BR.shieldAt && H[me] < BR.shieldAt && !brace[me] && !shieldUsed[me] && rnd() < BR.shieldP) {
+          brace[me] = true; shieldUsed[me] = true;
+          push({ me, kind: "think", txt: " is hurt, so it raises its shield.", bubble: "SHIELD!" });
+          return false;
+        }
+        if (BR.waitP && chance < 70 && rnd() < BR.waitP) { chance = Math.min(95, chance + BR.waitAim); bonus = 3; push({ me, kind: "think", txt: " waits for a clear shot. Aim goes up!", bubble: "AIMING..." }); }
+        else if (BR.counter && counter[me]) { bonus = BR.counter; shieldUsed[me] = false; push({ me, kind: "think", txt: " blocked that hit, so it counterattacks!", bubble: "COUNTER!" }); }
+        else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
+        else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
+        counter[me] = false;
+      }
+      let total = 0, hits = 0;
+      for (let k = 0; k < T.swings; k++) {
+        if (rnd() * 100 < chance) {
+          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def;
+          if (brace[op]) dmg /= 2;
+          total += Math.max(2, Math.round(dmg)); hits++;
+        }
+      }
+      if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
+      H[op] = Math.max(0, H[op] - total);
+      const tool = T.n.toLowerCase();
+      let grab = false;
+      if (hits && T.grab && H[op] > 0) {
+        if (PARTS.body[o.body].heavy) grab = "heavy";
+        else if (rnd() < T.grab) { stall[op] = true; grab = true; }
+      }
+      let txt = hits ? `'s ${tool} hits${T.swings > 1 ? ` ${hits}x` : ""} for ${total} damage!` : ` swings the ${tool}... and misses!`;
+      if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
+      if (grab === true) txt += " It grabs the enemy!";
+      if (grab === "heavy") txt += " Too heavy to grab!";
+      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", crit: total >= 22, burst: !!burst, txt });
+      return H[op] <= 0;
+    }
+    const counter = [false, false], shieldUsed = [false, false];
+    for (let round = 0; round < 40 && H[0] > 0 && H[1] > 0; round++) {
+      const me = turn, op = 1 - turn, m = bots[me];
+      turn = op;
+      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
+      if (attack(me, op, false)) break;
+      const B = PARTS.body[m.body];
+      if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
+    }
+    const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
+    push({ me: w, kind: "win", txt: " WINS!" });
+    return { events: ev, winner: w };
+  }
+
+
+  // ---------------- why did it win? ----------------
+  // Looks at what actually happened in the fight and returns plain-language reasons
+  // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
+  function explainBattle(a, b, sim) {
+    const bots = [a, b], w = sim.winner, l = 1 - w;
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0 }));
+    let endHp = [100, 100], first = null;
+    for (const e of sim.events) {
+      if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
+      const s = st[e.me];
+      if (e.kind === "act") {
+        s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
+        if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
+      }
+      if (e.kind === "stall") s.stalled++;
+      if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
+      endHp = e.hp;
+    }
+    const acc = (k) => (st[k].swings ? st[k].hits / st[k].swings : 0);
+    const avg = (k) => (st[k].hits ? st[k].dmg / st[k].hits : 0);
+    const pct = (x) => Math.round(x * 100) + "%";
+    const N = (k) => bots[k].name, part = (k, slot) => PARTS[slot][bots[k][slot]].n;
+    const W = bots[w], L = bots[l];
+    const R = []; // [score, text, key]
+    const dAcc = acc(w) - acc(l);
+    if (dAcc >= 0.12 && st[l].swings >= 3) {
+      let why = "";
+      if (L.tool === 1) why = " Hammers swing slowly and miss a lot.";
+      else if (W.body === 2) why = ` ${N(w)}'s legs made it hard to hit.`;
+      else if (W.sensor === 1) why = ` ${N(w)}'s ultrasonic sensor helped it dodge.`;
+      else if (L.sensor === 2) why = ` ${N(l)}'s touch sensor has weak aim.`;
+      else if (W.sensor === 0) why = ` ${N(w)}'s camera aimed well.`;
+      R.push([dAcc * 10, `${N(w)} hit ${pct(acc(w))} of its attacks, but ${N(l)} only hit ${pct(acc(l))}.${why}`, "acc"]);
+    }
+    const dAvg = avg(w) - avg(l);
+    if (dAvg >= 4 && st[w].hits) {
+      let why = W.tool === 1 ? " The hammer hits huge." : PARTS.body[W.body].def >= 6 ? ` ${N(w)}'s thick treads armor blocked a lot of each hit.` : W.brain === 0 ? " Its aggressive brain hits harder." : "";
+      const vs = st[l].hits ? `, vs ${Math.round(avg(l))} for ${N(l)}` : `, and ${N(l)} never landed a hit`;
+      R.push([dAvg / 3, `${N(w)} hit harder: about ${Math.round(avg(w))} damage per hit${vs}.${why}`, "dmg"]);
+    }
+    const ratio = st[w].swings / Math.max(1, st[l].swings);
+    if (ratio >= 1.5 && st[w].swings - st[l].swings >= 3) {
+      const why = [W.tool === 2 ? "the spinner hits twice every turn" : "", st[w].bursts ? `its wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}` : ""].filter(Boolean);
+      R.push([(ratio - 1) * 1.6, `${N(w)} got ${st[w].swings} attacks to ${N(l)}'s ${st[l].swings}${why.length ? ": " + why.join(" and ") : ""}.`, "attacks"]);
+    }
+    if (first === w && st[l].swings <= 3 && sim.events.length < 18) R.push([1.3, `${N(w)} was faster, so it attacked first and ${N(l)} barely got a turn.`, "first"]);
+    if (st[w].grabs >= 1) R.push([1.2 + st[w].grabs, `${N(w)}'s gripper grabbed ${N(l)} ${st[w].grabs} time${st[w].grabs === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].grabs === 1 ? "a turn" : st[w].grabs + " turns"}.`, "grab"]);
+    if (st[l].heavyFail >= 1) R.push([1.5 + st[l].heavyFail * 0.5, `${N(l)}'s gripper couldn't grab ${N(w)}. Treads are too heavy to grab.`, "heavy"]);
+    if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
+    if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
+    if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(l)}'s small spinner hits bounced off ${N(w)}'s thick treads armor.`, "armor"]);
+    if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
+    R.sort((x, y) => y[0] - x[0]);
+    let reasons = R.slice(0, 3).map((r) => r[1]);
+    const close = endHp[w] <= 25, even = !R.length || R[0][0] < 1.1;
+    if (even) reasons = [`It was almost even. Both robots hit about the same, so a few lucky hits decided it. A rematch could go the other way!`, ...reasons].slice(0, 3);
+    const top = R.length ? R[0][2] : "luck";
+
+    const has = (slot, i) => L[slot] === i;
+    const loserTip = ({
+      acc: () => has("tool", 1) ? "Your Hammer missed a lot. A Gripper or Spinner hits more often." : !has("sensor", 0) ? `A Camera aims better than your ${part(l, "sensor")} sensor.` : !has("brain", 2) ? "The Smart brain waits for clear shots, so it misses less." : "Legs or an Ultrasonic sensor help you dodge.",
+      dmg: () => W.body === 1 && !has("tool", 1) ? "Against Treads, a Hammer smashes through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
+      attacks: () => !has("tool", 2) ? "A Spinner hits twice every turn, so you get more attacks." : !has("body", 0) ? "Wheels are fast and sometimes attack twice." : "Add armor so you survive long enough to hit back.",
+      first: () => !has("body", 0) ? "Wheels are the fastest body, so they usually attack first." : "Add armor so you can survive the first hits.",
+      grab: () => !has("body", 1) ? "Treads can't be grabbed. They're a good counter to Grippers." : "Finish fights faster with a Hammer before the gripper gets you.",
+      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer.",
+      burst: () => !has("tool", 1) ? "Wheels have light armor. A Hammer punishes them." : "Your Hammer struggles to hit fast Wheels. A Gripper is more accurate.",
+      shield: () => !has("tool", 1) ? "Defensive robots get tough when hurt. Finish them fast with a Hammer." : "Defensive robots get tough when hurt. The Aggressive brain hits harder through shields.",
+      aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
+      armor: () => "Spinner hits are small, so thick armor blocks them. Try a Hammer against Treads.",
+      luck: () => "Your robot was a good match. Ask for a rematch!",
+    }[top] || (() => "Every robot has a counter. Try a different part!"))();
+    const counter = W.body === 1 ? "Hammers beat Treads." : W.body === 0 ? "Hammers and big hits hurt light Wheels." : W.body === 2 ? "Accurate Grippers can still catch Legs." : "Every robot has a counter.";
+    const headline = (k) => k === w
+      ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
+      : `Why ${N(w)} beat ${N(l)}`;
+    return {
+      winner: w,
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : loserTip })),
+      stats: st,
+    };
+  }
+
+  // ---------------- browser-only: drawing, effects, sound ----------------
+  function fit(c) {
+    const r = c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const ctx = c.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: r.width, h: r.height };
+  }
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const f = (c) => clamp(Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt), 0, 255);
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+  const ease = { out: (t) => 1 - Math.pow(1 - t, 3), back: (t) => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
+  function bigText(ctx, lbl, x, y, size, color, scale = 1, alpha = 1) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha;
+    ctx.font = `700 ${Math.round(size)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineWidth = Math.max(4, size * 0.08); ctx.lineJoin = "round"; ctx.strokeStyle = "#141316"; ctx.strokeText(lbl, 0, 0);
+    ctx.fillStyle = color; ctx.fillText(lbl, 0, 0); ctx.restore();
+  }
+
+  class FX {
+    constructor() { this.p = []; this.txt = []; this.shake = 0; }
+    burst(x, y, n, o = {}) {
+      if (RM) n = Math.ceil(n / 3);
+      for (let i = 0; i < n; i++) {
+        const a = (o.angle ?? 0) + (Math.random() - 0.5) * (o.spread ?? Math.PI * 2), sp = (o.speed ?? 200) * (0.4 + Math.random() * 0.8);
+        const cols = o.colors || ["#ffd23f"];
+        this.p.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: (o.life ?? 0.6) * (0.6 + Math.random() * 0.6),
+          size: (o.size ?? 4) * (0.6 + Math.random() * 0.8), color: cols[(Math.random() * cols.length) | 0], g: o.g ?? 400,
+          kind: o.kind || "spark", rot: Math.random() * 6, vr: (Math.random() - 0.5) * 12, drag: o.drag ?? 0.9 });
+      }
+    }
+    text(x, y, s, color, size = 28) { this.txt.push({ x, y, s, color, size, life: 0, max: 1.1 }); }
+    update(dt) {
+      this.shake = Math.max(0, this.shake - dt * 30);
+      this.p = this.p.filter((q) => (q.life += dt) < q.max);
+      for (const q of this.p) {
+        const d = Math.pow(q.drag, dt * 10); q.vx *= d; q.vy = q.vy * d + q.g * dt;
+        q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt;
+      }
+      this.txt = this.txt.filter((t) => (t.life += dt) < t.max);
+    }
+    draw(ctx) {
+      for (const q of this.p) {
+        const k = 1 - q.life / q.max, soft = q.kind === "smoke" || q.kind === "dust";
+        ctx.globalAlpha = soft ? k * 0.55 : Math.min(1, k * 1.6);
+        ctx.fillStyle = q.color;
+        if (q.kind === "spark") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(Math.atan2(q.vy, q.vx)); ctx.fillRect(-q.size * 1.6, -q.size / 3, q.size * 3.2, q.size / 1.5); ctx.restore(); }
+        else if (q.kind === "confetti") { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.fillRect(-q.size, -q.size / 2, q.size * 2, q.size); ctx.restore(); }
+        else { ctx.beginPath(); ctx.arc(q.x, q.y, q.size * (soft ? 1 + q.life * 2.5 : 1), 0, 7); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      for (const t of this.txt) {
+        const k = t.life / t.max, sc = k < 0.15 ? ease.back(k / 0.15) : 1;
+        bigText(ctx, t.s, t.x, t.y - k * 50, t.size, t.color, sc, k > 0.7 ? (1 - k) / 0.3 : 1);
+      }
+    }
+  }
+
+  // x = center, gy = ground y, s = unit size, dir 1 faces right.
+  // o: lunge 0..1, hurt 0..1, tilt (rad), shield, bob
+  function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
+    const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
+    const lw = Math.max(1.5, s * 0.05);
+    ctx.save(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath();
+    ctx.ellipse(x, gy + 2, s * 1.05 * (o.tilt ? 1.3 : 1), s * 0.14, 0, 0, 7); ctx.fill(); ctx.restore();
+
+    ctx.save(); ctx.translate(x, gy);
+    if (o.tilt) ctx.rotate(o.tilt * dir);
+    ctx.scale(dir, 1);
+    const bob = o.bob ?? Math.sin(t * 3 + b.color) * s * 0.025;
+    ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = ink;
+
+    let torsoBottom;
+    if (b.body === 0) {
+      [-0.55, 0.55].forEach((wx) => {
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.32 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = metal; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.14 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = metalHi; ctx.lineWidth = lw * 0.8;
+        for (let k = 0; k < 3; k++) { const a = t * 5 + k * 2.09; ctx.beginPath(); ctx.moveTo(wx * s + Math.cos(a) * 0.16 * s, -0.32 * s + Math.sin(a) * 0.16 * s); ctx.lineTo(wx * s + Math.cos(a) * 0.27 * s, -0.32 * s + Math.sin(a) * 0.27 * s); ctx.stroke(); }
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+      ctx.fillStyle = metal; rr(ctx, -0.6 * s, -0.5 * s, 1.2 * s, 0.14 * s, 0.05 * s); ctx.fill(); ctx.stroke();
+      torsoBottom = -0.48 * s;
+    } else if (b.body === 1) {
+      ctx.fillStyle = "#222126"; rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.fill(); ctx.stroke();
+      ctx.save(); rr(ctx, -0.98 * s, -0.52 * s, 1.96 * s, 0.52 * s, 0.26 * s); ctx.clip();
+      ctx.fillStyle = "#3a3940"; const off = (t * 40) % (0.2 * s);
+      for (let k = -1; k < 12; k++) ctx.fillRect(-0.98 * s + k * 0.2 * s + off, -0.52 * s, 0.08 * s, 0.07 * s);
+      ctx.restore();
+      for (let k = 0; k < 5; k++) { ctx.fillStyle = metal; ctx.beginPath(); ctx.arc((-0.68 + k * 0.34) * s, -0.26 * s, 0.11 * s, 0, 7); ctx.fill(); ctx.stroke(); }
+      torsoBottom = -0.5 * s;
+    } else {
+      const st = Math.sin(t * 5) * 0.1 * s;
+      [[-0.38, st], [0.38, -st]].forEach(([lx, sv]) => {
+        ctx.strokeStyle = ink; ctx.lineWidth = s * 0.17;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.strokeStyle = metal; ctx.lineWidth = s * 0.11;
+        ctx.beginPath(); ctx.moveTo(lx * s, -0.78 * s); ctx.lineTo(lx * s + sv, -0.4 * s); ctx.lineTo(lx * s, -0.06 * s); ctx.stroke();
+        ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(lx * s + sv, -0.4 * s, 0.07 * s, 0, 7); ctx.fill();
+        ctx.fillStyle = "#222126"; rr(ctx, lx * s - 0.22 * s, -0.1 * s, 0.44 * s, 0.1 * s, 0.04 * s); ctx.fill();
+      });
+      ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      torsoBottom = -0.74 * s;
+    }
+    ctx.translate(0, bob);
+
+    const tw = 1.3 * s, th = 0.95 * s, ty = torsoBottom - th;
+    const g = ctx.createLinearGradient(0, ty, 0, ty + th);
+    g.addColorStop(0, shade(col, 0.28)); g.addColorStop(0.55, col); g.addColorStop(1, shade(col, -0.3));
+    ctx.fillStyle = g; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.stroke();
+    if (o.hurt) { ctx.globalAlpha = o.hurt * 0.8; ctx.fillStyle = "#fff"; rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.fillStyle = "rgba(0,0,0,.25)"; rr(ctx, -tw / 2 + 0.14 * s, ty + 0.42 * th, tw - 0.28 * s, 0.4 * th, 0.07 * s); ctx.fill();
+    for (let k = 0; k < 3; k++) {
+      const on = (Math.floor(t * 3) + k) % 3 === 0;
+      ctx.fillStyle = on ? BRAIN_COL[b.brain] : "rgba(255,255,255,.18)";
+      ctx.beginPath(); ctx.arc(-0.3 * s + k * 0.2 * s, ty + 0.62 * th, 0.055 * s, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = "rgba(255,255,255,.35)"; rr(ctx, -tw / 2 + 0.1 * s, ty + 0.08 * s, tw * 0.45, 0.07 * s, 0.03 * s); ctx.fill();
+    ctx.fillStyle = ink; [-1, 1].forEach((sx) => { ctx.beginPath(); ctx.arc(sx * (tw / 2 - 0.1 * s), ty + 0.24 * s, 0.03 * s, 0, 7); ctx.fill(); });
+
+    const hw = 0.82 * s, hh = 0.56 * s, hy = ty - hh - 0.1 * s;
+    ctx.fillStyle = metal; rr(ctx, -0.1 * s, ty - 0.13 * s, 0.2 * s, 0.16 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+    const hg = ctx.createLinearGradient(0, hy, 0, hy + hh); hg.addColorStop(0, "#ece8f0"); hg.addColorStop(1, "#a9a5b2");
+    ctx.fillStyle = hg; rr(ctx, -hw / 2, hy, hw, hh, 0.14 * s); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-0.18 * s, hy); ctx.lineTo(-0.24 * s, hy - 0.22 * s); ctx.stroke();
+    ctx.save(); ctx.shadowColor = BRAIN_COL[b.brain]; ctx.shadowBlur = 10 + 6 * Math.sin(t * 5);
+    ctx.fillStyle = BRAIN_COL[b.brain]; ctx.beginPath(); ctx.arc(-0.24 * s, hy - 0.26 * s, 0.07 * s, 0, 7); ctx.fill(); ctx.restore();
+    const blink = (t % 3.7) < 0.12 ? 0.15 : 1;
+    if (b.sensor === 0) {
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0.12 * s, hy + hh / 2, 0.2 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.translate(0.12 * s, hy + hh / 2); ctx.scale(1, blink);
+      const eg = ctx.createRadialGradient(-0.03 * s, -0.03 * s, 0, 0, 0, 0.11 * s); eg.addColorStop(0, "#bfe6ff"); eg.addColorStop(1, "#1d7fc4");
+      ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(0, 0, 0.11 * s, 0, 7); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-0.04 * s, -0.04 * s, 0.03 * s, 0, 7); ctx.fill(); ctx.restore();
+    } else if (b.sensor === 1) {
+      [-0.1, 0.22].forEach((ex) => {
+        ctx.fillStyle = "#c9c5d1"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.15 * s, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.1 * s, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#555"; ctx.lineWidth = lw * 0.6; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.06 * s, 0, 7); ctx.stroke();
+        ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      });
+    } else {
+      ctx.save(); ctx.translate(0.12 * s, hy + hh * 0.42); ctx.scale(1, blink);
+      ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0, 0, 0.075 * s, 0, 7); ctx.fill(); ctx.restore();
+      ctx.lineWidth = lw * 0.8;
+      [-0.22, 0, 0.22].forEach((a, k) => {
+        const wig = Math.sin(t * 6 + k) * 0.04 * s;
+        ctx.beginPath(); ctx.moveTo(hw / 2 - 0.02 * s, hy + hh * 0.66); ctx.quadraticCurveTo(hw / 2 + 0.2 * s, hy + hh * 0.66 + a * s * 0.5 + wig, hw / 2 + 0.38 * s, hy + hh * 0.66 + a * s + wig); ctx.stroke();
+      });
+      ctx.lineWidth = lw;
+    }
+    ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
+
+    const l = o.lunge || 0, reach = Math.sin(l * Math.PI) * 0.5 * s;
+    const sx = tw / 2 - 0.06 * s, sy = ty + 0.32 * th, ex = sx + 0.45 * s + reach, ey = sy + 0.05 * s;
+    ctx.strokeStyle = ink; ctx.lineWidth = s * 0.16; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = metal; ctx.lineWidth = s * 0.1; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, 0.07 * s, 0, 7); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    if (b.tool === 0) {
+      const open = (0.18 - 0.14 * Math.sin(l * Math.PI)) * s;
+      ctx.lineWidth = s * 0.1;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey - open); ctx.lineTo(ex + 0.4 * s, ey - 0.03 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey + open); ctx.lineTo(ex + 0.4 * s, ey + 0.03 * s); ctx.stroke();
+      ctx.lineWidth = lw;
+    } else if (b.tool === 1) {
+      const sw = -0.5 + Math.sin(l * Math.PI) * 1.1;
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(sw);
+      ctx.fillStyle = "#6b4a2f"; rr(ctx, 0, -0.05 * s, 0.28 * s, 0.1 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+      const hg2 = ctx.createLinearGradient(0.24 * s, 0, 0.52 * s, 0); hg2.addColorStop(0, "#5c5a63"); hg2.addColorStop(1, "#2a292e");
+      ctx.fillStyle = hg2; rr(ctx, 0.24 * s, -0.3 * s, 0.28 * s, 0.6 * s, 0.06 * s); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save(); ctx.translate(ex + 0.24 * s, ey); ctx.rotate(t * (l > 0 ? 40 : 9));
+      ctx.fillStyle = "#3a3940"; ctx.beginPath(); ctx.arc(0, 0, 0.28 * s, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#e9e6ee";
+      for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.moveTo(0.1 * s, -0.06 * s); ctx.lineTo(0.36 * s, -0.02 * s); ctx.lineTo(0.3 * s, 0.07 * s); ctx.lineTo(0.1 * s, 0.06 * s); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0, 0.07 * s, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+    if (o.shield) {
+      ctx.save(); ctx.globalAlpha = 0.22 + 0.1 * Math.sin(t * 8);
+      ctx.fillStyle = "#4fd18b"; ctx.strokeStyle = "#4fd18b"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, (hy + torsoBottom) / 2 - 0.05 * s, 1.2 * s, 1.25 * s, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 0.8; ctx.stroke(); ctx.restore();
+    }
+    ctx.restore();
+    return { headX: x + dir * 0.12 * s, headY: gy + hy + bob + hh / 2 };
+  }
+
+  // Small static portrait of a bot on a canvas element (lobby cards, roster rows).
+  function portrait(canvas, b, bg = "#2b2a30", dir = 1, scale = 1) {
+    const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = bg; rr(ctx, 0, 0, w, h, w * 0.18); ctx.fill();
+    const s = Math.min(w, h) * 0.27 * scale;
+    drawBot(ctx, b, w * (dir === 1 ? 0.43 : 0.57), h * 0.92, s, dir, 0, { bob: 0 });
+  }
+
+  // ---------------- sound (off until turned on) ----------------
+  const Sound = (() => {
+    let actx = null, on = false;
+    function tone(freq, dur, type = "square", vol = 0.08, slideTo) {
+      if (!on || !actx) return;
+      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+    }
+    function noise(dur, vol = 0.12, hp = 600) {
+      if (!on || !actx) return;
+      const len = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
+      src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start();
+    }
+    const fx = {
+      click: () => tone(660, 0.05, "square", 0.04),
+      beep: () => tone(520, 0.12, "square", 0.06),
+      go: () => tone(880, 0.25, "square", 0.07),
+      join: () => { tone(660, 0.08, "square", 0.05); setTimeout(() => tone(990, 0.12, "square", 0.05), 80); },
+      scan: () => tone(1200, 0.18, "sine", 0.04, 1800),
+      think: () => tone(420, 0.1, "triangle", 0.05, 560),
+      hit: () => { noise(0.18, 0.18, 300); tone(140, 0.18, "sawtooth", 0.08, 60); },
+      miss: () => tone(900, 0.18, "sine", 0.05, 300),
+      ko: () => { tone(400, 0.7, "sawtooth", 0.07, 60); noise(0.5, 0.1, 200); },
+      win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 120)); },
+      whoosh: () => noise(1.2, 0.08, 900),
+      thud: () => { tone(90, 0.25, "sine", 0.12, 40); noise(0.2, 0.08, 150); },
+      fanfare: () => { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.22, "square", 0.07), i * 140)); },
+    };
+    return {
+      get on() { return on; },
+      toggle() {
+        on = !on;
+        if (on && !actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { on = false; } }
+        if (on) fx.go();
+        return on;
+      },
+      play(name) { try { fx[name] && fx[name](); } catch {} },
+    };
+  })();
+
+  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+    fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
+});
+
+</script>
+<script>
+/*
+ * Flying Car Lab physics — shared by the browser and Node tests.
+ * Units: meters, seconds, kilograms, newtons. Fully deterministic (no randomness).
+ *
+ * A design is:
+ * { material, tanks, lift, push, flip, computer, gear, people, speed (km/h), ramp (0-2), reserve (% of air), flipOn }
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Flight = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const G = 9.81;
+  const CAR_LEN = 4.5, CAR_H = 1.3, HALF = 2.2;
+
+  // ---------------- parts ----------------
+  const BASE = { kg: 550, cost: 60000 }; // frame, wheels, motors, battery, seats
+  const MATERIALS = [
+    { n: "Plastic", kg: 180, cost: 5000, str: 0.5, d: "Cheap and light, but cracks on hard landings" },
+    { n: "Aluminum", kg: 320, cost: 25000, str: 2, d: "Light metal with medium strength" },
+    { n: "Steel", kg: 650, cost: 12000, str: 3.5, d: "Super strong and cheap, but very heavy" },
+    { n: "Carbon fiber", kg: 170, cost: 80000, str: 2.5, d: "Super light and strong, but expensive" },
+  ];
+  const TANK = { kg: 40, air: 12, liters: 60, cost: 8000, max: 8 }; // kg includes the air inside
+  const NOZZLE = { kg: 4, cost: 3000, thrust: 1600, flow: 4, flipFlow: 2 }; // flow = kg of air per second while firing
+  const LIMITS = { lift: 16, push: 4, flip: 4 };
+  const COMPUTERS = [
+    { n: "None", kg: 0, cost: 0, d: "No sensors. Nobody keeps the car level." },
+    { n: "Stabilizer", kg: 5, cost: 8000, d: "Gyro sensor keeps the car level and fires a landing cushion." },
+    { n: "Pro computer", kg: 8, cost: 25000, d: "Everything the stabilizer does, plus flips and perfect cushion timing." },
+  ];
+  const GEARS = [
+    { n: "Standard", kg: 0, cost: 0, absorb: 7, stroke: 0.3, d: "Normal car springs" },
+    { n: "Sport", kg: 30, cost: 10000, absorb: 9.5, stroke: 0.6, d: "Stiffer, longer suspension" },
+    { n: "Racing", kg: 60, cost: 25000, absorb: 12, stroke: 1.0, d: "Long-travel shocks for big drops" },
+  ];
+  const PERSON_KG = 80;
+  const RAMPS = [{ n: "Low", deg: 10 }, { n: "Medium", deg: 18 }, { n: "Steep", deg: 25 }];
+  const RAMP_LEN = 5;
+  const FLIP_ARM = 1.8;
+
+  // ---------------- obstacles ----------------
+  // kind is used for drawing; h = height (m), w = length (m)
+  const VEH = {
+    sedan: { kind: "sedan", h: 1.45, w: 4.7, label: "Sedan" },
+    suv: { kind: "suv", h: 1.7, w: 4.8, label: "SUV" },
+    pickup: { kind: "pickup", h: 1.9, w: 5.7, label: "Pickup truck" },
+    cab: { kind: "cab", h: 1.5, w: 4.3, label: "Robotaxi" },
+    tractor: { kind: "tractor", h: 4.0, w: 7.0, label: "Semi truck" },
+    semi: { kind: "semi", h: 4.0, w: 20.0, label: "Semi truck with trailer" },
+  };
+  function row(list, start = 8, gap = 0.8) {
+    let x = start;
+    return list.map((k) => { const v = { ...VEH[k], x }; x += v.w + gap; return v; });
+  }
+
+  // ---------------- missions ----------------
+  // need: requirements beyond "land safely". stars: [complete, smooth landing, efficiency goal]
+  const MISSIONS = [
+    { id: "hop", n: "First Flight", goal: "Use your thrusters to stay in the air for at least 2 seconds, then land safely.",
+      obstacles: [], need: { airtime: 2 }, eff: { kind: "kg", max: 1100, text: "Car weighs under 1,100 kg" } },
+    { id: "car", n: "Car Hop", goal: "Jump over a parked car and land safely on the other side.",
+      obstacles: row(["sedan"], 20), need: {}, eff: { kind: "cost", max: 120000, text: "Costs under $120,000" } },
+    { id: "semi", n: "Semi Jump", goal: "Clear a semi truck with its trailer. It's 4 meters tall and 20 meters long.",
+      obstacles: row(["semi"], 14), need: {}, eff: { kind: "kg", max: 1250, text: "Car weighs under 1,250 kg" } },
+    { id: "flip", n: "Backflip", goal: "Do a full backflip in the air and land on your wheels.",
+      obstacles: [], need: { flip: true }, eff: { kind: "cost", max: 190000, text: "Costs under $190,000" } },
+    { id: "five", n: "Five in a Row", goal: "Like the real demo: hop over five vehicles parked in a line, including a semi truck.",
+      obstacles: row(["cab", "pickup", "tractor", "suv", "sedan"], 12, 1.2), need: {}, eff: { kind: "kg", max: 1200, text: "Car weighs under 1,200 kg" } },
+    { id: "semiflip", n: "Semi Flip", goal: "Clear the semi truck AND do a backflip on the way over.",
+      obstacles: row(["semi"], 14), need: { flip: true }, eff: { kind: "cost", max: 230000, text: "Costs under $230,000" } },
+    { id: "people", n: "Passenger Safety", goal: "Carry 2 passengers over the semi truck. The landing must be gentle: under 6 g.",
+      obstacles: row(["semi"], 14), need: { people: 2, maxG: 6 }, eff: { kind: "cost", max: 220000, text: "Costs under $220,000" } },
+    { id: "budget", n: "Budget Engineer", goal: "Clear the semi truck while spending less than $150,000. Every dollar counts.",
+      obstacles: row(["semi"], 14), need: { budget: 150000 }, eff: { kind: "kg", max: 1150, text: "Car weighs under 1,150 kg" } },
+  ];
+  const ZONE_END = 85; // landing zone ends here (m past the ramp)
+
+  const DEFAULT_DESIGN = { material: 2, tanks: 3, lift: 6, push: 0, flip: 0, computer: 0, gear: 0, people: 1, speed: 50, ramp: 1, reserve: 0, flipOn: false };
+
+  function clampDesign(d) {
+    const c = (v, a, b, def) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : def; };
+    const D = DEFAULT_DESIGN;
+    return {
+      material: c(d.material, 0, 3, D.material), tanks: c(d.tanks, 0, TANK.max, D.tanks),
+      lift: c(d.lift, 0, LIMITS.lift, D.lift), push: c(d.push, 0, LIMITS.push, D.push), flip: c(d.flip, 0, LIMITS.flip, D.flip),
+      computer: c(d.computer, 0, 2, D.computer), gear: c(d.gear, 0, 2, D.gear), people: c(d.people, 0, 2, D.people),
+      speed: c(d.speed, 20, 60, D.speed), ramp: c(d.ramp, 0, 2, D.ramp), reserve: [0, 15, 30, 45].includes(+d.reserve) ? +d.reserve : 0,
+      flipOn: !!d.flipOn,
+    };
+  }
+
+  // ---------------- design sheet ----------------
+  function sheet(d) {
+    const M = MATERIALS[d.material], C = COMPUTERS[d.computer], R = GEARS[d.gear];
+    const nozzles = d.lift + d.push + d.flip;
+    const parts = [
+      ["Frame, wheels, motors", BASE.kg, BASE.cost],
+      [`${M.n} body`, M.kg, M.cost],
+      [`${d.tanks} air tank${d.tanks === 1 ? "" : "s"}`, d.tanks * TANK.kg, d.tanks * TANK.cost],
+      [`${nozzles} nozzle${nozzles === 1 ? "" : "s"}`, nozzles * NOZZLE.kg, nozzles * NOZZLE.cost],
+      [`${C.n === "None" ? "No" : C.n} flight computer`, C.kg, C.cost],
+      [`${R.n} landing gear`, R.kg, R.cost],
+      [`${d.people} passenger${d.people === 1 ? "" : "s"}`, d.people * PERSON_KG, 0],
+    ];
+    const kg = parts.reduce((a, p) => a + p[1], 0), cost = parts.reduce((a, p) => a + p[2], 0);
+    const weight = kg * G, lift = d.lift * NOZZLE.thrust, push = d.push * NOZZLE.thrust;
+    const air = d.tanks * TANK.air, flowAll = (d.lift + d.push) * NOZZLE.flow;
+    const useAir = air * (1 - d.reserve / 100);
+    const burn = flowAll ? useAir / flowAll : 0;
+    const tw = weight ? lift / weight : 0;
+    const strength = R.absorb + M.str;
+    const inertia = kg * (CAR_LEN * CAR_LEN + CAR_H * CAR_H) / 12;
+    const flipAlpha = d.flip ? (d.flip * NOZZLE.thrust * FLIP_ARM) / inertia : 0;
+    const flipTime = flipAlpha ? 2 * Math.sqrt((2 * Math.PI) / flipAlpha) : Infinity;
+    return { parts, kg, cost, weight, lift, push, air, burn, tw, strength, inertia, flipAlpha, flipTime, liters: d.tanks * TANK.liters };
+  }
+
+  // ---------------- simulation ----------------
+  function simulate(design, mission) {
+    const d = clampDesign(design), S = sheet(d), M = mission || MISSIONS[0];
+    const obs = M.obstacles;
+    const th = (RAMPS[d.ramp].deg * Math.PI) / 180, v0 = d.speed / 3.6;
+    let x = 0, y = RAMP_LEN * Math.sin(th), vx = v0 * Math.cos(th), vy = v0 * Math.sin(th);
+    let p = th, w = 0, m = S.kg, air = S.air;
+    const reserveAir = S.air * (d.reserve / 100);
+    const ctrl = d.computer > 0 && d.lift >= 2; // stabilizer needs lift nozzles to steer with
+    const wantFlip = d.flipOn && d.computer === 2 && d.flip >= 2;
+    if (d.computer === 0) w = -0.5; // front wheels leave the ramp first: nose starts dropping
+    const dt = 1 / 240, frames = [];
+    let t = 0, maxY = y, maxYx = x, liftOff = false, burnEnd = null, cushionUsed = 0, cushionStart = null;
+    let flipTarget = 2 * Math.PI, flipDone = false, flipAngle = 0, startP = p, minAbove = Infinity, result = null;
+    let airOutT = null, flipAirOut = false, flipStartT = null;
+    // the Pro computer keeps enough air to finish the flip, and climbs with the rest first
+    const flipAirNeed = wantFlip && Number.isFinite(S.flipTime) ? d.flip * NOZZLE.flipFlow * S.flipTime * 1.1 : 0;
+    const y0 = y;
+    while (t < 14) {
+      const up = { x: -Math.sin(p), y: Math.cos(p) }, fwd = { x: Math.cos(p), y: Math.sin(p) };
+      const upright = Math.cos(p) > 0.3;
+      // --- what fires this step ---
+      let liftOn = false, pushOn = false, flipF = 0, cushion = false;
+      const mainAir = air > reserveAir + (wantFlip && !flipDone ? flipAirNeed : 0) + 1e-9;
+      const flipping = wantFlip && !flipDone && t > 0.12 && (!mainAir || !(d.lift || d.push));
+      const aligned = Math.cos(p) > 0.85; // mid-flip the computer only fires when the car points the right way
+      if (mainAir && (d.lift || d.push)) {
+        liftOn = d.lift > 0 && (!ctrl || (flipping ? aligned : upright));
+        pushOn = d.push > 0 && (!flipping || aligned);
+      }
+      if (!mainAir && burnEnd == null && (d.lift || d.push)) burnEnd = t;
+      // landing cushion: needs a computer, saved air, and the car coming down
+      if (!liftOn && ctrl && air > 1e-9 && vy < 0 && upright && d.lift) {
+        const a = (d.lift * NOZZLE.thrust) / m - G, v = -vy;
+        let trig = 2.5; // the Stabilizer always fires at 2.5 m
+        if (d.computer === 2) { // the Pro computer times it so the air lasts until touchdown
+          const tAir = air / (d.lift * NOZZLE.flow);
+          if (a <= 0) trig = v * tAir - 0.5 * a * tAir * tAir;
+          else trig = a * tAir >= v ? (v * v) / (2 * a) + 0.2 : v * tAir - 0.5 * a * tAir * tAir;
+        }
+        if (y <= trig) { cushion = true; liftOn = true; }
+      }
+      // flip control (Pro computer)
+      if (flipping && air > 1e-9) {
+        if (flipStartT == null) flipStartT = t;
+        const rem = flipTarget - p, stop = (w * w) / (2 * Math.max(S.flipAlpha, 1e-6));
+        if (rem > 0.06 || Math.abs(w) > 0.4) flipF = rem > stop ? 1 : -1;
+        else flipDone = true;
+      }
+      if (wantFlip && !flipDone && air <= 1e-9) flipAirOut = true;
+      // --- forces ---
+      let ax = 0, ay = -G, flow = 0;
+      // with a computer the lift nozzles are aimed straight down (thrust vectoring); without one they follow the car's tilt
+      const liftDir = ctrl && !flipping ? { x: 0, y: 1 } : up;
+      if (liftOn) { const F = d.lift * NOZZLE.thrust; ax += (F * liftDir.x) / m; ay += (F * liftDir.y) / m; flow += d.lift * NOZZLE.flow; liftOff = true; if (cushion) { cushionUsed += d.lift * NOZZLE.flow * dt; if (cushionStart == null) cushionStart = t; } }
+      if (pushOn) { const F = d.push * NOZZLE.thrust; ax += (F * fwd.x) / m; ay += (F * fwd.y) / m; flow += d.push * NOZZLE.flow; }
+      if (flipF) flow += d.flip * NOZZLE.flipFlow;
+      // --- rotation ---
+      let alpha = 0;
+      if (flipF) alpha = flipF * S.flipAlpha;
+      else if (ctrl && !flipping) {
+        const target = wantFlip && (flipDone || flipStartT != null) ? flipTarget : 0;
+        alpha = -16 * (p - target) - 7 * w;
+      } else if (!ctrl && liftOn) alpha = 0.12 * d.lift; // uneven thrust nobody corrects
+      // --- integrate ---
+      vx += ax * dt; vy += ay * dt; x += vx * dt; y += vy * dt;
+      w += alpha * dt; p += w * dt;
+      if (flow) { const used = Math.min(air, flow * dt); air -= used; m -= used; if (air <= 1e-9 && airOutT == null) airOutT = t; }
+      t += dt;
+      if (y > maxY) { maxY = y; maxYx = x; }
+      // obstacle clearance + collisions
+      for (const o of obs) {
+        if (x + HALF > o.x && x - HALF < o.x + o.w) {
+          minAbove = Math.min(minAbove, y - o.h);
+          if (y < o.h) {
+            const fromAbove = y - vy * dt >= o.h - 0.05;
+            result = { type: fromAbove ? "crash_top" : "crash_side", obstacle: o };
+          }
+        }
+      }
+      if (frames.length === 0 || t - frames[frames.length - 1].t >= 1 / 60 - 1e-9) {
+        frames.push({ t, x, y, p, lift: liftOn, push: pushOn, flip: flipF, cushion, air: air / Math.max(S.air, 1e-9), vy, vx });
+      }
+      if (result) break;
+      if (y <= 0 && t > 0.03) break;
+    }
+    frames.push({ t, x, y: Math.max(y, result ? y : 0), p, lift: false, push: false, flip: 0, cushion: false, air: air / Math.max(S.air, 1e-9), vy, vx, end: true });
+    const flightTime = t;
+    const vImp = Math.max(0, -vy);
+    const pitchDeg = ((((p * 180) / Math.PI) % 360) + 540) % 360 - 180; // -180..180
+    flipAngle = ((p - startP) * 180) / Math.PI;
+    const R = GEARS[d.gear];
+    const gForce = (vImp * vImp) / (2 * R.stroke) / G;
+    let outcome;
+    if (result) outcome = result.type;
+    else if (Math.abs(pitchDeg) > 25) outcome = Math.abs(pitchDeg) > 120 ? "crash_upside" : "crash_angle";
+    else if (vImp > S.strength) outcome = "crash_hard";
+    else if (x > ZONE_END) outcome = "overshoot";
+    else if (obs.length && x - HALF < Math.max(...obs.map((o) => o.x + o.w))) outcome = "short";
+    else outcome = "landed";
+    const landing = outcome === "landed" ? (vImp > S.strength * 0.75 ? "hard" : "smooth") : null;
+    return {
+      design: d, sheet: S, mission: M, frames, outcome, landing, obstacle: result && result.obstacle,
+      flightTime, landX: x, maxY, maxYx, vImp, gForce, pitchDeg, flipAngle, burnEnd, airOutT, liftOff,
+      cushionUsed, cushionStart, reserveAir, minAbove, wantFlip, flipAirOut, ctrl, y0, flipStartT, flipAirNeed,
+      vx0: v0 * Math.cos(th), vy0: v0 * Math.sin(th),
+    };
+  }
+  function groundBelow(x, obs) {
+    let g = 0;
+    for (const o of obs) if (x + HALF > o.x && x - HALF < o.x + o.w) g = Math.max(g, o.h);
+    return g;
+  }
+
+  // ---------------- grading ----------------
+  function grade(r) {
+    const M = r.mission, d = r.design, S = r.sheet, need = M.need || {};
+    const fails = [];
+    if (need.people && d.people < need.people) fails.push("people");
+    if (need.budget && S.cost > need.budget) fails.push("budget");
+    if (r.outcome !== "landed") fails.push("outcome");
+    if (need.airtime && r.flightTime < need.airtime) fails.push("airtime");
+    const flipped = Math.abs(r.flipAngle) >= 330;
+    if (need.flip && !flipped) fails.push("flip");
+    if (need.maxG && r.outcome === "landed" && r.gForce > need.maxG) fails.push("gforce");
+    const complete = fails.length === 0;
+    const smooth = complete && r.landing === "smooth";
+    const eff = M.eff, effVal = eff.kind === "kg" ? S.kg : S.cost;
+    const effOk = complete && effVal <= eff.max;
+    return { complete, fails, flipped, stars: [complete, smooth, effOk], effVal };
+  }
+
+  // ---------------- explanations ----------------
+  const fmt = (n, dp = 1) => Number(n).toFixed(dp).replace(/\.0$/, "");
+  const kN = (n) => fmt(n / 1000) + " kN";
+  const money = (n) => "$" + Math.round(n).toLocaleString("en-US");
+  const kg = (n) => Math.round(n).toLocaleString("en-US") + " kg";
+
+  function explain(r, g) {
+    const d = r.design, S = r.sheet, M = r.mission, out = [];
+    const item = (tone, title, text) => out.push({ tone, title, text });
+    // headline
+    let headline;
+    if (g.complete) headline = { tone: "good", text: g.stars.every(Boolean) ? "Mission complete with all 3 stars!" : "Mission complete!" };
+    else headline = { tone: "bad", text: "Not yet. Here's what happened and why." };
+
+    // budget / people gates
+    if (g.fails.includes("budget")) item("bad", "Over budget", `Your car costs ${money(S.cost)}, but this mission's budget is ${money(M.need.budget)}. The most expensive parts are carbon fiber (${money(MATERIALS[3].cost)}), the Pro computer, racing gear and extra tanks.`);
+    if (g.fails.includes("people")) item("bad", "Missing passengers", `This mission needs ${M.need.people} passengers, but your car has ${d.people}. Passengers add ${PERSON_KG} kg each, so you'll need more thrust.`);
+
+    // thrust vs weight
+    if (d.lift === 0) item("bad", "No lift thrusters", "Your car has no nozzles pointing down, so nothing pushes it up. The ramp alone gave it a short hop.");
+    else if (S.tw < 1) item("bad", "Thrust is less than weight", `Your lift thrust is ${kN(S.lift)}, but gravity pulls on your ${kg(S.kg)} car with ${kN(S.weight)}. Thrust-to-weight is ${fmt(S.tw, 2)}. Below 1.0 the nozzles can't lift the car by themselves. The ramp threw it up, and the thrust only slowed its fall.`);
+    else item(S.tw >= 1.3 ? "good" : "info", "Thrust beat weight", `Lift thrust ${kN(S.lift)} vs weight ${kN(S.weight)}: thrust-to-weight ${fmt(S.tw, 2)}. Above 1.0 means the nozzles can push the car up. Higher means it climbs faster.`);
+
+    // air supply
+    if (d.tanks === 0 && d.lift + d.push + d.flip > 0) item("bad", "No air tanks", "The nozzles had no air to blow out. Cold-gas thrusters need compressed air from tanks.");
+    else if (d.lift + d.push > 0 && S.tw >= 1) {
+      const t = r.burnEnd != null ? r.burnEnd : S.burn;
+      item("info", "Air supply", `Your ${S.liters} L of air (${d.tanks} tank${d.tanks === 1 ? "" : "s"}) ran the thrusters for ${fmt(t)} s${d.reserve ? `, keeping ${d.reserve}% for the landing` : ""}. When the air runs out, the push stops and gravity takes over. More tanks = longer push, but each tank adds ${TANK.kg} kg.`);
+    }
+
+    // height & distance vs obstacles
+    const obs = M.obstacles;
+    if (obs.length) {
+      const tallest = Math.max(...obs.map((o) => o.h)), end = Math.max(...obs.map((o) => o.x + o.w));
+      if (r.outcome === "crash_side") item("bad", `Hit the side of the ${r.obstacle.label.toLowerCase()}`, `The car only got ${fmt(Math.max(0, r.maxY))} m high, but the ${r.obstacle.label.toLowerCase()} is ${fmt(r.obstacle.h)} m tall. You need more height: more thrust, a lighter car, or more air.`);
+      else if (r.outcome === "crash_top") item("bad", `Came down on top of the ${r.obstacle.label.toLowerCase()}`, `You got high enough (${fmt(r.maxY)} m) but ran out of distance. The car came down at ${fmt(r.landX)} m and the vehicles end at ${fmt(end)} m. Go faster up the ramp, add push nozzles, or stay in the air longer.`);
+      else if (r.outcome !== "short") item("good", "Cleared the vehicles", `Peak height ${fmt(r.maxY)} m over a ${fmt(tallest)} m obstacle, with ${fmt(Math.max(0, r.minAbove))} m to spare at the closest point.`);
+    } else {
+      item("info", "Flight", `Peak height ${fmt(r.maxY)} m, ${fmt(r.flightTime)} s in the air, landed ${fmt(r.landX)} m from the ramp.`);
+      if (g.fails.includes("airtime")) item("bad", "Not enough air time", `You were airborne for ${fmt(r.flightTime)} s. The goal is ${M.need.airtime} s. Stronger thrust or more air keeps you up longer.`);
+    }
+    if (r.outcome === "short") item("bad", "Landed before the vehicles", `The car came down at ${fmt(r.landX)} m, but the vehicles start at ${fmt(obs[0].x)} m and end at ${fmt(Math.max(...obs.map((o) => o.x + o.w)))} m. It has to fly all the way over them. Add thrust and air, or go faster.`);
+    if (r.outcome === "overshoot") item("bad", "Flew past the landing zone", `You landed at ${fmt(r.landX)} m, but the safe landing zone ends at ${ZONE_END} m. Slow down on the ramp or use fewer push nozzles.`);
+
+    // stability / computer
+    if (!r.ctrl && (r.outcome === "crash_angle" || r.outcome === "crash_upside")) {
+      item("bad", "The car tipped over in the air", `It landed tilted ${fmt(Math.abs(r.pitchDeg), 0)}° (more than 25° crashes). ${d.computer === 0 ? "Without a flight computer nobody keeps the car level." : "The flight computer needs at least 2 lift nozzles to steer with."} A flight computer uses a gyro sensor (Sense), decides how to correct (Think), and fires nozzles (Act). That's Sense, Think, Act!`);
+    } else if (r.ctrl) item("good", "Flight computer kept it level", "The gyro sensed the tilt and the computer fired the nozzles to correct it. Sense, Think, Act.");
+    else if (d.computer === 0 && r.flightTime > 1.2 && r.outcome === "landed") item("info", "Lucky landing", `Without a flight computer the car tilted ${fmt(Math.abs(r.pitchDeg), 0)}° by landing. A longer flight would tip it over.`);
+
+    // flip
+    if (d.flipOn || M.need.flip) {
+      if (d.computer !== 2) item("bad", "No flip", "Only the Pro computer can do flips. It has to spin the car and stop it at exactly one full turn.");
+      else if (d.flip < 2) item("bad", "No flip thrusters", "Add at least 2 flip nozzles. They push the front and back in opposite directions to spin the car.");
+      else if (!d.flipOn) item("bad", "Flip was turned off", "Turn on Backflip in the flight plan.");
+      else if (g.flipped && r.outcome === "landed") item("good", "Backflip landed!", `The car turned ${fmt(Math.abs(r.flipAngle), 0)}° in ${fmt(S.flipTime)} s. Flip speed depends on thrust and weight: heavier cars are harder to spin (more inertia).`);
+      else {
+        const why = S.flipTime > r.flightTime
+          ? `A full flip needs about ${fmt(S.flipTime)} s with your ${d.flip} flip nozzles and ${kg(S.kg)} car, but you were only in the air ${fmt(r.flightTime)} s.`
+          : r.flipAirOut ? "The tanks ran out of air in the middle of the flip, so the computer couldn't stop the spin." : "The flip wasn't finished when the car touched down.";
+        item("bad", `Flip only got to ${fmt(Math.abs(r.flipAngle), 0)}°`, `${why} More flip nozzles spin faster, a lighter car is easier to spin, and more air time gives the flip time to finish.`);
+      }
+    }
+
+    // too high = hard landing
+    const tallest = obs.length ? Math.max(...obs.map((o) => o.h)) : 0;
+    const needH = obs.length ? tallest + 1.2 : 2;
+    if ((r.outcome === "crash_hard" || r.landing === "hard") && r.maxY > needH + 2) {
+      item("info", "Higher isn't always better", `You peaked at ${fmt(r.maxY)} m${obs.length ? `, but you only needed about ${fmt(needH)} m to clear the ${fmt(tallest)} m vehicles` : ""}. The higher you go, the faster you fall: from ${fmt(r.maxY)} m a car hits the ground at about ${fmt(Math.sqrt(2 * G * r.maxY))} m/s. Engineers use just enough power, not the most.`);
+    }
+    if (r.flipStartT != null && r.flipAirNeed > 0) item("info", "Flight plan", `The Pro computer climbed first, then started the flip at ${fmt(r.flipStartT)} s. It kept ${fmt(r.flipAirNeed, 0)} kg of air for the flip${d.reserve ? " plus your saved landing air" : ""}.`);
+
+    // landing
+    if (r.outcome === "crash_hard") item("bad", "Landing was too hard", `The car hit the ground at ${fmt(r.vImp)} m/s. Your ${GEARS[d.gear].n.toLowerCase()} gear + ${MATERIALS[d.material].n.toLowerCase()} body can take ${fmt(S.strength)} m/s. Fixes: stronger gear or body, or save air for a landing cushion (needs a flight computer).`);
+    else if (r.outcome === "landed") {
+      const pct = Math.round((r.vImp / S.strength) * 100);
+      item(r.landing === "smooth" ? "good" : "info", r.landing === "smooth" ? "Smooth landing" : "Hard landing (but it survived)", `Touched down at ${fmt(r.vImp)} m/s. Your car can take ${fmt(S.strength)} m/s, so that used ${pct}% of its strength.${d.people ? ` Passengers felt ${fmt(r.gForce)} g.` : ""}`);
+      if (g.fails.includes("gforce")) item("bad", "Too rough for passengers", `Passengers felt ${fmt(r.gForce)} g, but the limit is ${M.need.maxG} g. Longer suspension (Sport or Racing) spreads the stop out, and a landing cushion slows you before touchdown.`);
+    }
+    if (r.cushionUsed > 0.5) item("good", "Landing cushion fired", `The computer used ${fmt(r.cushionUsed, 0)} kg of saved air to slow the fall right before touchdown.`);
+    else if (d.reserve > 0 && !r.ctrl) item("info", "Saved air was wasted", "You saved air for the landing, but without a working flight computer nothing fired it at the right moment.");
+
+    return { headline, items: out, tip: tipFor(r, g) };
+  }
+
+  // the single most useful thing to try next
+  function tipFor(r, g) {
+    const d = r.design, S = r.sheet, M = r.mission;
+    const needN = Math.ceil((S.weight * 1.4) / NOZZLE.thrust);
+    const heavier = d.material === 2 ? "Steel is heavy: try aluminum or carbon fiber" : "Make the car lighter";
+    if (g.fails.includes("budget")) return "Swap to cheaper parts: steel or aluminum instead of carbon fiber, fewer tanks, or the Stabilizer instead of the Pro computer.";
+    if (g.fails.includes("people")) return `Set passengers to ${M.need.people}, then add lift nozzles to carry the extra weight.`;
+    if (r.outcome === "crash_angle" || r.outcome === "crash_upside") {
+      if (d.computer === 0) return "Add a flight computer. Without one, nothing keeps the car level and it tips over.";
+      if (d.lift < 2) return "Add at least 2 lift nozzles so the flight computer can steer.";
+      return "Give the flip more time: more flip nozzles, a lighter car, or more air time.";
+    }
+    if (r.outcome === "crash_side") {
+      if (d.lift === 0) return "Add lift nozzles. Try 10 to start.";
+      if (d.tanks === 0) return "Add air tanks. Your thrusters need air to push.";
+      if (S.tw < 1.3) return `Climb faster: you need thrust-to-weight around 1.4 or more. Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()}.`;
+      return "You climb fast enough but not for long enough. Add an air tank, save less air for landing, or use a steeper ramp.";
+    }
+    if (r.outcome === "crash_top") return S.tw < 1 ? `Your thrust is less than your weight, so the car can't stay up long enough to get over. Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()}.` : "You need more distance: raise the ramp speed, add a push nozzle, or add an air tank to stay up longer.";
+    if (r.outcome === "short") return S.tw < 1.2 ? `Add lift nozzles (about ${needN}) and air so the car can fly over, not just hop.` : "Go faster up the ramp and add an air tank so you stay up long enough to get past.";
+    if (r.outcome === "overshoot") return "Slow down on the ramp or remove push nozzles.";
+    const tallestT = M.obstacles.length ? Math.max(...M.obstacles.map((o) => o.h)) : 0;
+    if (r.outcome === "crash_hard" && r.maxY > (M.obstacles.length ? tallestT + 1.2 : 2) + 2) return `You flew ${fmt(r.maxY)} m high, which is more than you need. Use fewer lift nozzles or tanks so you don't fall as far, or upgrade the landing gear.`;
+    if (r.outcome === "crash_hard") return d.computer > 0
+      ? (d.reserve ? "Save more air for the cushion, or upgrade the landing gear. The Pro computer times the cushion best." : "Save 20% of your air for a landing cushion, or upgrade the landing gear.")
+      : "Upgrade the landing gear, or add a flight computer and save some air for a landing cushion.";
+    if (g.fails.includes("flip")) {
+      if (d.computer !== 2) return "Pick the Pro computer, add 2 or more flip nozzles, and turn on Backflip.";
+      if (d.flip < 2) return "Add at least 2 flip nozzles.";
+      if (!d.flipOn) return "Turn on Backflip in the flight plan.";
+      return S.flipTime > r.flightTime ? "Make the flip faster (more flip nozzles, lighter car) or stay up longer (more air, more lift)." : "Add an air tank so the computer has air left to finish the flip.";
+    }
+    if (g.fails.includes("airtime")) return S.tw < 1 ? `Add lift nozzles (about ${needN}) or ${heavier.toLowerCase()} so the thrust can hold the car up.` : "Add an air tank or more lift nozzles to stay up longer.";
+    if (g.fails.includes("gforce")) return "Use Sport or Racing gear and save air for a cushion with the Pro computer.";
+    if (!g.stars[1]) return "For a smooth landing, save some air for a cushion or use stronger landing gear.";
+    if (!g.stars[2]) return `For the third star: ${M.eff.text.toLowerCase()}. You're at ${M.eff.kind === "kg" ? kg(S.kg) : money(S.cost)}.`;
+    return "Perfect run! Try the next mission.";
+  }
+
+  return { G, CAR_LEN, CAR_H, HALF, BASE, MATERIALS, TANK, NOZZLE, LIMITS, COMPUTERS, GEARS, PERSON_KG, RAMPS, RAMP_LEN, VEH, MISSIONS, ZONE_END,
+    DEFAULT_DESIGN, clampDesign, sheet, simulate, grade, explain, fmt, money, kg, kN };
+});
+
+</script>
+<script>
+/* Self-guided lessons: one card at a time, an interactive in each lesson, check questions, saved progress. */
+(function () {
+  const E = window.Engine, F = window.Flight;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const ls = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  let progress = ls.get("learn-progress", {});
+
+  // ---------------- lessons ----------------
+  // step types: read (html), quiz {q, options, answer, explain}, interactive {kind}
+  const LESSONS = [
+    {
+      id: "robot", n: "What makes a robot?", about: "Sense, Think, Act: the three things every robot does.",
+      steps: [
+        { type: "read", html: `<p class="big">A robot is a machine that can <b>Sense</b>, <b>Think</b>, and <b>Act</b>, all on its own.</p>
+          <div class="stack3"><div class="sta s"><b>Sense</b><span>Notice the world with sensors, like a camera or a touch sensor.</span></div>
+          <div class="sta t"><b>Think</b><span>A computer decides what to do, like a Raspberry Pi.</span></div>
+          <div class="sta a"><b>Act</b><span>Do something: drive wheels, move an arm, fire thrusters.</span></div></div>` },
+        { type: "read", html: `<h3>Example: a robot vacuum</h3>
+          <ul><li><b>Sense:</b> bump sensors feel walls, and cliff sensors notice stairs.</li>
+          <li><b>Think:</b> its computer decides where to go next.</li>
+          <li><b>Act:</b> wheels drive and brushes clean.</li></ul>
+          <p>If a machine is missing one of these, or a person has to make every decision, it isn't a robot.</p>` },
+        { type: "interactive", kind: "robotornot" },
+        { type: "quiz", q: "A robot's computer (like the Raspberry Pi on our robot arm) is which part?", options: ["Sense", "Think", "Act"], answer: 1, explain: "The computer makes the decisions. That's the Think part." },
+        { type: "quiz", q: "The robot arm's camera spots a red block. Which part is that?", options: ["Sense", "Think", "Act"], answer: 0, explain: "Seeing the block is sensing. Then the computer thinks, and the servos act." },
+      ],
+      next: { label: "Build your first robot", href: "bot-arena-offline.html" },
+    },
+    {
+      id: "sensors", n: "Robot senses", about: "Cameras, ultrasonic, touch and gyro sensors, and how they work.",
+      steps: [
+        { type: "read", html: `<p class="big">Sensors are a robot's senses.</p>
+          <ul><li><b>Camera:</b> sees colors and shapes, like your eyes.</li>
+          <li><b>Ultrasonic:</b> measures distance with sound you can't hear, like a bat.</li>
+          <li><b>Touch:</b> feels when it bumps into something.</li>
+          <li><b>Gyro:</b> feels tilting and turning, like your inner ear.</li></ul>` },
+        { type: "read", html: `<h3>How an ultrasonic sensor measures distance</h3>
+          <p>It sends out a short beep and times how long the echo takes to come back. Sound travels about <b>343 meters per second</b>.</p>
+          <p>The sound goes there <i>and</i> back, so: <b>distance = 343 × time ÷ 2</b>.</p>
+          <p>Example: the echo comes back in 0.01 seconds. 343 × 0.01 ÷ 2 ≈ <b>1.7 meters</b> to the wall.</p>` },
+        { type: "interactive", kind: "match" },
+        { type: "quiz", q: "An ultrasonic echo comes back in 0.02 seconds. About how far away is the wall?", options: ["0.7 m", "3.4 m", "6.9 m", "343 m"], answer: 1, explain: "343 × 0.02 = 6.86 meters there and back. Divide by 2: about 3.4 m." },
+        { type: "quiz", q: "In Bot Arena, which sensor gives a robot the best aim?", options: ["Camera", "Ultrasonic", "Touch"], answer: 0, explain: "The camera sees the target clearly. Ultrasonic helps you dodge, and Touch is light but aims poorly." },
+      ],
+      next: { label: "Pick a sensor for your robot", href: "bot-arena-offline.html" },
+    },
+    {
+      id: "tradeoffs", n: "Weight and trade-offs", about: "Why engineers can't have everything, and how a weight limit forces choices.",
+      steps: [
+        { type: "read", html: `<p class="big">Engineers can't have everything. Every choice gives something and costs something.</p>
+          <p>That's called a <b>trade-off</b>. In Bot Arena, every part has a weight, and the motors can only carry <b>75 kg</b>.</p>
+          <p>Heavy parts like Treads and the Hammer are strong. But you can't put every strong part on one robot.</p>` },
+        { type: "interactive", kind: "budget" },
+        { type: "quiz", q: "Treads (40 kg) + Camera (10 kg) + Hammer (30 kg) = 80 kg. That's too heavy. Which change does NOT fix it?", options: ["Swap the Camera for Touch (2 kg)", "Swap the Hammer for a Spinner (20 kg)", "Swap the Aggressive brain for the Smart brain", "Swap the Treads for Legs (30 kg)"], answer: 2, explain: "Brains weigh 0 kg, so swapping brains doesn't change the weight. All the other swaps get under 75 kg." },
+        { type: "quiz", q: "What is a trade-off?", options: ["A part that is always the best", "Getting more of one thing by giving up some of another", "Trading robots with a friend"], answer: 1, explain: "Like Treads: more armor, but slower and heavier. Every part in the game is a trade-off." },
+      ],
+      next: { label: "Build a robot under 75 kg", href: "bot-arena-offline.html" },
+    },
+    {
+      id: "thrust", n: "Thrust vs. weight", about: "How a car can fly: Newton's 3rd Law and the thrust-to-weight ratio.",
+      steps: [
+        { type: "read", html: `<p class="big">To fly, push air down hard enough that the air pushes you up.</p>
+          <p>That's <b>Newton's 3rd Law</b>: every push has an equal push back. Let go of a blown-up balloon and it shoots away as the air rushes out.</p>
+          <p>The flying car shown in October 2026 used <b>compressed-air thrusters</b>: tanks of squeezed air blasting out of nozzles.</p>` },
+        { type: "read", html: `<h3>Thrust-to-weight</h3>
+          <p><b>Weight</b> is how hard gravity pulls: mass × 9.8. A 1,000 kg car weighs about 9.8 kN (kilonewtons).</p>
+          <p><b>Thrust-to-weight = thrust ÷ weight.</b></p>
+          <ul><li>Above 1.0: the thrusters can lift the car by themselves.</li><li>Below 1.0: they can only slow its fall.</li></ul>` },
+        { type: "interactive", kind: "thrust" },
+        { type: "quiz", q: "A car weighs 12 kN. Its nozzles push with 9 kN. Can the thrusters lift it by themselves?", options: ["Yes", "No"], answer: 1, explain: "9 ÷ 12 = 0.75. That's below 1.0, so gravity wins." },
+        { type: "quiz", q: "Which change raises thrust-to-weight?", options: ["Add two passengers", "Switch from a steel body to carbon fiber", "Remove some nozzles", "Add heavy armor"], answer: 1, explain: "Carbon fiber is much lighter than steel. Same thrust, less weight, so the ratio goes up." },
+      ],
+      next: { label: "Try Mission 1 in the Flying Car Lab", href: "flying-car-lab-offline.html" },
+    },
+    {
+      id: "landing", n: "Higher isn't always better", about: "Why flying too high makes a crash landing, and the math behind it.",
+      steps: [
+        { type: "read", html: `<p class="big">The higher something falls, the faster it hits the ground.</p>
+          <p>Speed when it lands ≈ <b>√(2 × 9.8 × height)</b>.</p>
+          <p>It isn't simple doubling. Falling from <b>4 times</b> as high makes it hit only <b>2 times</b> as fast. But that's still a lot harder.</p>` },
+        { type: "interactive", kind: "falling" },
+        { type: "quiz", q: "To clear a 4 m semi truck you need about 5 m of height. Your car flew to 13 m and crashed when it landed. What's the best fix?", options: ["Add more nozzles", "Add more air tanks", "Use less thrust so it flies lower", "Go faster up the ramp"], answer: 2, explain: "You only needed 5 m. Flying lower means hitting the ground slower. Engineers use just enough power, not the most." },
+        { type: "quiz", q: "If you drop something from 4 times as high, it hits the ground about...", options: ["the same speed", "2 times as fast", "4 times as fast", "16 times as fast"], answer: 1, explain: "Speed grows with the square root of height. √4 = 2." },
+      ],
+      next: { label: "Try the Semi Jump in the Lab", href: "flying-car-lab-offline.html" },
+    },
+    {
+      id: "engineer", n: "Think like an engineer", about: "Predict, test, explain, improve. And why you change one thing at a time.",
+      steps: [
+        { type: "read", html: `<p class="big">Engineers don't guess. They follow a cycle.</p>
+          <ol style="margin:0;padding-left:22px;display:grid;gap:6px;font-size:18px"><li><b>Predict:</b> "If I change this, I think that will happen, because..."</li>
+          <li><b>Test:</b> try it.</li><li><b>Explain:</b> why did it happen? (The flight report helps.)</li><li><b>Improve:</b> change something and test again.</li></ol>` },
+        { type: "read", html: `<h3>The fair test rule</h3>
+          <p>Change only <b>one thing</b> at a time. If you change two things and the result changes, you can't tell which one caused it.</p>` },
+        { type: "quiz", q: "Maya changed her car's body to carbon fiber AND added 4 nozzles. It flew higher. Which change made it fly higher?", options: ["The carbon fiber", "The nozzles", "We can't tell, because she changed two things"], answer: 2, explain: "Both changes could raise the height. To know for sure, change one at a time." },
+        { type: "quiz", q: "Leo's car crashed. What should he do first?", options: ["Change everything", "Read the flight report to find out why", "Give up", "Pick random parts"], answer: 1, explain: "The report tells you what went wrong, so your next change has a reason." },
+        { type: "quiz", q: "Which is the best prediction?", options: ["It will be cool.", "If I add 2 lift nozzles, the car will fly higher, because thrust goes up.", "I don't know.", "My car will win."], answer: 1, explain: "A good prediction says what will change, and why." },
+      ],
+      next: { label: "Use the cycle in the Flying Car Lab", href: "flying-car-lab-offline.html" },
+    },
+  ];
+
+  // ---------------- list ----------------
+  function renderList() {
+    const el = $("lessons"); el.innerHTML = "";
+    let done = 0;
+    LESSONS.forEach((L, i) => {
+      const p = progress[L.id]; if (p && p.done) done++;
+      const b = document.createElement("button"); b.type = "button"; b.className = "lcard" + (p && p.done ? " done" : "");
+      b.innerHTML = `<span class="num">LESSON ${i + 1}</span><h2></h2><p></p><span class="meta"><span>About 5 min</span>${p && p.done ? `<span class="badge">Done ✓ ${p.score}/${p.total}</span>` : ""}</span>`;
+      b.querySelector("h2").textContent = L.n; b.querySelector("p").textContent = L.about;
+      b.onclick = () => openLesson(i);
+      el.appendChild(b);
+    });
+    $("pbar").style.width = (done / LESSONS.length) * 100 + "%";
+    $("ptext").textContent = `${done} of ${LESSONS.length} lessons done`;
+  }
+
+  // ---------------- lesson view ----------------
+  let cur = null; // { i, step, score, answered:{}, doneSteps:Set }
+  function openLesson(i) {
+    cur = { i, step: 0, score: 0, total: LESSONS[i].steps.filter((s) => s.type === "quiz").length, answered: {}, ok: {} };
+    $("v-list").hidden = true; $("v-lesson").hidden = false;
+    try { history.replaceState(null, "", "#lesson-" + (i + 1)); } catch {}
+    renderStep(); window.scrollTo(0, 0);
+  }
+  function closeLesson() {
+    cur = null; $("v-list").hidden = false; $("v-lesson").hidden = true;
+    try { history.replaceState(null, "", location.pathname); } catch {}
+    renderList();
+  }
+  $("back").onclick = closeLesson;
+  $("prev").onclick = () => { if (cur && cur.step > 0) { cur.step--; renderStep(); } };
+  $("next").onclick = () => {
+    if (!cur) return;
+    const L = LESSONS[cur.i];
+    if (cur.step < L.steps.length) { cur.step++; renderStep(); }
+    else if (cur.i < LESSONS.length - 1) openLesson(cur.i + 1);
+    else closeLesson();
+  };
+  function setNext(enabled) { $("next").disabled = !enabled; }
+
+  function renderStep() {
+    const L = LESSONS[cur.i], card = $("card"), n = L.steps.length;
+    $("ltitle").textContent = `Lesson ${cur.i + 1}: ${L.n}`;
+    $("dots").innerHTML = Array.from({ length: n + 1 }, (_, k) => `<i class="${k < cur.step ? "done" : k === cur.step ? "on" : ""}"></i>`).join("");
+    $("prev").disabled = cur.step === 0;
+    card.className = "panel card"; card.innerHTML = ""; card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
+    if (cur.step >= n) return renderDone(L, card);
+    const s = L.steps[cur.step];
+    $("next").textContent = "Next";
+    if (s.type === "read") { card.innerHTML = s.html; setNext(true); }
+    else if (s.type === "quiz") renderQuiz(s, card);
+    else if (s.type === "interactive") INTERACTIVES[s.kind](card);
+  }
+
+  function renderQuiz(s, card) {
+    const key = cur.step;
+    card.innerHTML = `<h3>Check your thinking</h3><p class="big"></p><div class="choices2"></div><div class="fb"></div>`;
+    card.querySelector(".big").textContent = s.q;
+    const box = card.querySelector(".choices2"), fb = card.querySelector(".fb");
+    const show = (picked) => {
+      const right = picked === s.answer;
+      [...box.children].forEach((b, i) => { b.disabled = right; b.classList.toggle("right", right && i === s.answer); b.classList.toggle("wrong", i === picked && !right); });
+      fb.innerHTML = `<div class="feedback ${right ? "good" : "bad"}"><b>${right ? "Yes!" : "Not quite. Try again."}</b> ${right ? esc(s.explain) : ""}</div>`;
+      setNext(right);
+    };
+    s.options.forEach((o, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "qopt"; b.textContent = o;
+      b.onclick = () => {
+        if (!(key in cur.answered)) { cur.answered[key] = i; if (i === s.answer) cur.score++; }
+        E.Sound.play(i === s.answer ? "win" : "miss"); show(i);
+      };
+      box.appendChild(b);
+    });
+    if (cur.ok[key]) show(s.answer); else setNext(false);
+    // remember a right answer so Back/Next keeps it
+    box.addEventListener("click", () => { if ([...box.children].some((b) => b.classList.contains("right"))) cur.ok[key] = true; });
+  }
+
+  function renderDone(L, card) {
+    const pct = cur.total ? cur.score / cur.total : 1;
+    progress[L.id] = { done: true, score: cur.score, total: cur.total };
+    ls.set("learn-progress", progress);
+    card.className = "panel card done-card";
+    card.innerHTML = `<div class="medal">✓</div><p class="big">Lesson complete!</p>
+      <p>You got <b>${cur.score} of ${cur.total}</b> questions right on the first try.${pct === 1 ? " Perfect!" : ""}</p>
+      <a class="btn big" href="${L.next.href}"></a>`;
+    card.querySelector("a").textContent = L.next.label;
+    $("next").textContent = cur.i < LESSONS.length - 1 ? "Next lesson" : "All lessons";
+    setNext(true);
+    E.Sound.play("fanfare");
+  }
+
+  // update a feedback box in place so it doesn't re-animate on every slider move
+  function setFb(card, good, html) {
+    const host = card.querySelector(".fb");
+    let el = host.firstElementChild;
+    if (!el) { el = document.createElement("div"); host.appendChild(el); }
+    el.className = "feedback " + (good ? "good" : "bad"); el.innerHTML = html;
+  }
+
+  // ---------------- interactives ----------------
+  const INTERACTIVES = {
+    robotornot(card) {
+      const items = [
+        ["Blender", false, "Not a robot. It has no sensors and makes no decisions. You press the button."],
+        ["Robot vacuum", true, "Robot! It senses walls and stairs, decides where to go, and drives itself."],
+        ["Microwave", false, "Not a robot. It runs a timer you set. It doesn't check the food or decide anything."],
+        ["Self-driving car", true, "Robot! Cameras sense the road, a computer decides, and it steers and brakes."],
+        ["Toaster", false, "Not a robot. A timer pops the toast. Nothing senses or decides."],
+        ["Robot arm with a camera", true, "Robot! The camera sees a block, the Raspberry Pi decides, and the servos move. Just like our arm!"],
+      ];
+      let answered = 0;
+      card.innerHTML = `<h3>Robot or not?</h3><p>For each machine, decide: does it Sense, Think, AND Act on its own?</p><div class="ron"></div>`;
+      const grid = card.querySelector(".ron");
+      items.forEach(([name, isRobot, why]) => {
+        const d = document.createElement("div"); d.className = "ritem";
+        d.innerHTML = `<b></b><div class="btns"><button type="button">Robot</button><button type="button">Not a robot</button></div><small hidden></small>`;
+        d.querySelector("b").textContent = name;
+        const [yes, no] = d.querySelectorAll("button"), sm = d.querySelector("small");
+        const pick = (guess) => {
+          const right = guess === isRobot;
+          if (!d.dataset.done) { d.dataset.done = 1; answered++; }
+          d.className = "ritem " + (right ? "right" : "wrong");
+          sm.hidden = false; sm.textContent = (right ? "Correct. " : "Not quite. ") + why;
+          E.Sound.play(right ? "click" : "miss");
+          setNext(answered === items.length);
+        };
+        yes.onclick = () => pick(true); no.onclick = () => pick(false);
+        grid.appendChild(d);
+      });
+      setNext(false);
+    },
+
+    match(card) {
+      const rows = [["See a red block on the table", "Camera"], ["Know how far away a wall is", "Ultrasonic"], ["Feel when it bumps into something", "Touch"], ["Know if it's tipping over", "Gyro"]];
+      const opts = ["Camera", "Ultrasonic", "Touch", "Gyro"];
+      card.innerHTML = `<h3>Match the job to the sensor</h3><p>Pick the best sensor for each job.</p><div class="match"></div><div class="fb"></div>`;
+      const box = card.querySelector(".match"), fb = card.querySelector(".fb");
+      const check = () => {
+        let right = 0, all = true;
+        [...box.children].forEach((r, i) => {
+          const v = r.querySelector("select").value; if (!v) { all = false; r.className = "mrow"; return; }
+          const ok = v === rows[i][1]; right += ok; r.className = "mrow " + (ok ? "right" : "wrong");
+        });
+        const done = all && right === rows.length;
+        fb.innerHTML = all ? `<div class="feedback ${done ? "good" : "bad"}"><b>${done ? "All correct!" : `${right} of ${rows.length} right.`}</b> ${done ? "A gyro is how the flying car's computer knows it's tilting." : "Fix the red ones."}</div>` : "";
+        setNext(done);
+      };
+      rows.forEach(([job]) => {
+        const r = document.createElement("div"); r.className = "mrow";
+        r.innerHTML = `<span></span><select aria-label="Sensor"><option value="">Pick...</option>${opts.map((o) => `<option>${o}</option>`).join("")}</select>`;
+        r.querySelector("span").textContent = job;
+        r.querySelector("select").onchange = () => { E.Sound.play("click"); check(); };
+        box.appendChild(r);
+      });
+      setNext(false);
+    },
+
+    budget(card) {
+      const bot = { name: "MINE", body: 1, sensor: 0, brain: 2, tool: 1, color: 0 };
+      let touched = false;
+      card.innerHTML = `<h3>Fit a robot under 75 kg</h3><p>This robot is too heavy. Swap parts until it fits.</p>
+        <div class="mini"><canvas aria-label="Your robot"></canvas><div>
+        <div class="lbl">Body</div><div class="chips" data-slot="body"></div>
+        <div class="lbl">Sensor</div><div class="chips" data-slot="sensor"></div>
+        <div class="lbl">Tool</div><div class="chips" data-slot="tool"></div>
+        <div style="margin-top:12px" class="readout"><b class="wt"></b>of 75 kg</div>
+        <div class="meter" style="margin-top:6px"><i></i></div></div></div><div class="fb"></div>`;
+      const cv = card.querySelector("canvas");
+      const draw = () => {
+        const { ctx, w, h } = E.fit(cv);
+        ctx.clearRect(0, 0, w, h); ctx.fillStyle = "#2b2a30"; ctx.fillRect(0, h * 0.85, w, h * 0.15);
+        E.drawBot(ctx, bot, w / 2 - 10, h * 0.85, Math.min(w / 4.4, h / 3.3), 1, performance.now() / 1000, {});
+      };
+      const update = () => {
+        ["body", "sensor", "tool"].forEach((slot) => {
+          const el = card.querySelector(`[data-slot="${slot}"]`); el.innerHTML = "";
+          E.PARTS[slot].forEach((p, i) => {
+            const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", bot[slot] === i);
+            b.innerHTML = `${esc(p.n)}<em>${p.wt} kg</em>`;
+            b.onclick = () => { bot[slot] = i; touched = true; E.Sound.play("click"); update(); };
+            el.appendChild(b);
+          });
+        });
+        const wt = E.statsOf(bot).wt, over = wt > E.MAXW;
+        card.querySelector(".wt").textContent = wt + " kg";
+        const m = card.querySelector(".meter"); m.classList.toggle("over", over); m.firstElementChild.style.width = Math.min(100, (wt / 75) * 100) + "%";
+        setFb(card, !over, `<b>${over ? "Too heavy!" : "It fits!"}</b> ${over ? "The motors can't move it. Swap a heavy part for a lighter one." : `You gave up some strength to stay under the limit. That's a trade-off. ${75 - wt} kg left over.`}`);
+        setNext(!over && touched);
+        draw();
+      };
+      update();
+      let raf; const loop = () => { if (!cv.isConnected) return cancelAnimationFrame(raf); draw(); raf = requestAnimationFrame(loop); }; loop();
+    },
+
+    thrust(card) {
+      const st = { material: 2, lift: 6 };
+      card.innerHTML = `<h3>Can your car lift itself?</h3><p>Pick a body and add lift nozzles. Get thrust-to-weight above 1.0.</p>
+        <div class="mini"><canvas aria-label="Forces on the car"></canvas><div>
+        <div class="lbl">Body material</div><div class="chips" id="t-mat"></div>
+        <div class="slider" style="margin-top:12px"><div class="row"><span>Lift nozzles (1.6 kN each)</span><b id="t-n"></b></div><input type="range" id="t-lift" min="0" max="16" step="1" aria-label="Lift nozzles"></div>
+        <div class="readout" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><b id="t-tw"></b>thrust ÷ weight</div><div><b id="t-kg"></b>mass</div></div></div></div><div class="fb"></div>`;
+      const cv = card.querySelector("canvas");
+      let reached = false;
+      const calc = () => {
+        const S = F.sheet({ ...F.DEFAULT_DESIGN, material: st.material, lift: st.lift });
+        return S;
+      };
+      const draw = (S) => {
+        const { ctx, w, h } = E.fit(cv);
+        ctx.clearRect(0, 0, w, h);
+        const cx = w / 2, cy = h * 0.5, L = w * 0.42, H = L * 0.28;
+        ctx.fillStyle = "#f46524"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2;
+        E.rr(ctx, cx - L / 2, cy - H / 2, L, H, H * 0.4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#141316"; [-0.3, 0.3].forEach((k) => { ctx.beginPath(); ctx.arc(cx + L * k, cy + H / 2, H * 0.28, 0, 7); ctx.fill(); });
+        for (let i = 0; i < st.lift; i++) {
+          const x = cx - L * 0.4 + (i * L * 0.8) / Math.max(1, st.lift - 1);
+          const g = ctx.createLinearGradient(0, cy + H / 2, 0, cy + H / 2 + H * 1.4); g.addColorStop(0, "rgba(191,230,255,.9)"); g.addColorStop(1, "rgba(56,167,240,0)");
+          ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 3, cy + H / 2); ctx.lineTo(x + 3, cy + H / 2); ctx.lineTo(x + 7, cy + H / 2 + H * 1.4); ctx.lineTo(x - 7, cy + H / 2 + H * 1.4); ctx.fill();
+        }
+        const base = h * 0.28, wl = base, tl = base * (S.lift / S.weight);
+        const arrow = (x, y1, y2, col, label, right) => {
+          ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+          const d = y2 > y1 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x, y2 + d * 6); ctx.lineTo(x - 9, y2 - d * 8); ctx.lineTo(x + 9, y2 - d * 8); ctx.fill();
+          ctx.font = `700 ${Math.max(11, Math.round(w * 0.035))}px "JetBrains Mono", monospace`; if (right === "below") { ctx.textAlign = "right"; ctx.fillText(label, x + 10, y2 + 22); }
+          else if (right === "above") { ctx.textAlign = "left"; ctx.fillText(label, x - 10, y2 - 14); }
+          else { ctx.textAlign = right ? "left" : "right"; ctx.fillText(label, x + (right ? 12 : -12), y1 + (y2 - y1) * 0.6); }
+        };
+        arrow(cx + L * 0.56, cy, Math.min(cy + wl, h - 34), "#38a7f0", `WEIGHT ${F.kN(S.weight)}`, "below");
+        if (st.lift) arrow(cx - L * 0.56, cy, Math.max(cy - tl, 34), "#ff8a50", `THRUST ${F.kN(S.lift)}`, "above");
+      };
+      const update = () => {
+        const el = card.querySelector("#t-mat"); el.innerHTML = "";
+        F.MATERIALS.forEach((m, i) => {
+          const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", st.material === i);
+          b.innerHTML = `${esc(m.n)}<em>${m.kg} kg</em>`; b.onclick = () => { st.material = i; E.Sound.play("click"); update(); };
+          el.appendChild(b);
+        });
+        card.querySelector("#t-lift").value = st.lift; card.querySelector("#t-n").textContent = st.lift;
+        const S = calc();
+        card.querySelector("#t-tw").textContent = S.tw.toFixed(2); card.querySelector("#t-tw").style.color = S.tw >= 1 ? "var(--good)" : "var(--bad)";
+        card.querySelector("#t-kg").textContent = F.kg(S.kg);
+        if (S.tw >= 1) reached = true;
+        setFb(card, S.tw >= 1, `<b>${S.tw >= 1 ? "Liftoff!" : "Not enough thrust."}</b> ${F.kN(S.lift)} ÷ ${F.kN(S.weight)} = ${S.tw.toFixed(2)}. ${S.tw >= 1 ? "Thrust beats weight, so the car can climb." : "Add nozzles or pick a lighter body."}`);
+        setNext(reached);
+        draw(S);
+      };
+      card.querySelector("#t-lift").addEventListener("input", (e) => { st.lift = +e.target.value; update(); });
+      update();
+    },
+
+    falling(card) {
+      let h = 5, moved = false;
+      card.innerHTML = `<h3>How hard will it land?</h3><p>Drag the height and watch the landing speed.</p>
+        <div class="slider"><div class="row"><span>Peak height</span><b id="f-h"></b></div><input type="range" id="f-range" min="1" max="20" step="0.5" aria-label="Peak height in meters"></div>
+        <div class="readout" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><b id="f-v"></b>landing speed</div><div><b id="f-k"></b>same speed in km/h</div></div>
+        <div class="lbl">Can an aluminum car survive? (body adds 2 m/s)</div><div id="f-gear" style="display:grid;gap:6px"></div><div class="fb"></div>`;
+      const gears = F.GEARS.map((g) => ({ n: g.n, max: g.absorb + F.MATERIALS[1].str }));
+      const update = () => {
+        const v = Math.sqrt(2 * F.G * h);
+        card.querySelector("#f-range").value = h; card.querySelector("#f-h").textContent = h + " m";
+        card.querySelector("#f-v").textContent = v.toFixed(1) + " m/s"; card.querySelector("#f-k").textContent = Math.round(v * 3.6) + " km/h";
+        card.querySelector("#f-gear").innerHTML = gears.map((g) => {
+          const ok = v <= g.max, pct = Math.min(100, (v / g.max) * 100);
+          return `<div class="verdict" style="display:grid;grid-template-columns:7em 1fr auto;gap:10px;align-items:center"><b>${g.n} gear</b><div class="meter${ok ? "" : " over"}"><i style="width:${pct}%"></i></div><span style="color:${ok ? "var(--good)" : "var(--bad)"};font-weight:700">${ok ? "survives" : "crashes"}</span></div>`;
+        }).join("");
+        if (moved) setFb(card, true, `<b>Notice:</b> from 5 m you hit at ${Math.sqrt(2 * F.G * 5).toFixed(1)} m/s, but from 20 m at ${Math.sqrt(2 * F.G * 20).toFixed(1)} m/s. Four times higher, twice as fast.`);
+        setNext(moved);
+      };
+      card.querySelector("#f-range").addEventListener("input", (e) => { h = +e.target.value; moved = true; update(); });
+      update();
+    },
+  };
+
+  // ---------------- boot ----------------
+  renderList();
+  const m = (location.hash || "").match(/^#lesson-(\d+)$/);
+  if (m && LESSONS[+m[1] - 1]) openLesson(+m[1] - 1);
+  window.__learn = { LESSONS };
+})();
+
+</script>
+</body>
+</html>

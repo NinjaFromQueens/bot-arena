@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot Lessons</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Layout: lesson list (cards with progress) <-> one lesson at a time, stepped like a book: one card per screen with Back/Next. */
+  .wrap { max-width: 980px; }
+  .lessons { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .lcard { text-align: left; background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; display: grid; gap: 6px; position: relative; transition: border-color .15s, transform .1s; }
+  .lcard:hover { border-color: #6a6772; transform: translateY(-2px); }
+  .lcard .num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .12em; }
+  .lcard h2 { font-size: 21px; }
+  .lcard p { color: var(--muted); font-size: 15px; }
+  .lcard .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .lcard.done { border-color: #4fd18b77; }
+  .lcard .badge { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #4fd18b26; color: var(--good); }
+  .progressline { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
+  .pbar { flex: 1; height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: linear-gradient(90deg, #3cb877, var(--good)); transition: width .4s; }
+  .ptext { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+  .lesson { display: grid; gap: 14px; }
+  .lhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .lhead h2 { font-size: 26px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .dots i.on { background: var(--orange); }
+  .dots i.done { background: var(--good); }
+  .card { min-height: 340px; display: grid; gap: 14px; align-content: start; animation: cardIn .3s ease-out; }
+  @keyframes cardIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  .card h3 { font-size: 15px; color: var(--orange-hi); margin: 0; }
+  .card .big { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 4vw, 30px); line-height: 1.2; text-wrap: balance; }
+  .card p, .card li { font-size: 18px; max-width: 62ch; }
+  .card ul { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+  .stack3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 560px) { .stack3 { grid-template-columns: minmax(0, 1fr); } }
+  .sta { border-radius: 12px; padding: 12px; border: 1.5px solid var(--line); background: var(--bg); display: grid; gap: 4px; }
+  .sta b { font-family: var(--display); font-size: 20px; }
+  .sta.s b { color: var(--blue); } .sta.t b { color: var(--purple); } .sta.a b { color: var(--orange-hi); }
+  .nav { display: flex; justify-content: space-between; gap: 10px; }
+  .choices2 { display: grid; gap: 8px; }
+  .qopt { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; font-size: 17px; transition: border-color .15s; }
+  .qopt:hover { border-color: #6a6772; }
+  .qopt.right { border-color: var(--good); background: #4fd18b1f; }
+  .qopt.wrong { border-color: var(--bad); background: #ff5d5d1a; }
+  .qopt:disabled { cursor: default; }
+  .feedback { padding: 12px 14px; border-radius: 10px; font-size: 17px; animation: pop .35s cubic-bezier(.3,1.6,.5,1); }
+  .feedback.good { background: #4fd18b1f; border: 1px solid #4fd18b66; }
+  .feedback.bad { background: #ff5d5d14; border: 1px solid #ff5d5d55; }
+  .feedback b { font-family: var(--display); }
+  /* interactives */
+  .ron { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .ritem { border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; background: var(--bg); display: grid; gap: 8px; }
+  .ritem b { font-family: var(--display); font-size: 18px; }
+  .ritem .btns { display: flex; gap: 6px; }
+  .ritem .btns button { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-hi); cursor: pointer; font-weight: 600; }
+  .ritem.right { border-color: var(--good); } .ritem.wrong { border-color: var(--bad); }
+  .ritem small { font-size: 14px; color: #d9d5de; }
+  .match { display: grid; gap: 8px; }
+  .mrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .mrow.right { border-color: var(--good); } .mrow.wrong { border-color: var(--bad); }
+  .mrow select { font: inherit; font-size: 15px; background: var(--panel-hi); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .mini { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 640px) { .mini { grid-template-columns: minmax(0, 1fr); } }
+  .mini canvas { aspect-ratio: 4 / 3; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; font-size: 15px; }
+  .chips button[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .chips em { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .lbl { font-size: 14px; color: var(--muted); margin: 6px 0 4px; text-transform: uppercase; letter-spacing: .08em; font-family: var(--display); }
+  .readout { font-family: var(--mono); font-size: 15px; }
+  .readout b { font-size: 26px; display: block; }
+  .slider { display: grid; gap: 4px; }
+  .slider .row { display: flex; justify-content: space-between; font-size: 16px; }
+  .slider .row b { font-family: var(--mono); background: var(--orange); color: var(--ink); border-radius: 6px; padding: 0 7px; }
+  input[type=range] { width: 100%; accent-color: var(--orange); height: 28px; }
+  .verdict { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 17px; }
+  .done-card { text-align: center; justify-items: center; }
+  .done-card .medal { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #ffe680, #ffd23f 55%, #c99a12); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 34px; box-shadow: 0 6px 0 #8f6d0a; animation: pop .6s cubic-bezier(.3,1.8,.5,1); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Robot Lessons</h1></div>
+    </a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn ghost" href="/practice">Build robots</a>
+      <a class="btn ghost" href="/lab">Flying Car Lab</a>
+    </div>
+  </header>
+
+  <section id="v-list">
+    <p class="intro" style="margin-bottom:10px">Short lessons you can do on your own. Each one takes about 5 minutes and ends with a challenge in the games.</p>
+    <div class="progressline"><div class="pbar"><i id="pbar"></i></div><span class="ptext" id="ptext"></span></div>
+    <div class="lessons" id="lessons"></div>
+  </section>
+
+  <section id="v-lesson" class="lesson" hidden>
+    <div class="lhead">
+      <button class="btn ghost" id="back" type="button">All lessons</button>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+    </div>
+    <h2 id="ltitle"></h2>
+    <div class="panel card" id="card" aria-live="polite"></div>
+    <div class="nav">
+      <button class="btn ghost" id="prev" type="button">Back</button>
+      <button class="btn big" id="next" type="button">Next</button>
+    </div>
+  </section>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/flight.js"></script>
+<script src="/js/learn.js"></script>
+</body>
+</html>

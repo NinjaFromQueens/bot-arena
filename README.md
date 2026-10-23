@@ -32,6 +32,10 @@ Every part has a strength and a weakness, and all 75 legal builds were tested ag
 | Hammer | Huge hits, beats Treads | Misses a lot, struggles vs Wheels |
 | Spinner | Two hits per turn, steady all-rounder | |
 
+## Robot Lessons (`/learn`)
+
+Six self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue. Scores count first tries. Progress is saved on the device, and each lesson ends with a link into the game where students use what they learned.
+
 ## Flying Car Lab (`/lab`)
 
 Inspired by the October 2026 flying Roadster demo. Students engineer a car that drives up a ramp and flies with cold-gas (compressed air) thrusters.
@@ -82,6 +86,8 @@ Students on the **same network** can join at `http://<teacher-computer-ip>:3000`
 
 ## Put it online (free)
 
+See **MAINTAINING.md** for updating, rolling back, and the pre-class checklist.
+
 ### Render (recommended)
 1. Push this folder to a GitHub repo.
 2. In [Render](https://render.com), choose **New → Blueprint** and pick the repo. `render.yaml` sets everything up.
@@ -105,6 +111,7 @@ public/js/play.js      Student device logic
 public/js/practice.js  Single-device practice mode
 public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
 public/js/lab.js       Flying Car Lab page: builder, animation, report
+public/js/learn.js     Self-guided lessons (content + interactives)
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)
 test/tune.js           Automatic balance tuner; prints suggested numbers
