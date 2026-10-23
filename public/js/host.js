@@ -1,9 +1,9 @@
-/* Teacher's board: create a game, show join code + QR, run the bracket and play each battle. */
+/* Teacher's board: create a game, show join code + QR, run the bracket, predictions and battles. */
 (function () {
   const E = window.Engine;
   const $ = (id) => document.getElementById(id);
   const socket = io();
-  let state = null, code = null, playing = null, autoTimer = null;
+  let state = null, code = null, playing = null, autoTimer = null, upnext = null;
   const seen = new Set();
 
   const ss = {
@@ -11,6 +11,12 @@
     set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch {} },
     del(k) { try { sessionStorage.removeItem(k); } catch {} },
   };
+  const ls = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  $("ptime").value = String(ls.get("ba-ptime", 12));
+  $("ptime").onchange = () => ls.set("ba-ptime", +$("ptime").value);
 
   // ---------- battle stage ----------
   const stage = new BattleStage($("arena"), {
@@ -34,8 +40,8 @@
       $("skip").disabled = true;
       socket.emit("host:matchDone", { matchId: id }, (r) => {
         if (r && r.done) return; // champion screen comes from state
-        $("next").disabled = false;
-        if ($("auto").checked) autoTimer = setTimeout(nextMatch, 2500);
+        $("next").disabled = false; $("next").textContent = "Next match";
+        if ($("auto").checked) autoTimer = setTimeout(nextMatch, 3000);
       });
     },
   });
@@ -72,7 +78,7 @@
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
     if (state.phase === "lobby") renderLobby();
-    else renderTour();
+    else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); }
   }
 
   function renderLobby() {
@@ -129,14 +135,85 @@
       });
       if (col.children.length > 1) wrap.appendChild(col);
     });
-    $("left").textContent = state.phase === "done" ? "Finished" : `${remaining} match${remaining === 1 ? "" : "es"} ready`;
+    wrap.classList.toggle("many", wrap.children.length >= 3);
+    $("left").textContent = state.phase === "done" ? "Finished" : `${remaining} match${remaining === 1 ? "" : "es"} left`;
     $("donectl").hidden = state.phase !== "done";
     $("next").hidden = state.phase === "done";
+    $("skip").hidden = state.phase === "done";
     if (state.phase === "done" && stage.state !== "champ" && !playing) {
       const c = byId(state.championId);
-      if (c) { stage.showChampion({ ...c.bot, builder: c.builder }); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
+      if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
     }
-    if (state.phase === "tournament" && !playing && stage.state === "empty") stage.setBots(null, null);
+  }
+
+  function renderLeaders() {
+    const top = state.players.filter((p) => p.pts > 0).sort((a, b) => b.pts - a.pts).slice(0, 5);
+    $("leaderlist").innerHTML = "";
+    top.forEach((p) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="who"></span><span class="pts"></span>`;
+      li.querySelector(".who").textContent = p.builder; li.querySelector(".pts").textContent = p.pts;
+      $("leaderlist").appendChild(li);
+    });
+    $("leaderempty").hidden = top.length > 0;
+    $("leaders").hidden = state.phase === "done";
+  }
+
+  let awardsShown = "";
+  function renderAwards() {
+    const list = state.awards || [];
+    $("awardsp").hidden = state.phase !== "done" || !list.length;
+    const sig = JSON.stringify(list);
+    if (sig === awardsShown) return;
+    awardsShown = sig;
+    $("awards").innerHTML = "";
+    list.forEach((a, i) => {
+      const p = byId(a.playerId); if (!p) return;
+      const el = document.createElement("div"); el.className = "award"; el.style.animationDelay = (0.6 + i * 0.25) + "s";
+      el.innerHTML = `<canvas width="96" height="96" aria-hidden="true"></canvas><div style="min-width:0"><div class="t"></div><div class="w"></div><div class="dt"></div></div>`;
+      E.portrait(el.querySelector("canvas"), p.bot, "#26252b");
+      el.querySelector(".t").textContent = a.title;
+      el.querySelector(".w").textContent = `${p.builder} · ${p.bot.name}`;
+      el.querySelector(".dt").textContent = a.detail;
+      $("awards").appendChild(el);
+    });
+  }
+
+  // ---------- up next card + predictions ----------
+  function partsList(b) { return E.SLOTS.map((k) => E.PARTS[k][b[k]].n); }
+  function showUpNext(m) {
+    const A = m.a.bot, B = m.b.bot;
+    $("un-round").textContent = m.round;
+    E.portrait($("un-pa"), A, "rgba(0,0,0,0)", 1, 1.12); E.portrait($("un-pb"), B, "rgba(0,0,0,0)", -1, 1.12);
+    $("un-na").textContent = A.name; $("un-nb").textContent = B.name;
+    $("un-ba").textContent = "by " + A.builder; $("un-bb").textContent = "by " + B.builder;
+    [["un-xa", A], ["un-xb", B]].forEach(([id, b]) => { $(id).innerHTML = ""; partsList(b).forEach((n) => { const s = document.createElement("span"); s.textContent = n; $(id).appendChild(s); }); });
+    const sa = E.statsOf(A), sb = E.statsOf(B);
+    const rows = [["ATK", "atk", 13, "var(--orange)"], ["DEF", "def", 12, "var(--good)"], ["SPD", "spd", 10, "var(--blue)"], ["AIM", "aim", 10, "var(--purple)"]];
+    $("un-stats").innerHTML = rows.map(([l, k, mx, c]) =>
+      `<span class="n">${sa[k]}</span><div class="bar ra"><i style="width:${E.clamp((sa[k] / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="l">${l}</span><div class="bar"><i style="width:${E.clamp((sb[k] / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${sb[k]}</span>`).join("");
+    $("upnext").hidden = false;
+    renderVotes();
+  }
+  function hideUpNext() { $("upnext").hidden = true; clearInterval(upnext && upnext.iv); upnext = null; }
+  function renderVotes() {
+    if (!state || !state.predict || $("upnext").hidden) return;
+    const { a, b } = state.predict, n = a + b;
+    $("un-va").style.width = (n ? (a / n) * 100 : 50) + "%"; $("un-vb").style.width = (n ? (b / n) * 100 : 50) + "%";
+    $("un-ca").textContent = `${a} pick${a === 1 ? "" : "s"}`; $("un-cb").textContent = `${b} pick${b === 1 ? "" : "s"}`;
+  }
+  function startFight(m) {
+    if (!upnext || upnext.started) return;
+    upnext.started = true;
+    clearInterval(upnext.iv);
+    socket.emit("host:lock", {});
+    $("un-msg").textContent = "Predictions locked!";
+    E.Sound.play("go");
+    setTimeout(() => {
+      hideUpNext();
+      const sim = E.simulate(m.a.bot, m.b.bot, m.seed);
+      setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match"; }, 300);
+    }, 900);
   }
 
   // ---------- controls ----------
@@ -146,10 +223,12 @@
   };
   function nextMatch() {
     clearTimeout(autoTimer);
+    if (upnext) { startFight(upnext.m); return; } // "Fight now" while the card is up
     if (playing) return;
     $("next").disabled = true;
     socket.emit("host:next", {}, (r) => {
-      if (!r || !r.ok) { $("next").disabled = false; if (r && r.error) $("hostmsg").textContent = r.error; return; }
+      $("next").disabled = false;
+      if (!r || !r.ok) { if (r && r.error) $("hostmsg").textContent = r.error; return; }
       if (r.done) return;
       const m = r.match;
       playing = { id: m.id };
@@ -158,8 +237,19 @@
       $("roundname").textContent = m.round;
       $("matchinfo").textContent = `${m.a.bot.name} (${m.a.bot.builder}) vs ${m.b.bot.name} (${m.b.bot.builder})`;
       stage.setBots(m.a.bot, m.b.bot, m.round.toUpperCase());
-      const sim = E.simulate(m.a.bot, m.b.bot, m.seed);
-      setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; }, 700);
+      const secs = +$("ptime").value;
+      upnext = { m, started: false, left: secs };
+      showUpNext(m);
+      if (!secs) { $("un-msg").textContent = "Get ready!"; setTimeout(() => startFight(m), 1800); return; }
+      $("next").textContent = "Fight now";
+      const tick = () => {
+        if (!upnext) return;
+        $("un-msg").innerHTML = `Predict on your device! Closes in <b>${upnext.left}</b>`;
+        if (upnext.left <= 3 && upnext.left > 0) E.Sound.play("beep");
+        if (upnext.left <= 0) startFight(m);
+        upnext && upnext.left--;
+      };
+      tick(); upnext.iv = setInterval(tick, 1000);
     });
   }
   $("next").onclick = nextMatch;
@@ -168,7 +258,7 @@
   [["sp1", 1], ["sp2", 2], ["sp3", 3]].forEach(([id, v]) => ($(id).onclick = () => {
     stage.speed = v; ["sp1", "sp2", "sp3"].forEach((x) => $(x).setAttribute("aria-pressed", x === id));
   }));
-  $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; });
+  $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; awardsShown = ""; });
   $("newgame").onclick = () => { ss.del("ba-host"); location.reload(); };
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
   $("fullscreen").onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch {} };

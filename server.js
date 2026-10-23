@@ -34,15 +34,27 @@ function newCode() {
 }
 
 // A short, classroom-level name filter. The host can also remove any player.
-const BLOCK = ["ass", "fuck", "shit", "bitch", "dick", "cock", "pussy", "cunt", "fag", "nigg", "slut", "whore", "penis", "vagina", "sex", "porn", "kkk", "nazi", "hitler", "rape", "kill", "die", "butt", "poop", "piss", "crap", "damn", "hell", "boob", "tit"];
-function isBlocked(s) { const x = String(s).toLowerCase().replace(/[^a-z]/g, ""); return BLOCK.some((w) => x.includes(w)); }
+// SUB words are blocked anywhere. WORD words are blocked only as a whole word, or with a
+// silly prefix/suffix ("POOPBOT", "BUTTHEAD"), so names like Michelle, Diego, Titan or Grape still work.
+const SUB = ["fuck", "shit", "bitch", "cunt", "nigg", "whore", "slut", "porn", "penis", "vagina", "pussy", "nazi", "hitler", "kkk", "rapist"];
+const WORD = ["ass", "asses", "dick", "cock", "sex", "sexy", "tit", "tits", "boob", "boobs", "butt", "poop", "piss", "crap", "damn", "hell", "rape", "kill", "die", "fag", "fart"];
+const AFFIX = /^(mr|mrs|big|the|lil)?(.*?)(bot|bots|head|face|man|er|y|s)?$/;
+function isBlocked(s) {
+  const raw = String(s).toLowerCase(), flat = raw.replace(/[^a-z]/g, "");
+  if (SUB.some((w) => flat.includes(w))) return true;
+  return raw.split(/[^a-z]+/).filter(Boolean).some((tok) => {
+    if (WORD.includes(tok)) return true;
+    const m = tok.match(AFFIX);
+    return m && WORD.includes(m[2]);
+  });
+}
 function cleanBuilder(s) { return String(s || "").replace(/[^A-Za-z0-9 .'-]/g, "").trim().slice(0, 14); }
 
 function publicState(room) {
   return {
     code: room.code,
     phase: room.phase,
-    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out })),
+    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0 })),
     bracket: room.bracket && {
       rounds: room.bracket.rounds.map((round, r) => ({
         name: T.roundName(room.bracket, r),
@@ -52,7 +64,9 @@ function publicState(room) {
       })),
     },
     currentMatchId: room.current ? room.current.matchId : null,
+    predict: room.current ? { open: room.current.open, a: room.current.votes.a, b: room.current.votes.b } : null,
     championId: room.championId || null,
+    awards: room.phase === "done" ? room.awards || [] : [],
   };
 }
 function broadcast(room) { room.lastActive = Date.now(); io.to(room.code).emit("room:state", publicState(room)); }
@@ -76,6 +90,55 @@ function settleForfeits(room) {
   }
   const champ = T.champion(br);
   if (champ) { room.phase = "done"; room.championId = champ; }
+}
+
+
+// ---------------- stats + awards ----------------
+function blankStats() { return { swings: 0, hits: 0, dealt: 0, taken: 0, maxHit: 0, grabs: 0, shields: 0, matches: 0, bursts: 0 }; }
+function recordStats(room, c) {
+  const ids = [c.aId, c.bId];
+  ids.forEach((id) => { const p = room.players.get(id); if (p) { p.stats = p.stats || blankStats(); p.stats.matches++; } });
+  for (const e of c.sim.events) {
+    const me = room.players.get(ids[e.me]), op = room.players.get(ids[1 - e.me]);
+    if (!me || !me.stats) continue;
+    if (e.kind === "act") {
+      me.stats.swings += Engine.PARTS.tool[me.bot.tool].swings; me.stats.hits += e.hits;
+      me.stats.dealt += e.dmg; me.stats.maxHit = Math.max(me.stats.maxHit, e.dmg);
+      if (e.grab) me.stats.grabs++;
+      if (e.burst) me.stats.bursts++;
+      if (op && op.stats) op.stats.taken += e.dmg;
+    }
+    if (e.kind === "think" && e.bubble === "SHIELD!") me.stats.shields++;
+  }
+}
+function computeAwards(room) {
+  const ps = [...room.players.values()].filter((p) => !p.out);
+  const out = [];
+  const champ = room.players.get(room.championId);
+  if (champ) out.push({ key: "champion", title: "Champion", playerId: champ.id, detail: "Won the whole tournament" });
+  const fin = room.bracket.rounds[room.bracket.rounds.length - 1][0];
+  const runner = room.players.get(fin.a === room.championId ? fin.b : fin.a);
+  if (runner) out.push({ key: "runnerup", title: "Runner-up", playerId: runner.id, detail: "Made it to the final" });
+  // every player tied for the top score gets the award (max 3), only if the score is above zero
+  const best = (score, min = () => true) => {
+    let val = -Infinity, top = [];
+    for (const p of ps) {
+      if (!p.stats || !min(p)) continue;
+      const v = score(p);
+      if (v > val + 1e-9) { val = v; top = [p]; } else if (Math.abs(v - val) < 1e-9) top.push(p);
+    }
+    return val > 0 && top.length <= 3 ? top.map((p) => ({ p, v: val })) : [];
+  };
+  const add = (key, title, list, detail) => list.forEach(({ p, v }) => out.push({ key, title, playerId: p.id, detail: detail(v) }));
+  add("hitter", "Heavy Hitter", best((p) => p.stats.maxHit), (v) => `Biggest single hit: ${v} damage`);
+  add("sharp", "Sharpshooter", best((p) => p.stats.hits / p.stats.swings, (p) => p.stats.swings >= 6), (v) => `Hit ${Math.round(v * 100)}% of attacks`);
+  add("grab", "Grab Master", best((p) => p.stats.grabs), (v) => `${v} grab${v === 1 ? "" : "s"}`);
+  add("speed", "Speed Demon", best((p) => p.stats.bursts), (v) => `${v} bonus speed attack${v === 1 ? "" : "s"}`);
+  add("shield", "Shield Hero", best((p) => p.stats.shields), (v) => `Raised the shield ${v} time${v === 1 ? "" : "s"}`);
+  const preds = ps.map((p) => ({ p, v: p.pts || 0 })), maxPts = Math.max(0, ...preds.map((x) => x.v));
+  const topPred = preds.filter((x) => x.v === maxPts);
+  if (maxPts > 0 && topPred.length <= 4) add("predict", "Top Predictor", topPred, (v) => `${v} correct prediction${v === 1 ? "" : "s"}`);
+  return out;
 }
 
 io.on("connection", (socket) => {
@@ -180,7 +243,8 @@ io.on("connection", (socket) => {
     const ids = [...room.players.values()].filter((p) => !p.out).map((p) => p.id);
     if (ids.length < 2) return cb && cb({ ok: false, error: "You need at least 2 robots to start." });
     room.bracket = T.createBracket(ids);
-    room.phase = "tournament"; room.current = null; room.championId = null;
+    room.phase = "tournament"; room.current = null; room.championId = null; room.awards = [];
+    for (const p of room.players.values()) { p.pts = 0; p.stats = null; }
     cb && cb({ ok: true });
     broadcast(room);
   });
@@ -198,11 +262,35 @@ io.on("connection", (socket) => {
       const seed = crypto.randomInt(2 ** 31);
       const A = room.players.get(nm.match.a), B = room.players.get(nm.match.b);
       const sim = Engine.simulate(A.bot, B.bot, seed);
-      room.current = { matchId: nm.match.id, r: nm.r, m: nm.m, seed, winnerId: sim.winner === 0 ? A.id : B.id };
+      room.current = { matchId: nm.match.id, r: nm.r, m: nm.m, seed, sim, aId: A.id, bId: B.id, winnerId: sim.winner === 0 ? A.id : B.id,
+        open: true, votes: { a: 0, b: 0 }, picks: new Map() };
     }
     const c = room.current, mt = room.bracket.rounds[c.r][c.m];
     const A = room.players.get(mt.a), B = room.players.get(mt.b);
     cb && cb({ ok: true, match: { id: mt.id, round: T.roundName(room.bracket, c.r), seed: c.seed, a: { id: A.id, bot: botWithBuilder(A) }, b: { id: B.id, bot: botWithBuilder(B) } } });
+    broadcast(room);
+  });
+
+  // Students predict the winner of the match shown on the board.
+  socket.on("player:predict", (d, cb) => {
+    if (!joined || joined.role !== "player") return cb && cb({ ok: false });
+    const room = joined.room, c = room.current, pid = joined.playerId;
+    if (!c || c.matchId !== (d && d.matchId)) return cb && cb({ ok: false, error: "That match isn't up right now." });
+    if (!c.open) return cb && cb({ ok: false, error: "Predictions are closed for this match." });
+    if (pid === c.aId || pid === c.bId) return cb && cb({ ok: false, error: "You're in this match!" });
+    const side = d.side === "a" ? "a" : d.side === "b" ? "b" : null;
+    if (!side) return cb && cb({ ok: false });
+    const prev = c.picks.get(pid);
+    if (prev) c.votes[prev]--;
+    c.picks.set(pid, side); c.votes[side]++;
+    cb && cb({ ok: true, side });
+    broadcast(room);
+  });
+
+  socket.on("host:lock", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    if (room.current) room.current.open = false;
+    cb && cb({ ok: true });
     broadcast(room);
   });
 
@@ -212,18 +300,25 @@ io.on("connection", (socket) => {
     if (!c || c.matchId !== (d && d.matchId)) return cb && cb({ ok: false });
     T.setWinner(room.bracket, c.r, c.m, c.winnerId);
     room.current = null;
+    const correct = [];
+    for (const [pid, side] of c.picks) {
+      const p = room.players.get(pid);
+      if (p && (side === "a" ? c.aId : c.bId) === c.winnerId) { p.pts = (p.pts || 0) + 1; correct.push(pid); }
+    }
+    recordStats(room, c);
     const champ = T.champion(room.bracket);
     if (champ) { room.phase = "done"; room.championId = champ; }
     else settleForfeits(room);
+    if (room.phase === "done") room.awards = computeAwards(room);
     cb && cb({ ok: true, winnerId: c.winnerId, done: room.phase === "done" });
-    io.to(room.code).emit("room:result", { matchId: c.matchId, winnerId: c.winnerId });
+    io.to(room.code).emit("room:result", { matchId: c.matchId, winnerId: c.winnerId, correct });
     broadcast(room);
   });
 
   socket.on("host:reset", (_d, cb) => {
     const room = requireHost(cb); if (!room) return;
-    room.phase = "lobby"; room.bracket = null; room.current = null; room.championId = null;
-    for (const [id, p] of room.players) { if (p.out) room.players.delete(id); }
+    room.phase = "lobby"; room.bracket = null; room.current = null; room.championId = null; room.awards = [];
+    for (const [id, p] of room.players) { if (p.out) room.players.delete(id); else { p.pts = 0; p.stats = null; } }
     cb && cb({ ok: true });
     broadcast(room);
   });

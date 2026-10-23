@@ -6,14 +6,18 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - `npm install` then `npm start` (port 3000, or `PORT`)
 - `npm run dev` restarts on file changes
 - `npm test` runs bracket + battle determinism tests
+- `npm run balance` prints win rates for every legal build. Run it after ANY change to `PARTS` or battle rules. Target: every part 45–55%, most builds 40–60%, ~11–14 attacks per fight.
+- `node test/tune.js 250` hill-climbs the numbers in `PARTS` and prints a suggestion (does not edit files)
 
 ## Architecture
 - No build step, no framework. Plain Node (Express + Socket.IO) and vanilla browser JS.
 - `public/js/engine.js` is UMD and loaded by BOTH the server (`require`) and the browser (`window.Engine`). Keep it free of top-level browser-only calls; anything using `window`/`document` must stay inside functions.
 - `Engine.simulate(a, b, seed)` must stay deterministic: only use the seeded `rnd()` inside it, never `Math.random()`. The server decides the winner from the seed and the host replays the same seed. If you change battle rules, both sides update together because they share this file.
 - Server state is in memory (`rooms` Map). Restarting the server ends all games. That's acceptable for class use.
-- Socket events: `host:create|resume|start|next|matchDone|kick|reset`, `player:join|update|leave`, `room:check`. Server broadcasts `room:state` and `room:result`.
-- `public/practice.html` is a self-contained single page (it was the original prototype) and does not use engine.js.
+- All battle numbers live in `Engine.PARTS` (plus `Engine.TUNE`). Mechanics: dodge, burst (bonus attack), heavy (can't be grabbed), acc, swings, mult, grab, Defensive shield/counter, Smart wait-for-aim. Part `tip` text is shown to students and must stay true; check it against `npm run balance` matchups.
+- Socket events: `host:create|resume|start|next|lock|matchDone|kick|reset`, `player:join|update|leave|predict`, `room:check`. Server broadcasts `room:state` and `room:result` (with `correct` predictor ids).
+- Match flow: `host:next` opens predictions and returns the seed -> host shows the Up Next card -> `host:lock` closes predictions -> host plays the seeded fight -> `host:matchDone` awards prediction points, records stats, and computes awards when the final ends.
+- `public/practice.html` + `public/js/practice.js` use the same engine/builder/battle code; only the Flying Car Lab is practice-only.
 
 ## Conventions
 - Validate every client payload on the server (`Engine.sanitizeBot`, `cleanBuilder`, name filter).
@@ -27,3 +31,4 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - Double-elimination or round-robin modes
 - Teacher dashboard to tweak part stats live
 - Flying Car Lab as a multiplayer "highest hop" contest
+- Let the host set the prediction time from the lobby (it's only in the tournament view now)

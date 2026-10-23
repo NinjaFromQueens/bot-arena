@@ -13,6 +13,7 @@
   let session = store.get("ba-session", null); // { code, playerId, token, builder }
   if (session && session.code !== code) session = null;
   let state = null, editing = false, lastStatusKey = "";
+  let myPick = null; // { matchId, side }
 
   function show(id) { ["s-name", "s-build", "s-wait", "s-error"].forEach((s) => ($(s).hidden = s !== id)); window.scrollTo(0, 0); }
   function fail(title, text) { $("errtitle").textContent = title; $("errtext").textContent = text; show("s-error"); }
@@ -78,12 +79,61 @@
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
   socket.on("room:state", (s) => { state = s; render(); });
   socket.on("player:kicked", () => { store.del("ba-session"); session = null; fail("You were removed", "Your teacher removed your robot from this game. Ask them if you want to join again."); });
-  socket.on("room:result", ({ winnerId, matchId }) => {
+  socket.on("room:result", ({ winnerId, matchId, correct }) => {
     if (!session || !state) return;
     const m = findMatch(matchId);
-    if (!m || (m.a !== session.playerId && m.b !== session.playerId)) return;
-    flash(winnerId === session.playerId ? "YOU WON!" : "KNOCKED OUT", winnerId === session.playerId ? "var(--good)" : "var(--muted)");
+    if (m && (m.a === session.playerId || m.b === session.playerId)) {
+      flash(winnerId === session.playerId ? "YOU WON!" : "KNOCKED OUT", winnerId === session.playerId ? "var(--good)" : "var(--muted)");
+      return;
+    }
+    if (myPick && myPick.matchId === matchId) {
+      const right = (correct || []).includes(session.playerId);
+      flash(right ? "CORRECT! +1" : "NOT THIS TIME", right ? "var(--gold)" : "var(--muted)");
+      E.Sound.play(right ? "win" : "miss");
+      myPick = null;
+    }
   });
+
+  function pick(side) {
+    if (!state || !state.currentMatchId || !state.predict || !state.predict.open) return;
+    const matchId = state.currentMatchId;
+    socket.emit("player:predict", { matchId, side }, (r) => {
+      if (r && r.ok) { myPick = { matchId, side }; E.Sound.play("click"); if (navigator.vibrate) try { navigator.vibrate(40); } catch {} }
+      else if (r && r.error) $("pmsg").textContent = r.error;
+      render();
+    });
+  }
+  $("pick-a").onclick = () => pick("a");
+  $("pick-b").onclick = () => pick("b");
+  let predictSig = "";
+  function renderPredict(me) {
+    const m = state && state.currentMatchId ? findMatch(state.currentMatchId) : null;
+    const box = $("predict");
+    if (!m || !state.predict || !me || m.a === me.id || m.b === me.id) { box.hidden = true; predictSig = ""; return; }
+    const pa = state.players.find((p) => p.id === m.a), pb = state.players.find((p) => p.id === m.b);
+    if (!pa || !pb) { box.hidden = true; return; }
+    box.hidden = false;
+    if (predictSig !== m.id) {
+      predictSig = m.id;
+      [["pick-a", pa], ["pick-b", pb]].forEach(([id, p]) => {
+        const el = $(id);
+        E.portrait(el.querySelector("canvas"), p.bot, "rgba(0,0,0,0)", id === "pick-a" ? 1 : -1, 1.1);
+        el.querySelector("b").textContent = p.bot.name; el.querySelector("span").textContent = "by " + p.builder;
+      });
+      if (myPick && myPick.matchId !== m.id) myPick = null;
+      if (state.predict.open) { E.Sound.play("beep"); if (navigator.vibrate) try { navigator.vibrate(120); } catch {} }
+    }
+    const side = myPick && myPick.matchId === m.id ? myPick.side : null;
+    $("pick-a").classList.toggle("on", side === "a"); $("pick-b").classList.toggle("on", side === "b");
+    $("pick-a").setAttribute("aria-pressed", side === "a"); $("pick-b").setAttribute("aria-pressed", side === "b");
+    const open = state.predict.open;
+    box.querySelector(".pickrow").classList.toggle("locked", !open);
+    $("pick-a").disabled = !open; $("pick-b").disabled = !open;
+    const nm = side ? (side === "a" ? pa : pb).bot.name : "";
+    $("pmsg").textContent = open
+      ? (side ? `You picked ${nm}. You can switch until time runs out.` : "Tap the robot you think will win.")
+      : (side ? `Locked in: ${nm}. Watch the board!` : "Predictions are closed. Watch the board!");
+  }
 
   function findMatch(id) {
     if (!state || !state.bracket) return null;
@@ -126,6 +176,14 @@
     const st = statusFor();
     $("status").className = "status " + st.cls; $("status").textContent = st.text; $("substatus").textContent = st.sub;
     $("editbtn").hidden = !state || state.phase !== "lobby";
+    const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
+    renderPredict(me);
+    $("ptsline").hidden = !me || !state || state.phase === "lobby";
+    if (me) $("mypts").textContent = me.pts || 0;
+    const mine = state && state.phase === "done" && me ? (state.awards || []).filter((a) => a.playerId === me.id) : [];
+    $("myawards").hidden = !mine.length;
+    $("myawards").innerHTML = "";
+    mine.forEach((a) => { const d = document.createElement("div"); d.innerHTML = "<b></b><span></span>"; d.firstChild.textContent = "Award: " + a.title; d.lastChild.textContent = a.detail; $("myawards").appendChild(d); });
     $("count").textContent = state ? `${state.players.length} robot${state.players.length === 1 ? "" : "s"} in this game` : "";
     const key = st.text;
     if (key !== lastStatusKey && st.cls === "live") { E.Sound.play("go"); if (navigator.vibrate) try { navigator.vibrate(200); } catch {} }

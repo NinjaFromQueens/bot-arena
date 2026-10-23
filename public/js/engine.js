@@ -15,28 +15,33 @@
   // ---------------- data ----------------
   const COLORS = ["#f46524", "#38a7f0", "#4fd18b", "#c58cff", "#ffd23f", "#ff5d8f"];
   const BRAIN_COL = ["#ff5d5d", "#4fd18b", "#c58cff"];
+  // Battle numbers live here so balance can be tuned in one place (see test/balance.js).
+  //   dodge: harder to hit   burst: chance of a speed-burst bonus attack   heavy: can't be grabbed
+  //   acc: hit-chance bonus  swings: attacks per turn   mult: damage per swing   grab: chance to stall the enemy
+  //   tip: one line shown to students explaining the part's strength and weakness
   const PARTS = {
     body: [
-      { n: "Wheels", d: "Fast but fragile", wt: 25, spd: 8, def: 3 },
-      { n: "Treads", d: "Slow tank armor", wt: 40, spd: 3, def: 8 },
-      { n: "Legs", d: "Dodgy walker", wt: 30, spd: 6, def: 5 },
+      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but light armor.", wt: 25, spd: 7, def: 1, dodge: 1, burst: 0.3 },
+      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 0, def: 7, dodge: 0, heavy: true },
+      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 6, def: 4, dodge: 7 },
     ],
     sensor: [
-      { n: "Camera", d: "Best aim", wt: 10, aim: 9 },
-      { n: "Ultrasonic", d: "Senses distance, dodges", wt: 6, aim: 6, spd: 1, def: 1 },
-      { n: "Touch", d: "Light, weak aim", wt: 2, aim: 3 },
+      { n: "Camera", d: "Best aim", tip: "Sees the target clearly, so it hits more often.", wt: 10, aim: 7 },
+      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 4, dodge: 7 },
+      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 3, def: 3 },
     ],
     brain: [
-      { n: "Aggressive", d: "Always attacks", wt: 0, atk: 2, def: -1 },
-      { n: "Defensive", d: "Blocks when hurt", wt: 0, def: 2 },
-      { n: "Smart", d: "Waits for a big hit", wt: 0, atk: 1, aim: 1 },
+      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -3 },
+      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 2, shieldAt: 65, shieldP: 0.4, counter: 5 },
+      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.3, waitAim: 24 },
     ],
     tool: [
-      { n: "Gripper", d: "Can grab and stall", wt: 10, atk: 4 },
-      { n: "Hammer", d: "Huge hits", wt: 30, atk: 9, spd: -1 },
-      { n: "Spinner", d: "Hits twice", wt: 20, atk: 5 },
+      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 16, swings: 1, mult: 1, grab: 0.3 },
+      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -14, swings: 1, mult: 1 },
+      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder with no big weakness.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.71 },
     ],
   };
+  const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
   const MAXW = 75;
   const SLOTS = ["body", "sensor", "brain", "tool"];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -81,36 +86,57 @@
     const brace = [false, false], stall = [false, false];
     const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
     let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
-    for (let round = 0; round < 44 && H[0] > 0 && H[1] > 0; round++) {
-      const me = turn, op = 1 - turn, m = bots[me], o = bots[op];
-      turn = op;
-      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
-      const dodge = (o.body === 2 ? 8 : 0) + (o.sensor === 1 ? 5 : 0) + S[op].spd;
-      let chance = clamp(55 + S[me].aim * 4 - dodge, 25, 95);
-      push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
-      if (m.brain === 1 && H[me] < 45 && !brace[me] && rnd() < 0.6) {
-        brace[me] = true; push({ me, kind: "think", txt: " is hurt, so it decides to block.", bubble: "BLOCK!" }); continue;
-      }
+    const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
+    // one attack: returns true if the target was knocked out
+    function attack(me, op, burst) {
+      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool];
+      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]), 20, 95);
       let bonus = 0;
-      if (m.brain === 2 && chance < 70 && rnd() < 0.5) { chance += 20; bonus = 3; push({ me, kind: "think", txt: " waits for a better angle. Aim goes up!", bubble: "AIMING..." }); }
-      else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
-      else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
-      const swings = m.tool === 2 ? 2 : 1; let total = 0, hits = 0;
-      for (let k = 0; k < swings; k++) {
-        if (rnd() * 100 < (swings === 2 ? chance - 10 : chance)) {
-          let dmg = S[me].atk * 2 + bonus + Math.floor(rnd() * 6) - S[op].def;
-          if (m.tool === 2) dmg = Math.round(dmg * 0.65);
-          if (brace[op]) dmg = Math.round(dmg / 2);
-          total += Math.max(3, dmg); hits++;
+      if (!burst) {
+        push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
+        const BR = PARTS.brain[m.brain];
+        if (BR.shieldAt && H[me] < BR.shieldAt && !brace[me] && !shieldUsed[me] && rnd() < BR.shieldP) {
+          brace[me] = true; shieldUsed[me] = true;
+          push({ me, kind: "think", txt: " is hurt, so it raises its shield.", bubble: "SHIELD!" });
+          return false;
+        }
+        if (BR.waitP && chance < 70 && rnd() < BR.waitP) { chance = Math.min(95, chance + BR.waitAim); bonus = 3; push({ me, kind: "think", txt: " waits for a clear shot. Aim goes up!", bubble: "AIMING..." }); }
+        else if (BR.counter && counter[me]) { bonus = BR.counter; shieldUsed[me] = false; push({ me, kind: "think", txt: " blocked that hit, so it counterattacks!", bubble: "COUNTER!" }); }
+        else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
+        else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
+        counter[me] = false;
+      }
+      let total = 0, hits = 0;
+      for (let k = 0; k < T.swings; k++) {
+        if (rnd() * 100 < chance) {
+          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def;
+          if (brace[op]) dmg /= 2;
+          total += Math.max(2, Math.round(dmg)); hits++;
         }
       }
-      if (brace[op] && hits) brace[op] = false;
+      if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
       H[op] = Math.max(0, H[op] - total);
-      const tool = PARTS.tool[m.tool].n.toLowerCase();
+      const tool = T.n.toLowerCase();
       let grab = false;
-      if (hits && m.tool === 0 && rnd() < 0.3 && H[op] > 0) { stall[op] = true; grab = true; }
-      push({ me, kind: "act", hits, dmg: total, grab, crit: total >= 20,
-        txt: hits ? `'s ${tool} hits${swings === 2 ? ` ${hits}x` : ""} for ${total} damage!${grab ? " It grabs the enemy!" : ""}` : ` swings the ${tool}... and misses!` });
+      if (hits && T.grab && H[op] > 0) {
+        if (PARTS.body[o.body].heavy) grab = "heavy";
+        else if (rnd() < T.grab) { stall[op] = true; grab = true; }
+      }
+      let txt = hits ? `'s ${tool} hits${T.swings > 1 ? ` ${hits}x` : ""} for ${total} damage!` : ` swings the ${tool}... and misses!`;
+      if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
+      if (grab === true) txt += " It grabs the enemy!";
+      if (grab === "heavy") txt += " Too heavy to grab!";
+      push({ me, kind: "act", hits, dmg: total, grab: grab === true, crit: total >= 22, burst: !!burst, txt });
+      return H[op] <= 0;
+    }
+    const counter = [false, false], shieldUsed = [false, false];
+    for (let round = 0; round < 40 && H[0] > 0 && H[1] > 0; round++) {
+      const me = turn, op = 1 - turn, m = bots[me];
+      turn = op;
+      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
+      if (attack(me, op, false)) break;
+      const B = PARTS.body[m.body];
+      if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
     }
     const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
     push({ me: w, kind: "win", txt: " WINS!" });
@@ -315,12 +341,12 @@
   }
 
   // Small static portrait of a bot on a canvas element (lobby cards, roster rows).
-  function portrait(canvas, b, bg = "#2b2a30") {
+  function portrait(canvas, b, bg = "#2b2a30", dir = 1, scale = 1) {
     const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = bg; rr(ctx, 0, 0, w, h, w * 0.18); ctx.fill();
-    const s = Math.min(w, h) * 0.27;
-    drawBot(ctx, b, w * 0.43, h * 0.92, s, 1, 0, { bob: 0 });
+    const s = Math.min(w, h) * 0.27 * scale;
+    drawBot(ctx, b, w * (dir === 1 ? 0.43 : 0.57), h * 0.92, s, dir, 0, { bob: 0 });
   }
 
   // ---------------- sound (off until turned on) ----------------
@@ -353,6 +379,8 @@
       miss: () => tone(900, 0.18, "sine", 0.05, 300),
       ko: () => { tone(400, 0.7, "sawtooth", 0.07, 60); noise(0.5, 0.1, 200); },
       win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 120)); },
+      whoosh: () => noise(1.2, 0.08, 900),
+      thud: () => { tone(90, 0.25, "sine", 0.12, 40); noise(0.2, 0.08, 150); },
       fanfare: () => { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.22, "square", 0.07), i * 140)); },
     };
     return {
@@ -367,6 +395,6 @@
     };
   })();
 
-  return { COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate,
+  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
