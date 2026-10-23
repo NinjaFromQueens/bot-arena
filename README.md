@@ -31,8 +31,28 @@ Every part has a strength and a weakness, and all 75 legal builds were tested ag
 | Hammer | Huge hits, beats Treads | Misses a lot, struggles vs Wheels |
 | Spinner | Two hits per turn, steady all-rounder | |
 
+## Flying Car Lab (`/lab`)
+
+Inspired by the October 2026 flying Roadster demo. Students engineer a car that drives up a ramp and flies with cold-gas (compressed air) thrusters.
+
+**What they choose:** body material (plastic, aluminum, steel, carbon fiber: weight vs. strength vs. cost), air tanks, lift / push / flip nozzles, flight computer (none, Stabilizer, Pro), landing gear, passengers, ramp speed and angle, how much air to save for a landing cushion, and whether to backflip.
+
+**Missions (3 stars each: complete, smooth landing, an efficiency goal):**
+1. First Flight: stay up 2 seconds
+2. Car Hop: clear a parked sedan
+3. Semi Jump: clear a 4 m tall, 20 m long semi truck with trailer
+4. Backflip
+5. Five in a Row: robotaxi, pickup, semi truck, SUV and sedan, like the real demo
+6. Semi Flip: clear the semi with a backflip
+7. Passenger Safety: 2 passengers, landing under 6 g
+8. Budget Engineer: clear the semi for under $150,000
+
+**The flight report** explains every result with the real numbers: thrust vs. weight, how long the air lasted, peak height vs. what was needed ("higher isn't always better: from 13 m you hit the ground at 16 m/s"), why a flip didn't finish (inertia, air, time), landing speed vs. what the gear and body can take, g-force on passengers, and how the flight computer used Sense, Think, Act. It ends with one specific "Try this next" tip and compares the flight to the previous attempt. The previous flight's path stays on screen as a ghost line.
+
+The physics (`public/js/flight.js`) is a deterministic 2D simulation: gravity, thrust, air mass flow (the car gets lighter as air leaves), ramp launch, pitch and rotational inertia, thrust vectoring by the flight computer, a landing cushion timed by the computer, collisions with each vehicle, and landing impact. Numbers are simplified for the classroom.
+
 Other pages:
-- `/practice` — single-device mode with the same rules: build, battle by bot code, and the **Flying Car Lab** (thrust vs. weight with a flying Roadster).
+- `/practice` — single-device robot building and battles with the same rules as the tournament.
 
 Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (hover a robot in the lobby and click ×). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
 
@@ -70,10 +90,15 @@ public/js/battle.js    BattleStage: animated arena used on the host board
 public/js/builder.js   Robot builder UI used on the student page
 public/js/host.js      Teacher board logic
 public/js/play.js      Student device logic
-public/js/practice.js  Single-device practice mode + Flying Car Lab
+public/js/practice.js  Single-device practice mode
+public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
+public/js/lab.js       Flying Car Lab page: builder, animation, report
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)
 test/tune.js           Automatic balance tuner; prints suggested numbers
+test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
+test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
+test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips
 ```
 
 The server picks a random seed for each match and computes the winner. The host screen replays the exact same fight from that seed, so results can't be changed from a browser.

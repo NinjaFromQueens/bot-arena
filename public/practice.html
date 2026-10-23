@@ -260,7 +260,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <nav class="tabs" role="tablist">
         <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true"><i>1</i>Build</button>
         <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false"><i>2</i>Arena</button>
-        <button class="tab" role="tab" id="tab-lab" data-bay="lab" aria-selected="false"><i>3</i>Flying Car Lab</button>
+        <a class="tab" href="/lab" style="text-decoration:none"><i>3</i>Flying Car Lab</a>
       </nav>
       <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
     </div>
@@ -352,38 +352,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     </div>
   </section>
 
-  <!-- LAB -->
-  <section class="bay" id="bay-lab" hidden>
-    <p class="intro">Build a flying Roadster. Nozzles blast air down, which pushes the car up (Newton's 3rd Law). It only lifts off when <b>thrust is bigger than weight</b>. Can you hop over all five parked cars?</p>
-    <div class="lab-grid">
-      <div class="panel stage-card">
-        <canvas id="lab" class="lab-stage" aria-label="Flying car test track"></canvas>
-        <div class="lab-body">
-          <div class="forces">
-            <span>Thrust</span><div class="bar"><i id="ft" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="ftn"></span>
-            <span>Weight</span><div class="bar"><i id="fw" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="fwn"></span>
-          </div>
-          <div class="verdict" id="verdict"></div>
-          <div class="launchrow"><button class="btn big" id="launch" type="button">Launch!</button><span class="small" id="launchnote" role="status"></span></div>
-          <div class="results">
-            <div><b id="rh">–</b><span>max height</span></div>
-            <div><b id="rt">–</b><span>air time</span></div>
-            <div><b id="rb">–</b><span>thruster blast</span></div>
-            <div><b id="rbest">–</b><span>best height</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Your Roadster</h2>
-        <div class="slider"><div class="lbl"><span>Nozzles</span><b id="vn"></b></div><input type="range" id="sn" min="2" max="12" step="1" value="6" aria-label="Nozzles"></div>
-        <div class="slider"><div class="lbl"><span>Air tank size</span><b id="vt"></b></div><input type="range" id="st" min="100" max="900" step="50" value="300" aria-label="Air tank size in liters"></div>
-        <div class="slider"><div class="lbl"><span>People inside</span><b id="vp"></b></div><input type="range" id="sp" min="0" max="2" step="1" value="1" aria-label="People inside"></div>
-        <div class="slot"><h3>Body material</h3><div class="choices" id="c-mat"></div></div>
-        <div class="slot"><h3>Missions</h3><div class="missions" id="missions"></div></div>
-        <p class="small" style="margin-top:12px">The real Tesla demo (Oct 2026) used 10 nozzles and a 600 L air tank with nobody inside. The physics here is simplified for the game.</p>
-      </div>
-    </div>
-  </section>
+
 </div>
 
 <script src="/js/engine.js"></script>

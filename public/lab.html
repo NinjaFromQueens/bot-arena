@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flying Car Lab</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Layout: mission strip on top; left = test track (canvas) + flight report; right = car builder with live design sheet. */
+  .wrap { max-width: 1400px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .missions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: thin; }
+  .mcard { text-align: left; background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, transform .1s; }
+  .mcard:hover { border-color: #6a6772; transform: translateY(-1px); }
+  .mcard[aria-pressed="true"] { border-color: var(--orange); background: linear-gradient(180deg, var(--orange-soft), var(--panel)); }
+  .mcard .num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+  .mcard .nm { font-family: var(--display); font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stars { font-family: var(--mono); letter-spacing: .1em; color: var(--line); font-size: 15px; }
+  .stars b { color: var(--gold); font-weight: 700; }
+  .goalbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 12px; }
+  .goalbar .goal { font-size: 18px; font-weight: 500; flex: 1 1 380px; }
+  .goalbar .goal b { font-family: var(--display); color: var(--orange-hi); margin-right: 6px; }
+  .crit { display: flex; flex-wrap: wrap; gap: 6px; }
+  .crit span { font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); }
+  .crit span.got { border-color: #ffd23f88; color: var(--gold); }
+
+  .lab { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(330px, 1fr); gap: 14px; align-items: start; }
+  .stagecard { padding: 0; overflow: hidden; }
+  #track { aspect-ratio: 16 / 9; }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+  .ctrl .spacer { flex: 1; }
+  .toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; cursor: pointer; user-select: none; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
+
+  .report { display: grid; gap: 10px; }
+  .report:empty { display: none; }
+  .headline { font-family: var(--display); font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .headline.good { color: var(--good); } .headline.bad { color: var(--bad); }
+  .headline .stars { font-size: 20px; }
+  .nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 560px) { .nums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .nums div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .nums b { display: block; font-family: var(--mono); font-size: 19px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .nums span { font-size: 12px; color: var(--muted); }
+  .nums i { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .nums i.up { color: var(--good); } .nums i.down { color: var(--bad); }
+  .finding { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); animation: logIn .3s ease-out both; }
+  .finding .ic { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink); }
+  .finding.good .ic { background: var(--good); } .finding.bad .ic { background: var(--bad); } .finding.info .ic { background: var(--blue); }
+  .finding.bad { border-color: #ff5d5d55; }
+  .finding h4 { margin: 0 0 2px; font-family: var(--display); font-size: 16px; }
+  .finding p { color: #d9d5de; font-size: 15px; }
+  .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
+  .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+
+  /* builder */
+  .builder { display: grid; gap: 14px; }
+  .sheet { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 4; box-shadow: 0 10px 24px #0008; }
+  .sheet h2 { font-size: 17px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .sheet h2 small { font-family: var(--mono); font-size: 12px; color: var(--muted); font-weight: 500; }
+  .meters { display: grid; grid-template-columns: 4.4em minmax(0, 1fr) 4.8em; gap: 6px 10px; align-items: center; font-size: 14px; }
+  .meters .bar { height: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; position: relative; }
+  .meters .bar i { display: block; height: 100%; border-radius: 6px; transition: width .3s cubic-bezier(.3,1.3,.5,1); }
+  .meters .bar .mark { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--fg); opacity: .7; }
+  .meters .n { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .sheetnums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .sheetnums div { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+  .sheetnums b { display: block; font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sheetnums span { font-size: 11px; color: var(--muted); }
+  .sheetnums .over b { color: var(--bad); }
+  .warns { display: grid; gap: 4px; margin-top: 8px; }
+  .warns p { font-size: 14px; color: var(--gold); }
+  .warns p.bad { color: var(--bad); }
+  .sec h3 { margin-bottom: 8px; }
+  .cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .cards3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .opt { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; cursor: pointer; display: grid; gap: 2px; line-height: 1.2; position: relative; transition: border-color .15s, background .15s; }
+  .opt:hover { border-color: #6a6772; }
+  .opt[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .opt[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 9px; font-size: 13px; color: var(--orange); font-weight: 700; }
+  .opt b { font-family: var(--display); font-size: 15px; }
+  .opt span { font-size: 12.5px; color: var(--muted); }
+  .opt em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .steprow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+  .steprow + .steprow { margin-top: 6px; }
+  .steprow b { font-family: var(--display); font-size: 15px; display: block; }
+  .steprow span { font-size: 12.5px; color: var(--muted); }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .stepper button { width: 38px; height: 36px; border: 0; background: var(--panel-hi); cursor: pointer; font-size: 20px; font-weight: 700; color: var(--fg); }
+  .stepper button:disabled { opacity: .35; cursor: not-allowed; }
+  .stepper output { min-width: 40px; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 17px; }
+  .slider { display: grid; gap: 4px; }
+  .slider .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 500; }
+  .slider .lbl b { font-family: var(--mono); color: var(--ink); background: var(--orange); border-radius: 6px; padding: 0 7px; font-size: 13px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--orange) var(--p, 50%), var(--bg) var(--p, 50%)); border: 1px solid var(--line); }
+  input[type=range]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); }
+  input[type=range]::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--orange); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); margin-top: -8px; }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--fg); border: 4px solid var(--orange); }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { background: var(--bg); border: 0; padding: 8px 6px; cursor: pointer; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--orange); color: var(--ink); font-weight: 700; }
+  .planrow { display: grid; gap: 6px; }
+  .planrow + .planrow { margin-top: 12px; }
+  .planrow > .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 500; }
+  .planrow > .t small { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+  .flipbox { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .flipbox.off { opacity: .6; }
+  .flipbox p { font-size: 12.5px; color: var(--muted); }
+  .switch2 { position: relative; width: 52px; height: 30px; flex: none; }
+  .switch2 input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
+  .switch2 span { position: absolute; inset: 0; border-radius: 15px; background: var(--panel-hi); border: 1px solid var(--line); transition: background .2s; pointer-events: none; }
+  .switch2 span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); transition: transform .2s; }
+  .switch2 input:checked + span { background: var(--orange); }
+  .switch2 input:checked + span::after { transform: translateX(22px); }
+  .switch2 input:disabled { cursor: not-allowed; }
+  .switch2 input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  @media (max-width: 960px) {
+    .lab { grid-template-columns: minmax(0, 1fr); }
+    .sheet { position: static; box-shadow: none; }
+    .wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  }
+  .mobilebar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; align-items: center; gap: 12px;
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    background: rgba(27,26,30,.96); border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
+  .mobilebar .mb { display: flex; gap: 14px; flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; }
+  .mobilebar .mb span { white-space: nowrap; }
+  .mobilebar .mb b { display: block; font-size: 16px; }
+  @media (max-width: 960px) { .mobilebar { display: flex; } }
+  @media (max-width: 560px) { .sheetnums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 440px) { .opt span { display: none; } .cards3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Flying Car Lab</h1></div>
+    </a>
+    <div class="headright">
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false">Sound: off</button>
+    </div>
+  </header>
+
+  <nav class="missions" id="missions" aria-label="Missions"></nav>
+  <div class="goalbar">
+    <p class="goal" id="goal"></p>
+    <div class="crit" id="crit"></div>
+  </div>
+
+  <div class="lab">
+    <div style="display:grid;gap:14px;min-width:0">
+      <div class="panel stagecard stagewrap">
+        <canvas id="track" aria-label="Test track"></canvas>
+        <div class="ctrl">
+          <button class="btn big" id="launch" type="button">Launch</button>
+          <button class="btn ghost" id="replay" type="button" disabled>Replay</button>
+          <span class="spacer"></span>
+          <label class="toggle"><input type="checkbox" id="forces" checked> Show forces</label>
+          <label class="toggle"><input type="checkbox" id="slowmo"> Slow motion</label>
+        </div>
+      </div>
+      <section class="panel report" id="report" aria-live="polite"></section>
+    </div>
+
+    <div class="builder">
+      <div class="panel sheet">
+        <h2>Design sheet <small id="sheetcost"></small></h2>
+        <div class="meters">
+          <span>Lift</span><div class="bar"><i id="m-lift" style="background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div><span class="n" id="n-lift"></span>
+          <span>Weight</span><div class="bar"><i id="m-weight" style="background:linear-gradient(90deg,#1d7fc4,var(--blue))"></i></div><span class="n" id="n-weight"></span>
+        </div>
+        <div class="sheetnums">
+          <div><b id="s-tw"></b><span>thrust ÷ weight</span></div>
+          <div><b id="s-kg"></b><span>total mass</span></div>
+          <div><b id="s-burn"></b><span>push time</span></div>
+          <div id="s-costbox"><b id="s-cost"></b><span id="s-costlbl">cost</span></div>
+        </div>
+        <div class="warns" id="warns"></div>
+      </div>
+
+      <div class="panel sec">
+        <h3>1 · Body material</h3>
+        <div class="cards4" id="o-material"></div>
+      </div>
+      <div class="panel sec">
+        <h3>2 · Air & thrusters</h3>
+        <div id="steppers1"></div>
+      </div>
+      <div class="panel sec">
+        <h3>3 · Flight computer <span class="chip c-sense">Sense</span><span class="chip c-think">Think</span><span class="chip c-act">Act</span></h3>
+        <div class="cards3" id="o-computer"></div>
+      </div>
+      <div class="panel sec">
+        <h3>4 · Landing gear</h3>
+        <div class="cards3" id="o-gear"></div>
+      </div>
+      <div class="panel sec">
+        <h3>5 · Passengers</h3>
+        <div id="steppers2"></div>
+      </div>
+      <div class="panel sec">
+        <h3>6 · Flight plan</h3>
+        <div class="planrow">
+          <div class="slider"><div class="lbl"><span>Ramp speed</span><b id="v-speed"></b></div><input type="range" id="i-speed" min="20" max="60" step="5" aria-label="Ramp speed in km/h"></div>
+        </div>
+        <div class="planrow"><div class="t">Ramp angle <small>steeper = higher, shorter</small></div><div class="seg" id="o-ramp"></div></div>
+        <div class="planrow"><div class="t">Save air for landing <small>needs a flight computer</small></div><div class="seg" id="o-reserve"></div></div>
+        <div class="planrow">
+          <div class="flipbox" id="flipbox">
+            <div><b style="font-family:var(--display)">Backflip</b><p id="fliphelp">Needs the Pro computer and 2+ flip nozzles.</p></div>
+            <label class="switch2"><input type="checkbox" id="i-flip" aria-label="Backflip"><span></span></label>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn ghost" id="resetdesign" type="button">Reset to starting car</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mobilebar" id="mobilebar">
+  <div class="mb"><span><b id="mb-tw">0.00</b>thrust ÷ wt</span><span><b id="mb-kg">0 kg</b>mass</span><span><b id="mb-cost">$0k</b>cost</span></div>
+  <button class="btn big" id="mb-launch" type="button">Launch</button>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/flight.js"></script>
+<script src="/js/lab.js"></script>
+</body>
+</html>

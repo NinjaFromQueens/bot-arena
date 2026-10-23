@@ -17,7 +17,8 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - All battle numbers live in `Engine.PARTS` (plus `Engine.TUNE`). Mechanics: dodge, burst (bonus attack), heavy (can't be grabbed), acc, swings, mult, grab, Defensive shield/counter, Smart wait-for-aim. Part `tip` text is shown to students and must stay true; check it against `npm run balance` matchups.
 - Socket events: `host:create|resume|start|next|lock|matchDone|kick|reset`, `player:join|update|leave|predict`, `room:check`. Server broadcasts `room:state` and `room:result` (with `correct` predictor ids).
 - Match flow: `host:next` opens predictions and returns the seed -> host shows the Up Next card -> `host:lock` closes predictions -> host plays the seeded fight -> `host:matchDone` awards prediction points, records stats, and computes awards when the final ends.
-- `public/practice.html` + `public/js/practice.js` use the same engine/builder/battle code; only the Flying Car Lab is practice-only.
+- `public/practice.html` + `public/js/practice.js` use the same engine/builder/battle code.
+- Flying Car Lab: `public/js/flight.js` (UMD, deterministic physics + missions + `grade` + `explain`) and `public/lab.html` / `public/js/lab.js` (UI + canvas). Single-device only; progress and design live in localStorage. After changing any number in flight.js run `npm test` (lab.test.js has a saved solution per mission) and `npm run lab` to see how hard each mission is. Explanations must stay true to the sim: if you add a mechanic, add a finding and a tip for it in `explain`/`tipFor`.
 
 ## Conventions
 - Validate every client payload on the server (`Engine.sanitizeBot`, `cleanBuilder`, name filter).
@@ -30,5 +31,5 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 - Persist rooms (Redis) so a server restart doesn't end a game
 - Double-elimination or round-robin modes
 - Teacher dashboard to tweak part stats live
-- Flying Car Lab as a multiplayer "highest hop" contest
+- Flying Car Lab class mode: host picks a mission, students submit designs, the board replays each attempt and ranks them
 - Let the host set the prediction time from the lobby (it's only in the tournament view now)
