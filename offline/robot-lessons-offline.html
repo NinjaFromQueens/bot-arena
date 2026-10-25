@@ -331,27 +331,33 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // Battle numbers live here so balance can be tuned in one place (see test/balance.js).
   //   dodge: harder to hit   burst: chance of a speed-burst bonus attack   heavy: can't be grabbed
   //   acc: hit-chance bonus  swings: attacks per turn   mult: damage per swing   grab: chance to stall the enemy
+  //   low: can't be flipped   glance: damage kept from spinning weapons   track: share of the enemy's dodge it ignores
+  //   spin: a spinning weapon   flip: chance to flip the enemy (loses a turn)   pierce: share of the enemy's armor it ignores
   //   tip: one line shown to students explaining the part's strength and weakness
   const PARTS = {
     body: [
-      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but light armor.", wt: 25, spd: 7, def: 1, dodge: 1, burst: 0.3 },
-      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 0, def: 7, dodge: 0, heavy: true },
-      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 6, def: 4, dodge: 7 },
+      { n: "Wheels", d: "Fast, may strike twice", tip: "Fast and sometimes attacks twice, but it has no armor.", wt: 25, spd: 9, def: 0, dodge: 1, burst: 0.25 },
+      { n: "Treads", d: "Tank armor, can't be grabbed", tip: "Heavy armor and too heavy to grab, but slow and easy to hit.", wt: 40, spd: 1, def: 8, dodge: 0, heavy: true },
+      { n: "Legs", d: "Hard to hit", tip: "Dodges well, with medium armor.", wt: 30, spd: 5, def: 5, dodge: 8 },
+      { n: "Wedge", d: "Can't be flipped, deflects spinners", tip: "Low and slanted: it can't be flipped and spinner hits glance off, but it's slow.", wt: 30, spd: 2, def: 4, dodge: 3, low: true, glance: 0.5 },
     ],
     sensor: [
       { n: "Camera", d: "Best aim", tip: "Sees the target clearly, so it hits more often.", wt: 10, aim: 7 },
-      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 4, dodge: 7 },
-      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 3, def: 3 },
+      { n: "Ultrasonic", d: "Senses distance, dodges", tip: "Measures distance, so it aims okay and dodges better.", wt: 6, aim: 5, dodge: 8 },
+      { n: "Touch", d: "Feels hits, extra armor", tip: "Weak aim, but it feels hits coming and braces for them.", wt: 2, aim: 4, def: 3 },
+      { n: "Lidar", d: "Tracks dodgers", tip: "Its laser maps the enemy exactly, so dodging barely works against it. The heaviest sensor.", wt: 12, aim: 5, track: 0.65 },
     ],
     brain: [
-      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -3 },
-      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 2, shieldAt: 65, shieldP: 0.4, counter: 5 },
-      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.3, waitAim: 24 },
+      { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -4 },
+      { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 3, shieldAt: 55, shieldP: 0.6, counter: 5 },
+      { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.4, waitAim: 22 },
     ],
     tool: [
-      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 16, swings: 1, mult: 1, grab: 0.3 },
-      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -14, swings: 1, mult: 1 },
-      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder with no big weakness.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.71 },
+      { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 12, swings: 1, mult: 1, grab: 0.25 },
+      { n: "Hammer", d: "Huge hits, often misses", tip: "Huge hits that smash through armor, but slow swings miss a lot.", wt: 30, atk: 11, acc: -20, swings: 1, mult: 1 },
+      { n: "Spinner", d: "Two hits, all-rounder", tip: "Two quick hits every turn. A steady all-rounder, but its hits glance off a Wedge.", wt: 20, atk: 7, acc: 0, swings: 2, mult: 0.74, spin: true },
+      { n: "Flipper", d: "Flips the enemy, even Treads", tip: "Can flip the enemy over so it loses a turn, even heavy Treads. It can't get under a low Wedge.", wt: 15, atk: 6, acc: 10, swings: 1, mult: 1, flip: 0.3 },
+      { n: "Drill", d: "Drills through armor", tip: "Drills through half of the enemy's armor, but it misses more than a Gripper.", wt: 20, atk: 7, acc: -2, swings: 1, mult: 1, pierce: 0.5 },
     ],
   };
   const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
@@ -372,15 +378,15 @@ canvas { display: block; width: 100%; max-width: 100%; }
   function sanitizeBot(b) {
     if (!b || typeof b !== "object") return null;
     const out = { name: cleanName(b.name) || "BOT" };
-    for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v > 2) return null; out[k] = v; }
+    for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v >= PARTS[k].length) return null; out[k] = v; }
     const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
     if (statsOf(out).wt > MAXW) return null;
     return out;
   }
   const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}`;
   function parseCode(c) {
-    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-2])([0-2])([0-2])([0-2])([0-5])$/);
-    return m ? { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
+    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-9])([0-9])([0-9])([0-9])([0-5])$/);
+    return m ? sanitizeBot({ name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] }) && { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
   }
 
   // ---------------- deterministic battle ----------------
@@ -397,14 +403,15 @@ canvas { display: block; width: 100%; max-width: 100%; }
   function simulate(a, b, seed) {
     const rnd = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
     const S = [statsOf(a), statsOf(b)], bots = [a, b], H = [100, 100], ev = [];
-    const brace = [false, false], stall = [false, false];
+    const brace = [false, false], stall = [false, false], stallBy = [null, null];
     const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
     let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
     const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
     // one attack: returns true if the target was knocked out
     function attack(me, op, burst) {
-      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool];
-      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]), 20, 95);
+      const m = bots[me], o = bots[op], T = PARTS.tool[m.tool], OB = PARTS.body[o.body];
+      const track = PARTS.sensor[m.sensor].track || 0; // lidar: the enemy's dodging only half works
+      let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]) * (1 - track), 20, 95);
       let bonus = 0;
       if (!burst) {
         push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
@@ -423,7 +430,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
       let total = 0, hits = 0;
       for (let k = 0; k < T.swings; k++) {
         if (rnd() * 100 < chance) {
-          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def;
+          let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def * (1 - (T.pierce || 0));
+          if (T.spin && OB.glance) dmg *= OB.glance; // spinner hits glance off a wedge
           if (brace[op]) dmg /= 2;
           total += Math.max(2, Math.round(dmg)); hits++;
         }
@@ -431,23 +439,30 @@ canvas { display: block; width: 100%; max-width: 100%; }
       if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
       H[op] = Math.max(0, H[op] - total);
       const tool = T.n.toLowerCase();
-      let grab = false;
+      let grab = false, flip = false;
       if (hits && T.grab && H[op] > 0) {
-        if (PARTS.body[o.body].heavy) grab = "heavy";
-        else if (rnd() < T.grab) { stall[op] = true; grab = true; }
+        if (OB.heavy) grab = "heavy";
+        else if (rnd() < T.grab) { stall[op] = true; stallBy[op] = "grab"; grab = true; }
+      }
+      if (hits && T.flip && H[op] > 0) {
+        if (OB.low) flip = "low";
+        else if (rnd() < T.flip) { stall[op] = true; stallBy[op] = "flip"; flip = true; }
       }
       let txt = hits ? `'s ${tool} hits${T.swings > 1 ? ` ${hits}x` : ""} for ${total} damage!` : ` swings the ${tool}... and misses!`;
       if (burst) txt = " speeds in for a bonus attack!" + (hits ? ` ${total} damage!` : " Missed!");
       if (grab === true) txt += " It grabs the enemy!";
       if (grab === "heavy") txt += " Too heavy to grab!";
-      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", crit: total >= 22, burst: !!burst, txt });
+      if (flip === true) txt += " It flips the enemy over!";
+      if (flip === "low") txt += " The wedge is too low to flip!";
+      push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", flip: flip === true, low: flip === "low",
+        glance: !!(hits && T.spin && OB.glance), pierce: !!(hits && T.pierce && S[op].def > 0), track: track > 0 && dodgeOf(o, S[op]) >= 7, crit: total >= 22, burst: !!burst, txt });
       return H[op] <= 0;
     }
     const counter = [false, false], shieldUsed = [false, false];
     for (let round = 0; round < 40 && H[0] > 0 && H[1] > 0; round++) {
       const me = turn, op = 1 - turn, m = bots[me];
       turn = op;
-      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", txt: " is stuck in the gripper and loses a turn!" }); continue; }
+      if (stall[me]) { stall[me] = false; push({ me, kind: "stall", flip: stallBy[me] === "flip", txt: stallBy[me] === "flip" ? " is flipped over and loses a turn!" : " is stuck in the gripper and loses a turn!" }); continue; }
       if (attack(me, op, false)) break;
       const B = PARTS.body[m.body];
       if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
@@ -463,7 +478,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
   function explainBattle(a, b, sim) {
     const bots = [a, b], w = sim.winner, l = 1 - w;
-    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0 }));
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0, flips: 0, lowFail: 0, glanced: 0, pierced: 0, tracked: 0 }));
     let endHp = [100, 100], first = null;
     for (const e of sim.events) {
       if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
@@ -471,6 +486,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       if (e.kind === "act") {
         s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
         if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
+        if (e.flip) s.flips++; if (e.low) s.lowFail++; if (e.glance) s.glanced++; if (e.pierce) s.pierced++; if (e.track && e.hits) s.tracked++;
       }
       if (e.kind === "stall") s.stalled++;
       if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
@@ -506,10 +522,15 @@ canvas { display: block; width: 100%; max-width: 100%; }
     if (first === w && st[l].swings <= 3 && sim.events.length < 18) R.push([1.3, `${N(w)} was faster, so it attacked first and ${N(l)} barely got a turn.`, "first"]);
     if (st[w].grabs >= 1) R.push([1.2 + st[w].grabs, `${N(w)}'s gripper grabbed ${N(l)} ${st[w].grabs} time${st[w].grabs === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].grabs === 1 ? "a turn" : st[w].grabs + " turns"}.`, "grab"]);
     if (st[l].heavyFail >= 1) R.push([1.5 + st[l].heavyFail * 0.5, `${N(l)}'s gripper couldn't grab ${N(w)}. Treads are too heavy to grab.`, "heavy"]);
+    if (st[w].flips >= 1) R.push([1.3 + st[w].flips, `${N(w)}'s flipper flipped ${N(l)} ${st[w].flips} time${st[w].flips === 1 ? "" : "s"}, so ${N(l)} lost ${st[w].flips === 1 ? "a turn" : st[w].flips + " turns"}.`, "flip"]);
+    if (st[l].lowFail >= 1) R.push([1.5 + st[l].lowFail * 0.5, `${N(l)}'s flipper couldn't get under ${N(w)}'s low wedge.`, "low"]);
+    if (st[l].glanced >= 2) R.push([1.2 + st[l].glanced * 0.15, `${N(l)}'s spinner hits glanced off ${N(w)}'s slanted wedge.`, "glance"]);
+    if (st[w].pierced >= 2 && PARTS.body[L.body].def >= 4) R.push([1.1 + st[w].pierced * 0.15, `${N(w)}'s drill went right through ${N(l)}'s armor.`, "pierce"]);
+    if (st[w].tracked >= 2) R.push([1 + st[w].tracked * 0.15, `${N(w)}'s lidar tracked ${N(l)}, so dodging didn't help much.`, "track"]);
     if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
     if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
     if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
-    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(l)}'s small spinner hits bounced off ${N(w)}'s thick treads armor.`, "armor"]);
+    if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(w)}'s thick treads armor blocked a lot of each small spinner hit.`, "armor"]);
     if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
     R.sort((x, y) => y[0] - x[0]);
     let reasons = R.slice(0, 3).map((r) => r[1]);
@@ -520,18 +541,23 @@ canvas { display: block; width: 100%; max-width: 100%; }
     const has = (slot, i) => L[slot] === i;
     const loserTip = ({
       acc: () => has("tool", 1) ? "Your Hammer missed a lot. A Gripper or Spinner hits more often." : !has("sensor", 0) ? `A Camera aims better than your ${part(l, "sensor")} sensor.` : !has("brain", 2) ? "The Smart brain waits for clear shots, so it misses less." : "Legs or an Ultrasonic sensor help you dodge.",
-      dmg: () => W.body === 1 && !has("tool", 1) ? "Against Treads, a Hammer smashes through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
+      dmg: () => W.body === 1 && !has("tool", 1) && !has("tool", 4) ? "Against Treads, a Hammer or Drill gets through the armor." : !has("tool", 1) ? "A Hammer hits much harder." : !has("brain", 0) ? "The Aggressive brain adds hitting power." : "Add armor: Treads or the Touch sensor block damage.",
       attacks: () => !has("tool", 2) ? "A Spinner hits twice every turn, so you get more attacks." : !has("body", 0) ? "Wheels are fast and sometimes attack twice." : "Add armor so you survive long enough to hit back.",
       first: () => !has("body", 0) ? "Wheels are the fastest body, so they usually attack first." : "Add armor so you can survive the first hits.",
       grab: () => !has("body", 1) ? "Treads can't be grabbed. They're a good counter to Grippers." : "Finish fights faster with a Hammer before the gripper gets you.",
-      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer.",
-      burst: () => !has("tool", 1) ? "Wheels have light armor. A Hammer punishes them." : "Your Hammer struggles to hit fast Wheels. A Gripper is more accurate.",
+      heavy: () => "Grippers can't grab Treads. Against Treads, try a Hammer or Drill. A Flipper can even flip them.",
+      flip: () => !has("body", 3) ? "A Wedge body is too low to flip." : "Finish fights faster so the flipper gets fewer tries.",
+      low: () => "Flippers can't get under a Wedge. Against a Wedge, try a Drill or Hammer.",
+      glance: () => "Spinner hits glance off a Wedge. A Drill or Hammer works better against it.",
+      pierce: () => !has("body", 2) ? "Armor doesn't stop a Drill, but dodging does. Try Legs." : "Armor doesn't stop a Drill. An Ultrasonic sensor helps you dodge it too.",
+      track: () => "Lidar sees through dodging. Against Lidar, armor like Treads works better.",
+      burst: () => has("tool", 1) || has("tool", 4) ? `Your ${part(l, "tool")} struggles to hit fast Wheels. A Spinner hits more often.` : !has("tool", 2) ? "Wheels have no armor, so a Spinner's quick hits all count." : "Wheels are fast. Treads armor helps you outlast them.",
       shield: () => !has("tool", 1) ? "Defensive robots get tough when hurt. Finish them fast with a Hammer." : "Defensive robots get tough when hurt. The Aggressive brain hits harder through shields.",
       aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
-      armor: () => "Spinner hits are small, so thick armor blocks them. Try a Hammer against Treads.",
+      armor: () => "Thick armor blocks a lot of each small spinner hit. Against Treads, a Hammer or Drill hits harder.",
       luck: () => "Your robot was a good match. Ask for a rematch!",
     }[top] || (() => "Every robot has a counter. Try a different part!"))();
-    const counter = W.body === 1 ? "Hammers beat Treads." : W.body === 0 ? "Hammers and big hits hurt light Wheels." : W.body === 2 ? "Accurate Grippers can still catch Legs." : "Every robot has a counter.";
+    const counter = W.body === 1 ? "Hammers and Drills beat Treads." : W.body === 0 ? "Spinners shred light Wheels, and Treads can take their hits." : W.body === 2 ? "Accurate Grippers can still catch Legs." : W.body === 3 ? "Drills and Hammers beat Wedges." : "Every robot has a counter.";
     const headline = (k) => k === w
       ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
       : `Why ${N(w)} beat ${N(l)}`;
@@ -618,7 +644,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // x = center, gy = ground y, s = unit size, dir 1 faces right.
   // o: lunge 0..1 (simple attack), hurt 0..1, tilt (rad), shield, bob,
   //    and for battles: reach 0..1 (arm out), hammer (swing angle), clamp (gripper, 1 = shut), spinA (spinner angle),
-  //    damage 0..1 (scratches, cracked visor, flickering eye), pose "win" (arm pumping)
+  //    flipA (flipper angle), damage 0..1 (scratches, cracked visor, flickering eye), pose "win" (arm pumping)
   function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
     const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
     const lw = Math.max(1.5, s * 0.05);
@@ -650,7 +676,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ctx.restore();
       for (let k = 0; k < 5; k++) { ctx.fillStyle = metal; ctx.beginPath(); ctx.arc((-0.68 + k * 0.34) * s, -0.26 * s, 0.11 * s, 0, 7); ctx.fill(); ctx.stroke(); }
       torsoBottom = -0.5 * s;
-    } else {
+    } else if (b.body === 2) {
       const st = Math.sin(t * 5) * 0.1 * s;
       [[-0.38, st], [0.38, -st]].forEach(([lx, sv]) => {
         ctx.strokeStyle = ink; ctx.lineWidth = s * 0.17;
@@ -662,6 +688,17 @@ canvas { display: block; width: 100%; max-width: 100%; }
       });
       ctx.strokeStyle = ink; ctx.lineWidth = lw;
       torsoBottom = -0.74 * s;
+    } else {
+      // wedge: a low slanted ramp with the wheels tucked underneath
+      ctx.fillStyle = "#222126";
+      [-0.62, 0.3].forEach((wx) => { ctx.beginPath(); ctx.arc(wx * s, -0.12 * s, 0.12 * s, 0, 7); ctx.fill(); ctx.stroke(); });
+      const wg = ctx.createLinearGradient(0, -0.55 * s, 0, 0); wg.addColorStop(0, "#77737f"); wg.addColorStop(1, "#3a3940");
+      ctx.fillStyle = wg; ctx.beginPath();
+      ctx.moveTo(-0.95 * s, -0.5 * s); ctx.lineTo(0.62 * s, -0.5 * s); ctx.lineTo(1.25 * s, -0.07 * s); ctx.lineTo(1.25 * s, -0.02 * s); ctx.lineTo(-0.95 * s, -0.14 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = "#ffd23f"; ctx.lineWidth = lw * 1.3; ctx.setLineDash([0.09 * s, 0.07 * s]);
+      ctx.beginPath(); ctx.moveTo(0.66 * s, -0.45 * s); ctx.lineTo(1.18 * s, -0.1 * s); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = ink; ctx.lineWidth = lw;
+      torsoBottom = -0.48 * s;
     }
     ctx.translate(0, bob);
 
@@ -714,7 +751,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
         ctx.strokeStyle = "#555"; ctx.lineWidth = lw * 0.6; ctx.beginPath(); ctx.arc(ex * s, hy + hh / 2, 0.06 * s, 0, 7); ctx.stroke();
         ctx.strokeStyle = ink; ctx.lineWidth = lw;
       });
-    } else {
+    } else if (b.sensor === 2) {
       ctx.save(); ctx.translate(0.12 * s, hy + hh * 0.42); ctx.scale(1, blink);
       ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0, 0, 0.075 * s, 0, 7); ctx.fill(); ctx.restore();
       ctx.lineWidth = lw * 0.8;
@@ -723,6 +760,13 @@ canvas { display: block; width: 100%; max-width: 100%; }
         ctx.beginPath(); ctx.moveTo(hw / 2 - 0.02 * s, hy + hh * 0.66); ctx.quadraticCurveTo(hw / 2 + 0.2 * s, hy + hh * 0.66 + a * s * 0.5 + wig, hw / 2 + 0.38 * s, hy + hh * 0.66 + a * s + wig); ctx.stroke();
       });
       ctx.lineWidth = lw;
+    } else {
+      // lidar: a dark visor with a scanning laser dot, and a spinning turret on top
+      ctx.fillStyle = "#222126"; rr(ctx, -hw / 2 + 0.08 * s, hy + hh * 0.3, hw - 0.16 * s, hh * 0.34, 0.08 * s); ctx.fill(); ctx.stroke();
+      ctx.save(); ctx.shadowColor = "#ff5d5d"; ctx.shadowBlur = 8; ctx.fillStyle = blink < 1 ? "#7a2b2b" : "#ff5d5d";
+      ctx.beginPath(); ctx.arc(Math.sin(t * 3) * (hw / 2 - 0.17 * s), hy + hh * 0.47, 0.05 * s, 0, 7); ctx.fill(); ctx.restore();
+      ctx.fillStyle = "#3a3940"; rr(ctx, 0.04 * s, hy - 0.17 * s, 0.28 * s, 0.17 * s, 0.05 * s); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#c9c5d1"; ctx.fillRect(0.07 * s + ((t * 5) % 1) * 0.2 * s, hy - 0.15 * s, 0.03 * s, 0.13 * s);
     }
     ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
     if (dmg > 0.6) { // cracked visor
@@ -751,7 +795,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       const hg2 = ctx.createLinearGradient(0.24 * s, 0, 0.52 * s, 0); hg2.addColorStop(0, "#5c5a63"); hg2.addColorStop(1, "#2a292e");
       ctx.fillStyle = hg2; rr(ctx, 0.24 * s, -0.3 * s, 0.28 * s, 0.6 * s, 0.06 * s); ctx.fill(); ctx.stroke();
       ctx.fillStyle = "rgba(255,255,255,.18)"; rr(ctx, 0.28 * s, -0.26 * s, 0.06 * s, 0.52 * s, 0.03 * s); ctx.fill();
-    } else {
+    } else if (b.tool === 2) {
       ctx.translate(0.24 * s, 0);
       const fast = o.spinA !== undefined && o.spinFast;
       if (fast) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = "#e9e6ee"; ctx.beginPath(); ctx.arc(0, 0, 0.37 * s, 0, 7); ctx.fill(); ctx.restore(); } // motion blur
@@ -760,6 +804,22 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ctx.fillStyle = "#e9e6ee";
       for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.moveTo(0.1 * s, -0.06 * s); ctx.lineTo(0.36 * s, -0.02 * s); ctx.lineTo(0.3 * s, 0.07 * s); ctx.lineTo(0.1 * s, 0.06 * s); ctx.closePath(); ctx.fill(); ctx.stroke(); }
       ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0, 0.07 * s, 0, 7); ctx.fill();
+    } else if (b.tool === 3) {
+      // flipper: a flat plate hinged at the hand that snaps upward
+      ctx.rotate(o.flipA ?? 0.3 - Math.sin(l * Math.PI) * 1.4);
+      ctx.fillStyle = "#8f8b98"; ctx.beginPath(); ctx.moveTo(0, -0.06 * s); ctx.lineTo(0.56 * s, -0.03 * s); ctx.lineTo(0.64 * s, 0.05 * s); ctx.lineTo(0, 0.07 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ffd23f"; ctx.fillRect(0.34 * s, -0.025 * s, 0.2 * s, 0.045 * s);
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0.005 * s, 0.065 * s, 0, 7); ctx.fill();
+    } else {
+      // drill: a steel cone whose spiral bands slide along as it spins
+      ctx.fillStyle = "#55535c"; rr(ctx, 0, -0.1 * s, 0.17 * s, 0.2 * s, 0.03 * s); ctx.fill(); ctx.stroke();
+      const cone = () => { ctx.beginPath(); ctx.moveTo(0.17 * s, -0.13 * s); ctx.lineTo(0.64 * s, 0); ctx.lineTo(0.17 * s, 0.13 * s); ctx.closePath(); };
+      const dg = ctx.createLinearGradient(0, -0.13 * s, 0, 0.13 * s); dg.addColorStop(0, "#eeeaf2"); dg.addColorStop(1, "#8f8b98");
+      ctx.fillStyle = dg; cone(); ctx.fill(); ctx.stroke();
+      const off = (((o.spinA ?? t * (l > 0 ? 40 : 6)) * 0.04) % 0.12 + 0.12) % 0.12;
+      ctx.save(); cone(); ctx.clip(); ctx.strokeStyle = "rgba(20,19,22,.45)"; ctx.lineWidth = lw * 0.7;
+      for (let k = -1; k < 5; k++) { const x = (0.19 + k * 0.12 + off) * s; ctx.beginPath(); ctx.moveTo(x, -0.15 * s); ctx.lineTo(x + 0.08 * s, 0.15 * s); ctx.stroke(); }
+      ctx.restore();
     }
     ctx.restore();
     if (o.shield) {
@@ -1530,6 +1590,9 @@ canvas { display: block; width: 100%; max-width: 100%; }
     if (c.live) bits.push(`${c.live} tournament${c.live === 1 ? "" : "s"} live`);
     el.innerHTML = `<i></i>${bits.join(" · ")}`; el.hidden = false;
   });
+  // Browsers keep recent pages alive for the Back button; a page left that way shouldn't count as online.
+  addEventListener("pagehide", () => socket.disconnect());
+  addEventListener("pageshow", (e) => { if (e.persisted) socket.connect(); });
   window.Presence = { where(num) { n = num | 0; socket.emit("presence:where", { n }); } };
 })();
 

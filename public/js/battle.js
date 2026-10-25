@@ -9,8 +9,8 @@
   const { clamp, ease, bigText, rr, FX, drawBot, COLORS, Sound, RM } = E;
   const DUR = { sense: 0.65, think: 0.75, act: 1.0, stall: 0.8 };
   // When each tool connects, in seconds into its attack: the hammer winds up first, so it lands later.
-  const HIT = [0.2, 0.34, 0.22]; // gripper, hammer, spinner
-  const SPARKS = [["#ffd23f", "#fff", "#ff8a50"], ["#ff8a50", "#ffd23f", "#fff"], ["#fff6c8", "#ffd23f", "#9fdcff"]];
+  const HIT = [0.2, 0.34, 0.22, 0.24, 0.3]; // gripper, hammer, spinner, flipper, drill
+  const SPARKS = [["#ffd23f", "#fff", "#ff8a50"], ["#ff8a50", "#ffd23f", "#fff"], ["#fff6c8", "#ffd23f", "#9fdcff"], ["#ffd23f", "#fff", "#c58cff"], ["#ff8a50", "#ffd23f", "#fff6c8"]];
 
   // How far the attacker has lunged at time t into its attack (0..1; negative = leaning back to wind up).
   function reachAt(tool, t) {
@@ -19,6 +19,14 @@
     if (t < hit) return back + (1 - back) * ease.out((t - t0) / (hit - t0));
     if (t < hit + 0.08) return 1;
     return Math.max(0, 1 - (t - hit - 0.08) / 0.3);
+  }
+  // Flipper plate angle: slide under the enemy, snap up at the hit, then settle back down.
+  function flipAt(t) {
+    const hit = HIT[3];
+    if (t < hit - 0.04) return 0.3 + 0.15 * (t / (hit - 0.04));
+    if (t < hit + 0.04) return 0.45 - 1.75 * ((t - (hit - 0.04)) / 0.08);
+    if (t < hit + 0.2) return -1.3;
+    return -1.3 + 1.6 * Math.min(1, (t - hit - 0.2) / 0.3);
   }
   // Hammer swing angle: raise it high, slam down (speeding up), hold, then back to rest.
   function hammerAt(t) {
@@ -35,7 +43,7 @@
       this.hp = [100, 100]; this.brace = [false, false]; this.hurt = [0, 0]; this.dodge = [0, 0]; this.head = [null, null];
       this.queue = []; this.ev = null; this.evT = 0; this.timer = null; this.banner = "";
       this.freeze = 0; this.slow = 0; this.flash = 0; this.zoom = { k: 0, x: 0, y: 0 };
-      this.spinA = [0, 0]; this.held = [false, false]; this.ghost = [0, 0]; this.puff = [0, 0]; this.later = [];
+      this.spinA = [0, 0]; this.held = [false, false]; this.ghost = [0, 0]; this.puff = [0, 0]; this.later = []; this.flipT = [0, 0];
       this.w = 640; this.h = 360; this.last = performance.now();
       const loop = (now) => {
         const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now;
@@ -46,7 +54,7 @@
     }
     setBots(a, b, banner = "") {
       clearTimeout(this.timer);
-      Object.assign(this, { bots: [a, b], state: a && b ? "idle" : "empty", hp: [100, 100], brace: [false, false], queue: [], ev: null, banner, champ: null, held: [false, false], later: [] });
+      Object.assign(this, { bots: [a, b], state: a && b ? "idle" : "empty", hp: [100, 100], brace: [false, false], queue: [], ev: null, banner, champ: null, held: [false, false], later: [], flipT: [0, 0] });
       this.cb.onHP && this.cb.onHP(this.hp, true);
     }
     play(events) {
@@ -80,7 +88,7 @@
       this.log(e);
       if (e.kind === "sense") Sound.play("scan");
       if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; if (e.bubble === "SHIELD!") { const p = this.pos(e.me); this.fx.ring(p.x, p.mid - p.s * 0.3, p.s * 1.6, "#4fd18b", 0.5, 5); } }
-      if (e.kind === "stall") { this.held[e.me] = false; const p = this.pos(e.me); this.fx.text(p.x, p.top, "STUCK!", "#c58cff", 26); }
+      if (e.kind === "stall") { this.held[e.me] = false; const p = this.pos(e.me); this.fx.text(p.x, p.top, e.flip ? "FLIPPED OVER!" : "STUCK!", "#c58cff", 26); }
       if (e.kind === "win") { this.hp = e.hp; this.held = [false, false]; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(e.me); return; }
       if (e.kind === "act" && e.burst) { const p = this.pos(e.me); this.fx.text(p.x, p.top - 30, "BONUS!", "#38a7f0", 22); }
       this.timer = setTimeout(() => this.next(), (DUR[e.kind] * 1000) / this.speed);
@@ -106,6 +114,10 @@
         if (e.crit) { this.fx.text(p.x, p.top - 34, "CRITICAL!", "#ff8a50", 20); this.flash = 1; this.zoom = { k: 1, x: hx, y: hy }; this.cheer = 1; }
         if (blocked) this.fx.text(p.x, p.top - 34, "BLOCKED!", "#4fd18b", 20);
         if (e.grab) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "GRABBED!", "#c58cff", 22); this.held[op] = true; }
+        if (e.flip) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "FLIPPED!", "#c58cff", 24); this.flipT[op] = 1; } // launched into a full flip
+        if (e.heavy) this.fx.text(p.x, p.top - 34, "TOO HEAVY!", "#aaa6b0", 18);
+        if (e.low) this.fx.text(p.x, p.top - 34, "TOO LOW!", "#aaa6b0", 18);
+        if (e.glance) { this.fx.text(p.x, p.top - 34, "GLANCED!", "#aaa6b0", 18); this.fx.burst(hx, hy, 10, { colors: ["#fff6c8", "#aaa6b0"], speed: 360, g: 300, life: 0.4, size: 3, angle: -Math.PI / 2, spread: 1.4 }); }
         Sound.play("hit");
       } else {
         this.dodge[op] = 1; this.ghost[op] = 1;
@@ -234,6 +246,7 @@
       }
       for (let k = 0; k < 2; k++) {
         this.hurt[k] = Math.max(0, this.hurt[k] - tdt * 4); this.dodge[k] = Math.max(0, this.dodge[k] - tdt * 2.5); this.ghost[k] = Math.max(0, this.ghost[k] - tdt * 2.2);
+        if (this.flipT[k] > 0) { this.flipT[k] = Math.max(0, this.flipT[k] - tdt * 1.15); if (!this.flipT[k]) { const p = this.pos(k); this.fx.burst(p.x, p.gy, 14, { colors: ["#4a4852"], kind: "dust", speed: 120, g: -10, life: 0.8, size: 7, drag: 0.9, angle: -Math.PI / 2, spread: 3 }); this.fx.shake = Math.max(this.fx.shake, 7); } }
         const attacking = e && this.state === "fight" && e.kind === "act" && e.me === k && this.evT < 0.7;
         this.spinA[k] += tdt * (attacking ? 38 : 9);
       }
@@ -241,18 +254,20 @@
       [[a, 0], [b, 1]].forEach(([bt, k]) => {
         if (!bt) return;
         const p = this.pos(k), dir = k === 0 ? 1 : -1, dmg = 1 - this.hp[k] / 100;
-        let x = p.x + slide[k], reach = 0, tilt = 0, hop = 0, hammer, clamp2;
+        let x = p.x + slide[k], reach = 0, tilt = 0, hop = 0, hammer, clamp2, flipA;
         const acting = e && this.state === "fight" && e.kind === "act" && e.me === k;
         if (acting) {
           reach = reachAt(bt.tool, this.evT);
           x += dir * reach * w * 0.14;
           if (bt.tool === 1) hammer = hammerAt(this.evT);
+          if (bt.tool === 3) flipA = flipAt(this.evT);
           if (bt.tool === 0) clamp2 = this.evT < HIT[0] ? -0.4 * (this.evT / HIT[0]) : this.held[1 - k] ? 1 : Math.max(0, 1 - (this.evT - HIT[0] - 0.1) / 0.3);
           // dust from the wheels, treads or feet as it charges in
           if (this.evT < HIT[bt.tool] && Math.random() < tdt * 18) this.fx.burst(x - dir * p.s * 0.5, p.gy, 2, { colors: ["#4a4852"], kind: "dust", speed: 60, g: -10, life: 0.6, size: 6, drag: 0.9, angle: dir > 0 ? Math.PI : 0, spread: 1.2 });
         } else if (bt.tool === 0 && this.held[1 - k]) clamp2 = 1; // still gripping
         if (this.held[k]) { x += Math.sin(t * 40) * p.s * 0.04; hop = p.s * 0.12; } // stuck in the gripper: lifted and shaking
         if (this.dodge[k]) hop = Math.sin(this.dodge[k] * Math.PI) * p.s * 0.5;
+        if (this.flipT[k]) { const f = 1 - this.flipT[k]; hop = Math.sin(f * Math.PI) * p.s * 1.4; tilt = -f * Math.PI * 2; } // up, over and down
         if (this.hurt[k]) x -= dir * this.hurt[k] * p.s * 0.25;
         let pose;
         if (this.state === "ko") {
@@ -274,7 +289,7 @@
           drawBot(ctx, bt, x + dir * p.s * 0.3, p.gy, p.s, dir, t, { damage: dmg });
           ctx.restore();
         }
-        this.head[k] = drawBot(ctx, bt, x, p.gy - hop, p.s, dir, t, { reach, hammer, clamp: clamp2, spinA: this.spinA[k], spinFast: acting && this.evT < 0.7, hurt: this.hurt[k], tilt, damage: dmg, pose, shield: this.brace[k] && this.state !== "ko" });
+        this.head[k] = drawBot(ctx, bt, x, p.gy - hop, p.s, dir, t, { reach, hammer, flipA, clamp: clamp2, spinA: this.spinA[k], spinFast: acting && this.evT < 0.7, hurt: this.hurt[k], tilt, damage: dmg, pose, shield: this.brace[k] && this.state !== "ko" });
         // name plate under each bot
         ctx.font = `700 ${Math.round(p.s * 0.28)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center";
         ctx.fillStyle = k === 0 ? "#ff8a50" : "#38a7f0"; ctx.fillText(bt.name, p.x + slide[k], p.gy + p.s * 0.45);

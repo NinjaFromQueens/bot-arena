@@ -25,22 +25,26 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 ## The parts (balanced)
 
-Every part has a strength and a weakness, and all 75 legal builds were tested against each other (`npm run balance`). Every part wins 47–53% of its fights overall, so there is no "best build", only good matchups.
+Every part has a strength and a weakness, and all 231 legal builds were tested against each other (`npm run balance`). Every part wins 49–51% of its fights overall and 87% of builds win 40–60%, so there is no "best build", only good matchups. `npm test` fails if any part leaves 45–55%, or if a counter that a tip promises stops being true.
 
 | Part | Strength | Weakness |
 |---|---|---|
-| Wheels | Fast, 30% chance of a bonus speed attack | Almost no armor |
-| Treads | Heavy armor, can't be grabbed | Slow, easy to hit |
-| Legs | Hard to hit | Medium armor |
-| Camera | Best aim | Heaviest sensor |
+| Wheels | Fastest, 25% chance of a bonus speed attack | No armor; Spinners shred it |
+| Treads | Heaviest armor, can't be grabbed | Slow, easy to hit; Hammers and Drills beat it |
+| Legs | Hard to hit, beats Drills | Medium armor |
+| Wedge | Can't be flipped, spinner hits glance off | Slow; Drills and Hammers beat it |
+| Camera | Best aim | Heavy (10 kg) |
 | Ultrasonic | Okay aim, helps dodge | |
-| Touch | Lightest, extra armor | Weak aim |
+| Touch | Lightest, extra armor | Weakest aim |
+| Lidar | Dodging barely works against it | Heaviest sensor; armor (Treads) beats it |
 | Aggressive | Hits harder | Less armor |
 | Defensive | Raises a shield when hurt, then counterattacks | |
 | Smart | Waits for a clear shot when aim is low | |
 | Gripper | Accurate, can grab (enemy loses a turn) | Weak hits, can't grab Treads |
-| Hammer | Huge hits, beats Treads | Misses a lot, struggles vs Wheels |
-| Spinner | Two hits per turn, steady all-rounder | |
+| Hammer | Huge hits, beats Treads and Wedges | Misses a lot, struggles vs Wheels |
+| Spinner | Two hits per turn, shreds Wheels | Hits glance off a Wedge |
+| Flipper | Can flip the enemy (loses a turn), even Treads | Can't get under a Wedge |
+| Drill | Goes through half of the enemy's armor, beats Treads and Wedges | Misses more than a Gripper; dodgers beat it |
 
 ## Robot Lessons (`/learn`)
 
@@ -141,7 +145,7 @@ public/js/sensors.js   Sensor rules and ray casting for the sensor lesson simula
 public/js/motors.js    DC motor + gearbox, servo and stepper rules for the motor lesson simulators (shared with tests)
 public/js/arm.js       Robot arm kinematics (reach, forward, inverse) and holding torque for the arm lessons (shared with tests)
 public/js/presence.js  Tells the server which page each device is on; the home page counter and the board's class status
-public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files), synthesized with Web Audio (no audio files)
+public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files)
 public/js/tips.js      Tooltips for every page: any element with data-tip="..." gets one (hover, focus or tap)
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)

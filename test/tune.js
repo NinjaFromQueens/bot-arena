@@ -15,6 +15,10 @@ const KNOBS = [
   ["tool.0.atk", 3, 9, 1], ["tool.0.acc", 0, 25, 2], ["tool.0.grab", 0.1, 0.5, 0.05],
   ["tool.1.atk", 8, 16, 1], ["tool.1.acc", -30, -5, 2],
   ["tool.2.atk", 4, 10, 1], ["tool.2.mult", 0.45, 0.85, 0.03], ["tool.2.acc", -5, 15, 2],
+  ["body.3.def", 1, 8, 1], ["body.3.spd", 0, 4, 1], ["body.3.dodge", 0, 8, 1], ["body.3.glance", 0.3, 0.9, 0.05],
+  ["sensor.3.aim", 1, 9, 1], ["sensor.3.track", 0.2, 0.8, 0.05],
+  ["tool.3.atk", 3, 10, 1], ["tool.3.acc", -10, 20, 2], ["tool.3.flip", 0.1, 0.55, 0.05],
+  ["tool.4.atk", 4, 11, 1], ["tool.4.acc", -15, 10, 2], ["tool.4.pierce", 0.3, 1, 0.05],
 ];
 // keep each part's identity
 const ORDER = [
@@ -23,14 +27,17 @@ const ORDER = [
   ["sensor.0.aim", ">", "sensor.1.aim"], ["sensor.1.aim", ">", "sensor.2.aim"],
   ["tool.1.atk", ">", "tool.2.atk"], ["tool.2.atk", ">=", "tool.0.atk"],
   ["tool.0.acc", ">", "tool.2.acc"], ["tool.2.acc", ">", "tool.1.acc"],
+  // new parts keep what their tips promise
+  ["sensor.0.aim", ">", "sensor.3.aim"], ["body.1.def", ">", "body.3.def"], ["body.2.spd", ">", "body.3.spd"],
+  ["tool.0.acc", ">", "tool.4.acc"], ["tool.1.atk", ">", "tool.4.atk"],
 ];
 const get = (p) => p.split(".").reduce((o, k) => o[k], E.PARTS);
 const set = (p, v) => { const ks = p.split("."), last = ks.pop(); ks.reduce((o, k) => o[k], E.PARTS)[last] = v; };
 const ok = () => ORDER.every(([a, op, b]) => (op === ">" ? get(a) > get(b) : get(a) >= get(b)));
 
 const builds = [];
-for (let body = 0; body < 3; body++) for (let sensor = 0; sensor < 3; sensor++)
-  for (let brain = 0; brain < 3; brain++) for (let tool = 0; tool < 3; tool++) {
+for (let body = 0; body < E.PARTS.body.length; body++) for (let sensor = 0; sensor < E.PARTS.sensor.length; sensor++)
+  for (let brain = 0; brain < E.PARTS.brain.length; brain++) for (let tool = 0; tool < E.PARTS.tool.length; tool++) {
     const b = { name: "B", body, sensor, brain, tool, color: 0 };
     if (E.statsOf(b).wt <= E.MAXW) builds.push(b);
   }
@@ -46,7 +53,7 @@ function evaluate(n = N) {
   }
   const wr = wins.map((w, i) => w / games[i]);
   let partErr = 0;
-  for (const slot of E.SLOTS) for (let p = 0; p < 3; p++) {
+  for (const slot of E.SLOTS) for (let p = 0; p < E.PARTS[slot].length; p++) {
     const sel = wr.filter((_, i) => builds[i][slot] === p);
     partErr += (sel.reduce((a, b) => a + b, 0) / sel.length - 0.5) ** 2;
   }

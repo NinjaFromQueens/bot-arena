@@ -128,7 +128,7 @@ function statusChanged(room) {
 }
 
 // ---------------- stats + awards ----------------
-function blankStats() { return { swings: 0, hits: 0, dealt: 0, taken: 0, maxHit: 0, grabs: 0, shields: 0, matches: 0, bursts: 0 }; }
+function blankStats() { return { swings: 0, hits: 0, dealt: 0, taken: 0, maxHit: 0, grabs: 0, flips: 0, shields: 0, matches: 0, bursts: 0 }; }
 function recordStats(room, c) {
   const ids = [c.aId, c.bId];
   ids.forEach((id) => { const p = room.players.get(id); if (p) { p.stats = p.stats || blankStats(); p.stats.matches++; } });
@@ -139,6 +139,7 @@ function recordStats(room, c) {
       me.stats.swings += Engine.PARTS.tool[me.bot.tool].swings; me.stats.hits += e.hits;
       me.stats.dealt += e.dmg; me.stats.maxHit = Math.max(me.stats.maxHit, e.dmg);
       if (e.grab) me.stats.grabs++;
+      if (e.flip) me.stats.flips++;
       if (e.burst) me.stats.bursts++;
       if (op && op.stats) op.stats.taken += e.dmg;
     }
@@ -167,6 +168,7 @@ function computeAwards(room) {
   add("hitter", "Heavy Hitter", best((p) => p.stats.maxHit), (v) => `Biggest single hit: ${v} damage`);
   add("sharp", "Sharpshooter", best((p) => p.stats.hits / p.stats.swings, (p) => p.stats.swings >= 6), (v) => `Hit ${Math.round(v * 100)}% of attacks`);
   add("grab", "Grab Master", best((p) => p.stats.grabs), (v) => `${v} grab${v === 1 ? "" : "s"}`);
+  add("flip", "Flip Master", best((p) => p.stats.flips), (v) => `${v} flip${v === 1 ? "" : "s"}`);
   add("speed", "Speed Demon", best((p) => p.stats.bursts), (v) => `${v} bonus speed attack${v === 1 ? "" : "s"}`);
   add("shield", "Shield Hero", best((p) => p.stats.shields), (v) => `Raised the shield ${v} time${v === 1 ? "" : "s"}`);
   const preds = ps.map((p) => ({ p, v: p.pts || 0 })), maxPts = Math.max(0, ...preds.map((x) => x.v));

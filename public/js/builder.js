@@ -16,7 +16,7 @@
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
     const pv = { fx: new FX(), pop: 0, w: 300, h: 240 };
-    const rand3 = () => (Math.random() * 3) | 0;
+    const pick = (slot) => (Math.random() * PARTS[slot].length) | 0;
     $("bot-name").value = bot.name;
 
     function renderChoices() {
@@ -61,7 +61,7 @@
     }
     $("bot-name").addEventListener("input", update);
     $("random").onclick = () => {
-      let b; do { b = { ...bot, body: rand3(), sensor: rand3(), brain: rand3(), tool: rand3(), color: (Math.random() * 6) | 0 }; } while (statsOf(b).wt > MAXW);
+      let b; do { b = { ...bot, body: pick("body"), sensor: pick("sensor"), brain: pick("brain"), tool: pick("tool"), color: (Math.random() * COLORS.length) | 0 }; } while (statsOf(b).wt > MAXW);
       bot = b; pv.pop = 1; Sound.play("go"); update();
     };
 

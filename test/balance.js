@@ -4,8 +4,8 @@ const E = require("../public/js/engine.js");
 const N = +process.argv[2] || 30;
 
 const builds = [];
-for (let body = 0; body < 3; body++) for (let sensor = 0; sensor < 3; sensor++)
-  for (let brain = 0; brain < 3; brain++) for (let tool = 0; tool < 3; tool++) {
+for (let body = 0; body < E.PARTS.body.length; body++) for (let sensor = 0; sensor < E.PARTS.sensor.length; sensor++)
+  for (let brain = 0; brain < E.PARTS.brain.length; brain++) for (let tool = 0; tool < E.PARTS.tool.length; tool++) {
     const b = { name: "B", body, sensor, brain, tool, color: 0 };
     if (E.statsOf(b).wt <= E.MAXW) builds.push(b);
   }
@@ -22,7 +22,7 @@ for (let i = 0; i < builds.length; i++) for (let j = i + 1; j < builds.length; j
 }
 const label = (b) => `${E.PARTS.body[b.body].n}/${E.PARTS.sensor[b.sensor].n}/${E.PARTS.brain[b.brain].n}/${E.PARTS.tool[b.tool].n}`;
 const rows = builds.map((b, i) => ({ b, wr: wins[i] / games[i] })).sort((a, b) => b.wr - a.wr);
-console.log(`${builds.length} legal builds (of 81). Avg attacks per fight: ${(rounds / (games.reduce((a, b) => a + b) / 2)).toFixed(1)}`);
+console.log(`${builds.length} legal builds. Avg attacks per fight: ${(rounds / (games.reduce((a, b) => a + b) / 2)).toFixed(1)}`);
 console.log("Top 6:"); rows.slice(0, 6).forEach((r) => console.log("  " + (r.wr * 100).toFixed(1) + "%  " + label(r.b)));
 console.log("Bottom 6:"); rows.slice(-6).forEach((r) => console.log("  " + (r.wr * 100).toFixed(1) + "%  " + label(r.b)));
 for (const slot of E.SLOTS) {

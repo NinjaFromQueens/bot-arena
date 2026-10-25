@@ -44,7 +44,8 @@ git push             # Render deploys in ~2 minutes
 
 | I want to change... | Edit this |
 | --- | --- |
-| Robot part stats (attack, armor, weight) | `public/js/engine.js` → `PARTS`. Then run `npm run balance` and keep every part between 45% and 55%. |
+| Robot part stats (attack, armor, weight) | `public/js/engine.js` → `PARTS`. Then run `npm test`: it fails if any part leaves 45–55% or a tip's counter claim ("Hammers beat Treads") stops being true. `npm run balance` prints the full report. |
+| Add a new part | Add it at the END of its slot in `PARTS` (old bot codes keep working), draw it in `drawBot`, add its swing timing in `battle.js` (`HIT`, `SPARKS`), add knobs for it in `test/tune.js`, then run `node test/tune.js 300` and copy in the numbers it suggests. |
 | Part descriptions students see | `public/js/engine.js` → each part's `d` (short) and `tip` (long) |
 | Flying car parts, missions, physics | `public/js/flight.js` → `MATERIALS`, `TANK`, `NOZZLE`, `GEARS`, `MISSIONS`. Then run `npm test` and `npm run lab`. |
 | Flight report wording | `public/js/flight.js` → `explain()` and `tipFor()` |
