@@ -14,20 +14,7 @@ Last updated: October 24, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| F-03 | Motors lesson unit | Branch `motors-lessons` (built on `battle-animation`). Four lessons with simulators: DC motors and gears, Servo motors, Stepper motors, Pick the right motor. Rules in `motors.js`, checked by `motors.test.js`. Waiting on teacher review. |
-| F-07 | Online counter and class status | Branch `game-features`. Home page counts; class status tags and panel on the board. Done and tested. |
-| F-04 | More parts and weapons | Branch `game-features`. Wedge body, Lidar sensor, Flipper and Drill tools with new mechanics (low, glance, track, flip, pierce), drawn and animated in battle. Retuned all parts: 231 builds, every part 49–51%, 87% of builds 40–60%. `test/balance.test.js` runs in `npm test` and checks win rates and every counter claim in the tips. Done and tested. |
-| F-05 | Weight classes and best of 3 | Branch `class-modes`. Lobby settings: weight class (Lightweight 50 / Standard 75 / Open 100 kg, TOO HEAVY flags, start blocked until fixed, tips never suggest parts that can't fit), best of 3 (final, or semifinals + final, played fight by fight on the board), and prediction time (also from the lobby now). Done and tested. |
-| F-07b | Teacher status page | Branch `class-modes`. `/status` behind `TEACHER_PIN`: uptime, version (Render commit), memory, online counts, each game's code/stage/robots/settings. No names. Linked from the home page teacher strip. Done and tested. |
-| F-08 | Live class mode for lessons | Branch `class-modes`. Present a lesson from the board; students see where the class is, quiz cards become class polls with live counts on the board only, Reveal shows the answer everywhere and awards quiz points. Done and tested. |
-| F-16 | Flying Car Lab class challenge | Branch `class-modes`. The board picks a mission; students submit designs from the Lab with their game pass; the server flies, grades and ranks them; the board watches any entry or plays all from last to first. Done and tested. |
-| F-10 | Robot Racer (racing mini-game) | Branch `class-modes`. `/race`: pseudo-3D time trial, gear ratio + tire tuning tied to the motors lesson, lap report with checked tips, ghost of your best lap, class leaderboard with server-checked laps and classmates' ghosts, board leaderboard, offline backup. Later: a line-following autonomous mode with IR sensors. Done and tested. |
-| F-12 | Parts system for drawn fighters | Branch `class-modes`. Art packs (`public/art/manifest.json`) swap a body, sensor head or tool for a picture on the existing animation; tint templates take the robot's color; sample pack + format README in `public/art-sample/`; students' own pictures in practice mode (device only). F-02 (Higgsfield art) can now just drop files in. Done and tested. |
-| F-14 | Brain Challenges + if-then rules lesson | Branch `class-modes`. Five boss challenges in Practice Mode (fixed robot, write the rules, same 10 fights each run, hints, replays), and lesson 6 "Think: if-then rules" with a robot vacuum simulator. Checked by `challenges.test.js` and `rulebot.test.js`. Done and tested. |
-| F-06 | Program your robot's brain | Branch `game-features`. Custom brain: up to 3 if-then rules edited in the builder (play and practice), carried in bot codes, validated on the server, shown in the battle log and thought bubbles. Tuned so no rules ≈ 44%, defaults ≈ 48%, good rules ≈ 54%; power attacks smash shields. Rule claims checked in `npm test`. Done and tested. |
-| F-09 | Emoji reactions | Branch `game-features`. Done and tested; waiting on review with the other game features. |
-| F-13 | Robot arm lessons | Same branch. Links and joints (arm simulator: reach, forward and inverse kinematics) and Arm strength (levers and torque with kg·cm servo ratings). Rules in `arm.js`, checked by `arm.test.js`. Waiting on teacher review. |
-| F-01 | Battle art and animation | Branch `battle-animation`. Per-tool attacks (hammer wind-up and slam, gripper clamp and hold, spinner blur and double hit), hit-stop, crit flash and camera punch, shield-block ripple, dodge afterimage, damage scars, smoke when low, K.O. slow motion, victory poses, garage arena with a cheering crowd. Waiting on teacher review before merging to `main`. |
+| — | Nothing in progress | Everything below was published to `main` on Oct 25, 2026 and tested on the live site. |
 
 ---
 
@@ -42,6 +29,20 @@ Last updated: October 24, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-12 | Robot art packs: draw any part from a picture (sample pack, students' own pictures) | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 9a2743b |
+| F-10 | Robot Racer: pseudo-3D racing game about motors and gears, class leaderboard | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 091bfc3 |
+| F-16 | Flying Car Lab class challenge | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 4025f52 |
+| F-08 | Live class mode: present a lesson, quiz cards become class polls | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 54cb2d4 |
+| F-07b | PIN-protected teacher status page (`/status`, needs `TEACHER_PIN` on Render) | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 3a03f64 |
+| F-05 | Weight classes, best-of-3 matches, lobby game settings (incl. prediction time) | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 358074f |
+| F-14 | Brain Challenges and the if-then rules lesson | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 3e3f6a7 |
+| F-06 | Custom brain: students program their robot with if-then rules | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 3e2175f |
+| F-04 | Wedge, Lidar, Flipper, Drill + automated balance test | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 1531665 |
+| F-07 | Who's online: home page counts and class status on the board | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 5dac0a9 |
+| F-09 | Anonymous emoji reactions on the board | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 696eb03 |
+| F-13 | Robot arm lessons: links and joints, levers and torque | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 36bbfb0 |
+| F-03 | Motors unit: DC gears, servos, steppers, with simulators | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 56fc3a6 |
+| F-01 | Battle art and animation: per-tool attacks, impact effects, garage arena | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 723fb06 |
 | — | Board music, sensor lessons (ultrasonic, lidar, showdown), lesson audit, tooltips, classroom UX fixes | Pushed to `main` Oct 23, 2026 | cee0c7e |
 | — | Self-guided Robot Lessons and maintenance guide | Oct 2026 | 856c05d |
 
