@@ -2,9 +2,10 @@
 (function () {
   const E = window.Engine, M = window.Music;
   const $ = (id) => document.getElementById(id);
-  const socket = io();
+  const socket = io(); window.baSocket = socket;
   let state = null, code = null, playing = null, autoTimer = null, upnext = null;
   const seen = new Set();
+  let status = {}; // playerId -> { page, n } from the server: which page each student is on
 
   const ss = {
     get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
@@ -64,6 +65,7 @@
   });
   socket.on("disconnect", () => { $("hostmsg").textContent = "Reconnecting to the server..."; });
   socket.on("room:state", (s) => { $("hostmsg").textContent = ""; state = s; $("rxon").checked = s.reactions; render(); });
+  socket.on("room:status", (s) => { status = s || {}; if (state) render(); });
   socket.on("room:react", ({ e }) => {
     const layer = $("rxlayer"), emo = E.REACTIONS[e];
     if (!emo || layer.childElementCount > 24) return; // a full screen of emoji is enough
@@ -88,7 +90,7 @@
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
     if (state.phase === "lobby") renderLobby();
-    else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); }
+    else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); renderClass(); }
   }
 
   function renderLobby() {
@@ -101,7 +103,7 @@
       const sig = JSON.stringify(p.bot) + p.builder;
       if (!el) {
         el = document.createElement("div"); el.className = "pcard"; el.dataset.id = p.id;
-        el.innerHTML = `<button class="kick" type="button" aria-label="Remove" data-tip="Remove this robot. Click twice to confirm.">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div>`;
+        el.innerHTML = `<button class="kick" type="button" aria-label="Remove" data-tip="Remove this robot. Click twice to confirm.">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div><span class="stag"></span>`;
         const k = el.querySelector(".kick");
         k.onclick = () => {
           if (!k.classList.contains("confirm")) { k.classList.add("confirm"); k.textContent = "Remove?"; setTimeout(() => { k.classList.remove("confirm"); k.textContent = "×"; }, 3000); return; }
@@ -117,6 +119,7 @@
         el.querySelector(".bl").textContent = "by " + p.builder;
       }
       el.classList.toggle("off", !p.connected);
+      const tag = statusTag(p), st = el.querySelector(".stag"); st.textContent = tag.text; st.className = "stag " + tag.cls; st.setAttribute("data-tip", tag.tip);
       have.delete(p.id);
     });
     have.forEach((el) => el.remove());
@@ -154,6 +157,27 @@
       const c = byId(state.championId);
       if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }); M.play("champion", 1.5); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
     }
+  }
+
+  function statusTag(p) {
+    const s = status[p.id];
+    if (!s) return p.connected ? { text: "GAME", cls: "play", tip: "On the game page." } : { text: "OFFLINE", cls: "", tip: "Not connected right now." };
+    if (s.page === "learn") return s.n ? { text: "LESSON " + s.n, cls: "learn", tip: "Working on Lesson " + s.n + " in Robot Lessons." } : { text: "LESSONS", cls: "learn", tip: "Looking at the list of Robot Lessons." };
+    if (s.page === "lab") return { text: s.n ? "LAB " + s.n : "LAB", cls: "lab", tip: s.n ? "Flying Car Lab, mission " + s.n + "." : "In the Flying Car Lab." };
+    if (s.page === "practice") return { text: "PRACTICE", cls: "practice", tip: "In practice mode." };
+    if (s.page === "home") return { text: "HOME", cls: "", tip: "On the home page." };
+    return { text: "GAME", cls: "play", tip: "On the game page." };
+  }
+  function renderClass() {
+    const ps = state.players.filter((p) => !p.out);
+    $("clslist").innerHTML = "";
+    ps.forEach((p) => {
+      const li = document.createElement("li"), tag = statusTag(p);
+      li.innerHTML = '<span class="who"></span><span class="stag"></span>';
+      li.firstChild.textContent = p.builder; li.lastChild.textContent = tag.text; li.lastChild.className = "stag " + tag.cls; li.lastChild.setAttribute("data-tip", tag.tip);
+      $("clslist").appendChild(li);
+    });
+    $("classp").hidden = !ps.length;
   }
 
   function renderLeaders() {

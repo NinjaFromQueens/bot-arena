@@ -10,7 +10,7 @@ const read = (p) => fs.readFileSync(path.join(pub, p), "utf8");
 const logo = "data:image/svg+xml;base64," + Buffer.from(read("img/logo.svg")).toString("base64");
 
 function bundle(page, links) {
-  let html = read(page);
+  let html = read(page).replace(/<script src="\/socket\.io\/socket\.io\.js"><\/script>\n?/g, ""); // no server offline
   // inline local scripts and the shared stylesheet
   html = html.replace(/<script src="\/js\/([\w-]+\.js)"><\/script>/g, (_m, f) => `<script>\n${read("js/" + f).replace(/<\/script/gi, "<\\/script")}\n</script>`);
   html = html.replace(/<link rel="stylesheet" href="\/css\/style\.css">/, () => `<style>\n${read("css/style.css")}\n</style>`);

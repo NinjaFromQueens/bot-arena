@@ -23,7 +23,7 @@
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
       b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
-      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
+      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
       el.appendChild(b);
     });
     const cur = el.children[mIdx]; if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch {}
@@ -535,5 +535,6 @@
     try { draw(now / 1000, dt); } catch (err) { console.error(err); }
     requestAnimationFrame(loop);
   })(last);
+  if (window.Presence) Presence.where(mIdx + 1); // the mission it opened on
   window.__lab = { get design() { return design; }, setDesign(d) { design = F.clampDesign({ ...design, ...d }); changed(); }, launch, get run() { return run; } };
 })();

@@ -96,6 +96,37 @@ function settleForfeits(room) {
 }
 
 
+// ---------------- presence ----------------
+// Which page each connected device is on. The home page gets anonymous counts; a teacher's board gets
+// a page + number for each of its own students (only when the student's saved game pass checks out).
+const PAGES = ["home", "play", "host", "practice", "lab", "learn"];
+const presence = new Map(); // socket.id -> { page, n, t, code, playerId }
+function presenceCounts() {
+  const c = { online: 0, play: 0, practice: 0, lab: 0, learn: 0, live: 0 };
+  for (const p of presence.values()) { if (p.page === "host") continue; c.online++; if (p.page in c) c[p.page]++; }
+  for (const r of rooms.values()) if (r.phase === "tournament") c.live++;
+  return c;
+}
+let countsTimer = null;
+function countsChanged() { // at most one update every 1.5 s, however busy it gets
+  if (countsTimer) return;
+  countsTimer = setTimeout(() => { countsTimer = null; io.to("presence:watch").emit("presence:counts", presenceCounts()); }, 1500);
+}
+function classStatus(room) {
+  const out = {};
+  for (const p of presence.values()) {
+    if (p.code !== room.code || !room.players.has(p.playerId)) continue;
+    const cur = out[p.playerId];
+    // a student with several tabs open: show the most recent page that isn't just the game page
+    if (!cur || (cur.page === "play" && p.page !== "play") || (p.page !== "play" && p.t > cur.t)) out[p.playerId] = { page: p.page, n: p.n, t: p.t };
+  }
+  return out;
+}
+function statusChanged(room) {
+  if (!room || room.statusTimer) return;
+  room.statusTimer = setTimeout(() => { room.statusTimer = null; toHosts(room, "room:status", classStatus(room)); }, 800);
+}
+
 // ---------------- stats + awards ----------------
 function blankStats() { return { swings: 0, hits: 0, dealt: 0, taken: 0, maxHit: 0, grabs: 0, shields: 0, matches: 0, bursts: 0 }; }
 function recordStats(room, c) {
@@ -148,6 +179,10 @@ io.on("connection", (socket) => {
   let joined = null; // { room, role: "host" | "player", playerId }
 
   function roomFor(code) { return rooms.get(String(code || "").toUpperCase().trim()); }
+  function linkPresence(room, playerId) {
+    const p = presence.get(socket.id) || { page: "play", n: 0, t: Date.now() };
+    p.code = room.code; p.playerId = playerId; p.t = Date.now(); presence.set(socket.id, p); statusChanged(room);
+  }
   function requireHost(cb) {
     if (!joined || joined.role !== "host") { cb && cb({ ok: false, error: "Only the host can do that." }); return null; }
     return joined.room;
@@ -160,7 +195,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" };
     socket.join(code);
     cb && cb({ ok: true, code, hostKey: room.hostKey });
-    broadcast(room);
+    broadcast(room); statusChanged(room);
   });
 
   socket.on("host:resume", (d, cb) => {
@@ -169,7 +204,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
-    broadcast(room);
+    broadcast(room); statusChanged(room);
   });
 
   socket.on("room:check", (d, cb) => {
@@ -194,7 +229,7 @@ io.on("connection", (socket) => {
         if (room.phase === "lobby") { p.bot = bot; p.builder = builder; }
         joined = { room, role: "player", playerId: p.id };
         socket.join(room.code);
-        cb && cb({ ok: true, playerId: p.id, token: p.token, rejoined: true });
+        cb && cb({ ok: true, playerId: p.id, token: p.token, rejoined: true }); linkPresence(room, p.id);
         return broadcast(room);
       }
     }
@@ -205,6 +240,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "player", playerId: p.id };
     socket.join(room.code);
     cb && cb({ ok: true, playerId: p.id, token: p.token });
+    linkPresence(room, p.id);
     io.to(room.code).emit("room:joined", { id: p.id });
     broadcast(room);
   });
@@ -249,7 +285,7 @@ io.on("connection", (socket) => {
     room.phase = "tournament"; room.current = null; room.championId = null; room.awards = [];
     for (const p of room.players.values()) { p.pts = 0; p.stats = null; }
     cb && cb({ ok: true });
-    broadcast(room);
+    broadcast(room); countsChanged();
   });
 
   // Host asks for the next match. The server decides the result (seeded),
@@ -275,6 +311,23 @@ io.on("connection", (socket) => {
   });
 
   // Students predict the winner of the match shown on the board.
+  socket.on("presence:hello", (d) => {
+    const page = d && PAGES.includes(d.page) ? d.page : null; if (!page) return;
+    const p = { page, n: Number.isInteger(d.n) && d.n >= 0 && d.n < 100 ? d.n : 0, t: Date.now(), code: null, playerId: null };
+    const who = d.who, room = who && roomFor(who.code), pl = room && room.players.get(who.playerId);
+    if (pl && typeof who.token === "string" && pl.token === who.token) { p.code = room.code; p.playerId = pl.id; }
+    const old = presence.get(socket.id);
+    if (old && old.code && !p.code) { p.code = old.code; p.playerId = old.playerId; } // the game page links itself on join
+    presence.set(socket.id, p);
+    if (d.watch) { socket.join("presence:watch"); socket.emit("presence:counts", presenceCounts()); }
+    countsChanged(); if (p.code) statusChanged(rooms.get(p.code));
+  });
+  socket.on("presence:where", (d) => {
+    const p = presence.get(socket.id); if (!p) return;
+    p.n = d && Number.isInteger(d.n) && d.n >= 0 && d.n < 100 ? d.n : 0; p.t = Date.now();
+    if (p.code) statusChanged(rooms.get(p.code));
+  });
+
   socket.on("player:predict", (d, cb) => {
     if (!joined || joined.role !== "player") return cb && cb({ ok: false });
     const room = joined.room, c = room.current, pid = joined.playerId;
@@ -347,6 +400,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    const pr = presence.get(socket.id);
+    if (pr) { presence.delete(socket.id); countsChanged(); if (pr.code) statusChanged(rooms.get(pr.code)); }
     if (!joined) return;
     if (joined.role === "host") joined.room.hosts.delete(socket.id);
     if (joined.role === "player") {

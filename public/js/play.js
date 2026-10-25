@@ -2,7 +2,7 @@
 (function () {
   const E = window.Engine;
   const $ = (id) => document.getElementById(id);
-  const socket = io();
+  const socket = io(); window.baSocket = socket;
   const params = new URLSearchParams(location.search);
   const code = (params.get("code") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
   const store = {

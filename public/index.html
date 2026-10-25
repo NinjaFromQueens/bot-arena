@@ -20,10 +20,13 @@
   .card h2 { font-size: 26px; }
   .card.join { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
   .codein { font-size: 34px !important; text-align: center; letter-spacing: .3em !important; font-weight: 700; padding: 12px !important; }
+  .online { font-family: var(--mono); font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .online b { color: var(--fg); }
+  .online i { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px #4fd18b26; flex: none; }
   .tagline { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--orange); text-transform: uppercase; }
 </style>
 </head>
-<body>
+<body data-page="home">
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/">
@@ -35,6 +38,7 @@
     <span class="tagline">Sense · Think · Act</span>
     <h1>Build a robot.<br>Battle the class.</h1>
     <p class="intro">Design a robot on your own device, join your teacher's game with a code, and watch your bot fight in the tournament on the board.</p>
+    <p class="online" id="online" hidden></p>
   </section>
   <div class="cards">
     <form class="panel card join" id="joinform" autocomplete="off">
@@ -68,7 +72,7 @@
 </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
+  const socket = io(); window.baSocket = socket;
   const code = document.getElementById("code"), msg = document.getElementById("msg");
   code.addEventListener("input", () => { code.value = code.value.toUpperCase().replace(/[^A-Z]/g, ""); msg.textContent = ""; });
   document.getElementById("joinform").addEventListener("submit", (e) => {
@@ -81,5 +85,6 @@
     });
   });
 </script>
+<script src="/js/presence.js"></script>
 </body>
 </html>

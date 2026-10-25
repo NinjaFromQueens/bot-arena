@@ -122,7 +122,7 @@
   .done-card .medal { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #ffe680, #ffd23f 55%, #c99a12); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 34px; box-shadow: 0 6px 0 #8f6d0a; animation: pop .6s cubic-bezier(.3,1.8,.5,1); }
 </style>
 </head>
-<body>
+<body data-page="learn">
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/">
@@ -160,6 +160,8 @@
 <script src="/js/motors.js"></script>
 <script src="/js/arm.js"></script>
 <script src="/js/tips.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/presence.js"></script>
 <script src="/js/learn.js"></script>
 </body>
 </html>

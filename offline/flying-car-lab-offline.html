@@ -292,7 +292,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   @media (max-width: 440px) { .opt span { display: none; } .cards3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 </style>
 </head>
-<body>
+<body data-page="lab">
 <div class="wrap">
   <header class="top">
     <a class="brand" href="bot-arena-offline.html">
@@ -430,6 +430,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     ],
   };
   const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
   const MAXW = 75;
   const SLOTS = ["body", "sensor", "brain", "tool"];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -901,7 +902,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     };
   })();
 
-  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { TUNE, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
@@ -1357,6 +1358,37 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
 </script>
 <script>
+/*
+ * Live presence: tells the server which page this device is on, plus a lesson or mission number,
+ * and fills in "N online now" on pages that have an #online element.
+ * Students who joined a game also send their saved game pass, so the teacher's board can show
+ * "LESSON 6" next to their name. Only numbers are sent, never text.
+ * Does nothing in the offline backups (no server, no Socket.IO).
+ */
+(function () {
+  if (!window.io || location.protocol === "file:") { window.Presence = { where() {} }; return; }
+  const page = document.body.dataset.page;
+  const socket = window.baSocket || io(); // reuse the page's own connection when it has one
+  let n = 0;
+  const pass = () => { try { const s = JSON.parse(localStorage.getItem("ba-session")); return s && s.code && s.playerId && s.token ? { code: s.code, playerId: s.playerId, token: s.token } : null; } catch { return null; } };
+  const hello = () => socket.emit("presence:hello", { page, n, who: page === "play" ? null : pass(), watch: !!document.getElementById("online") });
+  socket.on("connect", hello);
+  if (socket.connected) hello();
+  socket.on("presence:counts", (c) => {
+    const el = document.getElementById("online"); if (!el) return;
+    const bits = [`<b>${c.online}</b> online now`];
+    if (c.play) bits.push(`${c.play} in games`);
+    if (c.learn) bits.push(`${c.learn} in lessons`);
+    if (c.lab) bits.push(`${c.lab} in the Lab`);
+    if (c.practice) bits.push(`${c.practice} practicing`);
+    if (c.live) bits.push(`${c.live} tournament${c.live === 1 ? "" : "s"} live`);
+    el.innerHTML = `<i></i>${bits.join(" · ")}`; el.hidden = false;
+  });
+  window.Presence = { where(num) { n = num | 0; socket.emit("presence:where", { n }); } };
+})();
+
+</script>
+<script>
 /* Flying Car Lab: build a car, pick a mission, launch, and read the flight report. */
 (function () {
   const E = window.Engine, F = window.Flight;
@@ -1382,7 +1414,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
       b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
-      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
+      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
       el.appendChild(b);
     });
     const cur = el.children[mIdx]; if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch {}
@@ -1894,6 +1926,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     try { draw(now / 1000, dt); } catch (err) { console.error(err); }
     requestAnimationFrame(loop);
   })(last);
+  if (window.Presence) Presence.where(mIdx + 1); // the mission it opened on
   window.__lab = { get design() { return design; }, setDesign(d) { design = F.clampDesign({ ...design, ...d }); changed(); }, launch, get run() { return run; } };
 })();
 

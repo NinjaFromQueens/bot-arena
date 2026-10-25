@@ -357,11 +357,13 @@
     cur = { i, step: 0, score: 0, total: LESSONS[i].steps.filter((s) => s.type === "quiz").length, answered: {}, ok: {} };
     $("v-list").hidden = true; $("v-lesson").hidden = false;
     try { history.replaceState(null, "", "#lesson-" + (i + 1)); } catch {}
+    if (window.Presence) Presence.where(i + 1);
     renderStep(); window.scrollTo(0, 0);
   }
   function closeLesson() {
     cur = null; $("v-list").hidden = false; $("v-lesson").hidden = true;
     try { history.replaceState(null, "", location.pathname); } catch {}
+    if (window.Presence) Presence.where(0);
     renderList();
   }
   $("back").onclick = closeLesson;

@@ -17,6 +17,8 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 **Presentation clicker:** on the board, Space or → runs **Next match** (and starts the fight early while the Up Next card is up), so a clicker can drive the tournament.
 
+**Who's online:** the home page shows anonymous counts ("37 online now · 12 in games · 9 in lessons · 6 in the Lab"). On the board, each student in your game gets a tag on their lobby card, and a **Class status** panel during the tournament, showing GAME, LESSON 6, LAB 3, PRACTICE or OFFLINE. Only the teacher's board sees names, and a device only counts as a student after its saved game pass is checked.
+
 **Emoji reactions:** during the tournament, students can tap 👏 🔥 😮 😂 💪 🤖 on their device and the emoji floats up over the battle on the board. Reactions are anonymous and limited to one per student every 1.2 seconds, and the **Reactions** switch on the board turns them off.
 
 **Music:** the **Music** button on the board plays background loops made in the browser (no audio files): a laid-back groove in the lobby and between matches, a suspense loop while students predict, battle music during each fight (it cuts out at the KO so the win sound lands), and a victory anthem on the champion screen. Music and Sound are separate buttons, and both start off. Students' devices never play music.
@@ -138,7 +140,8 @@ public/js/learn.js     Self-guided lessons (content + interactives)
 public/js/sensors.js   Sensor rules and ray casting for the sensor lesson simulators (shared with tests)
 public/js/motors.js    DC motor + gearbox, servo and stepper rules for the motor lesson simulators (shared with tests)
 public/js/arm.js       Robot arm kinematics (reach, forward, inverse) and holding torque for the arm lessons (shared with tests)
-public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files)
+public/js/presence.js  Tells the server which page each device is on; the home page counter and the board's class status
+public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files), synthesized with Web Audio (no audio files)
 public/js/tips.js      Tooltips for every page: any element with data-tip="..." gets one (hover, focus or tap)
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)

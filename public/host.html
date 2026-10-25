@@ -27,6 +27,11 @@
   .pcard .bn { font-family: var(--display); font-weight: 700; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcard .bl { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcard.off { opacity: .5; }
+  .stag { justify-self: center; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; padding: 2px 7px; border-radius: 5px; background: #ffffff14; color: var(--muted); }
+  .stag.learn { background: var(--blue-soft); color: var(--blue); } .stag.lab { background: #c58cff26; color: var(--purple); } .stag.practice { background: var(--orange-soft); color: var(--orange-hi); } .stag.play { background: #4fd18b26; color: var(--good); }
+  .cls { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; max-height: 260px; overflow-y: auto; }
+  .cls li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
+  .cls .who { font-family: var(--display); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pcard .kick { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; opacity: 0; transition: opacity .15s; font-size: 14px; }
   .pcard:hover .kick, .pcard .kick:focus-visible { opacity: 1; }
   @media (hover: none) { .pcard .kick { opacity: .8; } } /* touch boards have no hover */
@@ -108,7 +113,7 @@
   @media (max-width: 1000px) { .lobby, .tour { grid-template-columns: minmax(0, 1fr); } .joinpanel { position: static; } }
 </style>
 </head>
-<body>
+<body data-page="host">
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/">
@@ -202,6 +207,10 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
           <ol class="leaders" id="leaderlist"></ol>
           <p class="small" id="leaderempty">Students pick a winner on their device before each match. Correct picks earn a point.</p>
         </div>
+        <div class="panel" id="classp">
+          <h2 style="margin-bottom:10px"><span class="hastip" tabindex="0" data-tip="What each student's device is showing right now: the game page, a lesson, the Flying Car Lab or practice mode. Only you can see this.">Class status</span></h2>
+          <ul class="cls" id="clslist"></ul>
+        </div>
         <div class="panel tourctl" id="donectl" hidden>
           <button class="btn big" id="again" type="button" data-tip="Back to the lobby with the same robots and code, ready for a new bracket. Students can change robots first. Prediction points go back to 0.">New tournament, same robots</button>
           <button class="btn ghost" id="newgame" type="button" data-tip="End this game and make a new join code. Students will need to join again.">New game code</button>
@@ -222,5 +231,6 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
 <script src="/js/battle.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/js/host.js"></script>
+<script src="/js/presence.js"></script>
 </body>
 </html>
