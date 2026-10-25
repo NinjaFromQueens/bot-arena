@@ -15,6 +15,7 @@ Last updated: October 24, 2026
 | # | Feature | Notes |
 |---|---|---|
 | F-03 | Motors lesson unit | Branch `motors-lessons` (built on `battle-animation`). Four lessons with simulators: DC motors and gears, Servo motors, Stepper motors, Pick the right motor. Rules in `motors.js`, checked by `motors.test.js`. Waiting on teacher review. |
+| F-13 | Robot arm lessons | Same branch. Links and joints (arm simulator: reach, forward and inverse kinematics) and Arm strength (levers and torque with kg·cm servo ratings). Rules in `arm.js`, checked by `arm.test.js`. Waiting on teacher review. |
 | F-01 | Battle art and animation | Branch `battle-animation`. Per-tool attacks (hammer wind-up and slam, gripper clamp and hold, spinner blur and double hit), hit-stop, crit flash and camera punch, shield-block ripple, dodge afterimage, damage scars, smoke when low, K.O. slow motion, victory poses, garage arena with a cheering crowd. Waiting on teacher review before merging to `main`. |
 
 ---

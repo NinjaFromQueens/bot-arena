@@ -40,7 +40,7 @@ Every part has a strength and a weakness, and all 75 legal builds were tested ag
 
 ## Robot Lessons (`/learn`)
 
-Thirteen self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, DC motors and gears, Servo motors, Stepper motors, Pick the right motor, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
+Fifteen self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, DC motors and gears, Servo motors, Stepper motors, Pick the right motor, Links and joints, Arm strength: levers and torque, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
 
 The three sensor lessons each have a visual simulator:
 - **Ultrasonic simulator:** ping a hard wall, a pillow, or a tilted wall at any distance and watch the sound travel in slow motion. Students time the echo, and discover that soft things, tilted walls, and anything past 4 m send back no echo.
@@ -51,7 +51,11 @@ The motor lessons have simulators too:
 - **Gearbox simulator:** drive a robot up a flat track, a 10° ramp or a 25° ramp with no gearbox, 5:1, 20:1 or 50:1 and a 3 V or 6 V battery. A torque bar shows what each wheel needs against what the motor and gears can give. Students make it stall, climb the steep ramp, and find the fastest gear for the gentle one.
 - **Servo simulator:** slide the pulse width (1.0–2.0 ms, sent every 20 ms) to aim a servo arm at two blocks, then push the arm and watch feedback put it back.
 - **Stepper simulator:** watch the coils switch on in order, make an exact quarter turn and a full turn, and overload it until it skips steps while the controller still thinks it turned all the way.
-- **Motor match:** pick DC gearmotor, servo, stepper or brushless for five real jobs. Scores count first tries. Progress is saved on the device, and each lesson ends with a link into the game where students use what they learned.
+- **Motor match:** pick DC gearmotor, servo, stepper or brushless for five real jobs.
+
+And the robot arm lessons:
+- **Robot arm simulator:** drive a two-link arm (18 cm + 14 cm) with shoulder and elbow sliders to touch blocks, find out one block is out of reach (38.5 cm away, max reach 32 cm), and watch the computer solve the angles itself with inverse kinematics, elbow up or elbow down.
+- **Arm strength simulator:** hold a 50, 100 or 200 g block on a 10, 20 or 30 cm arm with a small (2 kg·cm) or standard (10 kg·cm) servo. Students make the small servo give up, then get it to hold 200 g anyway by raising the arm to shorten the sideways distance. Scores count first tries. Progress is saved on the device, and each lesson ends with a link into the game where students use what they learned.
 
 ## Flying Car Lab (`/lab`)
 
@@ -131,6 +135,7 @@ public/js/lab.js       Flying Car Lab page: builder, animation, report
 public/js/learn.js     Self-guided lessons (content + interactives)
 public/js/sensors.js   Sensor rules and ray casting for the sensor lesson simulators (shared with tests)
 public/js/motors.js    DC motor + gearbox, servo and stepper rules for the motor lesson simulators (shared with tests)
+public/js/arm.js       Robot arm kinematics (reach, forward, inverse) and holding torque for the arm lessons (shared with tests)
 public/js/music.js     Host-board background music, synthesized with Web Audio (no audio files)
 public/js/tips.js      Tooltips for every page: any element with data-tip="..." gets one (hover, focus or tap)
 test/bracket.test.js   Bracket and determinism tests (npm test)
@@ -142,6 +147,7 @@ test/lab-refs.js       Runs "typical student" designs and prints outcomes and ti
 test/music.test.js     Every music pattern is well-formed (part of npm test)
 test/sensors.test.js   Sensor simulators follow what the lessons teach (part of npm test)
 test/motors.test.js    Motor simulators follow what the lessons teach (part of npm test)
+test/arm.test.js       Robot arm simulators follow what the lessons teach (part of npm test)
 ```
 
 The server picks a random seed for each match and computes the winner. The host screen replays the exact same fight from that seed, so results can't be changed from a browser.

@@ -5,7 +5,7 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 ## Commands
 - `npm install` then `npm start` (port 3000, or `PORT`)
 - `npm run dev` restarts on file changes
-- `npm test` runs bracket + battle determinism, Flying Car Lab, music pattern, sensor lesson, and motor lesson tests
+- `npm test` runs bracket + battle determinism, Flying Car Lab, music pattern, sensor lesson, motor lesson, and robot arm lesson tests
 - `npm run balance` prints win rates for every legal build. Run it after ANY change to `PARTS` or battle rules. Target: every part 45–55%, most builds 40–60%, ~11–14 attacks per fight.
 - `node test/tune.js 250` hill-climbs the numbers in `PARTS` and prints a suggestion (does not edit files)
 
@@ -24,6 +24,7 @@ Classroom robotics battle game for a middle/high school robotics class (Fall Rob
 
 - Sensor lessons (Ultrasonic, Lidar, Sensor showdown in `learn.js`): their simulators use `public/js/sensors.js` (UMD). `Sensors.read` decides what each sensor detects and writes the student-facing reason; `Sensors.cast` is the lidar ray caster. Lesson text and quizzes rely on these rules (ultrasonic: soft, tilted, past 4 m; lidar: glass; infrared: glass, black, past 0.8 m), and `test/sensors.test.js` checks them. Change a rule and the tests tell you which lesson claim broke.
 - Motor lessons (DC motors and gears, Servo motors, Stepper motors, Pick the right motor in `learn.js`): their simulators use `public/js/motors.js` (UMD). `drive(gear, rampDeg, volts)` is the DC motor + gearbox model (linear torque-speed line, 80% gearbox efficiency), `servoAngle`/`servoStep` the servo (1.0–2.0 ms → 0–180°, feedback loop), `stepperRun` the stepper (200 steps/turn, steps slip past `maxRate` for the load). `test/motors.test.js` checks every claim the lessons and quizzes make (stalls, fastest gear, pulse widths, skipped steps). Volts stay at 3 V and 6 V: small hobby motors are made for about that, and 9 V gave silly speeds.
+- Robot arm lessons (Links and joints, Arm strength in `learn.js`): `public/js/arm.js` (UMD). `forward`/`inverse` are 2-link kinematics (18 + 14 cm, shoulder 0–180°, elbow ±150°; "elbow up" means the solution with the higher elbow, worked out geometrically, not by sign). `BLOCKS` are the targets (green and blue reachable, red out of reach on purpose). `holdTorque(kg, cm, angle)` is (block + half the 40 g link) × sideways distance, in kg·cm. `test/arm.test.js` checks the lesson claims (32 cm reach, two solutions for blue, small servo fails at 70° and holds at 75°). In `learn.js` use `E.ease`, not a bare `ease`: it isn't imported there.
 - Host-board music: `public/js/music.js` (UMD, browser-only synth, no audio files). Tracks are pattern strings in `TRACKS` (one chord per bar, 16 steps per bar; token key at the top of the file). `host.js` calls `Music.play(scene)`: `garage` in the lobby and between matches, `hype` on the Up Next card, `null` (silence) for the countdown and at each KO, `fight` from the first move, `champion` 1.5 s after the fanfare. `VOL` keeps it under the sound effects. `test/music.test.js` checks every pattern is well-formed.
 
 - `offline/*.html` are generated single-file backups (practice + Lab). Run `npm run offline` after changing anything in `public/` so they stay in sync; never edit them by hand.

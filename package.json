@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/bracket.test.js && node test/lab.test.js && node test/music.test.js && node test/sensors.test.js && node test/motors.test.js",
+    "test": "node test/bracket.test.js && node test/lab.test.js && node test/music.test.js && node test/sensors.test.js && node test/motors.test.js && node test/arm.test.js",
     "balance": "node test/balance.js 40",
     "lab": "node test/lab-explore.js 6000",
     "offline": "node scripts/build-offline.js"

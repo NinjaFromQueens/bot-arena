@@ -230,6 +230,56 @@
       next: { label: "Build a robot in practice mode", href: "/practice" },
     },
     {
+      id: "links", n: "Links and joints", about: "How a robot arm is built, how far it can reach, and how it works out its angles.",
+      steps: [
+        { type: "read", html: `<p class="big">A robot arm is a chain of links and joints.</p>
+          <svg class="part" viewBox="0 0 360 190" role="img" aria-label="A two-link robot arm on a base. Labels point to the base, the shoulder joint, link 1, the elbow joint, link 2 and the gripper.">
+            <rect x="34" y="150" width="72" height="28" rx="6" fill="#55535c" stroke="#141316" stroke-width="3"/>
+            <g stroke-linecap="round"><line x1="70" y1="150" x2="182" y2="72" stroke="#141316" stroke-width="20"/><line x1="70" y1="150" x2="182" y2="72" stroke="#f46524" stroke-width="13"/>
+            <line x1="182" y1="72" x2="282" y2="112" stroke="#141316" stroke-width="17"/><line x1="182" y1="72" x2="282" y2="112" stroke="#ff8a50" stroke-width="10"/></g>
+            <g stroke="#141316" stroke-width="3" stroke-linecap="round"><line x1="282" y1="112" x2="300" y2="100"/><line x1="282" y1="112" x2="296" y2="124"/></g>
+            <g fill="#2b2a30" stroke="#141316" stroke-width="3"><circle cx="70" cy="150" r="11"/><circle cx="182" cy="72" r="10"/></g>
+            <g fill="#c9c5d1"><circle cx="70" cy="150" r="4"/><circle cx="182" cy="72" r="4"/></g>
+            <g font-family="JetBrains Mono, monospace" font-size="13" fill="#f4f1ea"><text x="112" y="168">shoulder</text><text x="40" y="188">base</text><text x="88" y="100">link 1</text><text x="160" y="44">elbow</text><text x="214" y="80">link 2</text><text x="296" y="140">gripper</text></g>
+          </svg>
+          <p><b>Links</b> are the stiff parts, like the bones in your arm. <b>Joints</b> are where links connect and move, like your shoulder and elbow.</p>
+          <ul><li><b>Turning joints</b> (engineers say <i>revolute</i>) rotate like a door hinge. A servo usually drives each one.</li>
+          <li><b>Sliding joints</b> (<i>prismatic</i>) move in a straight line, like a drawer.</li></ul>` },
+        { type: "read", html: `<h3>Degrees of freedom</h3>
+          <p>Each joint that can move on its own adds one <b>degree of freedom</b>. Two joints let an arm reach spots on a flat surface. To reach any spot in 3D <i>and</i> point its gripper in any direction, an arm needs six.</p>
+          <p>Your own arm has about seven, so you can keep your hand flat on a table and still move your elbow.</p>
+          <p>The simulator next has two links: an 18 cm upper arm and a 14 cm forearm.</p>` },
+        { type: "interactive", kind: "armsim" },
+        { type: "read", html: `<h3>Working backwards</h3>
+          <p>In the simulator you picked joint angles and watched where the hand went. That's <b>forward kinematics</b>.</p>
+          <p>Robots usually need the opposite: "The block is here. What angles do I need?" That's <b>inverse kinematics</b>, and the robot's computer solves it with trigonometry.</p>
+          <p>Most spots can be reached two ways, elbow up or elbow down, like reaching for a cup with your elbow high or low.</p>
+          <p>And no arm reaches farther than its links laid end to end. Here that's 18 + 14 = <b>32 cm</b>.</p>` },
+        { type: "quiz", q: "A robot arm has an 18 cm link and a 14 cm link. What's the farthest its hand can reach from the shoulder?", options: ["14 cm", "18 cm", "32 cm", "252 cm"], answer: 2, explain: "Laid out straight, the links add up: 18 + 14 = 32 cm. Anything farther is out of reach." },
+        { type: "quiz", q: "Which kind of joint moves in a straight line instead of turning?", options: ["A turning (revolute) joint", "A sliding (prismatic) joint", "A link", "A gripper"], answer: 1, explain: "A sliding joint moves in a line, like a drawer. A turning joint rotates, like a hinge." },
+        { type: "quiz", q: "A robot knows where a block is and works out the joint angles to reach it. What's that called?", options: ["Forward kinematics", "Inverse kinematics", "Degrees of freedom", "Holding torque"], answer: 1, explain: "Working backwards from a target to the angles is inverse kinematics." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
+      id: "armtorque", n: "Arm strength: levers and torque", about: "Why a weight far out is harder to hold, and how servo strength is measured.",
+      steps: [
+        { type: "read", html: `<p class="big">The farther out a weight is, the harder a joint has to work.</p>
+          <p>Try it: hold a full water bottle close to your chest, then straight out at arm's length. Same bottle, but it feels much heavier far away.</p>
+          <p>That twisting effort is <b>torque</b>. It depends on the weight and on how far out it is <b>sideways</b> from the joint:</p>
+          <p class="formula">torque = weight × sideways distance</p>
+          <p>Hobby servos print their strength in <b>kg·cm</b>. A <b>2 kg·cm</b> servo can hold 2 kg at 1 cm, 200 g at 10 cm, or just 100 g at 20 cm.</p>` },
+        { type: "interactive", kind: "torquesim" },
+        { type: "read", html: `<h3>Why the shoulder works hardest</h3>
+          <p>The shoulder holds up everything past it: both links, the elbow servo, the gripper and whatever it's carrying. The elbow only holds what's past the elbow.</p>
+          <p>So engineers put the strongest servo at the shoulder, keep links light (aluminum or carbon fiber), and pick things up close to the base when they can. Big machines like cranes add a <b>counterweight</b> on the other side.</p>` },
+        { type: "quiz", q: "A servo is rated 2 kg·cm. Ignoring the arm's own weight, how heavy a block can it hold 10 cm from the joint?", options: ["20 g", "200 g", "2 kg", "20 kg"], answer: 1, explain: "2 kg·cm ÷ 10 cm = 0.2 kg, which is 200 g." },
+        { type: "quiz", q: "Your arm's servo can't hold a block straight out. Which change helps?", options: ["Use a longer arm", "Hold the block closer to the joint, or raise the arm so it's not as far out sideways", "Use a heavier gripper", "Point the camera at it"], answer: 1, explain: "Torque depends on the sideways distance. Closer or higher means less torque." },
+        { type: "quiz", q: "In a robot arm, which joint usually needs the strongest servo?", options: ["The gripper", "The wrist", "The shoulder, closest to the base", "They all need the same"], answer: 2, explain: "The shoulder holds up the whole arm plus the load, so it needs the most torque." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
       id: "tradeoffs", n: "Weight and trade-offs", about: "Why engineers can't have everything, and how a weight limit forces choices.",
       steps: [
         { type: "read", html: `<p class="big">Engineers can't have everything. Every choice gives something and costs something.</p>
@@ -1162,6 +1212,178 @@
         box.appendChild(r);
       });
       setNext(!!cur.ok[cur.step]);
+    },
+
+    armsim(card) {
+      const AR = window.Arm, key = cur.step, B = Object.fromEntries(AR.BLOCKS.map((b) => [b.id, b])), R = AR.reach();
+      const TASKS = [["green", "Touch the green block"], ["blue", "Touch the blue block"], ["red", "Try to reach the red block"]];
+      const redDist = Math.hypot(B.red.x, B.red.y), redDir = (Math.atan2(B.red.y, B.red.x) * 180) / Math.PI;
+      const st = { s: 120, e: -60, show: false, auto: null, byComputer: false, sol: 0, done: {}, shown: 0 };
+      card.innerHTML = `<h3>Robot arm simulator</h3><p>Move the <b>shoulder</b> and <b>elbow</b> sliders to touch the blocks with the gripper.</p>
+        <div class="sim"><canvas aria-label="Side view of a two-link robot arm on a table, with a green, a blue and a red block on stands."></canvas></div>
+        <div class="slider" data-tip="Turns the whole arm at the base. 0° points right, 90° points up, 180° points left."><div class="row"><span>Shoulder</span><b id="a-sv"></b></div><input type="range" id="a-s" min="0" max="180" step="1" aria-label="Shoulder angle in degrees"></div>
+        <div class="slider" data-tip="Bends the forearm. 0° keeps the arm straight. Negative bends it clockwise, positive counterclockwise."><div class="row"><span>Elbow</span><b id="a-ev"></b></div><input type="range" id="a-e" min="-150" max="150" step="1" aria-label="Elbow angle in degrees"></div>
+        <div class="readout simout"><div tabindex="0" data-tip="Where the gripper is: x is sideways and y is up, measured from the shoulder."><b id="a-pos">-</b>hand position</div><div tabindex="0" data-tip="Straight-line distance from the shoulder to the gripper. It can never be more than 32 cm."><b id="a-dist">-</b>from the shoulder</div></div>
+        <div class="btnrow"><button class="btn ghost" id="a-reach" type="button" aria-pressed="false" data-tip="Shade every spot the gripper can reach.">Show reach</button><button class="btn ghost" id="a-auto" type="button" data-tip="Let the computer work out the angles for the blue block (inverse kinematics). Press again to see the other way.">Computer: reach blue</button></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="a-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const tasks = () => { q("#a-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const sliders = () => { q("#a-s").value = Math.round(st.s); q("#a-e").value = Math.round(st.e); q("#a-sv").textContent = Math.round(st.s) + "°"; q("#a-ev").textContent = Math.round(st.e) + "°"; };
+      const complete = (k, msg) => {
+        if (st.done[k]) return;
+        st.done[k] = true; tasks(); E.Sound.play(k === "red" ? "miss" : "beep");
+        const all = TASKS.every(([t]) => st.done[t]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        setFb(card, true, msg + (all ? "<br><b>All 3 done!</b> An arm's reach is set by its links and joints." : ""));
+      };
+      const onSlide = () => { st.s = +q("#a-s").value; st.e = +q("#a-e").value; st.auto = null; st.byComputer = false; sliders(); };
+      q("#a-s").addEventListener("input", onSlide); q("#a-e").addEventListener("input", onSlide);
+      q("#a-reach").onclick = () => { st.show = !st.show; q("#a-reach").setAttribute("aria-pressed", st.show); q("#a-reach").textContent = st.show ? "Hide reach" : "Show reach"; E.Sound.play("click"); };
+      q("#a-auto").onclick = () => {
+        const up = st.sol % 2 === 0, sol = AR.inverse(B.blue.x, B.blue.y, up); st.sol++;
+        st.auto = { from: { s: st.s, e: st.e }, to: { s: sol.shoulder, e: sol.elbow }, t0: performance.now(), up }; st.byComputer = true;
+        E.Sound.play("scan");
+        setFb(card, true, `<b>The computer solved it</b> with inverse kinematics: shoulder ${Math.round(sol.shoulder)}°, elbow ${Math.round(sol.elbow)}° (elbow ${up ? "up" : "down"}). Press again to see the other way.`);
+      };
+      const draw = (now) => {
+        if (st.auto) {
+          const k = Math.min(1, (now - st.auto.t0) / 900), z = E.ease.out(k);
+          st.s = st.auto.from.s + (st.auto.to.s - st.auto.from.s) * z; st.e = st.auto.from.e + (st.auto.to.e - st.auto.from.e) * z; sliders();
+          if (k >= 1) st.auto = null;
+        }
+        const { elbow, hand } = AR.forward(st.s, st.e), dist = Math.hypot(hand.x, hand.y);
+        if (!st.byComputer) {
+          for (const id of ["green", "blue"]) if (Math.hypot(hand.x - B[id].x, hand.y - B[id].y) < 1.8) complete(id, `<b>Got it!</b> Shoulder ${Math.round(st.s)}°, elbow ${Math.round(st.e)}° puts the gripper on the ${B[id].n}. You found the angles yourself, by trying.`);
+          if (Math.abs(st.e) < 10 && Math.abs(st.s - redDir) < 8) complete("red", `<b>Out of reach.</b> The red block is ${redDist.toFixed(1)} cm from the shoulder, but the links only add up to ${R.max} cm (${AR.ARM.l1} + ${AR.ARM.l2}). No angles can reach it.`);
+        }
+        if (now - st.shown > 80) { st.shown = now; q("#a-pos").textContent = `${hand.x.toFixed(1)}, ${hand.y.toFixed(1)}`; q("#a-dist").textContent = dist.toFixed(1) + " cm"; }
+        const { ctx, w, h } = E.fit(cv), sc = Math.min(w / 78, h / 41), ox = (w - 78 * sc) / 2 + 36 * sc, oy = h - 3 * sc;
+        const P = (x, y) => [ox + x * sc, oy - y * sc];
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.lineWidth = 1; // 5 cm grid
+        for (let x = -35; x <= 40; x += 5) { const [px] = P(x, 0); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, oy); ctx.stroke(); }
+        for (let y = 5; y <= 40; y += 5) { const [, py] = P(0, y); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke(); }
+        if (st.show) { // everywhere the gripper can reach (above the table)
+          ctx.fillStyle = "rgba(79,209,139,.10)"; ctx.beginPath(); ctx.arc(ox, oy, R.max * sc, Math.PI, 0); ctx.arc(ox, oy, R.min * sc, 0, Math.PI, true); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = "rgba(79,209,139,.6)"; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(ox, oy, R.max * sc, Math.PI, 0); ctx.stroke(); ctx.setLineDash([]);
+        }
+        ctx.fillStyle = "#2b2a30"; ctx.fillRect(0, oy, w, h - oy); ctx.fillStyle = "rgba(255,255,255,.12)"; ctx.fillRect(0, oy, w, 1.5); // table
+        const fs = Math.max(10, Math.round(sc * 1.6));
+        AR.BLOCKS.forEach((b) => { // blocks on stands
+          const [bx, by] = P(b.x, b.y), [, base] = P(b.x, 0), half = 2 * sc;
+          ctx.fillStyle = "#3a3842"; ctx.fillRect(bx - sc * 0.4, by + half, sc * 0.8, base - by - half);
+          ctx.fillStyle = b.color; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; E.rr(ctx, bx - half, by - half, half * 2, half * 2, 3); ctx.fill(); ctx.stroke();
+        });
+        if (st.done.red) { const [bx, by] = P(B.red.x, B.red.y); ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ff8a8a"; ctx.textAlign = "center"; ctx.fillText(`${redDist.toFixed(1)} cm away`, bx, by - 3 * sc); }
+        const [sx, sy] = P(0, 0), [ex, ey] = P(elbow.x, elbow.y), [hx, hy] = P(hand.x, hand.y);
+        ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.setLineDash([4, 5]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx, hy); ctx.stroke(); ctx.setLineDash([]); // shoulder-to-hand distance
+        ctx.fillStyle = "#55535c"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, 3.2 * sc, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); // base
+        ctx.strokeStyle = "rgba(255,210,63,.55)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, 5 * sc, 0, -(st.s * Math.PI) / 180, true); ctx.stroke(); // shoulder angle
+        const link = (x1, y1, x2, y2, wdt, col) => { ctx.lineCap = "round"; ctx.strokeStyle = "#141316"; ctx.lineWidth = wdt + 5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = wdt; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.lineCap = "butt"; };
+        link(sx, sy, ex, ey, 2 * sc, "#f46524"); link(ex, ey, hx, hy, 1.5 * sc, "#ff8a50");
+        const ga = ((st.s + st.e) * Math.PI) / 180; // gripper fingers along the forearm
+        ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(3, sc * 0.6); ctx.lineCap = "round";
+        [-0.6, 0.6].forEach((o) => { ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(ga + o) * 2 * sc, hy - Math.sin(ga + o) * 2 * sc); ctx.stroke(); });
+        ctx.lineCap = "butt";
+        [[sx, sy, 1.7], [ex, ey, 1.4]].forEach(([x, y, r]) => { ctx.fillStyle = "#2b2a30"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r * sc, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#c9c5d1"; ctx.beginPath(); ctx.arc(x, y, r * sc * 0.4, 0, 7); ctx.fill(); });
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.textAlign = "left";
+        ctx.fillText(`${Math.round(st.s)}°`, sx + 5.5 * sc, sy - 1.2 * sc);
+        if (st.byComputer) { ctx.fillStyle = "#38a7f0"; ctx.textAlign = "center"; ctx.fillText("computer is driving", w / 2, fs + 6); }
+        ctx.textAlign = "left";
+      };
+      sliders(); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
+    },
+
+    torquesim(card) {
+      const AR = window.Arm, key = cur.step;
+      const TASKS = [["fail", "Make the small servo give up"], ["strong", "Hold 200 g on the 30 cm arm"], ["smart", "Hold 200 g on the 30 cm arm with the small servo"]];
+      const st = { w: 1, L: 1, sv: 0, ang: 0, run: null, done: {}, last: 0, puff: 0 };
+      const fx = new E.FX();
+      card.innerHTML = `<h3>Arm strength simulator</h3><p>Pick a block, an arm length and a servo, set the arm's angle, then press <b>Hold</b>. Can the shoulder servo hold it up?</p>
+        <div class="sim tall"><canvas aria-label="Side view: a servo holds an arm with a block at the end. A line shows how far out the block is sideways."></canvas></div>
+        <div class="lbl">Block</div><div class="chips" id="t-w"></div>
+        <div class="lbl">Arm length</div><div class="chips" id="t-l"></div>
+        <div class="lbl">Shoulder servo</div><div class="chips" id="t-sv"></div>
+        <div class="slider" data-tip="How far above level the arm points. 0° is straight out sideways, 90° is straight up."><div class="row"><span>Arm angle</span><b id="t-av"></b></div><input type="range" id="t-ang" min="0" max="90" step="5" aria-label="Arm angle in degrees"></div>
+        <div class="tq" tabindex="0" data-tip="The bar is how much torque the servo can give. The white line is how much it takes to hold this block here. Past the line, it holds. Short of it, it gives up.">
+          <div class="row"><span>Torque needed (block + arm)</span><b id="t-need">-</b></div><div class="row"><span>Servo can give</span><b id="t-have">-</b></div>
+          <div class="tqbar"><i id="t-havebar"></i><span id="t-needmark"></span></div></div>
+        <div class="simrow"><div class="readout simout" style="flex:1"><div tabindex="0" data-tip="How far the block is from the joint, sideways. Only this distance counts for torque."><b id="t-d">-</b>sideways distance</div></div><button class="btn" id="t-hold" type="button" data-tip="Ask the servo to hold the arm at this angle.">Hold</button></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="t-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const cfg = () => { const kg = AR.WEIGHTS[st.w], L = AR.LENGTHS[st.L], sv = AR.SERVOS[st.sv]; return { kg, L, sv, d: L * Math.cos((st.ang * Math.PI) / 180), need: AR.holdTorque(kg, L, st.ang), have: sv.kgcm }; };
+      const tasks = () => { q("#t-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const meter = () => { // live, so students can see the numbers change as they explore
+        const c = cfg(), mx = Math.max(c.need, c.have) * 1.15;
+        q("#t-need").textContent = c.need.toFixed(2) + " kg·cm"; q("#t-have").textContent = c.have + " kg·cm"; q("#t-d").textContent = c.d.toFixed(1) + " cm";
+        q("#t-havebar").style.width = (c.have / mx) * 100 + "%"; q("#t-havebar").className = c.need > c.have ? "bad" : ""; q("#t-needmark").style.left = (c.need / mx) * 100 + "%";
+        q("#t-av").textContent = st.ang + "°";
+      };
+      const rows = () => {
+        chipRow(q("#t-w"), AR.WEIGHTS.map((k) => k * 1000 + " g"), AR.WEIGHTS.map((k) => `A ${k * 1000} g block in the gripper.`), st.w, (i) => { st.w = i; reset(); });
+        chipRow(q("#t-l"), AR.LENGTHS.map((l) => l + " cm"), AR.LENGTHS.map((l) => `A ${l} cm arm from the shoulder to the gripper.`), st.L, (i) => { st.L = i; reset(); });
+        chipRow(q("#t-sv"), AR.SERVOS.map((s) => `${s.n}: ${s.kgcm} kg·cm`), ["A small hobby servo, rated about 2 kg·cm.", "A standard-size hobby servo, rated about 10 kg·cm."], st.sv, (i) => { st.sv = i; reset(); });
+      };
+      const reset = () => { st.run = null; rows(); meter(); };
+      q("#t-ang").addEventListener("input", (e) => { st.ang = +e.target.value; st.run = null; meter(); });
+      q("#t-hold").onclick = () => {
+        const c = cfg(); st.run = { t0: performance.now(), ...c, ok: c.need <= c.have, ang: st.ang, fin: false };
+        q(".fb").innerHTML = ""; E.Sound.play("go");
+      };
+      const finish = (run) => {
+        run.fin = true;
+        if (!run.ok && run.sv.kgcm === AR.SERVOS[0].kgcm) st.done.fail = true;
+        const big = run.ok && run.kg === 0.2 && run.L === 30;
+        if (big) st.done.strong = true;
+        if (big && run.sv.kgcm === AR.SERVOS[0].kgcm) st.done.smart = true;
+        tasks();
+        const all = TASKS.every(([t]) => st.done[t]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        const msg = run.ok
+          ? `<b>Holding!</b> The block is ${run.d.toFixed(1)} cm out sideways, so it takes ${run.need.toFixed(2)} kg·cm. The servo can give ${run.have}.${big && run.sv.kgcm === AR.SERVOS[0].kgcm ? " Raising the arm made the sideways distance short enough for the small servo!" : ""}`
+          : `<b>Too heavy!</b> At ${run.d.toFixed(1)} cm out sideways it takes ${run.need.toFixed(2)} kg·cm, but this servo only gives ${run.have}. Hold it closer, raise the arm, or use a stronger servo.`;
+        setFb(card, run.ok || all, msg + (all ? "<br><b>All 3 done!</b> Torque is weight times sideways distance." : ""));
+        E.Sound.play(run.ok ? "beep" : "miss");
+      };
+      const draw = (now) => {
+        const dt = Math.min(0.05, (now - (st.last || now)) / 1000); st.last = now;
+        const run = st.run, c = cfg(), { ctx, w, h } = E.fit(cv);
+        let ang = st.ang, shake = 0;
+        if (run) {
+          const k = Math.min(1, (now - run.t0) / 900);
+          if (!run.ok) { ang = Math.max(-40, run.ang - 55 * E.ease.out(k)); shake = run.fin ? 0 : Math.sin(now / 15) * 1.5; if ((st.puff -= dt) <= 0 && !run.fin) { st.puff = 0.2; fx.burst(w * 0.17, h * 0.5, 2, { colors: ["#6d6a75"], kind: "smoke", speed: 30, g: -60, life: 1.1, size: 6, drag: 0.95, angle: -Math.PI / 2, spread: 1 }); } }
+          if (!run.fin && k >= 1) finish(run);
+        }
+        ctx.clearRect(0, 0, w, h);
+        const gy = h * 0.92, px = w * 0.17, py = h * 0.6, ppc = Math.min((w * 0.7) / 30, (py - h * 0.05) / 30), len = c.L * ppc, a = (ang * Math.PI) / 180; // the longest arm fits pointing up or sideways
+        ctx.fillStyle = "#2b2a30"; ctx.fillRect(0, gy, w, h - gy);
+        ctx.fillStyle = "#3a3842"; ctx.fillRect(px - w * 0.018, py, w * 0.036, gy - py); // stand
+        const failing = run && !run.ok;
+        ctx.fillStyle = failing ? "#ff5d5d" : "#2468b3"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; E.rr(ctx, px - w * 0.06 + shake, py - h * 0.07, w * 0.12, h * 0.14, 8); ctx.fill(); ctx.stroke(); // servo
+        const fs = Math.max(10, Math.round(h * 0.04));
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#f4f1ea"; ctx.textAlign = "center"; ctx.fillText(`${c.sv.kgcm} kg·cm`, px + shake, py + h * 0.07 + fs + 4);
+        const tx = px + Math.cos(a) * len + shake, ty = py - Math.sin(a) * len;
+        ctx.lineCap = "round"; ctx.strokeStyle = "#141316"; ctx.lineWidth = h * 0.05; ctx.beginPath(); ctx.moveTo(px + shake, py); ctx.lineTo(tx, ty); ctx.stroke();
+        ctx.strokeStyle = "#f46524"; ctx.lineWidth = h * 0.032; ctx.beginPath(); ctx.moveTo(px + shake, py); ctx.lineTo(tx, ty); ctx.stroke(); ctx.lineCap = "butt";
+        ctx.fillStyle = "#f4f1ea"; ctx.strokeStyle = "#141316"; ctx.beginPath(); ctx.arc(px + shake, py, h * 0.03, 0, 7); ctx.fill(); ctx.stroke();
+        const bs = h * (0.06 + c.kg * 0.25); // block hangs from the gripper; heavier blocks look bigger
+        ctx.strokeStyle = "#aaa6b0"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx, ty + h * 0.05); ctx.stroke();
+        ctx.fillStyle = "#8f8b98"; ctx.strokeStyle = "#141316"; E.rr(ctx, tx - bs / 2, ty + h * 0.05, bs, bs, 4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#141316"; ctx.font = `700 ${Math.max(9, Math.round(bs * 0.32))}px "JetBrains Mono", monospace`; ctx.fillText(`${c.kg * 1000}g`, tx, ty + h * 0.05 + bs / 2 + 4);
+        // the sideways distance that counts
+        const dy = gy - h * 0.05, dpx = px + c.d * ppc;
+        ctx.strokeStyle = "#ffd23f"; ctx.fillStyle = "#ffd23f"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, dy); ctx.lineTo(dpx, dy); ctx.stroke();
+        [px, dpx].forEach((x) => { ctx.beginPath(); ctx.moveTo(x, dy - 6); ctx.lineTo(x, dy + 6); ctx.stroke(); });
+        ctx.setLineDash([3, 4]); ctx.strokeStyle = "rgba(255,210,63,.4)"; ctx.beginPath(); ctx.moveTo(dpx, dy); ctx.lineTo(dpx, ty + h * 0.05); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillText(`${c.d.toFixed(1)} cm sideways`, Math.max(px + 40, (px + dpx) / 2), dy - 8);
+        if (run && run.fin) { ctx.font = `700 ${fs + 6}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = run.ok ? "#4fd18b" : "#ff5d5d"; ctx.fillText(run.ok ? "HOLDING" : "TOO HEAVY", w * 0.62, h * 0.14); }
+        ctx.textAlign = "left";
+        fx.update(dt); fx.draw(ctx);
+      };
+      q("#t-ang").value = st.ang; rows(); meter(); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
     },
   };
 
