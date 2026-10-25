@@ -643,7 +643,9 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
 
   class FX {
-    constructor() { this.p = []; this.txt = []; this.shake = 0; }
+    constructor() { this.p = []; this.txt = []; this.rings = []; this.shake = 0; }
+    // an expanding circle: the shock of an impact, or a shield taking a hit
+    ring(x, y, r, color, life = 0.35, width = 4) { this.rings.push({ x, y, r, color, life: 0, max: life, width }); }
     burst(x, y, n, o = {}) {
       if (RM) n = Math.ceil(n / 3);
       for (let i = 0; i < n; i++) {
@@ -663,8 +665,14 @@ canvas { display: block; width: 100%; max-width: 100%; }
         q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt;
       }
       this.txt = this.txt.filter((t) => (t.life += dt) < t.max);
+      this.rings = this.rings.filter((r) => (r.life += dt) < r.max);
     }
     draw(ctx) {
+      for (const r of this.rings) {
+        const k = r.life / r.max;
+        ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.color; ctx.lineWidth = r.width * (1 - k * 0.6);
+        ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.25 + 0.75 * ease.out(k)), 0, 7); ctx.stroke();
+      }
       for (const q of this.p) {
         const k = 1 - q.life / q.max, soft = q.kind === "smoke" || q.kind === "dust";
         ctx.globalAlpha = soft ? k * 0.55 : Math.min(1, k * 1.6);
@@ -682,7 +690,9 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
 
   // x = center, gy = ground y, s = unit size, dir 1 faces right.
-  // o: lunge 0..1, hurt 0..1, tilt (rad), shield, bob
+  // o: lunge 0..1 (simple attack), hurt 0..1, tilt (rad), shield, bob,
+  //    and for battles: reach 0..1 (arm out), hammer (swing angle), clamp (gripper, 1 = shut), spinA (spinner angle),
+  //    damage 0..1 (scratches, cracked visor, flickering eye), pose "win" (arm pumping)
   function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
     const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
     const lw = Math.max(1.5, s * 0.05);
@@ -742,6 +752,20 @@ canvas { display: block; width: 100%; max-width: 100%; }
     }
     ctx.fillStyle = "rgba(255,255,255,.35)"; rr(ctx, -tw / 2 + 0.1 * s, ty + 0.08 * s, tw * 0.45, 0.07 * s, 0.03 * s); ctx.fill();
     ctx.fillStyle = ink; [-1, 1].forEach((sx) => { ctx.beginPath(); ctx.arc(sx * (tw / 2 - 0.1 * s), ty + 0.24 * s, 0.03 * s, 0, 7); ctx.fill(); });
+    const dmg = o.damage || 0;
+    if (dmg > 0.15) {
+      // battle scars: the same spots every frame (seeded by the parts), more of them as health drops
+      let seed = b.body * 7 + b.sensor * 13 + b.tool * 17 + b.color * 31 + 1;
+      const rand = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+      const n = Math.min(7, Math.floor((dmg - 0.1) * 9));
+      ctx.save(); rr(ctx, -tw / 2, ty, tw, th, 0.16 * s); ctx.clip();
+      for (let k = 0; k < n; k++) {
+        const cx = -tw / 2 + (0.15 + rand() * 0.7) * tw, cy = ty + (0.12 + rand() * 0.76) * th, a = rand() * Math.PI, L = (0.12 + rand() * 0.16) * s;
+        if (k % 3 === 2) { ctx.fillStyle = "rgba(20,19,22,.35)"; ctx.beginPath(); ctx.ellipse(cx, cy, 0.09 * s, 0.06 * s, a, 0, 7); ctx.fill(); }
+        else { ctx.strokeStyle = "rgba(20,19,22,.55)"; ctx.lineWidth = lw * 0.6; ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * L / 2, cy - Math.sin(a) * L / 2); ctx.lineTo(cx + Math.cos(a) * L / 2, cy + Math.sin(a) * L / 2); ctx.stroke(); }
+      }
+      ctx.restore(); ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    }
 
     const hw = 0.82 * s, hh = 0.56 * s, hy = ty - hh - 0.1 * s;
     ctx.fillStyle = metal; rr(ctx, -0.1 * s, ty - 0.13 * s, 0.2 * s, 0.16 * s, 0.03 * s); ctx.fill(); ctx.stroke();
@@ -750,7 +774,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     ctx.beginPath(); ctx.moveTo(-0.18 * s, hy); ctx.lineTo(-0.24 * s, hy - 0.22 * s); ctx.stroke();
     ctx.save(); ctx.shadowColor = BRAIN_COL[b.brain]; ctx.shadowBlur = 10 + 6 * Math.sin(t * 5);
     ctx.fillStyle = BRAIN_COL[b.brain]; ctx.beginPath(); ctx.arc(-0.24 * s, hy - 0.26 * s, 0.07 * s, 0, 7); ctx.fill(); ctx.restore();
-    const blink = (t % 3.7) < 0.12 ? 0.15 : 1;
+    const blink = (t % 3.7) < 0.12 || (dmg > 0.82 && (t * 11) % 1 < 0.35) ? 0.15 : 1; // nearly knocked out: the eye flickers
     if (b.sensor === 0) {
       ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0.12 * s, hy + hh / 2, 0.2 * s, 0, 7); ctx.fill(); ctx.stroke();
       ctx.save(); ctx.translate(0.12 * s, hy + hh / 2); ctx.scale(1, blink);
@@ -775,34 +799,43 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ctx.lineWidth = lw;
     }
     ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
+    if (dmg > 0.6) { // cracked visor
+      ctx.strokeStyle = "rgba(20,19,22,.7)"; ctx.lineWidth = lw * 0.7; ctx.beginPath();
+      ctx.moveTo(-hw / 2 + 0.1 * s, hy + 0.08 * s); ctx.lineTo(-hw / 2 + 0.2 * s, hy + 0.2 * s); ctx.lineTo(-hw / 2 + 0.16 * s, hy + 0.28 * s); ctx.lineTo(-hw / 2 + 0.27 * s, hy + 0.4 * s); ctx.stroke();
+      ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    }
 
-    const l = o.lunge || 0, reach = Math.sin(l * Math.PI) * 0.5 * s;
-    const sx = tw / 2 - 0.06 * s, sy = ty + 0.32 * th, ex = sx + 0.45 * s + reach, ey = sy + 0.05 * s;
+    const l = o.lunge || 0, reach = (o.reach ?? Math.sin(l * Math.PI)) * 0.5 * s;
+    const armA = o.pose === "win" ? -1.05 + Math.sin(t * 8) * 0.2 : 0.11; // a winner pumps its tool in the air
+    const sx = tw / 2 - 0.06 * s, sy = ty + 0.32 * th, len = 0.45 * s + reach, ex = sx + Math.cos(armA) * len, ey = sy + Math.sin(armA) * len;
     ctx.strokeStyle = ink; ctx.lineWidth = s * 0.16; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
     ctx.strokeStyle = metal; ctx.lineWidth = s * 0.1; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
     ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, 0.07 * s, 0, 7); ctx.fill();
     ctx.strokeStyle = ink; ctx.lineWidth = lw;
+    ctx.save(); ctx.translate(ex, ey); ctx.rotate(armA - 0.11); // tools are drawn from the hand, facing along the arm
     if (b.tool === 0) {
-      const open = (0.18 - 0.14 * Math.sin(l * Math.PI)) * s;
+      const open = (0.18 - 0.14 * (o.clamp ?? Math.sin(l * Math.PI))) * s;
       ctx.lineWidth = s * 0.1;
-      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey - open); ctx.lineTo(ex + 0.4 * s, ey - 0.03 * s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.24 * s, ey + open); ctx.lineTo(ex + 0.4 * s, ey + 0.03 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0.24 * s, -open); ctx.lineTo(0.4 * s, -0.03 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0.24 * s, open); ctx.lineTo(0.4 * s, 0.03 * s); ctx.stroke();
       ctx.lineWidth = lw;
     } else if (b.tool === 1) {
-      const sw = -0.5 + Math.sin(l * Math.PI) * 1.1;
-      ctx.save(); ctx.translate(ex, ey); ctx.rotate(sw);
+      ctx.rotate(o.hammer ?? -0.5 + Math.sin(l * Math.PI) * 1.1);
       ctx.fillStyle = "#6b4a2f"; rr(ctx, 0, -0.05 * s, 0.28 * s, 0.1 * s, 0.03 * s); ctx.fill(); ctx.stroke();
       const hg2 = ctx.createLinearGradient(0.24 * s, 0, 0.52 * s, 0); hg2.addColorStop(0, "#5c5a63"); hg2.addColorStop(1, "#2a292e");
       ctx.fillStyle = hg2; rr(ctx, 0.24 * s, -0.3 * s, 0.28 * s, 0.6 * s, 0.06 * s); ctx.fill(); ctx.stroke();
-      ctx.restore();
+      ctx.fillStyle = "rgba(255,255,255,.18)"; rr(ctx, 0.28 * s, -0.26 * s, 0.06 * s, 0.52 * s, 0.03 * s); ctx.fill();
     } else {
-      ctx.save(); ctx.translate(ex + 0.24 * s, ey); ctx.rotate(t * (l > 0 ? 40 : 9));
+      ctx.translate(0.24 * s, 0);
+      const fast = o.spinA !== undefined && o.spinFast;
+      if (fast) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = "#e9e6ee"; ctx.beginPath(); ctx.arc(0, 0, 0.37 * s, 0, 7); ctx.fill(); ctx.restore(); } // motion blur
+      ctx.rotate(o.spinA ?? t * (l > 0 ? 40 : 9));
       ctx.fillStyle = "#3a3940"; ctx.beginPath(); ctx.arc(0, 0, 0.28 * s, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = "#e9e6ee";
       for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.moveTo(0.1 * s, -0.06 * s); ctx.lineTo(0.36 * s, -0.02 * s); ctx.lineTo(0.3 * s, 0.07 * s); ctx.lineTo(0.1 * s, 0.06 * s); ctx.closePath(); ctx.fill(); ctx.stroke(); }
       ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(0, 0, 0.07 * s, 0, 7); ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
     if (o.shield) {
       ctx.save(); ctx.globalAlpha = 0.22 + 0.1 * Math.sin(t * 8);
       ctx.fillStyle = "#4fd18b"; ctx.strokeStyle = "#4fd18b"; ctx.lineWidth = 3;
