@@ -82,31 +82,36 @@
   };
 
 
-  function showWhy(x, A, B) {
+  function showWhy(x, A, B, pre = "") {
     const L = 1 - x.winner, loser = [A, B][L];
-    $("why-h").textContent = `Why ${[A, B][x.winner].name} won`;
-    $("why-r").innerHTML = "";
-    x.sides[0].reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $("why-r").appendChild(li); });
-    $("why-t").innerHTML = "<b></b> <span></span>"; $("why-t").firstChild.textContent = `Tip for ${loser.name}:`; $("why-t").lastChild.textContent = x.sides[L].tip;
-    $("why").hidden = false;
+    $(pre + "why-h").textContent = `Why ${[A, B][x.winner].name} won`;
+    $(pre + "why-r").innerHTML = "";
+    x.sides[0].reasons.forEach((r) => { const li = document.createElement("li"); li.textContent = r; $(pre + "why-r").appendChild(li); });
+    $(pre + "why-t").innerHTML = "<b></b> <span></span>"; $(pre + "why-t").firstChild.textContent = `Tip for ${loser.name}:`; $(pre + "why-t").lastChild.textContent = x.sides[L].tip;
+    $(pre + "why").hidden = false;
   }
 
   // ---------------- BATTLE ----------------
-  const stage = new BattleStage($("arena"), {
+  // health bars and battle log for a stage whose element ids start with pre
+  const hud = (pre) => ({
     onHP(hp, instant) {
       [["ba", "ga", 0], ["bb", "gb", 1]].forEach(([m, g, k]) => {
-        if (instant) { $(g).style.transition = "none"; $(m).style.transition = "none"; }
-        $(m).style.width = hp[k] + "%"; $(g).style.width = hp[k] + "%";
-        if (instant) { void $(m).offsetWidth; $(g).style.transition = ""; $(m).style.transition = ""; }
+        m = $(pre + m); g = $(pre + g);
+        if (instant) { g.style.transition = "none"; m.style.transition = "none"; }
+        m.style.width = hp[k] + "%"; g.style.width = hp[k] + "%";
+        if (instant) { void m.offsetWidth; g.style.transition = ""; m.style.transition = ""; }
       });
-      $("ha").textContent = Math.round(hp[0]); $("hb").textContent = Math.round(hp[1]);
+      $(pre + "ha").textContent = Math.round(hp[0]); $(pre + "hb").textContent = Math.round(hp[1]);
     },
     onLog(e, bot) {
       const d = document.createElement("div"), labels = { sense: "SENSE", think: "THINK", act: "ACT", win: "WINNER", stall: "STUCK" };
       d.innerHTML = `<span class="chip c-${e.kind === "stall" ? "act" : e.kind}">${labels[e.kind]}</span><span><span class="${e.me === 0 ? "a" : "b"}"></span><span></span></span>`;
       const p = d.lastElementChild.children; p[0].textContent = bot.name; p[1].textContent = e.txt;
-      $("log").appendChild(d); $("log").scrollTop = $("log").scrollHeight;
+      $(pre + "log").appendChild(d); $(pre + "log").scrollTop = $(pre + "log").scrollHeight;
     },
+  });
+  const stage = new BattleStage($("arena"), {
+    ...hud(""),
     onDone(w) {
       if (lastFight) showWhy(lastFight.why, lastFight.A, lastFight.B);
       busy = false; $("skip").disabled = true; $("fight").disabled = false; $("fight").textContent = "Rematch";
@@ -130,14 +135,108 @@
   $("skip").onclick = () => stage.skip();
   [["sp1", 1], ["sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { stage.speed = v; $("sp1").setAttribute("aria-pressed", v === 1); $("sp2").setAttribute("aria-pressed", v === 2); }));
 
+  // ---------------- BRAIN CHALLENGES ----------------
+  // A fixed robot against a boss; the student only writes the Custom brain rules. Same 10 seeds every run (challenges.js).
+  const CH = window.Challenges;
+  let chProg = store.get("rba-challenges", {}), chRules = store.get("rba-ch-rules", {}); // id -> { best, done } | id -> rules
+  let chI = 0, chRes = null, chHint = 0, chWatch = null;
+  const partsOf = (b) => `${PARTS.body[b.body].n} · ${PARTS.sensor[b.sensor].n} · ${PARTS.tool[b.tool].n}`;
+  const chOpen = (i) => i === 0 || !!(chProg[CH.LIST[i - 1].id] || {}).done;
+  const chStage = new BattleStage($("ch-arena"), {
+    ...hud("ch-"),
+    onDone() { if (chWatch) showWhy(chWatch.why, chWatch.A, chWatch.B, "ch-"); $("ch-skip").disabled = true; },
+  });
+  chStage.speed = 2;
+  function renderChPick() {
+    $("ch-list").innerHTML = "";
+    CH.LIST.forEach((ch, i) => {
+      const b = document.createElement("button"), p = chProg[ch.id] || {}, boss = parseCode(ch.boss).name;
+      b.type = "button"; b.textContent = (i + 1) + (p.done ? " ✓" : chOpen(i) ? "" : " 🔒");
+      b.className = p.done ? "done" : ""; b.disabled = !chOpen(i); b.setAttribute("aria-pressed", i === chI);
+      b.setAttribute("aria-label", `Challenge ${i + 1}: ${ch.n}, against ${boss}${p.done ? ", beaten" : chOpen(i) ? "" : ", locked"}`);
+      b.setAttribute("data-tip", chOpen(i) ? `Challenge ${i + 1}: ${ch.n} (vs ${boss}).${p.done ? ` Best: ${p.best} of ${CH.FIGHTS} wins.` : ""}` : "Beat the challenge before this one to unlock it.");
+      b.onclick = () => { E.Sound.play("click"); openCh(i); };
+      $("ch-list").appendChild(b);
+    });
+  }
+  function rulesChanged() {
+    Builder.rulesEditor($("ch-rules"), chRules[CH.LIST[chI].id], rulesChanged);
+    store.set("rba-ch-rules", chRules);
+    $("ch-results").hidden = true; // results belong to the old rules
+  }
+  function openCh(i) {
+    chI = i; chRes = null; chHint = 0; chWatch = null;
+    const ch = CH.LIST[i], [you, boss] = CH.bots(ch, []);
+    if (!Array.isArray(chRules[ch.id])) chRules[ch.id] = [];
+    $("ch-num").textContent = `CHALLENGE ${i + 1} OF ${CH.LIST.length}`; $("ch-title").textContent = ch.n;
+    [["you", you], ["boss", boss]].forEach(([k, b]) => {
+      const cv = $("ch-" + k); cv.width = cv.height = 128;
+      E.portrait(cv, b, "#1b1a1e", k === "you" ? 1 : -1);
+      $(`ch-${k}name`).textContent = b.name; $(`ch-${k}parts`).textContent = partsOf(b) + (k === "boss" && !b.rules ? ` · ${PARTS.brain[b.brain].n} brain` : "");
+    });
+    $("ch-intro").textContent = ch.intro;
+    $("ch-rules").dataset.sig = ""; rulesChanged();
+    $("ch-hints").innerHTML = ""; $("ch-hint").disabled = false; $("ch-hint").textContent = "Need a hint?";
+    $("ch-results").hidden = true; $("ch-why").hidden = true; $("ch-skip").disabled = true;
+    $("ch-log").innerHTML = '<p class="small" style="margin:0">Run the 10 fights, then tap any result to watch that fight here.</p>';
+    $("ch-na").textContent = you.name; $("ch-nb").textContent = boss.name;
+    chStage.setBots(you, boss, ch.n.toUpperCase());
+    renderChPick();
+  }
+  $("ch-hint").onclick = () => {
+    const ch = CH.LIST[chI];
+    if (chHint >= ch.hints.length) return;
+    const li = document.createElement("li"); li.textContent = ch.hints[chHint++]; $("ch-hints").appendChild(li);
+    E.Sound.play("click");
+    if (chHint >= ch.hints.length) { $("ch-hint").disabled = true; $("ch-hint").textContent = "No more hints"; }
+    else $("ch-hint").textContent = "Another hint";
+  };
+  function watchCh(k) {
+    const f = chRes.fights[k], sim = E.simulate(chRes.a, chRes.b, f.seed);
+    chWatch = { why: E.explainBattle(chRes.a, chRes.b, sim), A: chRes.a, B: chRes.b };
+    [...$("ch-dots").children].forEach((d, j) => d.setAttribute("aria-pressed", j === k));
+    $("ch-log").innerHTML = ""; $("ch-why").hidden = true; $("ch-skip").disabled = false;
+    chStage.setBots(chRes.a, chRes.b, `FIGHT ${k + 1}`); chStage.play(sim.events);
+  }
+  $("ch-run").onclick = () => {
+    const ch = CH.LIST[chI];
+    chRes = CH.run(ch, chRules[ch.id]);
+    if (!chRes) return;
+    $("ch-dots").innerHTML = "";
+    chRes.fights.forEach((f, k) => {
+      const d = document.createElement("button"); d.type = "button"; d.className = f.won ? "w" : "l"; d.textContent = f.won ? "W" : "L";
+      d.setAttribute("aria-label", `Fight ${k + 1}: ${f.won ? "won" : "lost"}. Watch it.`); d.setAttribute("data-tip", `Watch fight ${k + 1} (${f.won ? "a win" : "a loss"}).`);
+      d.onclick = () => { E.Sound.play("click"); watchCh(k); };
+      $("ch-dots").appendChild(d);
+    });
+    const p = chProg[ch.id] || {};
+    $("ch-score").textContent = chRes.passed ? `You won ${chRes.wins} of ${CH.FIGHTS}. Challenge beaten!` : `You won ${chRes.wins} of ${CH.FIGHTS}. You need ${CH.NEED}. Watch a loss, read the tip, then change a rule.`;
+    if (chRes.passed) {
+      chProg[ch.id] = { done: true, best: Math.max(p.best || 0, chRes.wins) }; store.set("rba-challenges", chProg);
+      $("ch-lessontext").textContent = ch.lesson;
+      $("ch-next").hidden = chI >= CH.LIST.length - 1;
+      E.Sound.play("fanfare");
+    } else { if (p.done) { chProg[ch.id].best = Math.max(p.best || 0, chRes.wins); store.set("rba-challenges", chProg); } E.Sound.play("miss"); }
+    $("ch-lesson").hidden = !chRes.passed;
+    $("ch-results").hidden = false;
+    renderChPick();
+    // beaten: replay a win; not yet: replay a loss, which teaches the most
+    const k = chRes.fights.findIndex((f) => f.won === chRes.passed);
+    watchCh(k < 0 ? 0 : k);
+  };
+  $("ch-next").onclick = () => { if (chI < CH.LIST.length - 1) { E.Sound.play("go"); openCh(chI + 1); } };
+  $("ch-skip").onclick = () => chStage.skip();
+  [["ch-sp1", 1], ["ch-sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { chStage.speed = v; $("ch-sp1").setAttribute("aria-pressed", v === 1); $("ch-sp2").setAttribute("aria-pressed", v === 2); }));
+  { const first = CH.LIST.findIndex((c, i) => chOpen(i) && !(chProg[c.id] || {}).done); openCh(first < 0 ? 0 : first); }
+
   // ---------------- tabs + loop ----------------
   function show(bay) {
-    ["build", "arena"].forEach((k) => { $("bay-" + k).hidden = k !== bay; $("tab-" + k).setAttribute("aria-selected", k === bay); });
+    ["build", "arena", "challenges"].forEach((k) => { $("bay-" + k).hidden = k !== bay; $("tab-" + k).setAttribute("aria-selected", k === bay); });
     try { history.replaceState(null, "", "#" + bay); } catch {}
   }
   document.querySelectorAll(".tab[data-bay]").forEach((t) => (t.onclick = () => { E.Sound.play("click"); show(t.dataset.bay); }));
   const start = (location.hash || "").replace("#", "");
-  show(["build", "arena"].includes(start) ? start : "build");
+  show(["build", "arena", "challenges"].includes(start) ? start : "build");
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
 
   renderRoster(); resetFight();

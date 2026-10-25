@@ -58,9 +58,21 @@ The battle log and the robot's thought bubble show which rule fired ("RULE 2: PO
 
 Rules matter but don't decide everything: against the other brains, no rules wins about 44%, the starting rules about 48%, and good rules about 54%. Power attacks beat shields, and shields beat the starting rules. `npm test` checks these claims.
 
+**Brain Challenges** (Practice Mode → Challenges): five boss robots, each beaten by a different idea. The student's robot is already built, so only its rules change, and each challenge is the same 10 fights every time (fixed seeds), so the same rules always get the same result. Win 6 of 10 to unlock the next one.
+
+| # | Boss | The idea |
+|---|---|---|
+| 1 | BRUISER (thick armor) | Power attacks: you hit often, so make each hit bigger |
+| 2 | TURTLE (shields every turn) | Power attacks smash shields |
+| 3 | GHOST (Legs + Ultrasonic, very hard to hit) | Aim first when your hit chance is low |
+| 4 | SMASHER (giant hammer) | Shields halve big hits, then you counterattack |
+| 5 | MEGA (fast, shields when hurt, flips) | Three rules in the right order; no single rule can win |
+
+Each has two or three hints (the last one gives the answer), tappable W/L results that replay any of the 10 fights, and a "Why ___ won" card with a tip. Progress is saved on the device. The lesson "Think: if-then rules" teaches the idea first with a robot vacuum.
+
 ## Robot Lessons (`/learn`)
 
-Fifteen self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, DC motors and gears, Servo motors, Stepper motors, Pick the right motor, Links and joints, Arm strength: levers and torque, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
+Sixteen self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, Think: if-then rules, DC motors and gears, Servo motors, Stepper motors, Pick the right motor, Links and joints, Arm strength: levers and torque, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
 
 The three sensor lessons each have a visual simulator:
 - **Ultrasonic simulator:** ping a hard wall, a pillow, or a tilted wall at any distance and watch the sound travel in slow motion. Students time the echo, and discover that soft things, tilted walls, and anything past 4 m send back no echo.
@@ -98,7 +110,7 @@ Inspired by the October 2026 flying Roadster demo. Students engineer a car that 
 The physics (`public/js/flight.js`) is a deterministic 2D simulation: gravity, thrust, air mass flow (the car gets lighter as air leaves), ramp launch, pitch and rotational inertia, thrust vectoring by the flight computer, a landing cushion timed by the computer, collisions with each vehicle, and landing impact. Numbers are simplified for the classroom.
 
 Other pages:
-- `/practice` — single-device robot building and battles with the same rules as the tournament.
+- `/practice` — single-device robot building, battles with the same rules as the tournament, and the Brain Challenges.
 
 Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (click the × on its lobby card twice). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
 
@@ -149,7 +161,9 @@ public/js/battle.js    BattleStage: animated arena used on the host board
 public/js/builder.js   Robot builder UI used on the student page
 public/js/host.js      Teacher board logic
 public/js/play.js      Student device logic
-public/js/practice.js  Single-device practice mode
+public/js/practice.js  Single-device practice mode, including the Brain Challenges page
+public/js/challenges.js The five Brain Challenges: robots, bosses, fixed seeds, hints (shared with tests)
+public/js/rulebot.js   The robot vacuum in the if-then rules lesson (shared with tests)
 public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
 public/js/lab.js       Flying Car Lab page: builder, animation, report
 public/js/learn.js     Self-guided lessons (content + interactives)
@@ -164,6 +178,8 @@ test/balance.js        Every build vs every build win-rate report (npm run balan
 test/tune.js           Automatic balance tuner; prints suggested numbers
 test/tune-brain.js     Tunes the Custom brain's moves so good rules beat bad ones; prints suggested numbers
 test/balance.test.js   Every part stays 45–55%, tip claims and rule claims stay true (part of npm test)
+test/challenges.test.js Every challenge's answer wins, naive rules lose, text claims are true (part of npm test)
+test/rulebot.test.js   The vacuum lesson's claims (order matters, the full program cleans the room) (part of npm test)
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
 test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips

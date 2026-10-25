@@ -13,6 +13,36 @@
     aim: "Your chance to hit. Comes from your sensor.",
   };
 
+  // Custom brain rules editor, used by the builder and the brain challenges. It edits `rules` in place and calls onChange.
+  // It only rebuilds when rules are added or removed, so a select keeps focus while you change it.
+  function rulesEditor(box, rules, onChange) {
+    const sig = rules.length + ":" + rules.map((r) => r.c).join("");
+    if (sig === box.dataset.sig) return;
+    box.dataset.sig = sig; box.innerHTML = "";
+    const R = E.RULES;
+    const sel = (opts, val, tip, label) => { const s = document.createElement("select"); s.setAttribute("aria-label", label); s.setAttribute("data-tip", tip); opts.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o; s.appendChild(op); }); s.value = val; return s; };
+    rules.forEach((r, i) => {
+      const row = document.createElement("div"); row.className = "rrow";
+      const num = document.createElement("b"); num.textContent = i + 1; row.appendChild(num);
+      const ifl = document.createElement("span"); ifl.textContent = "IF"; row.appendChild(ifl);
+      const c = sel(R.IF.map((x) => x.n), r.c, "When this rule should fire.", "Rule " + (i + 1) + " condition"); row.appendChild(c);
+      const cond = R.IF[r.c];
+      if (cond.v) { const v = sel(cond.v.map((x) => x + (cond.pct ? "%" : "")), r.v, "The number to compare with.", "Rule " + (i + 1) + " number"); v.onchange = () => { r.v = +v.value; Sound.play("click"); onChange(); }; row.appendChild(v); }
+      const thenl = document.createElement("span"); thenl.textContent = "THEN"; row.appendChild(thenl);
+      const a = sel(R.DO, r.a, "Attack. Power attack: more damage, misses more, and smashes through a shield. Aim first: skip this attack, the next one is much more accurate. Shield: skip this attack, halve the next hit, then counterattack.", "Rule " + (i + 1) + " move");
+      a.onchange = () => { r.a = +a.value; Sound.play("click"); onChange(); }; row.appendChild(a);
+      c.onchange = () => { r.c = +c.value; r.v = Math.min(r.v, (R.IF[r.c].v || [0]).length - 1); Sound.play("click"); onChange(); };
+      const del = document.createElement("button"); del.type = "button"; del.className = "rdel"; del.textContent = "×"; del.setAttribute("aria-label", "Remove rule " + (i + 1)); del.setAttribute("data-tip", "Remove this rule.");
+      del.onclick = () => { rules.splice(i, 1); Sound.play("click"); onChange(); }; row.appendChild(del);
+      box.appendChild(row);
+    });
+    const add = document.createElement("button"); add.type = "button"; add.className = "btn ghost radd"; add.textContent = "+ Add a rule";
+    add.disabled = rules.length >= R.max; add.setAttribute("data-tip", `Add another rule (up to ${R.max}).`);
+    add.onclick = () => { rules.push({ c: 0, v: 0, a: 0 }); Sound.play("click"); onChange(); };
+    const note = document.createElement("p"); note.className = "rnote"; note.textContent = "Rules are checked top to bottom at the start of every turn. If none fit, it attacks.";
+    box.append(add, note);
+  }
+
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
     const pv = { fx: new FX(), pop: 0, w: 300, h: 240 };
@@ -48,40 +78,14 @@
         sw.appendChild(b);
       });
     }
-    // Custom brain: a small rules editor. It only rebuilds when rules are added or removed, so a select keeps focus while you change it.
-    let rulesSig = "";
     function renderRules() {
       let box = $("rules");
       if (!box) { box = document.createElement("div"); box.className = "rules"; box.id = "rules"; $("d-brain").after(box); }
       const custom = PARTS.brain[bot.brain].custom;
       box.hidden = !custom;
-      if (!custom) { rulesSig = ""; return; }
+      if (!custom) { box.dataset.sig = ""; return; }
       if (!bot.rules) bot.rules = E.RULES.defaults.map((r) => ({ ...r }));
-      const sig = bot.rules.length + ":" + bot.rules.map((r) => r.c).join("");
-      if (sig === rulesSig) return;
-      rulesSig = sig; box.innerHTML = "";
-      const R = E.RULES;
-      const sel = (opts, val, tip, label) => { const s = document.createElement("select"); s.setAttribute("aria-label", label); s.setAttribute("data-tip", tip); opts.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o; s.appendChild(op); }); s.value = val; return s; };
-      bot.rules.forEach((r, i) => {
-        const row = document.createElement("div"); row.className = "rrow";
-        const num = document.createElement("b"); num.textContent = i + 1; row.appendChild(num);
-        const ifl = document.createElement("span"); ifl.textContent = "IF"; row.appendChild(ifl);
-        const c = sel(R.IF.map((x) => x.n), r.c, "When this rule should fire.", "Rule " + (i + 1) + " condition"); row.appendChild(c);
-        const cond = R.IF[r.c];
-        if (cond.v) { const v = sel(cond.v.map((x) => x + (cond.pct ? "%" : "")), r.v, "The number to compare with.", "Rule " + (i + 1) + " number"); v.onchange = () => { r.v = +v.value; Sound.play("click"); update(); }; row.appendChild(v); }
-        const thenl = document.createElement("span"); thenl.textContent = "THEN"; row.appendChild(thenl);
-        const a = sel(R.DO, r.a, "Attack. Power attack: more damage, misses more, and smashes through a shield. Aim first: skip this attack, the next one is much more accurate. Shield: skip this attack, halve the next hit, then counterattack.", "Rule " + (i + 1) + " move");
-        a.onchange = () => { r.a = +a.value; Sound.play("click"); update(); }; row.appendChild(a);
-        c.onchange = () => { r.c = +c.value; r.v = Math.min(r.v, (R.IF[r.c].v || [0]).length - 1); Sound.play("click"); update(); };
-        const del = document.createElement("button"); del.type = "button"; del.className = "rdel"; del.textContent = "×"; del.setAttribute("aria-label", "Remove rule " + (i + 1)); del.setAttribute("data-tip", "Remove this rule.");
-        del.onclick = () => { bot.rules.splice(i, 1); Sound.play("click"); update(); }; row.appendChild(del);
-        box.appendChild(row);
-      });
-      const add = document.createElement("button"); add.type = "button"; add.className = "btn ghost radd"; add.textContent = "+ Add a rule";
-      add.disabled = bot.rules.length >= R.max; add.setAttribute("data-tip", `Add another rule (up to ${R.max}).`);
-      add.onclick = () => { bot.rules.push({ c: 0, v: 0, a: 0 }); Sound.play("click"); update(); };
-      const note = document.createElement("p"); note.className = "rnote"; note.textContent = "Rules are checked top to bottom at the start of every turn. If none fit, it attacks.";
-      box.append(add, note);
+      rulesEditor(box, bot.rules, update);
     }
     function update() {
       bot.name = E.cleanName($("bot-name").value) || "BOT";
@@ -133,10 +137,10 @@
 
     return {
       get bot() { return { ...bot, ...(bot.rules ? { rules: bot.rules.map((r) => ({ ...r })) } : {}) }; },
-      set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; rulesSig = ""; $("bot-name").value = bot.name; update(); },
+      set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; if ($("rules")) $("rules").dataset.sig = ""; $("bot-name").value = bot.name; update(); },
       celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
       overweight() { return statsOf(bot).wt > MAXW; },
     };
   }
-  window.Builder = { mount };
+  window.Builder = { mount, rulesEditor };
 })();

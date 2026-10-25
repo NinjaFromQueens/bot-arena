@@ -128,6 +128,33 @@
       next: { label: "Pick the best sensor for your robot", href: "/practice" },
     },
     {
+      id: "rules", n: "Think: if-then rules", about: "How a robot decides what to do, why the order of its rules matters, and your Bot Arena brain.",
+      steps: [
+        { type: "read", html: `<p class="big">A robot's brain can be a list of rules: <b>IF</b> something is true, <b>THEN</b> do something.</p>
+          <p>A robot vacuum might have rules like these:</p>
+          <ul><li><b>IF</b> the bumper is pressed <b>THEN</b> turn around</li><li><b>IF</b> the cliff sensor sees a drop <b>THEN</b> back up</li><li><b>IF</b> the battery is low <b>THEN</b> drive to the charger</li></ul>
+          <p>The <b>IF</b> part checks a sensor: that's <b>Sense</b>. Picking which rule to follow is <b>Think</b>. The <b>THEN</b> part runs the motors: that's <b>Act</b>.</p>` },
+        { type: "read", html: `<h3>Order matters</h3>
+          <p>Our vacuum checks its rules from the top, every turn. The <b>first</b> rule that's true wins, and it skips the rest. Look what happens when the same two rules swap places:</p>
+          <div class="rulecmp">
+            <div class="rlist ok"><b>Turns at walls ✓</b><ol><li>IF a wall is ahead THEN turn right</li><li>IF always THEN drive forward</li></ol></div>
+            <div class="rlist no"><b>Bumps forever ✗</b><ol><li>IF always THEN drive forward</li><li class="dead">IF a wall is ahead THEN turn right</li></ol><p class="small">"IF always" is true every turn, so rule 2 never gets a chance.</p></div>
+          </div>
+          <p>Put the special cases first and the "always" rule last.</p>` },
+        { type: "interactive", kind: "rulebot" },
+        { type: "read", html: `<h3>Program your Bot Arena robot</h3>
+          <p>Pick the <b>Custom</b> brain in Bot Arena and you write its rules, up to 3. Every turn it checks them from the top, just like the vacuum:</p>
+          <ul><li><b>IF</b> the enemy's shield is up <b>THEN</b> power attack</li><li><b>IF</b> my hit chance is below 40% <b>THEN</b> aim first</li><li><b>IF</b> my health is below 50 <b>THEN</b> shield</li></ul>
+          <p>If no rule fits, it attacks. The battle log shows which rule ran each turn, so you can watch your program work.</p>
+          <p>Ready to test your rules? The <b>Brain Challenges</b> in Practice Mode have five boss robots, and each one needs a different idea.</p>` },
+        { type: "quiz", q: "A vacuum's rules are: 1. IF stairs are ahead THEN turn right. 2. IF always THEN drive forward. Stairs are ahead. What does it do?", options: ["Drives forward", "Turns right", "Both", "Nothing"], answer: 1, explain: "Rule 1 is true, so it turns right and skips rule 2. Only one rule runs each turn." },
+        { type: "quiz", q: "Which list of rules has a mistake?", options: ["1. IF a wall is ahead THEN turn right. 2. IF always THEN drive forward.", "1. IF always THEN drive forward. 2. IF a wall is ahead THEN turn right."], answer: 1, explain: "IF always is true every turn, so in the second list the wall rule never runs." },
+        { type: "quiz", q: "Your Bot Arena rules are: 1. IF my hit chance is below 40% THEN aim first. 2. IF always THEN power attack. This turn your hit chance is 82%. What does your robot do?", options: ["Aim first", "Power attack", "Shield", "Nothing"], answer: 1, explain: "82% isn't below 40%, so rule 1 is skipped. Rule 2 is always true, so it power attacks." },
+        { type: "quiz", q: "In a rule, which part is the robot's Sense step?", options: ["The IF part", "The THEN part", "The rule's number"], answer: 0, explain: "The IF part checks what the robot senses. Picking the rule is Think, and the THEN part is Act." },
+      ],
+      next: { label: "Try the Brain Challenges", href: "/practice#challenges" },
+    },
+    {
       id: "dcmotor", n: "DC motors and gears", about: "Why robots need gearboxes: trading speed for strength.",
       steps: [
         { type: "read", html: `<p class="big">A DC motor spins whenever electricity flows through it.</p>
@@ -1015,6 +1042,113 @@
         ctx.textAlign = "left";
       };
       rows(); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
+    },
+
+    rulebot(card) {
+      const R = window.Rulebot, key = cur.step, room = R.ROOM;
+      const TASKS = [["wall", "Make it turn at a wall instead of bumping"], ["stairs", "Get past the stairs without falling"], ["clean", "Clean all 3 dirt spots"]];
+      const DUR = 280; // ms per turn
+      const st = { rules: R.START.map((r) => ({ ...r })), res: null, k: -1, t0: 0, playing: false, done: {} };
+      card.innerHTML = `<h3>Program a robot vacuum</h3><p>Every turn, the vacuum checks its rules from the top and does the first one that's true. Fix its rules so it cleans the room. It starts in the top-left corner, facing right.</p>
+        <div class="sim"><canvas aria-label="A room seen from above: a round robot vacuum, three dirt spots, and stairs going down along the bottom edge."></canvas></div>
+        <p class="vstatus" id="vb-status" aria-live="polite">Press Run to watch it go.</p>
+        <div class="rules" id="vb-rules"></div>
+        <div class="btnrow"><button class="btn" id="vb-run" type="button" data-tip="Run your rules from the start and watch each turn.">Run</button><button class="btn ghost" id="vb-reset" type="button" data-tip="Put the vacuum and the dirt back where they started. Your rules stay.">Reset room</button></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="vb-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const tasks = () => { q("#vb-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const sel = (opts, val, tip, label) => { const el = document.createElement("select"); el.setAttribute("aria-label", label); el.setAttribute("data-tip", tip); opts.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o; el.appendChild(op); }); el.value = val; return el; };
+      const btn = (txt, cls, tip, label, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = txt; b.setAttribute("data-tip", tip); b.setAttribute("aria-label", label); b.onclick = () => { E.Sound.play("click"); fn(); }; return b; };
+      function rules() {
+        const box = q("#vb-rules"); box.innerHTML = "";
+        st.rules.forEach((r, i) => {
+          const row = document.createElement("div"); row.className = "rrow";
+          const num = document.createElement("b"); num.textContent = i + 1;
+          const ifl = document.createElement("span"); ifl.textContent = "IF";
+          const c = sel(R.IF, r.c, "What the vacuum checks. \"always\" is true every turn.", `Rule ${i + 1} condition`);
+          const thenl = document.createElement("span"); thenl.textContent = "THEN";
+          const a = sel(R.DO, r.a, "What the vacuum does when this rule is the first true one.", `Rule ${i + 1} action`);
+          c.onchange = () => { r.c = +c.value; changed(); }; a.onchange = () => { r.a = +a.value; changed(); };
+          const up = btn("↑", "rdel rup", "Move this rule up, so it's checked sooner.", `Move rule ${i + 1} up`, () => { st.rules.splice(i - 1, 0, st.rules.splice(i, 1)[0]); changed(true); });
+          up.disabled = i === 0;
+          const del = btn("×", "rdel", "Remove this rule.", `Remove rule ${i + 1}`, () => { st.rules.splice(i, 1); changed(true); });
+          row.append(num, ifl, c, thenl, a, up, del); box.appendChild(row);
+        });
+        const add = btn("+ Add a rule", "btn ghost radd", `Add another rule (up to ${R.MAX}). New rules go at the bottom.`, "Add a rule", () => { st.rules.push({ c: 1, a: 1 }); changed(true); });
+        add.disabled = st.rules.length >= R.MAX; box.appendChild(add);
+      }
+      function changed(rebuild) { if (rebuild) rules(); reset(); }
+      function reset() { st.res = null; st.k = -1; st.playing = false; highlight(-1); q("#vb-run").disabled = false; q("#vb-status").textContent = "Press Run to watch it go."; }
+      function highlight(i) { [...q("#vb-rules").querySelectorAll(".rrow")].forEach((r, j) => r.classList.toggle("on", j === i)); }
+      q("#vb-run").onclick = () => { E.Sound.play("go"); st.res = R.run(st.rules); st.k = 0; st.t0 = performance.now(); st.playing = true; q("#vb-run").disabled = true; showTurn(); };
+      q("#vb-reset").onclick = () => { E.Sound.play("click"); reset(); };
+      function showTurn() {
+        const f = st.res.frames[st.k];
+        if (!f) return;
+        highlight(f.rule);
+        const did = { bump: "BUMP! A wall is in the way.", fall: "It fell down the stairs!", move: "", turn: "", clean: "Dirt cleaned!", "nothing to clean": "There was no dirt here.", wait: "" }[f.what];
+        q("#vb-status").textContent = `Turn ${st.k + 1}: ${f.rule < 0 ? "no rule is true, so it waits." : `rule ${f.rule + 1}, ${R.DO[st.rules[f.rule].a]}.`} ${did}`;
+        if (f.what === "bump") E.Sound.play("hit"); else if (f.what === "clean") E.Sound.play("beep"); else if (f.what === "fall") E.Sound.play("miss");
+      }
+      function finish() {
+        const res = st.res, msgs = []; st.playing = false;
+        q("#vb-run").disabled = false;
+        const newly = [];
+        if (res.wallTurn && !st.done.wall) newly.push("wall");
+        if (!res.fell && res.metStairs && !st.done.stairs) newly.push("stairs");
+        if (res.allClean && !st.done.clean) newly.push("clean");
+        newly.forEach((k) => (st.done[k] = true)); tasks();
+        if (newly.length) E.Sound.play("win");
+        const all = TASKS.every(([k]) => st.done[k]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        const dead = R.unreachable(st.rules), first = st.rules.findIndex((r) => r.c === 0);
+        if (res.allClean) msgs.push(`<b>Spotless!</b> All 3 dirt spots cleaned in ${res.frames.length} turns, with no bumps and no falls.`);
+        else if (dead.length) msgs.push(`<b>Rule ${dead[0] + 1} never ran.</b> Rule ${first + 1} (IF always) is true every turn, so the vacuum never looks below it. Move rule ${dead[0] + 1} up with ↑.`);
+        else if (res.fell) msgs.push("<b>Oops, it drove down the stairs!</b> Add a rule for when stairs are ahead, above the drive rule.");
+        else if (res.bumps) msgs.push("<b>It keeps bumping into the wall.</b> What should it do when a wall is ahead?");
+        else if (!st.rules.some((r) => r.a === 3)) msgs.push(`<b>Safe, but it drove right over the dirt.</b> Cleaned ${res.cleaned} of 3. Add a rule for when there's dirt here.`);
+        else msgs.push(`<b>Safe, but it's going in circles.</b> Cleaned ${res.cleaned} of 3. Watch where it gets stuck and try a different turn.`);
+        if (all) msgs.push("<b>All 3 done!</b> You programmed a robot: Sense (IF), Think (pick the first true rule), Act (THEN).");
+        setFb(card, res.allClean, msgs.join("<br>"));
+      }
+      const draw = (now) => {
+        if (st.playing) {
+          const n = st.res.frames.length;
+          if (now - st.t0 > DUR) {
+            if (st.k < n - 1) { st.k++; st.t0 = now; showTurn(); }
+            else if (now - st.t0 > DUR * 1.5) finish();
+          }
+        }
+        const { ctx, w, h } = E.fit(cv);
+        ctx.clearRect(0, 0, w, h);
+        const cs = Math.min((w - 24) / room.w, (h - 24) / room.h), ox = (w - cs * room.w) / 2, oy = (h - cs * room.h) / 2;
+        ctx.fillStyle = "#55535c"; E.rr(ctx, ox - 7, oy - 7, cs * room.w + 14, cs * room.h + 14, 10); ctx.fill(); // walls
+        for (let y = 0; y < room.h; y++) for (let x = 0; x < room.w; x++) { ctx.fillStyle = (x + y) % 2 ? "#2f2d35" : "#36343d"; ctx.fillRect(ox + x * cs, oy + y * cs, cs, cs); }
+        room.stairs.forEach(([x, y]) => {
+          ctx.fillStyle = "#141316"; ctx.fillRect(ox + x * cs, oy + y * cs, cs, cs);
+          for (let k = 0; k < 4; k++) { ctx.fillStyle = `rgba(170,166,176,${0.5 - k * 0.11})`; ctx.fillRect(ox + x * cs + 3, oy + y * cs + 4 + k * cs * 0.24, cs - 6, cs * 0.1); }
+        });
+        const fs = Math.max(10, Math.round(cs * 0.2));
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ff8a50"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("STAIRS", ox + (room.stairs[0][0] + room.stairs.length / 2) * cs, oy + room.stairs[0][1] * cs + cs * 0.5);
+        const f = st.res && st.k >= 0 ? st.res.frames[st.k] : null, prev = !f ? room.start : st.k === 0 ? room.start : st.res.frames[st.k - 1];
+        const dirt = f ? f.dirt.map((d) => d.split(",").map(Number)) : room.dirt;
+        dirt.forEach(([x, y]) => { ctx.fillStyle = "#8a5a2b"; [[0.35, 0.4, 0.13], [0.6, 0.55, 0.1], [0.45, 0.68, 0.08], [0.66, 0.33, 0.07]].forEach(([a, b, r]) => { ctx.beginPath(); ctx.arc(ox + (x + a) * cs, oy + (y + b) * cs, r * cs, 0, 7); ctx.fill(); }); });
+        // the vacuum, sliding and turning between turns
+        const cur2 = f || room.start, p = f ? Math.min(1, (now - st.t0) / (DUR * 0.8)) : 1, e = E.ease.out(p);
+        let da = cur2.d - prev.d; if (da > 2) da -= 4; if (da < -2) da += 4;
+        let rx = prev.x + (cur2.x - prev.x) * e, ry = prev.y + (cur2.y - prev.y) * e, ang = (prev.d + da * e) * Math.PI / 2, sc = 1;
+        if (f && f.what === "bump") { const b = Math.sin(p * Math.PI) * 0.18; rx += [1, 0, -1, 0][f.d] * b; ry += [0, 1, 0, -1][f.d] * b; }
+        if (f && f.what === "fall") sc = 1 - e * 0.65;
+        const cx = ox + (rx + 0.5) * cs, cy = oy + (ry + 0.5) * cs, r = cs * 0.36 * sc;
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang); ctx.globalAlpha = f && f.what === "fall" ? 1 - e * 0.5 : 1;
+        ctx.fillStyle = "#f46524"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#f4f1ea"; ctx.lineWidth = r * 0.22; ctx.beginPath(); ctx.arc(0, 0, r * 0.82, -0.9, 0.9); ctx.stroke(); // front bumper
+        ctx.fillStyle = "#38a7f0"; ctx.beginPath(); ctx.arc(r * 0.35, 0, r * 0.16, 0, 7); ctx.fill(); // sensor
+        ctx.restore(); ctx.globalAlpha = 1; ctx.textBaseline = "alphabetic";
+      };
+      rules(); tasks(); setNext(!!cur.ok[key]);
       animate(cv, draw);
     },
 

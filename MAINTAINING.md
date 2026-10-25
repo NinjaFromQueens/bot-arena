@@ -46,6 +46,7 @@ git push             # Render deploys in ~2 minutes
 | --- | --- |
 | Robot part stats (attack, armor, weight) | `public/js/engine.js` → `PARTS`. Then run `npm test`: it fails if any part leaves 45–55% or a tip's counter claim ("Hammers beat Treads") stops being true. `npm run balance` prints the full report. |
 | Custom brain rules (what students can pick, how strong each move is) | `public/js/engine.js` → `RULES` (the IF and THEN choices) and the Custom entry in `PARTS.brain` (the numbers). Add new choices at the END of a list: bot codes store each choice's position. After changing numbers run `node test/tune-brain.js 0` to see the effect, then `npm test`. |
+| Brain Challenges (bosses, hints, which fights) | `public/js/challenges.js`. Each challenge lists the student's robot, the boss, the first seed of its 10 fights, and the answer. After editing, or after ANY battle number change, run `npm test`: it says which challenge broke and why. |
 | Add a new part | Add it at the END of its slot in `PARTS` (old bot codes keep working), draw it in `drawBot`, add its swing timing in `battle.js` (`HIT`, `SPARKS`), add knobs for it in `test/tune.js`, then run `node test/tune.js 300` and copy in the numbers it suggests. |
 | Part descriptions students see | `public/js/engine.js` → each part's `d` (short) and `tip` (long) |
 | Flying car parts, missions, physics | `public/js/flight.js` → `MATERIALS`, `TANK`, `NOZZLE`, `GEARS`, `MISSIONS`. Then run `npm test` and `npm run lab`. |

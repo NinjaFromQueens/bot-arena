@@ -259,6 +259,40 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .rdel:hover { color: var(--bad); border-color: var(--bad); }
 .radd { justify-self: start; padding: 7px 12px; font-size: 14px; }
 .rnote { margin: 0; font-size: 13px; color: var(--muted); }
+/* brain challenges */
+.ch-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 14px; align-items: start; }
+.ch-main { display: grid; gap: 10px; }
+.ch-main h3 { margin: 4px 0 0; }
+.ch-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.ch-pick button { font-family: var(--mono); font-weight: 700; font-size: 14px; min-width: 44px; height: 38px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.ch-pick button.done { border-color: var(--good); color: var(--good); }
+.ch-pick button[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); color: var(--fg); }
+.ch-pick button:disabled { opacity: .45; cursor: not-allowed; }
+.ch-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ch-head .num { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; color: var(--orange-hi); }
+.ch-vs { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.ch-vs .vs { font-family: var(--display); font-weight: 700; color: var(--muted); }
+.ch-bot { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ch-bot canvas { width: 64px; height: 64px; flex: none; border-radius: 10px; background: var(--bg); }
+.ch-bot div { min-width: 0; }
+.ch-bot b { display: block; font-family: var(--display); font-size: 17px; }
+.ch-bot .small { display: block; line-height: 1.3; }
+.ch-intro { margin: 0; font-size: 16px; }
+.ch-ctrl { display: flex; gap: 8px; flex-wrap: wrap; }
+.ch-hints { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.ch-hints:empty { display: none; }
+.ch-hints li { font-size: 15px; padding: 6px 10px; border-radius: 8px; background: var(--bg); border: 1px dashed var(--line); }
+.ch-results { display: grid; gap: 10px; }
+.ch-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.ch-dots button { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line); font-family: var(--mono); font-weight: 700; font-size: 13px; cursor: pointer; background: var(--bg); color: var(--muted); }
+.ch-dots button.w { background: #4fd18b26; border-color: var(--good); color: var(--good); }
+.ch-dots button.l { background: #ff5d5d1f; border-color: var(--bad); color: var(--bad); }
+.ch-dots button[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 2px; }
+.ch-score { margin: 0; font-size: 17px; font-weight: 600; }
+.ch-lesson { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--good); background: #4fd18b14; display: grid; gap: 10px; justify-items: start; }
+.ch-lesson p { margin: 0; font-size: 16px; }
+@media (max-width: 900px) { .ch-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .ch-bot { flex-direction: column; text-align: center; } .ch-bot canvas { width: 56px; height: 56px; } }
 /* phones: title and Sound on one row, the three tabs as an even row underneath */
 @media (max-width: 560px) {
   header .headright { display: contents; }
@@ -266,8 +300,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   header h1 { font-size: 24px; white-space: nowrap; }
   header .brand small { letter-spacing: .08em; white-space: nowrap; }
   header #sound { order: 1; padding: 8px 9px; font-size: 11px; }
-  header .tabs { order: 2; flex-basis: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  header .tabs { order: 2; flex-basis: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .tab { justify-content: center; padding: 9px 2px; font-size: 13px; white-space: nowrap; }
+  .tab .wide { display: none; }
   .tab i { display: none; }
 }
 </style>
@@ -290,7 +325,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       <nav class="tabs" role="tablist">
         <button class="tab" role="tab" id="tab-build" data-bay="build" aria-selected="true" data-tip="Design a robot and get its bot code."><i>1</i>Build</button>
         <button class="tab" role="tab" id="tab-arena" data-bay="arena" aria-selected="false" data-tip="Battle robots from your roster."><i>2</i>Arena</button>
-        <a class="tab" href="/lab" style="text-decoration:none" data-tip="Engineer a flying car and try its missions."><i>3</i>Flying Car Lab</a>
+        <button class="tab" role="tab" id="tab-challenges" data-bay="challenges" aria-selected="false" data-tip="Beat boss robots by writing your robot's if-then rules."><i>3</i>Challenges</button>
+        <a class="tab" href="/lab" style="text-decoration:none" data-tip="Engineer a flying car and try its missions."><i>4</i><span><span class="wide">Flying </span>Car Lab</span></a>
       </nav>
       <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
@@ -383,12 +419,58 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     </div>
   </section>
 
+  <!-- BRAIN CHALLENGES -->
+  <section class="bay" id="bay-challenges" hidden>
+    <p class="intro">Your robot is already built. Beat each boss by writing its <b>Think</b> rules: IF something is true, THEN do a move. Every challenge is the same 10 fights, so the same rules always get the same result. Win 6 to beat it.</p>
+    <div class="ch-grid">
+      <div class="panel ch-main">
+        <div class="ch-pick" id="ch-list" role="group" aria-label="Pick a challenge"></div>
+        <div class="ch-head"><span class="num" id="ch-num"></span><h2 id="ch-title"></h2></div>
+        <div class="ch-vs">
+          <div class="ch-bot"><canvas id="ch-you" aria-hidden="true"></canvas><div><b id="ch-youname"></b><span class="small" id="ch-youparts"></span></div></div>
+          <span class="vs">VS</span>
+          <div class="ch-bot"><canvas id="ch-boss" aria-hidden="true"></canvas><div><b id="ch-bossname"></b><span class="small" id="ch-bossparts"></span></div></div>
+        </div>
+        <p class="ch-intro" id="ch-intro"></p>
+        <h3>Your robot's rules</h3>
+        <div class="rules" id="ch-rules"></div>
+        <div class="ch-ctrl">
+          <button class="btn big" id="ch-run" type="button" data-tip="Fight the boss 10 times with your rules. Win 6 to beat the challenge.">Run 10 fights</button>
+          <button class="btn ghost" id="ch-hint" type="button" data-tip="Show a hint. Each tap shows one more.">Need a hint?</button>
+        </div>
+        <ol class="ch-hints" id="ch-hints"></ol>
+        <div class="ch-results" id="ch-results" hidden>
+          <div class="ch-dots" id="ch-dots" role="group" aria-label="Fight results. Tap one to watch it."></div>
+          <p class="ch-score" id="ch-score" role="status"></p>
+          <div class="ch-lesson" id="ch-lesson" hidden><p id="ch-lessontext"></p><button class="btn" id="ch-next" type="button" data-tip="Go to the next challenge.">Next challenge</button></div>
+        </div>
+      </div>
+      <div class="panel stage-card">
+        <canvas id="ch-arena" class="arena-stage" aria-label="Challenge battle"></canvas>
+        <div class="huds">
+          <div class="hud a"><div class="who"><span id="ch-na">—</span><span id="ch-ha">100</span></div><div class="hpbar"><i class="ghost" id="ch-ga" style="width:100%"></i><i class="main" id="ch-ba" style="width:100%;background:linear-gradient(90deg,#c84a12,var(--orange))"></i></div></div>
+          <span class="vs-mini">VS</span>
+          <div class="hud b"><div class="who"><span id="ch-nb">—</span><span id="ch-hb">100</span></div><div class="hpbar"><i class="ghost" id="ch-gb" style="width:100%"></i><i class="main" id="ch-bb" style="width:100%;background:linear-gradient(270deg,#1d7fc4,var(--blue))"></i></div></div>
+        </div>
+        <div class="stage-ctrl">
+          <button class="btn ghost" id="ch-skip" type="button" disabled data-tip="Jump to the end of this fight.">Skip to end</button>
+          <span class="spacer"></span>
+          <div class="seg" role="group" aria-label="Battle speed" data-tip="Battle speed. The winner is the same at any speed.">
+            <button type="button" id="ch-sp1" aria-pressed="false">1x</button><button type="button" id="ch-sp2" aria-pressed="true">2x</button>
+          </div>
+        </div>
+        <div class="why" id="ch-why" hidden><h4 id="ch-why-h"></h4><ul id="ch-why-r"></ul><p class="tip" id="ch-why-t"></p></div>
+        <div class="log" id="ch-log" aria-live="polite"><p class="small" style="margin:0">Run the 10 fights, then tap any result to watch that fight here.</p></div>
+      </div>
+    </div>
+  </section>
 
 </div>
 
 <script src="/js/engine.js"></script>
 <script src="/js/builder.js"></script>
 <script src="/js/battle.js"></script>
+<script src="/js/challenges.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/presence.js"></script>
