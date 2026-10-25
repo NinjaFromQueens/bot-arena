@@ -48,13 +48,17 @@ function isBlocked(s) {
     return m && WORD.includes(m[2]);
   });
 }
+const HEAVIEST = Math.max(...Engine.WEIGHT_CLASSES.map((w) => w.kg));
+const className = (kg) => (Engine.WEIGHT_CLASSES.find((w) => w.kg === kg) || { n: "" }).n;
+const tooHeavy = (room) => `Your robot is over ${room.settings.maxw} kg, the limit for this ${className(room.settings.maxw)} game. Swap a part.`;
 function cleanBuilder(s) { return String(s || "").replace(/[^A-Za-z0-9 .'-]/g, "").trim().slice(0, 14); }
 
 function publicState(room) {
   return {
     code: room.code,
     phase: room.phase,
-    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0 })),
+    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
+    settings: room.settings,
     bracket: room.bracket && {
       rounds: room.bracket.rounds.map((round, r) => ({
         name: T.roundName(room.bracket, r),
@@ -64,7 +68,7 @@ function publicState(room) {
       })),
     },
     currentMatchId: room.current ? room.current.matchId : null,
-    predict: room.current ? { open: room.current.open, a: room.current.votes.a, b: room.current.votes.b } : null,
+    predict: room.current ? { open: room.current.open, a: room.current.votes.a, b: room.current.votes.b, bestOf: room.current.bestOf } : null,
     championId: room.championId || null,
     awards: room.phase === "done" ? room.awards || [] : [],
     reactions: !room.reactionsOff,
@@ -192,7 +196,8 @@ io.on("connection", (socket) => {
 
   socket.on("host:create", (_d, cb) => {
     const code = newCode();
-    const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now(), hosts: new Set([socket.id]) };
+    const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now(), hosts: new Set([socket.id]),
+      settings: { maxw: Engine.MAXW, bo3: 0 } }; // bo3: 0 off, 1 the final, 2 semifinals and final
     rooms.set(code, room);
     joined = { room, role: "host" };
     socket.join(code);
@@ -211,14 +216,14 @@ io.on("connection", (socket) => {
 
   socket.on("room:check", (d, cb) => {
     const room = roomFor(d && d.code);
-    cb && cb(room ? { ok: true, phase: room.phase, count: room.players.size } : { ok: false, error: "No game with that code. Check the code on the board." });
+    cb && cb(room ? { ok: true, phase: room.phase, count: room.players.size, maxw: room.settings.maxw } : { ok: false, error: "No game with that code. Check the code on the board." });
   });
 
   socket.on("player:join", (d, cb) => {
     const room = roomFor(d && d.code);
     if (!room) return cb && cb({ ok: false, error: "No game with that code. Check the code on the board." });
-    const bot = Engine.sanitizeBot(d.bot);
-    if (!bot) return cb && cb({ ok: false, error: "That robot isn't valid. It may be over 75 kg." });
+    const bot = Engine.sanitizeBot(d.bot, HEAVIEST);
+    if (!bot) return cb && cb({ ok: false, error: "That robot isn't valid." });
     const builder = cleanBuilder(d.builder);
     if (!builder) return cb && cb({ ok: false, error: "Type your first name." });
     if (isBlocked(builder) || isBlocked(bot.name)) return cb && cb({ ok: false, error: "Please pick a different name." });
@@ -236,6 +241,7 @@ io.on("connection", (socket) => {
       }
     }
     if (room.phase !== "lobby") return cb && cb({ ok: false, error: "This tournament already started. Ask your teacher to start a new one." });
+    if (Engine.statsOf(bot).wt > room.settings.maxw) return cb && cb({ ok: false, error: tooHeavy(room) });
     if (room.players.size >= MAX_PLAYERS) return cb && cb({ ok: false, error: "This game is full." });
     const p = { id: rid(6), token: rid(), builder, bot, socketId: socket.id, connected: true, out: false };
     room.players.set(p.id, p);
@@ -252,8 +258,9 @@ io.on("connection", (socket) => {
     const room = joined.room, p = room.players.get(joined.playerId);
     if (!p) return cb && cb({ ok: false, error: "You were removed from this game." });
     if (room.phase !== "lobby") return cb && cb({ ok: false, error: "The tournament already started, so your robot is locked in." });
-    const bot = Engine.sanitizeBot(d && d.bot);
+    const bot = Engine.sanitizeBot(d && d.bot, HEAVIEST);
     if (!bot) return cb && cb({ ok: false, error: "That robot isn't valid." });
+    if (Engine.statsOf(bot).wt > room.settings.maxw) return cb && cb({ ok: false, error: tooHeavy(room) });
     if (isBlocked(bot.name)) return cb && cb({ ok: false, error: "Please pick a different robot name." });
     p.bot = bot;
     cb && cb({ ok: true });
@@ -283,6 +290,8 @@ io.on("connection", (socket) => {
     const room = requireHost(cb); if (!room) return;
     const ids = [...room.players.values()].filter((p) => !p.out).map((p) => p.id);
     if (ids.length < 2) return cb && cb({ ok: false, error: "You need at least 2 robots to start." });
+    const over = ids.filter((id) => Engine.statsOf(room.players.get(id).bot).wt > room.settings.maxw).length;
+    if (over) return cb && cb({ ok: false, error: `${over} robot${over === 1 ? " is" : "s are"} over the ${room.settings.maxw} kg limit (marked TOO HEAVY). Ask ${over === 1 ? "that student" : "them"} to swap a part, or remove ${over === 1 ? "it" : "them"}.` });
     room.bracket = T.createBracket(ids);
     room.phase = "tournament"; room.current = null; room.championId = null; room.awards = [];
     for (const p of room.players.values()) { p.pts = 0; p.stats = null; }
@@ -300,15 +309,20 @@ io.on("connection", (socket) => {
       if (room.phase === "done") { cb && cb({ ok: true, done: true }); return broadcast(room); }
       const nm = T.nextMatch(room.bracket);
       if (!nm) return cb && cb({ ok: false, error: "No match ready." });
-      const seed = crypto.randomInt(2 ** 31);
       const A = room.players.get(nm.match.a), B = room.players.get(nm.match.b);
-      const sim = Engine.simulate(A.bot, B.bot, seed);
-      room.current = { matchId: nm.match.id, r: nm.r, m: nm.m, seed, sim, aId: A.id, bId: B.id, winnerId: sim.winner === 0 ? A.id : B.id,
-        open: true, votes: { a: 0, b: 0 }, picks: new Map() };
+      const last = room.bracket.rounds.length - 1, bo3 = room.settings.bo3;
+      const bestOf = (bo3 === 1 && nm.r === last) || (bo3 === 2 && nm.r >= last - 1) ? 3 : 1;
+      const games = [], wins = [0, 0], need = (bestOf + 1) / 2;
+      while (wins[0] < need && wins[1] < need) {
+        const seed = crypto.randomInt(2 ** 31), sim = Engine.simulate(A.bot, B.bot, seed);
+        games.push({ seed, sim }); wins[sim.winner]++;
+      }
+      room.current = { matchId: nm.match.id, r: nm.r, m: nm.m, seed: games[0].seed, sim: games[games.length - 1].sim, games, bestOf,
+        aId: A.id, bId: B.id, winnerId: wins[0] > wins[1] ? A.id : B.id, open: true, votes: { a: 0, b: 0 }, picks: new Map() };
     }
     const c = room.current, mt = room.bracket.rounds[c.r][c.m];
     const A = room.players.get(mt.a), B = room.players.get(mt.b);
-    cb && cb({ ok: true, match: { id: mt.id, round: T.roundName(room.bracket, c.r), seed: c.seed, a: { id: A.id, bot: botWithBuilder(A) }, b: { id: B.id, bot: botWithBuilder(B) } } });
+    cb && cb({ ok: true, match: { id: mt.id, round: T.roundName(room.bracket, c.r), seed: c.seed, seeds: c.games.map((g) => g.seed), bestOf: c.bestOf, a: { id: A.id, bot: botWithBuilder(A) }, b: { id: B.id, bot: botWithBuilder(B) } } });
     broadcast(room);
   });
 
@@ -355,6 +369,18 @@ io.on("connection", (socket) => {
     p.lastReact = now;
     toHosts(room, "room:react", { e });
   });
+  socket.on("host:settings", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const s = room.settings, maxw = d && d.maxw, bo3 = d && d.bo3;
+    if (maxw !== undefined && maxw !== s.maxw) {
+      if (!Engine.WEIGHT_CLASSES.some((w) => w.kg === maxw)) return cb && cb({ ok: false });
+      if (room.phase !== "lobby") return cb && cb({ ok: false, error: "Pick the weight class before the tournament starts." });
+      s.maxw = maxw;
+    }
+    if (bo3 !== undefined) { if (![0, 1, 2].includes(bo3)) return cb && cb({ ok: false }); s.bo3 = bo3; } // takes effect from the next match
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
   socket.on("host:reactions", (d, cb) => {
     const room = requireHost(cb); if (!room) return;
     room.reactionsOff = !(d && d.on);
@@ -380,7 +406,7 @@ io.on("connection", (socket) => {
       const p = room.players.get(pid);
       if (p && (side === "a" ? c.aId : c.bId) === c.winnerId) { p.pts = (p.pts || 0) + 1; correct.push(pid); }
     }
-    recordStats(room, c);
+    for (const g of c.games) recordStats(room, { ...c, sim: g.sim });
     const champ = T.champion(room.bracket);
     if (champ) { room.phase = "done"; room.championId = champ; }
     else settleForfeits(room);
@@ -388,7 +414,7 @@ io.on("connection", (socket) => {
     cb && cb({ ok: true, winnerId: c.winnerId, done: room.phase === "done" });
     const A = room.players.get(c.aId), B = room.players.get(c.bId);
     let why = null;
-    if (A && B) { const x = Engine.explainBattle(A.bot, B.bot, c.sim); why = { aId: c.aId, bId: c.bId, a: x.sides[0], b: x.sides[1] }; }
+    if (A && B) { const x = Engine.explainBattle(A.bot, B.bot, c.sim, room.settings.maxw); why = { aId: c.aId, bId: c.bId, a: x.sides[0], b: x.sides[1] }; }
     io.to(room.code).emit("room:result", { matchId: c.matchId, winnerId: c.winnerId, correct, why });
     broadcast(room);
   });

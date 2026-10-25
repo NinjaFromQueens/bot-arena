@@ -38,4 +38,17 @@ assert.strictEqual(Engine.parseCode("ZAP-21013-001").rules, undefined, "rules ar
 assert.strictEqual(Engine.sanitizeBot({ ...ruled, rules: [{ c: 1, v: 3, a: 0 }] }), null, "number out of range");
 assert.strictEqual(Engine.sanitizeBot({ ...ruled, rules: Array(4).fill({ c: 0, v: 0, a: 1 }) }), null, "at most 3 rules");
 for (let s = 1; s <= 50; s++) { const x = Engine.simulate(ruled, Engine.parseCode("ZAP-21013"), s), y = Engine.simulate(ruled, Engine.parseCode("ZAP-21013"), s); assert.strictEqual(x.winner, y.winner); assert.deepStrictEqual(x.events, y.events); }
+// weight classes: a robot can be legal in one class and not another; tips never suggest a part the class rules out
+assert.strictEqual(Engine.sanitizeBot({ name: 'x', body: 1, sensor: 2, brain: 0, tool: 1, color: 0 }, 50), null, '72 kg is over Lightweight');
+assert(Engine.sanitizeBot({ name: 'x', body: 1, sensor: 2, brain: 0, tool: 1, color: 0 }, 75), '72 kg fits Standard');
+assert.deepStrictEqual(Engine.partsTooHeavy(50), ['Treads', 'Hammer']);
+assert.deepStrictEqual(Engine.partsTooHeavy(75), []);
+{
+  const light = [];
+  for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) for (let c = 0; c < 4; c++) for (let d = 0; d < 5; d++) { const x = { name: 'B', body: a, sensor: b, brain: c, tool: d, color: 0 }; if (Engine.statsOf(x).wt <= 50) light.push(x); }
+  for (let i = 0; i < light.length; i += 2) for (let j = 1; j < light.length; j += 5) {
+    const x = Engine.explainBattle(light[i], light[j], Engine.simulate(light[i], light[j], i * 131 + j), 50);
+    x.sides.forEach((sd) => assert(!/(Treads?|Hammers?)/.test(sd.tip), 'Lightweight tip suggests a part that cannot fit: ' + sd.tip));
+  }
+}
 console.log("All tests passed");

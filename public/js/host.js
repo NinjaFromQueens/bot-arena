@@ -4,6 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const socket = io(); window.baSocket = socket;
   let state = null, code = null, playing = null, autoTimer = null, upnext = null;
+  let series = null; // the match on the board: { m, g (game index), score, last (winner of the game just played) }
   const seen = new Set();
   let status = {}; // playerId -> { page, n } from the server: which page each student is on
 
@@ -16,8 +17,14 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
-  $("ptime").value = String(ls.get("ba-ptime", 12));
-  $("ptime").onchange = () => ls.set("ba-ptime", +$("ptime").value);
+  // prediction time is set in the lobby or during the tournament; both selects stay in sync
+  ["ptime", "ptime2"].forEach((id, _, ids) => {
+    $(id).value = String(ls.get("ba-ptime", 12));
+    $(id).onchange = () => { ls.set("ba-ptime", +$(id).value); ids.forEach((o) => ($(o).value = $(id).value)); };
+  });
+  E.WEIGHT_CLASSES.forEach((w) => { const o = document.createElement("option"); o.value = w.kg; o.textContent = `${w.n} (${w.kg} kg)`; $("wclass").appendChild(o); });
+  $("wclass").onchange = () => socket.emit("host:settings", { maxw: +$("wclass").value }, (r) => { if (r && !r.ok && r.error) $("hostmsg").textContent = r.error; });
+  $("bo3").onchange = () => socket.emit("host:settings", { bo3: +$("bo3").value });
 
   // ---------- battle stage ----------
   const stage = new BattleStage($("arena"), {
@@ -42,6 +49,16 @@
       if (playing.why) showWhy(playing.why, playing.A, playing.B);
       playing = null;
       $("skip").disabled = true;
+      if (series) {
+        series.score[series.last]++; series.g++;
+        if (series.g < series.m.seeds.length) { // best of 3, and nobody has 2 wins yet
+          showScore(); M.play("garage");
+          $("next").disabled = false; $("next").textContent = `Play game ${series.g + 1}`;
+          if ($("auto").checked) autoTimer = setTimeout(nextMatch, 6000);
+          return;
+        }
+        series = null;
+      }
       socket.emit("host:matchDone", { matchId: id }, (r) => {
         if (r && r.done) return; // champion screen comes from state
         M.play("garage");
@@ -64,7 +81,11 @@
     else if (!code) create();
   });
   socket.on("disconnect", () => { $("hostmsg").textContent = "Reconnecting to the server..."; });
-  socket.on("room:state", (s) => { $("hostmsg").textContent = ""; state = s; $("rxon").checked = s.reactions; render(); });
+  socket.on("room:state", (s) => {
+    $("hostmsg").textContent = ""; state = s; $("rxon").checked = s.reactions;
+    if (s.settings) { $("wclass").value = String(s.settings.maxw); $("bo3").value = String(s.settings.bo3); }
+    render();
+  });
   socket.on("room:status", (s) => { status = s || {}; if (state) render(); });
   socket.on("room:react", ({ e }) => {
     const layer = $("rxlayer"), emo = E.REACTIONS[e];
@@ -103,7 +124,7 @@
       const sig = JSON.stringify(p.bot) + p.builder;
       if (!el) {
         el = document.createElement("div"); el.className = "pcard"; el.dataset.id = p.id;
-        el.innerHTML = `<button class="kick" type="button" aria-label="Remove" data-tip="Remove this robot. Click twice to confirm.">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div><span class="stag"></span>`;
+        el.innerHTML = `<button class="kick" type="button" aria-label="Remove" data-tip="Remove this robot. Click twice to confirm.">×</button><canvas width="240" height="240"></canvas><div class="bn"></div><div class="bl"></div><span class="stag"></span><span class="otag" hidden>TOO HEAVY</span>`;
         const k = el.querySelector(".kick");
         k.onclick = () => {
           if (!k.classList.contains("confirm")) { k.classList.add("confirm"); k.textContent = "Remove?"; setTimeout(() => { k.classList.remove("confirm"); k.textContent = "×"; }, 3000); return; }
@@ -119,6 +140,8 @@
         el.querySelector(".bl").textContent = "by " + p.builder;
       }
       el.classList.toggle("off", !p.connected);
+      el.classList.toggle("heavy", !!p.over); el.querySelector(".otag").hidden = !p.over;
+      el.querySelector(".otag").setAttribute("data-tip", `Over the ${state.settings.maxw} kg limit. The student needs to swap a part before you can start.`);
       const tag = statusTag(p), st = el.querySelector(".stag"); st.textContent = tag.text; st.className = "stag " + tag.cls; st.setAttribute("data-tip", tag.tip);
       have.delete(p.id);
     });
@@ -227,7 +250,7 @@
   function partsList(b) { return E.SLOTS.map((k) => (k === "brain" && b.rules ? `Custom: ${b.rules.length} rule${b.rules.length === 1 ? "" : "s"}` : E.PARTS[k][b[k]].n)); }
   function showUpNext(m) {
     const A = m.a.bot, B = m.b.bot;
-    $("un-round").textContent = m.round;
+    $("un-round").textContent = m.round + (m.bestOf === 3 ? " · Best of 3" : "");
     E.portrait($("un-pa"), A, "rgba(0,0,0,0)", 1, 1.12); E.portrait($("un-pb"), B, "rgba(0,0,0,0)", -1, 1.12);
     $("un-na").textContent = A.name; $("un-nb").textContent = B.name;
     $("un-ba").textContent = "by " + A.builder; $("un-bb").textContent = "by " + B.builder;
@@ -255,12 +278,21 @@
     $("un-msg").textContent = "Predictions locked!";
     E.Sound.play("go");
     M.play(null); // quiet for the 3-2-1 countdown; the fight track starts with the first move
-    setTimeout(() => {
-      hideUpNext();
-      const sim = E.simulate(m.a.bot, m.b.bot, m.seed);
-      playing.why = E.explainBattle(m.a.bot, m.b.bot, sim); playing.A = m.a.bot; playing.B = m.b.bot;
-      setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match"; }, 300);
-    }, 900);
+    setTimeout(() => { hideUpNext(); playGame(); }, 900);
+  }
+  // one fight of the match on the board (a best of 3 plays up to three, all seeded by the server)
+  function playGame() {
+    const m = series.m, sim = E.simulate(m.a.bot, m.b.bot, m.seeds[series.g]);
+    series.last = sim.winner;
+    playing.why = E.explainBattle(m.a.bot, m.b.bot, sim, state && state.settings && state.settings.maxw); playing.A = m.a.bot; playing.B = m.b.bot;
+    $("log").innerHTML = ""; $("why").hidden = true;
+    stage.setBots(m.a.bot, m.b.bot, m.bestOf === 3 ? `${m.round.toUpperCase()} · GAME ${series.g + 1}` : m.round.toUpperCase());
+    showScore();
+    setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match"; }, 300);
+  }
+  function showScore() {
+    const m = series.m, base = `${m.a.bot.name} (${m.a.bot.builder}) vs ${m.b.bot.name} (${m.b.bot.builder})`;
+    $("matchinfo").textContent = m.bestOf === 3 ? `${base} · Best of 3: ${series.score[0]}–${series.score[1]}` : base;
   }
 
   // ---------- controls ----------
@@ -272,17 +304,18 @@
     clearTimeout(autoTimer);
     if (upnext) { startFight(upnext.m); return; } // "Fight now" while the card is up
     if (playing) return;
+    if (series) { playing = { id: series.m.id }; playGame(); return; } // the next game of a best of 3
     $("next").disabled = true;
     socket.emit("host:next", {}, (r) => {
       $("next").disabled = false;
       if (!r || !r.ok) { if (r && r.error) $("hostmsg").textContent = r.error; return; }
       if (r.done) return;
       const m = r.match;
-      playing = { id: m.id };
+      playing = { id: m.id }; series = { m, g: 0, score: [0, 0] };
       $("log").innerHTML = ""; $("why").hidden = true;
       $("na").textContent = m.a.bot.name; $("nb").textContent = m.b.bot.name;
       $("roundname").textContent = m.round;
-      $("matchinfo").textContent = `${m.a.bot.name} (${m.a.bot.builder}) vs ${m.b.bot.name} (${m.b.bot.builder})`;
+      showScore();
       stage.setBots(m.a.bot, m.b.bot, m.round.toUpperCase());
       const secs = +$("ptime").value;
       upnext = { m, started: false, left: secs };
@@ -313,7 +346,7 @@
   [["sp1", 1], ["sp2", 2], ["sp3", 3]].forEach(([id, v]) => ($(id).onclick = () => {
     stage.speed = v; ["sp1", "sp2", "sp3"].forEach((x) => $(x).setAttribute("aria-pressed", x === id));
   }));
-  $("again").onclick = () => socket.emit("host:reset", {}, () => { stage.setBots(null, null); $("log").innerHTML = ""; $("why").hidden = true; awardsShown = ""; });
+  $("again").onclick = () => socket.emit("host:reset", {}, () => { series = null; stage.setBots(null, null); $("log").innerHTML = ""; $("why").hidden = true; awardsShown = ""; });
   $("newgame").onclick = () => { ss.del("ba-host"); location.reload(); };
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
   $("music").onclick = () => { const on = M.toggle(); $("music").textContent = "Music: " + (on ? "on" : "off"); $("music").setAttribute("aria-pressed", on); };

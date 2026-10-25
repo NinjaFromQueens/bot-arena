@@ -474,6 +474,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
   const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
   const MAXW = 75;
+  // the host picks one per game; balance is tuned at 75 kg, and Open adds only a few heavy builds
+  const WEIGHT_CLASSES = [{ kg: 50, n: "Lightweight" }, { kg: 75, n: "Standard" }, { kg: 100, n: "Open" }];
   const SLOTS = ["body", "sensor", "brain", "tool"];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -486,12 +488,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
     return String(n || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, max);
   }
   // Validate anything that arrives from a client.
-  function sanitizeBot(b) {
+  function sanitizeBot(b, maxw = MAXW) {
     if (!b || typeof b !== "object") return null;
     const out = { name: cleanName(b.name) || "BOT" };
     for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v >= PARTS[k].length) return null; out[k] = v; }
     const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
-    if (statsOf(out).wt > MAXW) return null;
+    if (statsOf(out).wt > maxw) return null;
     if (PARTS.brain[out.brain].custom) {
       const rules = Array.isArray(b.rules) ? b.rules : RULES.defaults;
       if (rules.length > RULES.max) return null;
@@ -616,7 +618,14 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // ---------------- why did it win? ----------------
   // Looks at what actually happened in the fight and returns plain-language reasons
   // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
-  function explainBattle(a, b, sim) {
+  // parts no legal robot can use under this weight limit (Lightweight rules out Treads and the Hammer)
+  function partsTooHeavy(maxw) {
+    const lightest = (slot) => Math.min(...PARTS[slot].map((p) => p.wt || 0));
+    const out = [];
+    for (const slot of SLOTS) PARTS[slot].forEach((p) => { if ((p.wt || 0) + SLOTS.filter((k) => k !== slot).reduce((s, k) => s + lightest(k), 0) > maxw) out.push(p.n); });
+    return out;
+  }
+  function explainBattle(a, b, sim, maxw = MAXW) {
     const bots = [a, b], w = sim.winner, l = 1 - w;
     const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0, flips: 0, lowFail: 0, glanced: 0, pierced: 0, tracked: 0, powers: 0, smashes: 0 }));
     let endHp = [100, 100], first = null;
@@ -715,9 +724,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
     const headline = (k) => k === w
       ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
       : `Why ${N(w)} beat ${N(l)}`;
+    // a tip may not suggest a part this game's weight class rules out
+    const heavy = partsTooHeavy(maxw), usable = (t) => !heavy.some((n) => new RegExp(`\\b${n}s?\\b`).test(t));
     return {
       winner: w,
-      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : ruleTip || loserTip })),
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? (usable(counter) ? `Keep it up! Watch out: ${counter}` : "Keep it up! Every robot has a counter, so keep testing new matchups.") : usable(ruleTip || loserTip) ? ruleTip || loserTip : "Every robot has a counter. Try a different part!" })),
       stats: st,
     };
   }
@@ -1041,7 +1052,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     };
   })();
 
-  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
 

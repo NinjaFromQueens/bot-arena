@@ -45,6 +45,7 @@
 
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
+    let limit = opts.maxw || MAXW; // a class game can set 50 or 100 kg (setLimit)
     const pv = { fx: new FX(), pop: 0, w: 300, h: 240 };
     const pick = (slot) => (Math.random() * PARTS[slot].length) | 0;
     $("bot-name").value = bot.name;
@@ -90,10 +91,10 @@
     function update() {
       bot.name = E.cleanName($("bot-name").value) || "BOT";
       renderChoices();
-      const s = statsOf(bot), over = s.wt > MAXW;
-      $("wtxt").textContent = `${s.wt} / ${MAXW} kg`;
+      const s = statsOf(bot), over = s.wt > limit;
+      $("wtxt").textContent = `${s.wt} / ${limit} kg`;
       $("wmeter").classList.toggle("over", over);
-      $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / MAXW) * 100) + "%";
+      $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / limit) * 100) + "%";
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
       const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
       $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
@@ -102,7 +103,7 @@
     }
     $("bot-name").addEventListener("input", update);
     $("random").onclick = () => {
-      let b; do { b = { ...bot, body: pick("body"), sensor: pick("sensor"), brain: pick("brain"), tool: pick("tool"), color: (Math.random() * COLORS.length) | 0 }; } while (statsOf(b).wt > MAXW);
+      let b; do { b = { ...bot, body: pick("body"), sensor: pick("sensor"), brain: pick("brain"), tool: pick("tool"), color: (Math.random() * COLORS.length) | 0 }; } while (statsOf(b).wt > limit);
       bot = b; pv.pop = 1; Sound.play("go"); update();
     };
 
@@ -127,7 +128,7 @@
         ctx.fillStyle = "#ffffff"; ctx.fillText(bot.name, 14, 10 + fs);
         ctx.font = `500 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
         [PARTS.body[bot.body].n, PARTS.sensor[bot.sensor].n, PARTS.brain[bot.brain].n, PARTS.tool[bot.tool].n].forEach((p, i) => ctx.fillText(p.toUpperCase(), 14, 14 + fs + (i + 1) * fs * 0.62));
-        if (statsOf(bot).wt > MAXW) { ctx.fillStyle = "rgba(255,93,93,.14)"; ctx.fillRect(0, 0, w, h); bigText(ctx, "TOO HEAVY", w / 2, h * 0.5, h * 0.11, "#ff5d5d"); }
+        if (statsOf(bot).wt > limit) { ctx.fillStyle = "rgba(255,93,93,.14)"; ctx.fillRect(0, 0, w, h); bigText(ctx, "TOO HEAVY", w / 2, h * 0.5, h * 0.11, "#ff5d5d"); }
         pv.fx.draw(ctx);
       }
       requestAnimationFrame(loop);
@@ -139,7 +140,8 @@
       get bot() { return { ...bot, ...(bot.rules ? { rules: bot.rules.map((r) => ({ ...r })) } : {}) }; },
       set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; if ($("rules")) $("rules").dataset.sig = ""; $("bot-name").value = bot.name; update(); },
       celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
-      overweight() { return statsOf(bot).wt > MAXW; },
+      overweight() { return statsOf(bot).wt > limit; },
+      setLimit(kg) { if (kg && kg !== limit) { limit = kg; update(); } },
     };
   }
   window.Builder = { mount, rulesEditor };

@@ -30,6 +30,7 @@
   .substatus { color: var(--muted); max-width: 46ch; }
   .flash { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(20,19,22,.85); z-index: 50; padding: 24px; text-align: center; }
   .flash div { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 12vw, 80px); animation: pop .5s cubic-bezier(.3,1.8,.5,1); }
+  .classline { margin: -6px 0 14px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--orange); background: var(--orange-soft); font-weight: 600; }
   .predict { width: 100%; display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
   .pickrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pick { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 12px; background: var(--panel); border: 2px solid var(--line); cursor: pointer; transition: transform .1s, border-color .15s, opacity .2s; min-width: 0; }
@@ -94,13 +95,14 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
 
   <!-- 2. build -->
   <section id="s-build" hidden>
-    <p class="intro" style="margin-bottom:14px">Every robot needs to <b>Sense</b>, <b>Think</b>, and <b>Act</b>. Pick one part for each job. Heavy parts hit hard, but a bot over 75 kg is too heavy for its motors.</p>
+    <p class="intro" style="margin-bottom:14px">Every robot needs to <b>Sense</b>, <b>Think</b>, and <b>Act</b>. Pick one part for each job. Heavy parts hit hard, but a bot over <span class="limkg">75</span> kg is too heavy for its motors.</p>
+    <p class="classline" id="classline" hidden></p>
     <div class="build">
       <div class="panel">
         <h3>Robot name</h3>
         <div style="display:flex;gap:8px">
           <input type="text" id="bot-name" class="upper" maxlength="10" value="BOLT" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Robot name, up to 10 letters or numbers" data-tip="Up to 10 letters or numbers. Your robot's name shows on the board.">
-          <button class="btn ghost" id="random" type="button" data-tip="Pick random parts that fit under 75 kg.">Random</button>
+          <button class="btn ghost" id="random" type="button" data-tip="Pick random parts that fit under 75 kg." data-tip75="Pick random parts that fit under {kg} kg.">Random</button>
         </div>
         <div class="slot"><h3>Color</h3><div class="swatches" id="sw"></div></div>
         <div class="slot"><h3><span class="chip c-move">Move</span> <span class="hastip" tabindex="0" data-tip="How your robot moves. Changes speed, armor and dodging.">Body</span></h3><div class="choices" id="c-body"></div></div>
@@ -112,7 +114,7 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
         <div class="panel preview-card">
           <canvas id="preview" class="preview" aria-label="Your robot"></canvas>
           <div class="weight">
-            <div class="wrow"><span class="hastip" tabindex="0" data-tip="All your parts added up. Over 75 kg is too heavy for the motors.">WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
+            <div class="wrow"><span class="hastip" tabindex="0" data-tip="All your parts added up. Over 75 kg is too heavy for the motors." data-tip75="All your parts added up. Over {kg} kg is too heavy for the motors.">WEIGHT</span><span id="wtxt">0 / 75 kg</span></div>
             <div class="meter" id="wmeter"><i></i></div>
             <div class="warn" id="warn" role="status"></div>
           </div>
@@ -136,7 +138,7 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
       <div class="status" id="status" role="status">You're in!</div>
       <p class="substatus" id="substatus"></p>
       <div class="predict" id="predict" hidden>
-        <h3 style="justify-content:center;margin:0">Who will win?</h3>
+        <h3 style="justify-content:center;margin:0" id="phead">Who will win?</h3>
         <div class="pickrow">
           <button class="pick a" id="pick-a" type="button" data-tip="Tap the robot you think will win. A right pick earns 1 point."><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>
           <button class="pick b" id="pick-b" type="button" data-tip="Tap the robot you think will win. A right pick earns 1 point."><canvas width="200" height="200" aria-hidden="true"></canvas><b></b><span></span></button>

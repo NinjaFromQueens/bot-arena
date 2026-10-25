@@ -77,7 +77,18 @@
     if (session) join(true); // reconnect after refresh or dropped wifi
   });
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
-  socket.on("room:state", (s) => { state = s; render(); });
+  socket.on("room:state", (s) => { state = s; applyLimit(s.settings && s.settings.maxw); render(); });
+  // this game's weight class: the builder's limit and every "75 kg" on the page follow it
+  let limitShown = 0;
+  function applyLimit(kg) {
+    if (!kg || kg === limitShown) return;
+    limitShown = kg; builder.setLimit(kg);
+    document.querySelectorAll(".limkg").forEach((el) => (el.textContent = kg));
+    document.querySelectorAll("[data-tip75]").forEach((el) => el.setAttribute("data-tip", el.dataset.tip75.replace("{kg}", kg)));
+    const w = E.WEIGHT_CLASSES.find((x) => x.kg === kg);
+    $("classline").hidden = kg === E.MAXW;
+    $("classline").textContent = w ? `This game is ${w.n}: every robot must be ${kg} kg or less.` : "";
+  }
   socket.on("player:kicked", () => { store.del("ba-session"); session = null; fail("You were removed", "Your teacher removed your robot from this game. Ask them if you want to join again."); });
   let myWhy = null; // { matchId, side }
   function renderWhy() {
@@ -136,6 +147,7 @@
       if (myPick && myPick.matchId !== m.id) myPick = null;
       if (state.predict.open) { E.Sound.play("beep"); if (navigator.vibrate) try { navigator.vibrate(120); } catch {} }
     }
+    $("phead").textContent = state.predict.bestOf === 3 ? "Who will win? (best of 3)" : "Who will win?";
     const side = myPick && myPick.matchId === m.id ? myPick.side : null;
     $("pick-a").classList.toggle("on", side === "a"); $("pick-b").classList.toggle("on", side === "b");
     $("pick-a").setAttribute("aria-pressed", side === "a"); $("pick-b").setAttribute("aria-pressed", side === "b");
@@ -179,6 +191,7 @@
     const me = state.players.find((p) => p.id === session.playerId);
     const name = (id) => { const p = state.players.find((x) => x.id === id); return p ? `${p.bot.name} (${p.builder})` : "?"; };
     if (!me) return { cls: "out", text: "Not in this game", sub: "" };
+    if (state.phase === "lobby" && me.over) return { cls: "out", text: "Too heavy!", sub: `This game's limit is ${state.settings.maxw} kg. Tap Change my robot and swap a part.` };
     if (state.phase === "lobby") return { cls: "", text: "You're in!", sub: "Watch the board. Your teacher will start the tournament soon. You can still change your robot." };
     if (state.phase === "done") {
       if (state.championId === me.id) return { cls: "champ", text: "CHAMPION!", sub: "Your robot won the whole tournament!" };
@@ -239,5 +252,5 @@
   })(last);
 
   show(session ? "s-wait" : "s-name");
-  socket.emit("room:check", { code }, (r) => { if (!r.ok && !session) fail("Can't find that game", r.error); });
+  socket.emit("room:check", { code }, (r) => { if (r.ok) applyLimit(r.maxw); else if (!session) fail("Can't find that game", r.error); });
 })();

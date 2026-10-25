@@ -6,6 +6,10 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 1. **Teacher** opens `/host` on the projector. A join code and QR code appear.
 2. **Students** go to the site (or scan the QR), type the code and their first name, and build a robot. Their robot pops into the lobby on the board.
+2b. In the lobby the teacher can pick three settings:
+   - **Weight class:** Standard (75 kg, the balanced one), Lightweight (50 kg: no Treads or Hammer, so students need new plans) or Open (100 kg: a few extra heavy builds). Students see the limit on their device, and any robot over it is marked **TOO HEAVY** until the student swaps a part. In a Lightweight game the "Why ___ won" tips never suggest a part that can't fit.
+   - **Best of 3:** off, the final, or the semifinals and final. The first robot to win 2 fights moves on, so luck matters less. The board plays each fight and shows the score ("Best of 3: 1–0"), and **Play game 2** starts the next one.
+   - **Predict time:** the same setting as in the tournament view.
 3. Teacher clicks **Start tournament**. A bracket is built automatically (byes are handled for any class size).
 4. Teacher clicks **Next match** (or turns on **Auto-play**). An **Up Next** card shows both robots, their parts and stats, and a countdown (set with **Predict time**: off, 8, 12 or 20 seconds).
 5. While the card is up, every student who isn't fighting **predicts the winner** on their device. The board shows the class split live. Correct picks earn a point, and the **Top Predictors** leaderboard updates, so knocked-out students stay in the game.

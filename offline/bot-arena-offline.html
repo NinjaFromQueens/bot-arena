@@ -546,6 +546,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   }
   const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
   const MAXW = 75;
+  // the host picks one per game; balance is tuned at 75 kg, and Open adds only a few heavy builds
+  const WEIGHT_CLASSES = [{ kg: 50, n: "Lightweight" }, { kg: 75, n: "Standard" }, { kg: 100, n: "Open" }];
   const SLOTS = ["body", "sensor", "brain", "tool"];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -558,12 +560,12 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     return String(n || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, max);
   }
   // Validate anything that arrives from a client.
-  function sanitizeBot(b) {
+  function sanitizeBot(b, maxw = MAXW) {
     if (!b || typeof b !== "object") return null;
     const out = { name: cleanName(b.name) || "BOT" };
     for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v >= PARTS[k].length) return null; out[k] = v; }
     const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
-    if (statsOf(out).wt > MAXW) return null;
+    if (statsOf(out).wt > maxw) return null;
     if (PARTS.brain[out.brain].custom) {
       const rules = Array.isArray(b.rules) ? b.rules : RULES.defaults;
       if (rules.length > RULES.max) return null;
@@ -688,7 +690,14 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   // ---------------- why did it win? ----------------
   // Looks at what actually happened in the fight and returns plain-language reasons
   // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
-  function explainBattle(a, b, sim) {
+  // parts no legal robot can use under this weight limit (Lightweight rules out Treads and the Hammer)
+  function partsTooHeavy(maxw) {
+    const lightest = (slot) => Math.min(...PARTS[slot].map((p) => p.wt || 0));
+    const out = [];
+    for (const slot of SLOTS) PARTS[slot].forEach((p) => { if ((p.wt || 0) + SLOTS.filter((k) => k !== slot).reduce((s, k) => s + lightest(k), 0) > maxw) out.push(p.n); });
+    return out;
+  }
+  function explainBattle(a, b, sim, maxw = MAXW) {
     const bots = [a, b], w = sim.winner, l = 1 - w;
     const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0, flips: 0, lowFail: 0, glanced: 0, pierced: 0, tracked: 0, powers: 0, smashes: 0 }));
     let endHp = [100, 100], first = null;
@@ -787,9 +796,11 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     const headline = (k) => k === w
       ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
       : `Why ${N(w)} beat ${N(l)}`;
+    // a tip may not suggest a part this game's weight class rules out
+    const heavy = partsTooHeavy(maxw), usable = (t) => !heavy.some((n) => new RegExp(`\\b${n}s?\\b`).test(t));
     return {
       winner: w,
-      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : ruleTip || loserTip })),
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? (usable(counter) ? `Keep it up! Watch out: ${counter}` : "Keep it up! Every robot has a counter, so keep testing new matchups.") : usable(ruleTip || loserTip) ? ruleTip || loserTip : "Every robot has a counter. Try a different part!" })),
       stats: st,
     };
   }
@@ -1113,7 +1124,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     };
   })();
 
-  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
@@ -1166,6 +1177,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 
   function mount(opts = {}) {
     let bot = opts.bot || { name: "BOLT", body: 0, sensor: 0, brain: 2, tool: 2, color: 0 };
+    let limit = opts.maxw || MAXW; // a class game can set 50 or 100 kg (setLimit)
     const pv = { fx: new FX(), pop: 0, w: 300, h: 240 };
     const pick = (slot) => (Math.random() * PARTS[slot].length) | 0;
     $("bot-name").value = bot.name;
@@ -1211,10 +1223,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     function update() {
       bot.name = E.cleanName($("bot-name").value) || "BOT";
       renderChoices();
-      const s = statsOf(bot), over = s.wt > MAXW;
-      $("wtxt").textContent = `${s.wt} / ${MAXW} kg`;
+      const s = statsOf(bot), over = s.wt > limit;
+      $("wtxt").textContent = `${s.wt} / ${limit} kg`;
       $("wmeter").classList.toggle("over", over);
-      $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / MAXW) * 100) + "%";
+      $("wmeter").firstElementChild.style.width = Math.min(100, (s.wt / limit) * 100) + "%";
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
       const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
       $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
@@ -1223,7 +1235,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     }
     $("bot-name").addEventListener("input", update);
     $("random").onclick = () => {
-      let b; do { b = { ...bot, body: pick("body"), sensor: pick("sensor"), brain: pick("brain"), tool: pick("tool"), color: (Math.random() * COLORS.length) | 0 }; } while (statsOf(b).wt > MAXW);
+      let b; do { b = { ...bot, body: pick("body"), sensor: pick("sensor"), brain: pick("brain"), tool: pick("tool"), color: (Math.random() * COLORS.length) | 0 }; } while (statsOf(b).wt > limit);
       bot = b; pv.pop = 1; Sound.play("go"); update();
     };
 
@@ -1248,7 +1260,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         ctx.fillStyle = "#ffffff"; ctx.fillText(bot.name, 14, 10 + fs);
         ctx.font = `500 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
         [PARTS.body[bot.body].n, PARTS.sensor[bot.sensor].n, PARTS.brain[bot.brain].n, PARTS.tool[bot.tool].n].forEach((p, i) => ctx.fillText(p.toUpperCase(), 14, 14 + fs + (i + 1) * fs * 0.62));
-        if (statsOf(bot).wt > MAXW) { ctx.fillStyle = "rgba(255,93,93,.14)"; ctx.fillRect(0, 0, w, h); bigText(ctx, "TOO HEAVY", w / 2, h * 0.5, h * 0.11, "#ff5d5d"); }
+        if (statsOf(bot).wt > limit) { ctx.fillStyle = "rgba(255,93,93,.14)"; ctx.fillRect(0, 0, w, h); bigText(ctx, "TOO HEAVY", w / 2, h * 0.5, h * 0.11, "#ff5d5d"); }
         pv.fx.draw(ctx);
       }
       requestAnimationFrame(loop);
@@ -1260,7 +1272,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       get bot() { return { ...bot, ...(bot.rules ? { rules: bot.rules.map((r) => ({ ...r })) } : {}) }; },
       set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; if ($("rules")) $("rules").dataset.sig = ""; $("bot-name").value = bot.name; update(); },
       celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
-      overweight() { return statsOf(bot).wt > MAXW; },
+      overweight() { return statsOf(bot).wt > limit; },
+      setLimit(kg) { if (kg && kg !== limit) { limit = kg; update(); } },
     };
   }
   window.Builder = { mount, rulesEditor };
