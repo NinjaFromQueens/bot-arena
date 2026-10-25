@@ -248,6 +248,17 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .why .tip b { font-family: var(--display); color: var(--orange-hi); }
 .pdesc { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--muted); }
 .pdesc b { color: var(--fg); font-family: var(--display); font-weight: 700; }
+/* Custom brain rules editor (builder.js renderRules) */
+.rules { margin-top: 10px; display: grid; gap: 8px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 10px; background: var(--bg); }
+.rrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rrow + .rrow { border-top: 1px solid var(--line); padding-top: 8px; }
+.rrow b { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--orange); border-radius: 6px; padding: 2px 7px; }
+.rrow span { font-family: var(--display); font-size: 13px; letter-spacing: .08em; color: var(--muted); }
+.rrow select { font: inherit; font-size: 14px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; max-width: 100%; cursor: pointer; }
+.rdel { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 18px; line-height: 1; }
+.rdel:hover { color: var(--bad); border-color: var(--bad); }
+.radd { justify-self: start; padding: 7px 12px; font-size: 14px; }
+.rnote { margin: 0; font-size: 13px; color: var(--muted); }
 /* phones: title and Sound on one row, the three tabs as an even row underneath */
 @media (max-width: 560px) {
   header .headright { display: contents; }

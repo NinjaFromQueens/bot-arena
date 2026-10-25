@@ -37,6 +37,7 @@
         const p = PARTS[slot][bot[slot]];
         d.innerHTML = "<b></b> <span></span>"; d.firstChild.textContent = p.n + ":"; d.lastChild.textContent = p.tip;
       });
+      renderRules();
       const sw = $("sw"); sw.innerHTML = "";
       COLORS.forEach((c, i) => {
         const b = document.createElement("button");
@@ -46,6 +47,41 @@
         b.onclick = () => { bot.color = i; pv.pop = 1; Sound.play("click"); update(); };
         sw.appendChild(b);
       });
+    }
+    // Custom brain: a small rules editor. It only rebuilds when rules are added or removed, so a select keeps focus while you change it.
+    let rulesSig = "";
+    function renderRules() {
+      let box = $("rules");
+      if (!box) { box = document.createElement("div"); box.className = "rules"; box.id = "rules"; $("d-brain").after(box); }
+      const custom = PARTS.brain[bot.brain].custom;
+      box.hidden = !custom;
+      if (!custom) { rulesSig = ""; return; }
+      if (!bot.rules) bot.rules = E.RULES.defaults.map((r) => ({ ...r }));
+      const sig = bot.rules.length + ":" + bot.rules.map((r) => r.c).join("");
+      if (sig === rulesSig) return;
+      rulesSig = sig; box.innerHTML = "";
+      const R = E.RULES;
+      const sel = (opts, val, tip, label) => { const s = document.createElement("select"); s.setAttribute("aria-label", label); s.setAttribute("data-tip", tip); opts.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o; s.appendChild(op); }); s.value = val; return s; };
+      bot.rules.forEach((r, i) => {
+        const row = document.createElement("div"); row.className = "rrow";
+        const num = document.createElement("b"); num.textContent = i + 1; row.appendChild(num);
+        const ifl = document.createElement("span"); ifl.textContent = "IF"; row.appendChild(ifl);
+        const c = sel(R.IF.map((x) => x.n), r.c, "When this rule should fire.", "Rule " + (i + 1) + " condition"); row.appendChild(c);
+        const cond = R.IF[r.c];
+        if (cond.v) { const v = sel(cond.v.map((x) => x + (cond.pct ? "%" : "")), r.v, "The number to compare with.", "Rule " + (i + 1) + " number"); v.onchange = () => { r.v = +v.value; Sound.play("click"); update(); }; row.appendChild(v); }
+        const thenl = document.createElement("span"); thenl.textContent = "THEN"; row.appendChild(thenl);
+        const a = sel(R.DO, r.a, "Attack. Power attack: more damage, misses more, and smashes through a shield. Aim first: skip this attack, the next one is much more accurate. Shield: skip this attack, halve the next hit, then counterattack.", "Rule " + (i + 1) + " move");
+        a.onchange = () => { r.a = +a.value; Sound.play("click"); update(); }; row.appendChild(a);
+        c.onchange = () => { r.c = +c.value; r.v = Math.min(r.v, (R.IF[r.c].v || [0]).length - 1); Sound.play("click"); update(); };
+        const del = document.createElement("button"); del.type = "button"; del.className = "rdel"; del.textContent = "×"; del.setAttribute("aria-label", "Remove rule " + (i + 1)); del.setAttribute("data-tip", "Remove this rule.");
+        del.onclick = () => { bot.rules.splice(i, 1); Sound.play("click"); update(); }; row.appendChild(del);
+        box.appendChild(row);
+      });
+      const add = document.createElement("button"); add.type = "button"; add.className = "btn ghost radd"; add.textContent = "+ Add a rule";
+      add.disabled = bot.rules.length >= R.max; add.setAttribute("data-tip", `Add another rule (up to ${R.max}).`);
+      add.onclick = () => { bot.rules.push({ c: 0, v: 0, a: 0 }); Sound.play("click"); update(); };
+      const note = document.createElement("p"); note.className = "rnote"; note.textContent = "Rules are checked top to bottom at the start of every turn. If none fit, it attacks.";
+      box.append(add, note);
     }
     function update() {
       bot.name = E.cleanName($("bot-name").value) || "BOT";
@@ -57,6 +93,7 @@
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
       const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
       $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
+      if (!PARTS.brain[bot.brain].custom) delete bot.rules;
       opts.onChange && opts.onChange(bot, over);
     }
     $("bot-name").addEventListener("input", update);
@@ -95,8 +132,8 @@
     update();
 
     return {
-      get bot() { return { ...bot }; },
-      set(b) { bot = { ...b }; $("bot-name").value = bot.name; update(); },
+      get bot() { return { ...bot, ...(bot.rules ? { rules: bot.rules.map((r) => ({ ...r })) } : {}) }; },
+      set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; rulesSig = ""; $("bot-name").value = bot.name; update(); },
       celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
       overweight() { return statsOf(bot).wt > MAXW; },
     };

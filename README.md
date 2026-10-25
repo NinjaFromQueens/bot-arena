@@ -25,7 +25,7 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 ## The parts (balanced)
 
-Every part has a strength and a weakness, and all 231 legal builds were tested against each other (`npm run balance`). Every part wins 49–51% of its fights overall and 87% of builds win 40–60%, so there is no "best build", only good matchups. `npm test` fails if any part leaves 45–55%, or if a counter that a tip promises stops being true.
+Every part has a strength and a weakness, and all 308 legal builds were tested against each other (`npm run balance`). Every part wins 48–52% of its fights overall and 90% of builds win 40–60%, so there is no "best build", only good matchups. `npm test` fails if any part leaves 45–55%, or if a counter that a tip promises stops being true.
 
 | Part | Strength | Weakness |
 |---|---|---|
@@ -40,11 +40,23 @@ Every part has a strength and a weakness, and all 231 legal builds were tested a
 | Aggressive | Hits harder | Less armor |
 | Defensive | Raises a shield when hurt, then counterattacks | |
 | Smart | Waits for a clear shot when aim is low | |
+| Custom | Follows the student's own if-then rules (see below); good rules beat the other brains | With no rules it only does plain attacks; power attacks smash its shields |
 | Gripper | Accurate, can grab (enemy loses a turn) | Weak hits, can't grab Treads |
 | Hammer | Huge hits, beats Treads and Wedges | Misses a lot, struggles vs Wheels |
 | Spinner | Two hits per turn, shreds Wheels | Hits glance off a Wedge |
 | Flipper | Can flip the enemy (loses a turn), even Treads | Can't get under a Wedge |
 | Drill | Goes through half of the enemy's armor, beats Treads and Wedges | Misses more than a Gripper; dodgers beat it |
+
+## Custom brain: program your robot
+
+A student who picks the **Custom** brain writes up to 3 if-then rules in the builder. At the start of every turn the robot checks them top to bottom, and the first one that's true picks its move. If none fit, it attacks.
+
+- **IF:** always · my health is below 75 / 50 / 25 · the enemy's health is below 75 / 50 / 25 · my hit chance is below 80% / 60% / 40% · the enemy's shield is up
+- **THEN:** attack · power attack (more damage, misses more, smashes through a shield) · aim first (skip this attack, the next one is much more accurate) · shield (skip this attack, the next hit does half damage, then it counterattacks)
+
+The battle log and the robot's thought bubble show which rule fired ("RULE 2: POWER"), so the class can watch the program run. Rules ride along in the bot code: `BRAINY-20304-401322001` is Legs, Camera, Custom, Gripper, color 4, plus three rules of 3 digits each (condition, number, move). Old codes still work.
+
+Rules matter but don't decide everything: against the other brains, no rules wins about 44%, the starting rules about 48%, and good rules about 54%. Power attacks beat shields, and shields beat the starting rules. `npm test` checks these claims.
 
 ## Robot Lessons (`/learn`)
 
@@ -150,6 +162,8 @@ public/js/tips.js      Tooltips for every page: any element with data-tip="..." 
 test/bracket.test.js   Bracket and determinism tests (npm test)
 test/balance.js        Every build vs every build win-rate report (npm run balance)
 test/tune.js           Automatic balance tuner; prints suggested numbers
+test/tune-brain.js     Tunes the Custom brain's moves so good rules beat bad ones; prints suggested numbers
+test/balance.test.js   Every part stays 45–55%, tip claims and rule claims stay true (part of npm test)
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
 test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips

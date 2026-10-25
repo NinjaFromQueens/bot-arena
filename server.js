@@ -143,7 +143,7 @@ function recordStats(room, c) {
       if (e.burst) me.stats.bursts++;
       if (op && op.stats) op.stats.taken += e.dmg;
     }
-    if (e.kind === "think" && e.bubble === "SHIELD!") me.stats.shields++;
+    if (e.kind === "think" && (e.bubble === "SHIELD!" || e.act === "shield")) me.stats.shields++;
   }
 }
 function computeAwards(room) {

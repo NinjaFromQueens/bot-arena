@@ -87,7 +87,7 @@
       const e = this.queue.shift(); this.ev = e; this.evT = 0; this.impactDone = false; this.later = [];
       this.log(e);
       if (e.kind === "sense") Sound.play("scan");
-      if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; if (e.bubble === "SHIELD!") { const p = this.pos(e.me); this.fx.ring(p.x, p.mid - p.s * 0.3, p.s * 1.6, "#4fd18b", 0.5, 5); } }
+      if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; if (e.bubble === "SHIELD!" || e.act === "shield") { const p = this.pos(e.me); this.fx.ring(p.x, p.mid - p.s * 0.3, p.s * 1.6, "#4fd18b", 0.5, 5); } }
       if (e.kind === "stall") { this.held[e.me] = false; const p = this.pos(e.me); this.fx.text(p.x, p.top, e.flip ? "FLIPPED OVER!" : "STUCK!", "#c58cff", 26); }
       if (e.kind === "win") { this.hp = e.hp; this.held = [false, false]; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(e.me); return; }
       if (e.kind === "act" && e.burst) { const p = this.pos(e.me); this.fx.text(p.x, p.top - 30, "BONUS!", "#38a7f0", 22); }
@@ -95,7 +95,7 @@
     }
     impact(e) {
       const op = 1 - e.me, p = this.pos(op), tool = this.bots[e.me].tool, side = op === 1 ? -1 : 1;
-      const blocked = this.brace[op] && e.hits > 0; // the shield was up when this hit landed
+      const blocked = this.brace[op] && e.hits > 0 && !e.smash; // the shield was up when this hit landed (a power attack smashes it instead)
       const hx = p.x + side * p.s * 0.6, hy = p.mid;
       this.hp = e.hp; this.brace = e.brace; this.cb.onHP && this.cb.onHP(this.hp);
       if (e.hits) {
@@ -113,10 +113,11 @@
         this.fx.text(p.x, p.top, "-" + e.dmg, e.crit ? "#ffd23f" : "#ffffff", e.crit ? 40 : 32);
         if (e.crit) { this.fx.text(p.x, p.top - 34, "CRITICAL!", "#ff8a50", 20); this.flash = 1; this.zoom = { k: 1, x: hx, y: hy }; this.cheer = 1; }
         if (blocked) this.fx.text(p.x, p.top - 34, "BLOCKED!", "#4fd18b", 20);
-        if (e.grab) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "GRABBED!", "#c58cff", 22); this.held[op] = true; }
-        if (e.flip) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "FLIPPED!", "#c58cff", 24); this.flipT[op] = 1; } // launched into a full flip
+        if (e.grab) { this.fx.text(p.x, p.top - (e.crit && e.smash ? 94 : e.crit || blocked || e.smash ? 64 : 34), "GRABBED!", "#c58cff", 22); this.held[op] = true; }
+        if (e.flip) { this.fx.text(p.x, p.top - (e.crit && e.smash ? 94 : e.crit || blocked || e.smash ? 64 : 34), "FLIPPED!", "#c58cff", 24); this.flipT[op] = 1; } // launched into a full flip
         if (e.heavy) this.fx.text(p.x, p.top - 34, "TOO HEAVY!", "#aaa6b0", 18);
         if (e.low) this.fx.text(p.x, p.top - 34, "TOO LOW!", "#aaa6b0", 18);
+        if (e.smash) { this.fx.text(p.x, p.top - (e.crit || e.heavy ? 64 : 34), "SHIELD SMASHED!", "#ffd23f", 20); this.fx.burst(hx, hy, 14, { colors: ["#4fd18b", "#bff5d6", "#ffd23f"], speed: 420, g: 500, life: 0.5, size: 4 }); }
         if (e.glance) { this.fx.text(p.x, p.top - 34, "GLANCED!", "#aaa6b0", 18); this.fx.burst(hx, hy, 10, { colors: ["#fff6c8", "#aaa6b0"], speed: 360, g: 300, life: 0.4, size: 3, angle: -Math.PI / 2, spread: 1.4 }); }
         Sound.play("hit");
       } else {

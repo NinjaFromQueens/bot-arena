@@ -249,6 +249,17 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .why .tip b { font-family: var(--display); color: var(--orange-hi); }
 .pdesc { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--muted); }
 .pdesc b { color: var(--fg); font-family: var(--display); font-weight: 700; }
+/* Custom brain rules editor (builder.js renderRules) */
+.rules { margin-top: 10px; display: grid; gap: 8px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 10px; background: var(--bg); }
+.rrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rrow + .rrow { border-top: 1px solid var(--line); padding-top: 8px; }
+.rrow b { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--orange); border-radius: 6px; padding: 2px 7px; }
+.rrow span { font-family: var(--display); font-size: 13px; letter-spacing: .08em; color: var(--muted); }
+.rrow select { font: inherit; font-size: 14px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; max-width: 100%; cursor: pointer; }
+.rdel { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 18px; line-height: 1; }
+.rdel:hover { color: var(--bad); border-color: var(--bad); }
+.radd { justify-self: start; padding: 7px 12px; font-size: 14px; }
+.rnote { margin: 0; font-size: 13px; color: var(--muted); }
 /* phones: title and Sound on one row, the three tabs as an even row underneath */
 @media (max-width: 560px) {
   header .headright { display: contents; }
@@ -417,6 +428,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       { n: "Aggressive", d: "Always attacks", tip: "Hits harder, but forgets to protect itself.", wt: 0, atk: 2, def: -4 },
       { n: "Defensive", d: "Blocks when hurt", tip: "Raises a shield when it gets hurt, then hits back.", wt: 0, def: 3, shieldAt: 55, shieldP: 0.6, counter: 5 },
       { n: "Smart", d: "Waits for a big hit", tip: "Waits for a clear shot when its aim is low.", wt: 0, atk: 0, aim: 0, waitP: 0.4, waitAim: 22 },
+      { n: "Custom", d: "Follows your rules", tip: "Does what your if-then rules say, checked top to bottom every turn. Good rules make it strong.", wt: 0, def: 1, custom: true, powerDmg: 8, powerAcc: 16, aimAcc: 50, aimDmg: 1, counter: 14 },
     ],
     tool: [
       { n: "Gripper", d: "Accurate, grabs to stall", tip: "Rarely misses and can grab the enemy so it loses a turn. Can't grab treads.", wt: 10, atk: 6, acc: 12, swings: 1, mult: 1, grab: 0.25 },
@@ -427,6 +439,30 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     ],
   };
   const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  // Custom brain: up to 3 rules, checked top to bottom at the start of each turn. The first true one picks the move; if none, it attacks.
+  //   power attack: more damage, misses more, smashes through a shield (full damage, no counter)
+  //   aim first: skip this attack, the next one is much more accurate
+  //   shield: skip this attack, the next hit does half damage, then it counterattacks (it can't shield again until it has)
+  const RULES = {
+    IF: [
+      { n: "always" },
+      { n: "my health is below", v: [75, 50, 25] },
+      { n: "the enemy's health is below", v: [75, 50, 25] },
+      { n: "my hit chance is below", v: [80, 60, 40], pct: true },
+      { n: "the enemy's shield is up" },
+    ],
+    DO: ["attack", "power attack", "aim first", "shield"],
+    max: 3,
+    defaults: [{ c: 3, v: 2, a: 2 }, { c: 1, v: 1, a: 3 }], // aim when the shot is hard, shield when hurt
+  };
+  function chooseRule(rules, s) {
+    for (let i = 0; i < rules.length; i++) {
+      const r = rules[i], cond = RULES.IF[r.c], v = cond.v ? cond.v[r.v] : 0;
+      const yes = r.c === 0 ? true : r.c === 1 ? s.mine < v : r.c === 2 ? s.theirs < v : r.c === 3 ? s.chance < v : s.shield;
+      if (yes) return { i, a: r.a };
+    }
+    return null;
+  }
   const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
   const MAXW = 75;
   const SLOTS = ["body", "sensor", "brain", "tool"];
@@ -447,12 +483,25 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     for (const k of SLOTS) { const v = +b[k]; if (!Number.isInteger(v) || v < 0 || v >= PARTS[k].length) return null; out[k] = v; }
     const c = +b.color; if (!Number.isInteger(c) || c < 0 || c >= COLORS.length) return null; out.color = c;
     if (statsOf(out).wt > MAXW) return null;
+    if (PARTS.brain[out.brain].custom) {
+      const rules = Array.isArray(b.rules) ? b.rules : RULES.defaults;
+      if (rules.length > RULES.max) return null;
+      out.rules = [];
+      for (const r of rules) {
+        const c = +(r && r.c), v = +(r && r.v), a = +(r && r.a), cond = RULES.IF[c];
+        if (!cond || !Number.isInteger(c) || !Number.isInteger(a) || a < 0 || a >= RULES.DO.length || !Number.isInteger(v) || v < 0 || v >= (cond.v ? cond.v.length : 1)) return null;
+        out.rules.push({ c, v, a });
+      }
+    }
     return out;
   }
-  const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}`;
+  // NAME-bsbtc, plus -RRR for each Custom brain rule (condition, value, move). No rules is written as 000: "always attack".
+  const codeOf = (b) => `${b.name || "BOT"}-${b.body}${b.sensor}${b.brain}${b.tool}${b.color}` + (b.rules ? "-" + (b.rules.map((r) => `${r.c}${r.v}${r.a}`).join("") || "000") : "");
   function parseCode(c) {
-    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-9])([0-9])([0-9])([0-9])([0-5])$/);
-    return m ? sanitizeBot({ name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] }) && { name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6] } : null;
+    const m = String(c).trim().toUpperCase().replace(/\s+/g, "").match(/^([A-Z0-9]{1,10})-?([0-9])([0-9])([0-9])([0-9])([0-5])(?:-([0-9]{3}|[0-9]{6}|[0-9]{9}))?$/);
+    if (!m) return null;
+    const rules = m[7] ? m[7].match(/.../g).map((t) => ({ c: +t[0], v: +t[1], a: +t[2] })) : undefined;
+    return sanitizeBot({ name: m[1], body: +m[2], sensor: +m[3], brain: +m[4], tool: +m[5], color: +m[6], rules });
   }
 
   // ---------------- deterministic battle ----------------
@@ -469,7 +518,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   function simulate(a, b, seed) {
     const rnd = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
     const S = [statsOf(a), statsOf(b)], bots = [a, b], H = [100, 100], ev = [];
-    const brace = [false, false], stall = [false, false], stallBy = [null, null];
+    const brace = [false, false], stall = [false, false], stallBy = [null, null], aimed = [false, false];
     const push = (e) => ev.push({ ...e, hp: [...H], brace: [...brace] });
     let turn = S[0].spd + rnd() * 3 >= S[1].spd + rnd() * 3 ? 0 : 1;
     const dodgeOf = (b, s) => (PARTS.body[b.body].dodge || 0) + (PARTS.sensor[b.sensor].dodge || 0) + s.spd;
@@ -478,10 +527,23 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       const m = bots[me], o = bots[op], T = PARTS.tool[m.tool], OB = PARTS.body[o.body];
       const track = PARTS.sensor[m.sensor].track || 0; // lidar: the enemy's dodging only half works
       let chance = clamp(TUNE.base + S[me].aim * 4 + (T.acc || 0) - dodgeOf(o, S[op]) * (1 - track), 20, 95);
-      let bonus = 0;
+      let bonus = 0, power = false;
       if (!burst) {
         push({ me, kind: "sense", txt: `'s ${PARTS.sensor[m.sensor].n.toLowerCase()} spots the enemy (${Math.round(chance)}% chance to hit).` });
         const BR = PARTS.brain[m.brain];
+        if (BR.custom) {
+          const pick = chooseRule(m.rules || RULES.defaults, { mine: H[me], theirs: H[op], chance, shield: brace[op] });
+          const a = pick ? pick.a : 0, rule = pick ? pick.i + 1 : 0, tag = pick ? `RULE ${rule}: ` : "", why = pick ? ` follows rule ${rule}:` : " has no rule that fits, so";
+          if (a === 3 && !brace[me] && !counter[me]) { brace[me] = true; push({ me, kind: "think", act: "shield", rule, txt: `${why} it raises its shield.`, bubble: tag + "SHIELD" }); return false; }
+          if (a === 2 && !aimed[me]) { aimed[me] = true; push({ me, kind: "think", act: "aim", rule, txt: `${why} it lines up a careful shot.`, bubble: tag + "AIM" }); return false; }
+          const fire = aimed[me];
+          if (fire) { aimed[me] = false; chance = Math.min(95, chance + BR.aimAcc); bonus += BR.aimDmg; }
+          if (counter[me]) bonus += BR.counter;
+          if (a === 1) { power = true; chance = Math.max(20, chance - BR.powerAcc); bonus += BR.powerDmg; push({ me, kind: "think", act: "power", rule, txt: `${why} power attack!`, bubble: tag + "POWER" }); }
+          else if (a === 3 && counter[me]) push({ me, kind: "think", act: "counter", rule, txt: `${why} its shield blocked a hit, so it counterattacks!`, bubble: tag + "COUNTER" });
+          else push({ me, kind: "think", act: "attack", rule, txt: fire ? `${why} it fires its aimed shot.` : a === 3 ? `${why} its shield is already up, so it attacks.` : `${why} it attacks.`, bubble: tag + (fire ? "FIRE" : "ATTACK") });
+          counter[me] = false;
+        } else {
         if (BR.shieldAt && H[me] < BR.shieldAt && !brace[me] && !shieldUsed[me] && rnd() < BR.shieldP) {
           brace[me] = true; shieldUsed[me] = true;
           push({ me, kind: "think", txt: " is hurt, so it raises its shield.", bubble: "SHIELD!" });
@@ -492,17 +554,19 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         else if (m.brain === 0) push({ me, kind: "think", txt: " decides: ATTACK!", bubble: "ATTACK!" });
         else push({ me, kind: "think", txt: " decides to attack.", bubble: "GO!" });
         counter[me] = false;
+        }
       }
       let total = 0, hits = 0;
       for (let k = 0; k < T.swings; k++) {
         if (rnd() * 100 < chance) {
           let dmg = (S[me].atk * TUNE.k + bonus + Math.floor(rnd() * 6)) * T.mult - S[op].def * (1 - (T.pierce || 0));
           if (T.spin && OB.glance) dmg *= OB.glance; // spinner hits glance off a wedge
-          if (brace[op]) dmg /= 2;
+          if (brace[op] && !power) dmg /= 2;
           total += Math.max(2, Math.round(dmg)); hits++;
         }
       }
-      if (brace[op] && hits) { brace[op] = false; counter[op] = true; }
+      const smash = !!(power && brace[op] && hits); // a power attack breaks the shield: no counter
+      if (brace[op] && hits) { brace[op] = false; counter[op] = !power; }
       H[op] = Math.max(0, H[op] - total);
       const tool = T.n.toLowerCase();
       let grab = false, flip = false;
@@ -520,8 +584,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       if (grab === "heavy") txt += " Too heavy to grab!";
       if (flip === true) txt += " It flips the enemy over!";
       if (flip === "low") txt += " The wedge is too low to flip!";
+      if (smash) txt += " It smashes through the shield!";
       push({ me, kind: "act", hits, swings: T.swings, dmg: total, grab: grab === true, heavy: grab === "heavy", flip: flip === true, low: flip === "low",
-        glance: !!(hits && T.spin && OB.glance), pierce: !!(hits && T.pierce && S[op].def > 0), track: track > 0 && dodgeOf(o, S[op]) >= 7, crit: total >= 22, burst: !!burst, txt });
+        smash, glance: !!(hits && T.spin && OB.glance), pierce: !!(hits && T.pierce && S[op].def > 0), track: track > 0 && dodgeOf(o, S[op]) >= 7, crit: total >= 22, burst: !!burst, txt });
       return H[op] <= 0;
     }
     const counter = [false, false], shieldUsed = [false, false];
@@ -531,7 +596,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       if (stall[me]) { stall[me] = false; push({ me, kind: "stall", flip: stallBy[me] === "flip", txt: stallBy[me] === "flip" ? " is flipped over and loses a turn!" : " is stuck in the gripper and loses a turn!" }); continue; }
       if (attack(me, op, false)) break;
       const B = PARTS.body[m.body];
-      if (B.burst && !brace[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
+      if (B.burst && !brace[me] && !aimed[me] && rnd() < B.burst) { if (attack(me, op, true)) break; }
     }
     const w = H[0] === H[1] ? (rnd() < 0.5 ? 0 : 1) : H[0] > H[1] ? 0 : 1;
     push({ me: w, kind: "win", txt: " WINS!" });
@@ -544,7 +609,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   // for each side: { winner, sides: [{ won, headline, reasons[], tip }, …] }
   function explainBattle(a, b, sim) {
     const bots = [a, b], w = sim.winner, l = 1 - w;
-    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0, flips: 0, lowFail: 0, glanced: 0, pierced: 0, tracked: 0 }));
+    const st = [0, 1].map(() => ({ swings: 0, hits: 0, dmg: 0, maxHit: 0, grabs: 0, stalled: 0, shields: 0, counters: 0, bursts: 0, aims: 0, heavyFail: 0, flips: 0, lowFail: 0, glanced: 0, pierced: 0, tracked: 0, powers: 0, smashes: 0 }));
     let endHp = [100, 100], first = null;
     for (const e of sim.events) {
       if (first == null && (e.kind === "sense" || e.kind === "act")) first = e.me;
@@ -552,10 +617,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       if (e.kind === "act") {
         s.swings += e.swings || 1; s.hits += e.hits; s.dmg += e.dmg; s.maxHit = Math.max(s.maxHit, e.dmg);
         if (e.grab) s.grabs++; if (e.burst) s.bursts++; if (e.heavy) s.heavyFail++;
-        if (e.flip) s.flips++; if (e.low) s.lowFail++; if (e.glance) s.glanced++; if (e.pierce) s.pierced++; if (e.track && e.hits) s.tracked++;
+        if (e.flip) s.flips++; if (e.low) s.lowFail++; if (e.glance) s.glanced++; if (e.pierce) s.pierced++; if (e.track && e.hits) s.tracked++; if (e.smash) s.smashes++;
       }
       if (e.kind === "stall") s.stalled++;
-      if (e.kind === "think") { if (e.bubble === "SHIELD!") s.shields++; if (e.bubble === "COUNTER!") s.counters++; if (e.bubble === "AIMING...") s.aims++; }
+      if (e.kind === "think") { if (e.bubble === "SHIELD!" || e.act === "shield") s.shields++; if (e.bubble === "COUNTER!" || e.act === "counter") s.counters++; if (e.bubble === "AIMING..." || e.act === "aim") s.aims++; if (e.act === "power") s.powers++; }
       endHp = e.hp;
     }
     const acc = (k) => (st[k].swings ? st[k].hits / st[k].swings : 0);
@@ -594,8 +659,13 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     if (st[w].pierced >= 2 && PARTS.body[L.body].def >= 4) R.push([1.1 + st[w].pierced * 0.15, `${N(w)}'s drill went right through ${N(l)}'s armor.`, "pierce"]);
     if (st[w].tracked >= 2) R.push([1 + st[w].tracked * 0.15, `${N(w)}'s lidar tracked ${N(l)}, so dodging didn't help much.`, "track"]);
     if (st[w].bursts >= 1) R.push([1 + st[w].bursts * 0.8, `${N(w)}'s wheels got ${st[w].bursts} bonus speed attack${st[w].bursts === 1 ? "" : "s"}.`, "burst"]);
-    if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
-    if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    if (W.brain === 3) {
+      const did = [st[w].aims && `aimed first ${st[w].aims} time${st[w].aims === 1 ? "" : "s"}`, st[w].shields && `raised its shield ${st[w].shields} time${st[w].shields === 1 ? "" : "s"}`, st[w].powers && `used ${st[w].powers} power attack${st[w].powers === 1 ? "" : "s"}`, st[w].smashes && `smashed ${st[w].smashes === 1 ? "a shield" : st[w].smashes + " shields"}`].filter(Boolean);
+      if (did.length) R.push([1.3 + did.length * 0.3, `${N(w)}'s rules worked: it ${did.join(" and ")}.`, "rules"]);
+    } else {
+      if (st[w].shields >= 1) R.push([1.4 + st[w].counters * 0.6, `${N(w)}'s defensive brain raised a shield${st[w].counters ? " and hit back" : ""} when it got hurt.`, "shield"]);
+      if (st[w].aims >= 2) R.push([0.9 + st[w].aims * 0.3, `${N(w)}'s smart brain waited for clear shots ${st[w].aims} times.`, "aim"]);
+    }
     if (W.body === 1 && L.tool === 2 && R.every((r) => r[2] !== "dmg")) R.push([1.1, `${N(w)}'s thick treads armor blocked a lot of each small spinner hit.`, "armor"]);
     if (R.some((r) => r[2] === "attacks") && st[w].bursts) R.splice(R.findIndex((r) => r[2] === "burst"), 1); // already said
     R.sort((x, y) => y[0] - x[0]);
@@ -622,14 +692,23 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       aim: () => !has("body", 2) ? "Legs make you harder to hit, even for a Smart brain." : "Add armor so the clear shots hurt less.",
       armor: () => "Thick armor blocks a lot of each small spinner hit. Against Treads, a Hammer or Drill hits harder.",
       luck: () => "Your robot was a good match. Ask for a rematch!",
+      rules: () => L.brain === 3 ? "Their rules fit this fight better. Try changing what your rules do, or their order." : "Their rules fit the fight. Try writing rules of your own with the Custom brain.",
     }[top] || (() => "Every robot has a counter. Try a different part!"))();
+    // a losing Custom brain gets advice about its own rules first
+    const lr = L.rules || RULES.defaults;
+    const ruleTip = L.brain !== 3 ? null
+      : !lr.length ? "Your Custom brain has no rules, so it only does plain attacks. Add a rule, like a power attack."
+      : st[w].smashes && st[l].shields >= 2 ? "Their power attacks smashed through your shield. Against a power attacker, attack instead of shielding."
+      : st[l].aims >= 3 && lr.some((r) => r.a === 2 && !(r.c === 3 && r.v === 2)) ? `Your rules aimed ${st[l].aims} times, and each aim skips an attack. Try aiming only when your hit chance is below 40%.`
+      : st[l].powers >= 3 && acc(l) < 0.5 ? "Power attacks miss more. Use them when your hit chance is high, or after aiming first."
+      : null;
     const counter = W.body === 1 ? "Hammers and Drills beat Treads." : W.body === 0 ? "Spinners shred light Wheels, and Treads can take their hits." : W.body === 2 ? "Accurate Grippers can still catch Legs." : W.body === 3 ? "Drills and Hammers beat Wedges." : "Every robot has a counter.";
     const headline = (k) => k === w
       ? (close ? `Close one! ${N(w)} won with ${endHp[w]} HP left.` : endHp[w] >= 70 ? `${N(w)} won easily!` : `${N(w)} won!`)
       : `Why ${N(w)} beat ${N(l)}`;
     return {
       winner: w,
-      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : loserTip })),
+      sides: [0, 1].map((k) => ({ won: k === w, headline: headline(k), reasons, tip: k === w ? `Keep it up! Watch out: ${counter}` : ruleTip || loserTip })),
       stats: st,
     };
   }
@@ -953,7 +1032,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     };
   })();
 
-  return { TUNE, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
@@ -998,6 +1077,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         const p = PARTS[slot][bot[slot]];
         d.innerHTML = "<b></b> <span></span>"; d.firstChild.textContent = p.n + ":"; d.lastChild.textContent = p.tip;
       });
+      renderRules();
       const sw = $("sw"); sw.innerHTML = "";
       COLORS.forEach((c, i) => {
         const b = document.createElement("button");
@@ -1007,6 +1087,41 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         b.onclick = () => { bot.color = i; pv.pop = 1; Sound.play("click"); update(); };
         sw.appendChild(b);
       });
+    }
+    // Custom brain: a small rules editor. It only rebuilds when rules are added or removed, so a select keeps focus while you change it.
+    let rulesSig = "";
+    function renderRules() {
+      let box = $("rules");
+      if (!box) { box = document.createElement("div"); box.className = "rules"; box.id = "rules"; $("d-brain").after(box); }
+      const custom = PARTS.brain[bot.brain].custom;
+      box.hidden = !custom;
+      if (!custom) { rulesSig = ""; return; }
+      if (!bot.rules) bot.rules = E.RULES.defaults.map((r) => ({ ...r }));
+      const sig = bot.rules.length + ":" + bot.rules.map((r) => r.c).join("");
+      if (sig === rulesSig) return;
+      rulesSig = sig; box.innerHTML = "";
+      const R = E.RULES;
+      const sel = (opts, val, tip, label) => { const s = document.createElement("select"); s.setAttribute("aria-label", label); s.setAttribute("data-tip", tip); opts.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o; s.appendChild(op); }); s.value = val; return s; };
+      bot.rules.forEach((r, i) => {
+        const row = document.createElement("div"); row.className = "rrow";
+        const num = document.createElement("b"); num.textContent = i + 1; row.appendChild(num);
+        const ifl = document.createElement("span"); ifl.textContent = "IF"; row.appendChild(ifl);
+        const c = sel(R.IF.map((x) => x.n), r.c, "When this rule should fire.", "Rule " + (i + 1) + " condition"); row.appendChild(c);
+        const cond = R.IF[r.c];
+        if (cond.v) { const v = sel(cond.v.map((x) => x + (cond.pct ? "%" : "")), r.v, "The number to compare with.", "Rule " + (i + 1) + " number"); v.onchange = () => { r.v = +v.value; Sound.play("click"); update(); }; row.appendChild(v); }
+        const thenl = document.createElement("span"); thenl.textContent = "THEN"; row.appendChild(thenl);
+        const a = sel(R.DO, r.a, "Attack. Power attack: more damage, misses more, and smashes through a shield. Aim first: skip this attack, the next one is much more accurate. Shield: skip this attack, halve the next hit, then counterattack.", "Rule " + (i + 1) + " move");
+        a.onchange = () => { r.a = +a.value; Sound.play("click"); update(); }; row.appendChild(a);
+        c.onchange = () => { r.c = +c.value; r.v = Math.min(r.v, (R.IF[r.c].v || [0]).length - 1); Sound.play("click"); update(); };
+        const del = document.createElement("button"); del.type = "button"; del.className = "rdel"; del.textContent = "×"; del.setAttribute("aria-label", "Remove rule " + (i + 1)); del.setAttribute("data-tip", "Remove this rule.");
+        del.onclick = () => { bot.rules.splice(i, 1); Sound.play("click"); update(); }; row.appendChild(del);
+        box.appendChild(row);
+      });
+      const add = document.createElement("button"); add.type = "button"; add.className = "btn ghost radd"; add.textContent = "+ Add a rule";
+      add.disabled = bot.rules.length >= R.max; add.setAttribute("data-tip", `Add another rule (up to ${R.max}).`);
+      add.onclick = () => { bot.rules.push({ c: 0, v: 0, a: 0 }); Sound.play("click"); update(); };
+      const note = document.createElement("p"); note.className = "rnote"; note.textContent = "Rules are checked top to bottom at the start of every turn. If none fit, it attacks.";
+      box.append(add, note);
     }
     function update() {
       bot.name = E.cleanName($("bot-name").value) || "BOT";
@@ -1018,6 +1133,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       $("warn").textContent = over ? "Too heavy! The motors can't move it. Swap a part." : "";
       const rows = [["Attack", s.atk, 12, "var(--orange)", STAT_TIPS.atk], ["Defense", s.def, 11, "var(--good)", STAT_TIPS.def], ["Speed", s.spd, 10, "var(--blue)", STAT_TIPS.spd], ["Aim", s.aim, 10, "var(--purple)", STAT_TIPS.aim]];
       $("stats").innerHTML = rows.map(([l, v, mx, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${v}</span>`).join("");
+      if (!PARTS.brain[bot.brain].custom) delete bot.rules;
       opts.onChange && opts.onChange(bot, over);
     }
     $("bot-name").addEventListener("input", update);
@@ -1056,8 +1172,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     update();
 
     return {
-      get bot() { return { ...bot }; },
-      set(b) { bot = { ...b }; $("bot-name").value = bot.name; update(); },
+      get bot() { return { ...bot, ...(bot.rules ? { rules: bot.rules.map((r) => ({ ...r })) } : {}) }; },
+      set(b) { bot = { ...b, ...(b.rules ? { rules: b.rules.map((r) => ({ ...r })) } : {}) }; rulesSig = ""; $("bot-name").value = bot.name; update(); },
       celebrate() { pv.fx.burst(pv.w / 2, pv.h * 0.35, 50, { colors: COLORS, kind: "confetti", speed: 280, g: 380, life: 1.5, size: 5, drag: 0.92 }); },
       overweight() { return statsOf(bot).wt > MAXW; },
     };
@@ -1156,7 +1272,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       const e = this.queue.shift(); this.ev = e; this.evT = 0; this.impactDone = false; this.later = [];
       this.log(e);
       if (e.kind === "sense") Sound.play("scan");
-      if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; if (e.bubble === "SHIELD!") { const p = this.pos(e.me); this.fx.ring(p.x, p.mid - p.s * 0.3, p.s * 1.6, "#4fd18b", 0.5, 5); } }
+      if (e.kind === "think") { Sound.play("think"); this.brace = e.brace; if (e.bubble === "SHIELD!" || e.act === "shield") { const p = this.pos(e.me); this.fx.ring(p.x, p.mid - p.s * 0.3, p.s * 1.6, "#4fd18b", 0.5, 5); } }
       if (e.kind === "stall") { this.held[e.me] = false; const p = this.pos(e.me); this.fx.text(p.x, p.top, e.flip ? "FLIPPED OVER!" : "STUCK!", "#c58cff", 26); }
       if (e.kind === "win") { this.hp = e.hp; this.held = [false, false]; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(e.me); return; }
       if (e.kind === "act" && e.burst) { const p = this.pos(e.me); this.fx.text(p.x, p.top - 30, "BONUS!", "#38a7f0", 22); }
@@ -1164,7 +1280,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     }
     impact(e) {
       const op = 1 - e.me, p = this.pos(op), tool = this.bots[e.me].tool, side = op === 1 ? -1 : 1;
-      const blocked = this.brace[op] && e.hits > 0; // the shield was up when this hit landed
+      const blocked = this.brace[op] && e.hits > 0 && !e.smash; // the shield was up when this hit landed (a power attack smashes it instead)
       const hx = p.x + side * p.s * 0.6, hy = p.mid;
       this.hp = e.hp; this.brace = e.brace; this.cb.onHP && this.cb.onHP(this.hp);
       if (e.hits) {
@@ -1182,10 +1298,11 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         this.fx.text(p.x, p.top, "-" + e.dmg, e.crit ? "#ffd23f" : "#ffffff", e.crit ? 40 : 32);
         if (e.crit) { this.fx.text(p.x, p.top - 34, "CRITICAL!", "#ff8a50", 20); this.flash = 1; this.zoom = { k: 1, x: hx, y: hy }; this.cheer = 1; }
         if (blocked) this.fx.text(p.x, p.top - 34, "BLOCKED!", "#4fd18b", 20);
-        if (e.grab) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "GRABBED!", "#c58cff", 22); this.held[op] = true; }
-        if (e.flip) { this.fx.text(p.x, p.top - (e.crit || blocked ? 64 : 34), "FLIPPED!", "#c58cff", 24); this.flipT[op] = 1; } // launched into a full flip
+        if (e.grab) { this.fx.text(p.x, p.top - (e.crit && e.smash ? 94 : e.crit || blocked || e.smash ? 64 : 34), "GRABBED!", "#c58cff", 22); this.held[op] = true; }
+        if (e.flip) { this.fx.text(p.x, p.top - (e.crit && e.smash ? 94 : e.crit || blocked || e.smash ? 64 : 34), "FLIPPED!", "#c58cff", 24); this.flipT[op] = 1; } // launched into a full flip
         if (e.heavy) this.fx.text(p.x, p.top - 34, "TOO HEAVY!", "#aaa6b0", 18);
         if (e.low) this.fx.text(p.x, p.top - 34, "TOO LOW!", "#aaa6b0", 18);
+        if (e.smash) { this.fx.text(p.x, p.top - (e.crit || e.heavy ? 64 : 34), "SHIELD SMASHED!", "#ffd23f", 20); this.fx.burst(hx, hy, 14, { colors: ["#4fd18b", "#bff5d6", "#ffd23f"], speed: 420, g: 500, life: 0.5, size: 4 }); }
         if (e.glance) { this.fx.text(p.x, p.top - 34, "GLANCED!", "#aaa6b0", 18); this.fx.burst(hx, hy, 10, { colors: ["#fff6c8", "#aaa6b0"], speed: 360, g: 300, life: 0.4, size: 3, angle: -Math.PI / 2, spread: 1.4 }); }
         Sound.play("hit");
       } else {
@@ -1579,7 +1696,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   };
 
   // ---------------- ROSTER ----------------
-  const SAMPLES = ["CRUSHER-12011", "ZIPZAP-00222", "SPIDEY-22113", "FLIPZ-31232"];
+  const SAMPLES = ["CRUSHER-12011", "ZIPZAP-00222", "SPIDEY-22113", "FLIPZ-31232", "BRAINY-20304-401322001"];
   let roster = store.get("rba-roster", null);
   if (!Array.isArray(roster) || !roster.length) roster = SAMPLES.map((c) => ({ ...parseCode(c), sample: true, w: 0, l: 0 }));
   roster = roster.filter((r) => E.sanitizeBot(r)); // drop bots made under old rules that are now invalid

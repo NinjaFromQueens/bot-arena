@@ -224,7 +224,7 @@
   }
 
   // ---------- up next card + predictions ----------
-  function partsList(b) { return E.SLOTS.map((k) => E.PARTS[k][b[k]].n); }
+  function partsList(b) { return E.SLOTS.map((k) => (k === "brain" && b.rules ? `Custom: ${b.rules.length} rule${b.rules.length === 1 ? "" : "s"}` : E.PARTS[k][b[k]].n)); }
   function showUpNext(m) {
     const A = m.a.bot, B = m.b.bot;
     $("un-round").textContent = m.round;

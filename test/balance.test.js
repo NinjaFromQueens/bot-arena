@@ -58,4 +58,23 @@ for (const [name, a, b, wins] of claims) {
   const r = rate(a, b);
   assert(wins ? r > 0.5 : r < 0.5, `tip claim "${name}" isn't true anymore: ${(r * 100).toFixed(1)}% (fix the numbers or the tip text in engine.js)`);
 }
+// Custom brain: "Good rules make it strong" (its tip) and the rule tips in explainBattle. Custom builds use RULES.defaults above.
+const CUSTOM = E.PARTS.brain.findIndex((b) => b.custom);
+const P = (str) => str.split(",").filter(Boolean).map((t) => ({ c: +t[0], v: +t[1], a: +t[2] }));
+const pct = (r) => (r * 100).toFixed(1) + "%";
+const customs = builds.filter((b) => b.brain === CUSTOM), others = builds.filter((b) => b.brain !== CUSTOM);
+function rulesRate(rules, vs = others, vsRules) { // Custom builds with these rules against vs (given vsRules if they're Custom too)
+  let w = 0, g = 0, s = 7;
+  for (const m of customs) for (const o of vs) for (let k = 0; k < 2; k++) {
+    const a = { ...m, rules }, b = vsRules ? { ...o, rules: vsRules } : o, flip = k === 1, r = E.simulate(flip ? b : a, flip ? a : b, s++);
+    w += (flip ? r.winner === 1 : r.winner === 0) ? 1 : 0; g++;
+  }
+  return w / g;
+}
+const good = rulesRate(P("322,001")), dflt = rulesRate(E.RULES.defaults), none = rulesRate([]);
+assert(good > dflt + 0.02 && dflt > none + 0.02, `rules should matter: good rules ${pct(good)}, default rules ${pct(dflt)}, no rules ${pct(none)}`);
+assert(good < 0.6, `good rules win ${pct(good)}; keep them under 60% so the other brains stay worth picking`);
+assert(rulesRate(P("322")) > rulesRate(P("302")), "aiming only when the hit chance is below 40% should beat aiming below 80%");
+assert(rulesRate(P("001"), customs, P("003")) > 0.5, "power attacks should beat shields (they smash through)");
+assert(rulesRate([], customs, P("001")) > rulesRate(P("003"), customs, P("001")), "against a power attacker, attacking should beat shielding");
 console.log(`Balance tests passed (${builds.length} builds, ${len.toFixed(1)} attacks per fight, ${(fair * 100).toFixed(0)}% of builds within 40–60%)`);

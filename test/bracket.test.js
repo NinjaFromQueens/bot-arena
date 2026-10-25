@@ -26,4 +26,16 @@ for (let s = 0; s < 200; s++) {
   assert.strictEqual(x.winner, y.winner); assert.strictEqual(x.events.length, y.events.length);
 }
 assert.strictEqual(Engine.sanitizeBot({ name: "x", body: 1, sensor: 0, brain: 0, tool: 1, color: 0 }), null, "overweight bot rejected");
+// bot codes: old codes still work; Custom brain rules ride along as -RRR (condition, number, move) and are validated
+assert.deepStrictEqual(Engine.parseCode("zap-21013"), { name: "ZAP", body: 2, sensor: 1, brain: 0, tool: 1, color: 3 }, "old code");
+const ruled = Engine.parseCode("RULEZ-20304-401322113");
+assert.deepStrictEqual(ruled.rules, [{ c: 4, v: 0, a: 1 }, { c: 3, v: 2, a: 2 }, { c: 1, v: 1, a: 3 }], "rules parsed");
+assert.strictEqual(Engine.codeOf(ruled), "RULEZ-20304-401322113", "code round trip");
+assert.deepStrictEqual(Engine.parseCode("RULEZ-20304").rules, Engine.RULES.defaults, "Custom brain without rules gets the defaults");
+assert.strictEqual(Engine.codeOf({ ...ruled, rules: [] }), "RULEZ-20304-000", "no rules is written as always attack");
+for (const bad of ["RULEZ-20304-999", "RULEZ-20304-35", "RULEZ-20304-0010010010012", "RULEZ-20304-302-"]) assert.strictEqual(Engine.parseCode(bad), null, "bad rules code " + bad);
+assert.strictEqual(Engine.parseCode("ZAP-21013-001").rules, undefined, "rules are dropped for other brains");
+assert.strictEqual(Engine.sanitizeBot({ ...ruled, rules: [{ c: 1, v: 3, a: 0 }] }), null, "number out of range");
+assert.strictEqual(Engine.sanitizeBot({ ...ruled, rules: Array(4).fill({ c: 0, v: 0, a: 1 }) }), null, "at most 3 rules");
+for (let s = 1; s <= 50; s++) { const x = Engine.simulate(ruled, Engine.parseCode("ZAP-21013"), s), y = Engine.simulate(ruled, Engine.parseCode("ZAP-21013"), s); assert.strictEqual(x.winner, y.winner); assert.deepStrictEqual(x.events, y.events); }
 console.log("All tests passed");

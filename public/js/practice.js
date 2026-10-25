@@ -31,7 +31,7 @@
   };
 
   // ---------------- ROSTER ----------------
-  const SAMPLES = ["CRUSHER-12011", "ZIPZAP-00222", "SPIDEY-22113", "FLIPZ-31232"];
+  const SAMPLES = ["CRUSHER-12011", "ZIPZAP-00222", "SPIDEY-22113", "FLIPZ-31232", "BRAINY-20304-401322001"];
   let roster = store.get("rba-roster", null);
   if (!Array.isArray(roster) || !roster.length) roster = SAMPLES.map((c) => ({ ...parseCode(c), sample: true, w: 0, l: 0 }));
   roster = roster.filter((r) => E.sanitizeBot(r)); // drop bots made under old rules that are now invalid
