@@ -128,6 +128,17 @@
   .vstatus { font-family: var(--mono); font-size: 14px; min-height: 1.5em; margin: 6px 0; color: var(--muted); }
   .sim.tall canvas { aspect-ratio: 4 / 3; }
   .done-card { text-align: center; justify-items: center; }
+  /* presenting on the board */
+  .presentbar { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; justify-content: space-between; padding: 10px 14px; margin-bottom: 14px; border-radius: 12px; border: 1.5px solid var(--orange); background: var(--orange-soft); }
+  .presentbar b { font-family: var(--mono); letter-spacing: .12em; color: var(--orange-hi); }
+  body.present .card p, body.present .card li { font-size: 22px; max-width: 70ch; }
+  body.present .card .big { font-size: clamp(28px, 4vw, 40px); }
+  body.present .qopt { font-size: 22px; }
+  .qopt.poll { cursor: default; display: grid; gap: 6px; }
+  .qopt .pbar2 { height: 10px; border-radius: 5px; background: var(--panel-hi); overflow: hidden; }
+  .qopt .pbar2 i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .3s; }
+  .qopt .pn { font-family: var(--mono); font-size: 14px; color: var(--muted); }
+  .pollmeta { font-family: var(--mono); font-size: 15px; color: var(--muted); margin: 0; }
   .done-card .medal { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #ffe680, #ffd23f 55%, #c99a12); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 34px; box-shadow: 0 6px 0 #8f6d0a; animation: pop .6s cubic-bezier(.3,1.8,.5,1); }
 </style>
 </head>
@@ -171,6 +182,10 @@
 <script src="/js/rulebot.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script>
+  // presenting from the board: this tab is the game's host (it never counts as a student online)
+  if (/[?&]present\b/.test(location.search) && window.io) { document.body.dataset.page = "host"; window.baSocket = io(); }
+</script>
 <script src="/js/presence.js"></script>
 <script src="/js/learn.js"></script>
 </body>

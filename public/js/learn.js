@@ -391,6 +391,7 @@
     cur = null; $("v-list").hidden = false; $("v-lesson").hidden = true;
     try { history.replaceState(null, "", location.pathname); } catch {}
     if (window.Presence) Presence.where(0);
+    present.send();
     renderList();
   }
   $("back").onclick = closeLesson;
@@ -402,7 +403,7 @@
     else if (cur.i < LESSONS.length - 1) openLesson(cur.i + 1);
     else closeLesson();
   };
-  function setNext(enabled) { $("next").disabled = !enabled; }
+  function setNext(enabled) { $("next").disabled = !enabled && !present.on; } // presenting: the teacher sets the pace
 
   function renderStep() {
     const L = LESSONS[cur.i], card = $("card"), n = L.steps.length;
@@ -410,15 +411,17 @@
     $("dots").innerHTML = Array.from({ length: n + 1 }, (_, k) => `<i class="${k < cur.step ? "done" : k === cur.step ? "on" : ""}"></i>`).join("");
     $("prev").disabled = cur.step === 0;
     card.className = "panel card"; card.innerHTML = ""; card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
-    if (cur.step >= n) return renderDone(L, card);
+    if (cur.step >= n) { renderDone(L, card); present.send(); return; }
     const s = L.steps[cur.step];
     $("next").textContent = "Next";
     if (s.type === "read") { card.innerHTML = s.html; setNext(true); }
     else if (s.type === "quiz") renderQuiz(s, card);
     else if (s.type === "interactive") INTERACTIVES[s.kind](card);
+    present.send();
   }
 
   function renderQuiz(s, card) {
+    if (present.on) return present.quiz(s, card);
     const key = cur.step;
     card.innerHTML = `<h3>Check your thinking</h3><p class="big"></p><div class="choices2"></div><div class="fb"></div>`;
     card.querySelector(".big").textContent = s.q;
@@ -444,8 +447,7 @@
 
   function renderDone(L, card) {
     const pct = cur.total ? cur.score / cur.total : 1;
-    progress[L.id] = { done: true, score: cur.score, total: cur.total };
-    ls.set("learn-progress", progress);
+    if (!present.on) { progress[L.id] = { done: true, score: cur.score, total: cur.total }; ls.set("learn-progress", progress); }
     card.className = "panel card done-card";
     card.innerHTML = `<div class="medal">✓</div><p class="big">Lesson complete!</p>
       <p>You got <b>${cur.score} of ${cur.total}</b> questions right on the first try.${pct === 1 ? " Perfect!" : ""}</p>
@@ -1522,6 +1524,58 @@
       animate(cv, draw);
     },
   };
+
+  // ---------------- presenting to a class ----------------
+  // /learn?present (opened from the board): this tab takes over as the game's host. Each card is sent to the game,
+  // quiz cards become polls on the students' devices, and the teacher reveals the answer when the class is ready.
+  const present = (() => {
+    const on = /[?&]present\b/.test(location.search) && !!window.baSocket;
+    const api = { on, send() {}, quiz() {} };
+    if (!on) return api;
+    const socket = window.baSocket;
+    let saved = null, ready = false, poll = null, onPoll = null;
+    try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
+    document.body.classList.add("present");
+    const bar = document.createElement("div"); bar.className = "presentbar";
+    bar.innerHTML = '<span id="pr-msg">Connecting to your game...</span><button class="btn ghost" id="pr-back" type="button" data-tip="Stop presenting and go back to the game board. Students\' devices go back to normal.">Back to the game board</button>';
+    document.querySelector(".wrap").insertBefore(bar, document.querySelector(".wrap").children[1]);
+    $("pr-back").onclick = () => { if (ready) socket.emit("host:lessonEnd", {}, () => (location.href = "/host")); else location.href = "/host"; };
+    if (!saved) { $("pr-msg").textContent = "No game found in this tab. Open the board (Host on the board) first, then press Present a lesson."; return api; }
+    socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
+      if (!r || !r.ok) { ready = false; $("pr-msg").textContent = "That game has ended. Go back to the board to start a new one."; return; }
+      ready = true; $("pr-msg").innerHTML = `Presenting to game <b>${esc(r.code)}</b>. Students follow along on their devices.`; api.send();
+    }));
+    socket.on("room:poll", (p) => { poll = p; onPoll && onPoll(p); });
+    api.send = () => {
+      if (!ready) return;
+      if (!cur) { socket.emit("host:lessonEnd", {}); return; }
+      const L = LESSONS[cur.i], s = L.steps[cur.step];
+      socket.emit("host:lesson", { num: cur.i + 1, n: L.n, step: cur.step, steps: L.steps.length, quiz: s && s.type === "quiz" ? { q: s.q, options: s.options, answer: s.answer, explain: s.explain } : null });
+    };
+    // a quiz card on the board: live answer counts, then Reveal
+    api.quiz = (s, card) => {
+      const key = cur.step, id = `${cur.i + 1}-${key}`;
+      card.innerHTML = `<h3>Class poll</h3><p class="big"></p><div class="choices2"></div><p class="pollmeta" aria-live="polite">Students: answer on your device!</p><div class="btnrow"><button class="btn" type="button" data-tip="Show the right answer on the board and on every device. Students who got it right earn a quiz point.">Reveal the answer</button></div><div class="fb"></div>`;
+      card.querySelector(".big").textContent = s.q;
+      const box = card.querySelector(".choices2"), meta = card.querySelector(".pollmeta"), reveal = card.querySelector(".btnrow .btn");
+      s.options.forEach((o) => { const d = document.createElement("div"); d.className = "qopt poll"; d.innerHTML = '<span></span><div class="pbar2"><i></i></div><span class="pn">0</span>'; d.firstChild.textContent = o; box.appendChild(d); });
+      const shown = (revealed, right, answered) => {
+        [...box.children].forEach((d, i) => d.classList.toggle("right", revealed && i === s.answer));
+        if (revealed) { reveal.disabled = true; setFb(card, true, `<b>${esc(s.options[s.answer])}</b> ${esc(s.explain)}${answered != null ? `<br>${right} of ${answered} got it right.` : ""}`); cur.ok[key] = true; setNext(true); }
+      };
+      onPoll = (p) => {
+        if (p.id !== id || !card.isConnected) return;
+        const max = Math.max(1, ...p.counts);
+        [...box.children].forEach((d, i) => { d.querySelector("i").style.width = (p.counts[i] / max) * 100 + "%"; d.querySelector(".pn").textContent = `${p.counts[i]} pick${p.counts[i] === 1 ? "" : "s"}`; });
+        meta.textContent = `${p.answered} of ${p.players} students answered`;
+      };
+      if (poll) onPoll(poll);
+      reveal.onclick = () => socket.emit("host:reveal", { id }, (r) => { if (r && r.ok) { E.Sound.play("win"); shown(true, r.right, r.answered); } });
+      setNext(!!cur.ok[key]);
+      if (cur.ok[key]) shown(true);
+    };
+    return api;
+  })();
 
   // ---------------- boot ----------------
   renderList();

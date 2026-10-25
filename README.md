@@ -17,6 +17,8 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 6b. After each battle a **"Why ___ won"** card appears on the board: 2–3 reasons taken from what actually happened (hit rates, damage per hit, number of attacks, grabs, dodges, shields, bonus speed attacks) and one tip for the loser that suggests a part they don't already have. The two fighters see it on their own devices ("Why you won" / "Try this"). Auto-play waits 7 seconds so the class can read it. When a fight was nearly even, the card says so: a rematch could go the other way.
 7. The champion gets a podium scene, then **Awards**: Champion, Runner-up, Heavy Hitter, Sharpshooter, Grab Master, Speed Demon, Shield Hero and Top Predictor (ties share the award). Students see their own awards on their device. **New tournament, same robots** runs it again.
 
+**Presenting a lesson:** in the lobby, **Present a lesson** opens Robot Lessons on the board in the same tab. Every student who joined the game sees which lesson is up, and each quiz card becomes a **class poll** on their device. The board shows how many picked each answer (students don't see the split), and **Reveal the answer** shows it everywhere; right answers earn a quiz point. Next is never locked while presenting, so you set the pace. **Back to the game board** returns to the same game.
+
 **Tooltips:** hover over (or tap, on a phone or Chromebook) any part, stat, button or setting in the games to see what it does. On the student build screen, the part you picked is always described under each slot.
 
 **Presentation clicker:** on the board, Space or → runs **Next match** (and starts the fight early while the Up Next card is up), so a clicker can drive the tournament.

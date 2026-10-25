@@ -82,7 +82,8 @@ function publicState(room) {
   return {
     code: room.code,
     phase: room.phase,
-    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
+    players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, qpts: p.qpts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
+    lesson: lessonState(room),
     settings: room.settings,
     bracket: room.bracket && {
       rounds: room.bracket.rounds.map((round, r) => ({
@@ -98,6 +99,22 @@ function publicState(room) {
     awards: room.phase === "done" ? room.awards || [] : [],
     reactions: !room.reactionsOff,
   };
+}
+// ---------------- live lessons ----------------
+// The board can present a lesson; its quiz cards become polls on students' devices. The answer stays on the
+// server until the teacher reveals it, and the live answer counts go to the board only.
+const cleanText = (s, max) => String(s == null ? "" : s).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
+function lessonState(room) {
+  const L = room.lesson; if (!L) return null;
+  const q = L.quiz;
+  return { num: L.num, n: L.n, step: L.step, steps: L.steps,
+    quiz: q && { id: q.id, q: q.q, options: q.options, revealed: q.revealed, answer: q.revealed ? q.answer : null, explain: q.revealed ? q.explain : null } };
+}
+function pollUpdate(room) {
+  const q = room.lesson && room.lesson.quiz; if (!q) return;
+  const counts = q.options.map(() => 0);
+  for (const a of q.answers.values()) counts[a]++;
+  toHosts(room, "room:poll", { id: q.id, counts, answered: q.answers.size, players: [...room.players.values()].filter((p) => p.connected && !p.out).length });
 }
 function broadcast(room) { room.lastActive = Date.now(); io.to(room.code).emit("room:state", publicState(room)); }
 // Some events only matter to the board (reactions, class status), so they skip the students' devices.
@@ -236,7 +253,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
-    broadcast(room); statusChanged(room);
+    broadcast(room); statusChanged(room); pollUpdate(room);
   });
 
   socket.on("room:check", (d, cb) => {
@@ -405,6 +422,50 @@ io.on("connection", (socket) => {
     if (bo3 !== undefined) { if (![0, 1, 2].includes(bo3)) return cb && cb({ ok: false }); s.bo3 = bo3; } // takes effect from the next match
     cb && cb({ ok: true });
     broadcast(room);
+  });
+  socket.on("host:lesson", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const num = d && d.num, step = d && d.step, steps = d && d.steps;
+    if (!Number.isInteger(num) || num < 1 || num > 99 || !Number.isInteger(step) || !Number.isInteger(steps) || step < 0 || step > steps || steps > 60) return cb && cb({ ok: false });
+    let quiz = null;
+    const q = d.quiz;
+    if (q) {
+      const options = Array.isArray(q.options) ? q.options.slice(0, 6).map((o) => cleanText(o, 160)) : [];
+      if (options.length < 2 || !Number.isInteger(q.answer) || q.answer < 0 || q.answer >= options.length || !cleanText(q.q, 300)) return cb && cb({ ok: false });
+      const id = `${num}-${step}`, old = room.lesson && room.lesson.quiz;
+      quiz = old && old.id === id ? old : { id, q: cleanText(q.q, 300), options, answer: q.answer, explain: cleanText(q.explain, 400), revealed: false, answers: new Map() };
+    }
+    room.lesson = { num, n: cleanText(d.n, 80), step, steps, quiz };
+    cb && cb({ ok: true });
+    broadcast(room); pollUpdate(room);
+  });
+  socket.on("host:reveal", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const q = room.lesson && room.lesson.quiz;
+    if (!q || q.id !== (d && d.id)) return cb && cb({ ok: false });
+    if (!q.revealed) {
+      q.revealed = true;
+      for (const [pid, a] of q.answers) { const p = room.players.get(pid); if (p && a === q.answer) p.qpts = (p.qpts || 0) + 1; }
+    }
+    const right = [...q.answers.values()].filter((a) => a === q.answer).length;
+    cb && cb({ ok: true, right, answered: q.answers.size });
+    broadcast(room);
+  });
+  socket.on("host:lessonEnd", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    room.lesson = null;
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
+  socket.on("player:answer", (d, cb) => {
+    if (!joined || joined.role !== "player") return cb && cb({ ok: false });
+    const room = joined.room, q = room.lesson && room.lesson.quiz, choice = d && d.choice;
+    if (!q || q.id !== (d && d.id)) return cb && cb({ ok: false, error: "That question is over." });
+    if (q.revealed) return cb && cb({ ok: false, error: "The answer was already shown." });
+    if (!Number.isInteger(choice) || choice < 0 || choice >= q.options.length) return cb && cb({ ok: false });
+    q.answers.set(joined.playerId, choice);
+    cb && cb({ ok: true, choice });
+    pollUpdate(room);
   });
   socket.on("host:reactions", (d, cb) => {
     const room = requireHost(cb); if (!room) return;

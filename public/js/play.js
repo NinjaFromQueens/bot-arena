@@ -14,6 +14,7 @@
   if (session && session.code !== code) session = null;
   let state = null, editing = false, lastStatusKey = "";
   let myPick = null; // { matchId, side }
+  let myAnswer = null; // { id, choice } for the class poll on screen
 
   function show(id) { ["s-name", "s-build", "s-wait", "s-error"].forEach((s) => ($(s).hidden = s !== id)); window.scrollTo(0, 0); }
   function fail(title, text) { $("errtitle").textContent = title; $("errtext").textContent = text; show("s-error"); }
@@ -160,6 +161,39 @@
       : (side ? `Locked in: ${nm}. Watch the board!` : "Predictions are closed. Watch the board!");
   }
 
+  // the teacher is presenting a lesson: show where they are, and its quiz questions as a poll
+  let lessonSig = "";
+  function renderLesson(me) {
+    const L = state && state.lesson, box = $("lessonbox");
+    if (!L || !me) { box.hidden = true; lessonSig = ""; return; }
+    box.hidden = false;
+    const q = L.quiz;
+    $("lb-head").textContent = q ? `Class poll · Lesson ${L.num}` : `Lesson ${L.num}: ${L.n}`;
+    if (!q) { $("lb-q").textContent = "Your teacher is presenting this lesson. Watch the board!"; $("lb-opts").innerHTML = ""; $("lb-msg").textContent = ""; lessonSig = "lesson"; return; }
+    const sig = q.id + (q.revealed ? "r" : "");
+    if (lessonSig !== sig) {
+      if (!lessonSig.startsWith(q.id)) { E.Sound.play("beep"); if (navigator.vibrate) try { navigator.vibrate(120); } catch {} setTimeout(() => box.scrollIntoView({ behavior: E.RM ? "auto" : "smooth", block: "center" }), 50); }
+      if (q.revealed && myAnswer && myAnswer.id === q.id) E.Sound.play(myAnswer.choice === q.answer ? "win" : "miss");
+      lessonSig = sig;
+      $("lb-q").textContent = q.q; $("lb-opts").innerHTML = "";
+      q.options.forEach((o, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = o;
+        b.setAttribute("data-tip", "Tap your answer. You can change it until your teacher shows the answer.");
+        b.onclick = () => socket.emit("player:answer", { id: q.id, choice: i }, (r) => {
+          if (r && r.ok) { myAnswer = { id: q.id, choice: i }; E.Sound.play("click"); render(); } else if (r && r.error) $("lb-msg").textContent = r.error;
+        });
+        $("lb-opts").appendChild(b);
+      });
+    }
+    const mine = myAnswer && myAnswer.id === q.id ? myAnswer.choice : null;
+    [...$("lb-opts").children].forEach((b, i) => {
+      b.disabled = q.revealed; b.setAttribute("aria-pressed", i === mine);
+      b.classList.toggle("right", q.revealed && i === q.answer); b.classList.toggle("wrong", q.revealed && i === mine && i !== q.answer);
+    });
+    $("lb-msg").textContent = !q.revealed ? (mine == null ? "Tap your answer." : "Got it! You can change it until your teacher shows the answer.")
+      : mine === q.answer ? `Correct! +1 quiz point (you have ${me.qpts}). ${q.explain}` : mine == null ? `The answer: ${q.options[q.answer]}. ${q.explain}` : `Not this time. ${q.explain}`;
+  }
+
   function findMatch(id) {
     if (!state || !state.bracket) return null;
     for (const r of state.bracket.rounds) for (const m of r.matches) if (m.id === id) return m;
@@ -219,6 +253,7 @@
     $("editbtn").hidden = !state || state.phase !== "lobby";
     const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
     renderPredict(me);
+    renderLesson(me);
     if (state && state.phase === "lobby") myWhy = null;
     renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";
