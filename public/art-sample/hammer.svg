@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 136">
+  <!-- Hammer (tool.1). Box in manifest.json: [0, -0.34, 0.6, 0.68]: the hand is the left edge, middle height. -->
+  <defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b6973"/><stop offset="1" stop-color="#2a292e"/></linearGradient></defs>
+  <rect x="2" y="58" width="66" height="20" rx="6" fill="#6b4a2f" stroke="#141316" stroke-width="5"/>
+  <rect x="12" y="62" width="40" height="5" rx="2" fill="#8c6845"/>
+  <rect x="58" y="6" width="56" height="124" rx="12" fill="url(#m)" stroke="#141316" stroke-width="5"/>
+  <rect x="66" y="16" width="12" height="104" rx="6" fill="#ffffff" opacity=".22"/>
+  <path d="M60 46h52M60 90h52" stroke="#141316" stroke-width="3" opacity=".5"/>
+</svg>

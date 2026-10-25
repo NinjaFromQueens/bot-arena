@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <!-- Ultrasonic head (sensor.1), drawn in grays with "tint": true: light grays take the robot's color, black stays black. -->
+  <rect x="14" y="20" width="212" height="146" rx="34" fill="#e6e6e6" stroke="#141316" stroke-width="6"/>
+  <rect x="30" y="118" width="180" height="30" rx="12" fill="#b4b4b4"/>
+  <g stroke="#141316" stroke-width="6">
+    <circle cx="82" cy="84" r="40" fill="#f4f4f4"/>
+    <circle cx="164" cy="84" r="40" fill="#f4f4f4"/>
+    <circle cx="82" cy="84" r="24" fill="#222222"/>
+    <circle cx="164" cy="84" r="24" fill="#222222"/>
+  </g>
+  <g fill="none" stroke="#666666" stroke-width="4"><circle cx="82" cy="84" r="12"/><circle cx="164" cy="84" r="12"/></g>
+</svg>

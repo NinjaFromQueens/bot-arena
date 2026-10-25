@@ -755,6 +755,48 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // o: lunge 0..1 (simple attack), hurt 0..1, tilt (rad), shield, bob,
   //    and for battles: reach 0..1 (arm out), hammer (swing angle), clamp (gripper, 1 = shut), spinA (spinner angle),
   //    flipA (flipper angle), damage 0..1 (scratches, cracked visor, flickering eye), pose "win" (arm pumping)
+  // ---------------- part art (optional) ----------------
+  // An art pack maps parts to pictures: parts["body.0"] = { img, box: [x, y, w, h] in robot sizes, tint, pivot }.
+  // Frames: body from the ground under the robot (y up is negative), sensor from the middle of the head,
+  // tool from the hand, pointing along the arm. drawBot uses a picture when one has loaded, and code otherwise.
+  // tint: the picture is a gray template colored with the robot's color. See public/art-sample/README.md.
+  let art = null;
+  const ART_KEY = /^(body|sensor|tool)\.\d$/, TORSO_Y = [-0.48, -0.5, -0.74, -0.48], tinted = new Map();
+  const setArt = (pack) => { art = pack; tinted.clear(); };
+  function artReady(key) { const p = art && art.parts && art.parts[key]; return p && p.img && p.img.complete && p.img.naturalWidth ? p : null; }
+  function artPart(ctx, key, s, col) {
+    const p = artReady(key); if (!p) return false;
+    let src = p.img;
+    if (p.tint) { // multiply the color in, then keep only the picture's own shape
+      src = tinted.get(key + col);
+      if (!src) {
+        src = document.createElement("canvas"); src.width = p.img.naturalWidth; src.height = p.img.naturalHeight;
+        const c = src.getContext("2d"); c.drawImage(p.img, 0, 0); c.globalCompositeOperation = "multiply"; c.fillStyle = col; c.fillRect(0, 0, src.width, src.height);
+        c.globalCompositeOperation = "destination-in"; c.drawImage(p.img, 0, 0); tinted.set(key + col, src);
+      }
+    }
+    ctx.drawImage(src, p.box[0] * s, p.box[1] * s, p.box[2] * s, p.box[3] * s);
+    return true;
+  }
+  // load /art/manifest.json (if the school added one) plus any extra parts (a student's own pictures, practice mode only)
+  function loadArt(url, extra = {}) {
+    if (!isBrowser || typeof fetch === "undefined") return Promise.resolve(null);
+    const base = url.replace(/[^/]*$/, "");
+    return fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((m) => {
+      const parts = {};
+      for (const [k, p] of Object.entries({ ...((m && m.parts) || {}), ...extra })) {
+        if (!ART_KEY.test(k) || !p || typeof p.src !== "string" || !Array.isArray(p.box) || p.box.length !== 4 || !p.box.every(Number.isFinite)) continue;
+        const img = new Image();
+        parts[k] = { img, box: p.box, tint: !!p.tint, pivot: Array.isArray(p.pivot) ? p.pivot : null, ready: new Promise((ok) => { img.onload = img.onerror = ok; }) };
+        img.src = /^(data:|https?:|\/)/.test(p.src) ? p.src : base + p.src;
+      }
+      const pack = Object.keys(parts).length ? { name: (m && m.name) || "", parts } : null;
+      setArt(pack);
+      // resolves once every picture has loaded (or failed), so a page can redraw its robot portraits
+      return Promise.all(Object.values(parts).map((p) => p.ready)).then(() => { tinted.clear(); return pack; });
+    });
+  }
+
   function drawBot(ctx, b, x, gy, s, dir, t, o = {}) {
     const col = COLORS[b.color], ink = "#141316", metal = "#8f8b98", metalHi = "#c9c5d1";
     const lw = Math.max(1.5, s * 0.05);
@@ -768,7 +810,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
     ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = ink;
 
     let torsoBottom;
-    if (b.body === 0) {
+    if (artPart(ctx, "body." + b.body, s, col)) torsoBottom = TORSO_Y[b.body] * s;
+    else if (b.body === 0) {
       [-0.55, 0.55].forEach((wx) => {
         ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.32 * s, 0, 7); ctx.fill(); ctx.stroke();
         ctx.fillStyle = metal; ctx.beginPath(); ctx.arc(wx * s, -0.32 * s, 0.14 * s, 0, 7); ctx.fill(); ctx.stroke();
@@ -842,13 +885,13 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
     const hw = 0.82 * s, hh = 0.56 * s, hy = ty - hh - 0.1 * s;
     ctx.fillStyle = metal; rr(ctx, -0.1 * s, ty - 0.13 * s, 0.2 * s, 0.16 * s, 0.03 * s); ctx.fill(); ctx.stroke();
-    const hg = ctx.createLinearGradient(0, hy, 0, hy + hh); hg.addColorStop(0, "#ece8f0"); hg.addColorStop(1, "#a9a5b2");
-    ctx.fillStyle = hg; rr(ctx, -hw / 2, hy, hw, hh, 0.14 * s); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.translate(0, hy + hh / 2); const headArt = artPart(ctx, "sensor." + b.sensor, s, col); ctx.restore();
+    if (!headArt) { const hg = ctx.createLinearGradient(0, hy, 0, hy + hh); hg.addColorStop(0, "#ece8f0"); hg.addColorStop(1, "#a9a5b2"); ctx.fillStyle = hg; rr(ctx, -hw / 2, hy, hw, hh, 0.14 * s); ctx.fill(); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(-0.18 * s, hy); ctx.lineTo(-0.24 * s, hy - 0.22 * s); ctx.stroke();
     ctx.save(); ctx.shadowColor = BRAIN_COL[b.brain]; ctx.shadowBlur = 10 + 6 * Math.sin(t * 5);
     ctx.fillStyle = BRAIN_COL[b.brain]; ctx.beginPath(); ctx.arc(-0.24 * s, hy - 0.26 * s, 0.07 * s, 0, 7); ctx.fill(); ctx.restore();
     const blink = (t % 3.7) < 0.12 || (dmg > 0.82 && (t * 11) % 1 < 0.35) ? 0.15 : 1; // nearly knocked out: the eye flickers
-    if (b.sensor === 0) {
+    if (headArt) { /* the picture is the head and its sensor */ } else if (b.sensor === 0) {
       ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(0.12 * s, hy + hh / 2, 0.2 * s, 0, 7); ctx.fill(); ctx.stroke();
       ctx.save(); ctx.translate(0.12 * s, hy + hh / 2); ctx.scale(1, blink);
       const eg = ctx.createRadialGradient(-0.03 * s, -0.03 * s, 0, 0, 0, 0.11 * s); eg.addColorStop(0, "#bfe6ff"); eg.addColorStop(1, "#1d7fc4");
@@ -878,7 +921,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ctx.fillStyle = "#3a3940"; rr(ctx, 0.04 * s, hy - 0.17 * s, 0.28 * s, 0.17 * s, 0.05 * s); ctx.fill(); ctx.stroke();
       ctx.fillStyle = "#c9c5d1"; ctx.fillRect(0.07 * s + ((t * 5) % 1) * 0.2 * s, hy - 0.15 * s, 0.03 * s, 0.13 * s);
     }
-    ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill();
+    if (!headArt) { ctx.fillStyle = "rgba(255,255,255,.5)"; rr(ctx, -hw / 2 + 0.08 * s, hy + 0.06 * s, hw * 0.35, 0.05 * s, 0.02 * s); ctx.fill(); }
     if (dmg > 0.6) { // cracked visor
       ctx.strokeStyle = "rgba(20,19,22,.7)"; ctx.lineWidth = lw * 0.7; ctx.beginPath();
       ctx.moveTo(-hw / 2 + 0.1 * s, hy + 0.08 * s); ctx.lineTo(-hw / 2 + 0.2 * s, hy + 0.2 * s); ctx.lineTo(-hw / 2 + 0.16 * s, hy + 0.28 * s); ctx.lineTo(-hw / 2 + 0.27 * s, hy + 0.4 * s); ctx.stroke();
@@ -893,7 +936,16 @@ canvas { display: block; width: 100%; max-width: 100%; }
     ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, 0.07 * s, 0, 7); ctx.fill();
     ctx.strokeStyle = ink; ctx.lineWidth = lw;
     ctx.save(); ctx.translate(ex, ey); ctx.rotate(armA - 0.11); // tools are drawn from the hand, facing along the arm
-    if (b.tool === 0) {
+    const toolArt = artReady("tool." + b.tool);
+    if (toolArt) { // a picture moves like the drawn tool: the hammer swings, the spinner spins, the flipper snaps up, the gripper squeezes
+      const pv = toolArt.pivot || [toolArt.box[0] + toolArt.box[2] / 2, toolArt.box[1] + toolArt.box[3] / 2];
+      if (b.tool === 0) ctx.scale(1, 1 - 0.25 * (o.clamp ?? Math.sin(l * Math.PI)));
+      else if (b.tool === 1) ctx.rotate(o.hammer ?? -0.5 + Math.sin(l * Math.PI) * 1.1);
+      else if (b.tool === 2) { ctx.translate(pv[0] * s, pv[1] * s); ctx.rotate(o.spinA ?? t * (l > 0 ? 40 : 9)); ctx.translate(-pv[0] * s, -pv[1] * s); }
+      else if (b.tool === 3) ctx.rotate(o.flipA ?? 0.3 - Math.sin(l * Math.PI) * 1.4);
+      else if (o.spinA !== undefined && !RM) ctx.translate(0, Math.sin(o.spinA * 3) * 0.01 * s); // a drill can't spin in a flat picture, so it buzzes
+      artPart(ctx, "tool." + b.tool, s, col);
+    } else if (b.tool === 0) {
       const open = (0.18 - 0.14 * (o.clamp ?? Math.sin(l * Math.PI))) * s;
       ctx.lineWidth = s * 0.1;
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0.24 * s, -open); ctx.lineTo(0.4 * s, -0.03 * s); ctx.stroke();
@@ -997,7 +1049,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     };
   })();
 
-  return { TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { setArt, loadArt, TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
 

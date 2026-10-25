@@ -78,6 +78,12 @@ Rules matter but don't decide everything: against the other brains, no rules win
 
 Each has two or three hints (the last one gives the answer), tappable W/L results that replay any of the 10 fights, and a "Why ___ won" card with a tip. Progress is saved on the device. The lesson "Think: if-then rules" teaches the idea first with a robot vacuum.
 
+## Robot art packs
+
+Every robot part is drawn in code, but any part can be swapped for a picture: a body, a sensor head or a tool. The torso, colors, damage, shield and all the animation stay the same, so a pictured hammer still swings and a pictured spinner still spins. Put the pictures and a `manifest.json` in `public/art/` and every page uses them (the board, students' devices, practice). `public/art-sample/` has a working example and a README with the format; copy it into `public/art/` to try it. This is where art from Higgsfield or Canva goes later.
+
+Students can also use their own drawings: in practice mode, **Your own part pictures** uploads a photo for their robot's body, sensor or tool. A white paper background can be made see-through. Those pictures stay on that device and only show in practice mode.
+
 ## Robot Racer (`/race`)
 
 A retro pseudo-3D racing game about motors and gears. Students pick a **gear ratio** (4:1, 6:1, 8:1 or 12:1) and **tires** (Slick, Sport or Grippy), then race one lap: long straights, a tight hairpin and a very steep hill (30%). A low gear is fast on straights but nearly stalls on the hill; a high gear climbs well but has a low top speed. That's the same speed-for-torque trade-off as the DC motors lesson. Grippier tires hold the corners at higher speeds but roll less easily. On this track 6:1 is a little faster than 4:1, and 8:1 and 12:1 fall behind, so the right setup really depends on the track.
@@ -200,6 +206,7 @@ test/tune-brain.js     Tunes the Custom brain's moves so good rules beat bad one
 test/balance.test.js   Every part stays 45–55%, tip claims and rule claims stay true (part of npm test)
 test/challenges.test.js Every challenge's answer wins, naive rules lose, text claims are true (part of npm test)
 test/rulebot.test.js   The vacuum lesson's claims (order matters, the full program cleans the room) (part of npm test)
+test/art.test.js       Art packs name real parts, with boxes and files that exist (part of npm test)
 test/race.test.js      Robot Racer: laps repeat exactly, gear/tire trade-offs, the track fits 6:1, the report's claims (part of npm test)
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)

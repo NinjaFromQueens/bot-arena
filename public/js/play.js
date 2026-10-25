@@ -22,6 +22,7 @@
   if (!code) { location.href = "/"; return; }
   $("gamecode").textContent = code; $("code1").textContent = code; $("gamechip").hidden = false;
 
+  E.loadArt("/art/manifest.json"); // an art pack, if the school installed one (public/art/)
   const builder = Builder.mount({
     bot: store.get("ba-bot", null) || undefined,
     onChange(bot, over) { store.set("ba-bot", bot); $("joinbtn").disabled = over; },

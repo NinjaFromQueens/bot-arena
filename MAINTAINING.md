@@ -49,6 +49,7 @@ git push             # Render deploys in ~2 minutes
 | Brain Challenges (bosses, hints, which fights) | `public/js/challenges.js`. Each challenge lists the student's robot, the boss, the first seed of its 10 fights, and the answer. After editing, or after ANY battle number change, run `npm test`: it says which challenge broke and why. |
 | Weight classes | `public/js/engine.js` → `WEIGHT_CLASSES`. Balance is tuned at 75 kg; run `node` with a different limit in `test/balance.js` if you add a class, and check that the parts it rules out don't make the game one-sided. |
 | Teacher status page PIN | Render → the service → **Environment** → `TEACHER_PIN`. Change it there; the page at `/status` uses it right after the redeploy. |
+| Robot art (pictures for parts) | Put pictures and a `manifest.json` in `public/art/` (copy `public/art-sample/` to start; its README explains the boxes). Run `npm test` to check the manifest. Delete `public/art/` to go back to the coded drawings. |
 | Add a new part | Add it at the END of its slot in `PARTS` (old bot codes keep working), draw it in `drawBot`, add its swing timing in `battle.js` (`HIT`, `SPARKS`), add knobs for it in `test/tune.js`, then run `node test/tune.js 300` and copy in the numbers it suggests. |
 | Part descriptions students see | `public/js/engine.js` → each part's `d` (short) and `tip` (long) |
 | Flying car parts, missions, physics | `public/js/flight.js` → `MATERIALS`, `TANK`, `NOZZLE`, `GEARS`, `MISSIONS`. Then run `npm test` and `npm run lab`. |

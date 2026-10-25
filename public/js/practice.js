@@ -9,6 +9,52 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
+  // ---------------- MY PART PICTURES ----------------
+  // A student's photo of a drawn part replaces that part on this device (practice mode only, never sent anywhere).
+  // Boxes use the art pack frames (see public/art-sample/README.md): the picture is fitted inside its slot's space.
+  let myArt = store.get("rba-art", {});
+  const ART_SPACE = { body: [-1, -0.78, 2, 0.78], sensor: [-0.48, -0.36, 0.96, 0.72], tool: [0, -0.34, 0.68, 0.68] };
+  function fitBox(slot, aspect) {
+    const [x, y, w, h] = ART_SPACE[slot], fw = Math.min(w, h * aspect), fh = fw / aspect;
+    return slot === "body" ? [-fw / 2, -fh, fw, fh] : slot === "tool" ? [0, -fh / 2, fw, fh] : [-fw / 2, -fh / 2, fw, fh];
+  }
+  function applyArt() { return E.loadArt("/art/manifest.json", myArt).then(() => { renderRoster(); }); }
+  let artSlot = null;
+  function renderArtRows(bot) {
+    const box = $("artrows"); if (!box) return; box.innerHTML = "";
+    ["body", "sensor", "tool"].forEach((slot) => {
+      const key = slot + "." + bot[slot], mine = !!myArt[key], row = document.createElement("div"); row.className = "artrow";
+      row.innerHTML = `<div><b></b><span class="st${mine ? " on" : ""}">${mine ? "Your picture ✓" : "Drawn by the game"}</span></div><button class="btn ghost" type="button">${mine ? "Change" : "Upload"}</button><button class="btn ghost" type="button"${mine ? "" : " disabled"}>Remove</button>`;
+      row.querySelector("b").textContent = `${slot[0].toUpperCase() + slot.slice(1)}: ${PARTS[slot][bot[slot]].n}`;
+      const [up, rm] = row.querySelectorAll("button");
+      up.setAttribute("data-tip", `Upload a picture to use for the ${PARTS[slot][bot[slot]].n}${slot === "tool" ? ". Draw it pointing right, held at the left end." : slot === "body" ? ", facing right." : "."}`);
+      rm.setAttribute("data-tip", "Go back to the game's own drawing of this part.");
+      up.onclick = () => { artSlot = { slot, key }; $("artfile").value = ""; $("artfile").click(); };
+      rm.onclick = () => { delete myArt[key]; store.set("rba-art", myArt); E.Sound.play("click"); applyArt(); renderArtRows(builder.bot); };
+      box.appendChild(row);
+    });
+  }
+  $("artfile").addEventListener("change", () => {
+    const file = $("artfile").files[0]; if (!file || !artSlot) return;
+    const { slot, key } = artSlot, fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 256 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+        const x = c.getContext("2d"); x.drawImage(img, 0, 0, c.width, c.height);
+        if ($("artwhite").checked) { const d = x.getImageData(0, 0, c.width, c.height); for (let i = 0; i < d.data.length; i += 4) if (d.data[i] > 200 && d.data[i + 1] > 200 && d.data[i + 2] > 200) d.data[i + 3] = 0; x.putImageData(d, 0, 0); }
+        myArt[key] = { src: c.toDataURL("image/png"), box: fitBox(slot, c.width / c.height) };
+        store.set("rba-art", myArt);
+        if (!store.get("rba-art", {})[key]) { delete myArt[key]; $("artmsg").textContent = "That picture is too big to save on this device. Try a smaller one."; return; }
+        $("artmsg").textContent = ""; E.Sound.play("go"); applyArt(); renderArtRows(builder.bot); builder.celebrate();
+      };
+      img.onerror = () => { $("artmsg").textContent = "That file isn't a picture this browser can open."; };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+
   // ---------------- BUILD ----------------
   const builder = Builder.mount({
     bot: store.get("rba-bot", null) || undefined,
@@ -16,6 +62,7 @@
       store.set("rba-bot", bot);
       $("code").textContent = codeOf(bot);
       $("save").disabled = over; $("copy").disabled = over;
+      renderArtRows(bot);
     },
   });
   let toastT;
@@ -239,5 +286,5 @@
   show(["build", "arena", "challenges"].includes(start) ? start : "build");
   $("sound").onclick = () => { const on = E.Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
 
-  renderRoster(); resetFight();
+  renderRoster(); resetFight(); renderArtRows(builder.bot); applyArt();
 })();

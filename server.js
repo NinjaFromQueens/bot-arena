@@ -19,6 +19,7 @@ const io = new Server(server, { cors: { origin: false } });
 
 const pub = path.join(__dirname, "public");
 app.use(express.static(pub, { extensions: ["html"] }));
+app.get("/art/manifest.json", (_req, res) => res.json({ parts: {} })); // no art pack installed (public/art/): every part is drawn in code
 app.get("/vendor/qrcode.js", (_req, res) => res.sendFile(path.join(__dirname, "node_modules/qrcode-generator/qrcode.js")));
 app.get("/healthz", (_req, res) => res.json({ ok: true, rooms: rooms.size }));
 app.set("trust proxy", 1); // behind Render's proxy, so req.ip is the visitor (for the PIN limit)

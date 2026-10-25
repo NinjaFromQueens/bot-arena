@@ -1,0 +1,9 @@
+{
+  "name": "Sample parts",
+  "parts": {
+    "body.0": { "src": "wheels.svg", "box": [-1, -0.66, 2, 0.66] },
+    "sensor.0": { "src": "camera-head.svg", "box": [-0.48, -0.36, 0.96, 0.72] },
+    "sensor.1": { "src": "ultrasonic-head.svg", "box": [-0.48, -0.36, 0.96, 0.72], "tint": true },
+    "tool.1": { "src": "hammer.svg", "box": [0, -0.34, 0.6, 0.68] }
+  }
+}

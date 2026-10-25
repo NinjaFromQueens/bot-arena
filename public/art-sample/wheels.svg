@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100">
+  <!-- Wheels body (body.0). Box in manifest.json: [-1, -0.66, 2, 0.66]; the bottom edge is the ground. -->
+  <rect x="34" y="18" width="232" height="22" rx="9" fill="#8f8b98" stroke="#141316" stroke-width="5"/>
+  <rect x="44" y="22" width="90" height="6" rx="3" fill="#c9c5d1"/>
+  <g stroke="#141316" stroke-width="5">
+    <circle cx="70" cy="52" r="44" fill="#222126"/>
+    <circle cx="230" cy="52" r="44" fill="#222126"/>
+    <circle cx="70" cy="52" r="20" fill="#8f8b98"/>
+    <circle cx="230" cy="52" r="20" fill="#8f8b98"/>
+  </g>
+  <g fill="#f46524" stroke="#141316" stroke-width="3">
+    <circle cx="70" cy="52" r="8"/>
+    <circle cx="230" cy="52" r="8"/>
+  </g>
+  <g stroke="#3a3940" stroke-width="6" stroke-linecap="round">
+    <path d="M70 12v8M70 84v8M30 52h8M102 52h8M42 24l6 6M92 74l6 6M42 80l6-6M92 30l6-6"/>
+    <path d="M230 12v8M230 84v8M190 52h8M262 52h8M202 24l6 6M252 74l6 6M202 80l6-6M252 30l6-6"/>
+  </g>
+</svg>

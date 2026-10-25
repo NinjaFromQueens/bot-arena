@@ -68,6 +68,9 @@
     },
   });
 
+  // an art pack (public/art/) swaps parts for pictures; redraw the lobby portraits once they've loaded
+  E.loadArt("/art/manifest.json").then((p) => { if (!p) return; document.querySelectorAll(".pcard").forEach((el) => (el.dataset.sig = "")); if (state) render(); });
+
   // ---------- connection ----------
   function create() {
     socket.emit("host:create", {}, (r) => {

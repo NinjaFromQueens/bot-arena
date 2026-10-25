@@ -259,6 +259,16 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .rdel:hover { color: var(--bad); border-color: var(--bad); }
 .radd { justify-self: start; padding: 7px 12px; font-size: 14px; }
 .rnote { margin: 0; font-size: 13px; color: var(--muted); }
+/* students' own part pictures */
+.artp { display: grid; gap: 8px; }
+.artp h3 { margin: 0; }
+.artrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.artrow b { font-family: var(--display); }
+.artrow .st { display: block; font-size: 12px; color: var(--muted); }
+.artrow .st.on { color: var(--good); }
+.artrow button { padding: 6px 10px; font-size: 13px; }
+.toggle { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
 /* brain challenges */
 .ch-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 14px; align-items: start; }
 .ch-main { display: grid; gap: 10px; }
@@ -370,6 +380,14 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
             </div>
             <div class="toast" id="toast" role="status"></div>
           </div>
+        </div>
+        <div class="panel artp">
+          <h3><span class="hastip" tabindex="0" data-tip="Draw a part on paper (or in Canva), take a photo, and your robot uses it. It still moves the same way.">Your own part pictures</span></h3>
+          <p class="small">Draw a body, sensor head or tool and upload a photo. It moves like the real part. Pictures stay on this device and only show in practice mode.</p>
+          <div id="artrows"></div>
+          <label class="toggle small" data-tip="Paper drawings: make light, white areas see-through so only your drawing shows."><input type="checkbox" id="artwhite" checked> Make a white background see-through</label>
+          <p class="warn" id="artmsg" role="status"></p>
+          <input type="file" id="artfile" accept="image/*" hidden>
         </div>
       </div>
     </div>
