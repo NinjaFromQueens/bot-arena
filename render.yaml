@@ -9,3 +9,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: TEACHER_PIN # optional: turns on /status; set the value in Render, never in this file
+        sync: false

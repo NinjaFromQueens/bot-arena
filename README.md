@@ -149,6 +149,7 @@ See **MAINTAINING.md** for updating, rolling back, and the pre-class checklist.
 1. Push this folder to a GitHub repo.
 2. In [Render](https://render.com), choose **New → Blueprint** and pick the repo. `render.yaml` sets everything up.
 3. Use the `https://<your-app>.onrender.com` link in class.
+4. Optional: in the service's **Environment** tab, add `TEACHER_PIN` (any number you pick) to turn on the teacher status page at `/status`. It shows how long the server has been up, the deployed version (Render's Git commit), memory, how many devices are online, and each game's code, stage and robot count. It never shows student names, and 10 wrong PINs lock it for 10 minutes.
 
 Note: Render's free plan sleeps after 15 minutes without visitors. Open the host page a couple of minutes before class so it is awake.
 

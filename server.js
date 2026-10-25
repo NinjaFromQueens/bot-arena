@@ -19,6 +19,31 @@ const pub = path.join(__dirname, "public");
 app.use(express.static(pub, { extensions: ["html"] }));
 app.get("/vendor/qrcode.js", (_req, res) => res.sendFile(path.join(__dirname, "node_modules/qrcode-generator/qrcode.js")));
 app.get("/healthz", (_req, res) => res.json({ ok: true, rooms: rooms.size }));
+app.set("trust proxy", 1); // behind Render's proxy, so req.ip is the visitor (for the PIN limit)
+
+// Teacher status page (/status): server health and the games running, behind the TEACHER_PIN setting.
+// Counts only, never student names. Ten wrong PINs from one address lock it out for 10 minutes.
+const STARTED = Date.now(), APP_VERSION = require("./package.json").version;
+const pinTries = new Map(); // ip -> { n, t }
+app.get("/api/status", (req, res) => {
+  const pin = process.env.TEACHER_PIN;
+  if (!pin) return res.status(503).json({ ok: false, error: "The status page is off. Add a TEACHER_PIN setting on the server (Render: Environment) to turn it on." });
+  const now = Date.now(), t = pinTries.get(req.ip) || { n: 0, t: now };
+  if (now - t.t > 10 * 60 * 1000) { t.n = 0; t.t = now; }
+  if (t.n >= 10) return res.status(429).json({ ok: false, error: "Too many wrong PINs. Wait 10 minutes and try again." });
+  const given = Buffer.from(String(req.get("x-teacher-pin") || "")), want = Buffer.from(pin);
+  if (given.length !== want.length || !crypto.timingSafeEqual(given, want)) { t.n++; pinTries.set(req.ip, t); return res.status(401).json({ ok: false, error: "Wrong PIN." }); }
+  pinTries.delete(req.ip);
+  res.json({
+    ok: true, app: APP_VERSION, commit: (process.env.RENDER_GIT_COMMIT || "").slice(0, 7) || null, node: process.version,
+    uptime: Math.round((now - STARTED) / 1000), memoryMB: Math.round(process.memoryUsage().rss / 1048576), online: presenceCounts(),
+    rooms: [...rooms.values()].sort((a, b) => b.lastActive - a.lastActive).map((r) => ({
+      code: r.code, phase: r.phase, robots: r.players.size, connected: [...r.players.values()].filter((p) => p.connected).length,
+      boards: r.hosts.size, idleMin: Math.round((now - r.lastActive) / 60000), weight: r.settings.maxw, bo3: r.settings.bo3,
+      matchesLeft: r.bracket ? r.bracket.rounds.flat().filter((m) => !m.winner).length : null,
+    })),
+  });
+});
 
 // ---------------- rooms ----------------
 const rooms = new Map();

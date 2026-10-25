@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Bot Arena · Server status</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .pinbox { max-width: 420px; display: grid; gap: 10px; margin-top: 18px; }
+  .pinrow { display: flex; gap: 8px; }
+  .pinrow input { letter-spacing: .3em; text-align: center; font-size: 22px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+  .tile { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+  .tile b { font-family: var(--display); font-size: 26px; font-variant-numeric: tabular-nums; }
+  .tile span { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td.code { font-family: var(--mono); font-weight: 700; letter-spacing: .12em; color: var(--orange-hi); }
+  .ph { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); }
+  .ph.tournament { border-color: var(--good); color: var(--good); }
+  .ph.done { color: var(--muted); }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .when { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Server status</h1></div>
+    </a>
+  </header>
+
+  <section id="v-pin">
+    <p class="intro">For teachers: how the server is doing and which games are running. Enter the teacher PIN.</p>
+    <form class="panel pinbox" id="pinform">
+      <label for="pin" class="small">Teacher PIN</label>
+      <div class="pinrow">
+        <input type="password" id="pin" inputmode="numeric" autocomplete="current-password" required data-tip="The PIN set as TEACHER_PIN on the server.">
+        <button class="btn" type="submit" data-tip="Check the PIN and show the status.">Open</button>
+      </div>
+      <p class="warn" id="pinmsg" role="status"></p>
+    </form>
+  </section>
+
+  <section id="v-status" hidden>
+    <div class="bar">
+      <p class="when" id="when" aria-live="polite"></p>
+      <button class="btn ghost" id="lock" type="button" data-tip="Forget the PIN on this browser and hide the status.">Lock</button>
+    </div>
+    <div class="tiles">
+      <div class="tile" data-tip="How long since the server last started. A restart ends every game."><b id="t-up">-</b><span>Up for</span></div>
+      <div class="tile" data-tip="The deployed version: the app version and the Git commit Render built from."><b id="t-ver">-</b><span>Version</span></div>
+      <div class="tile" data-tip="Memory the server is using. Render's free plan has 512 MB."><b id="t-mem">-</b><span>Memory</span></div>
+      <div class="tile" data-tip="Devices with a Bot Arena page open right now (teachers' boards not counted)."><b id="t-online">-</b><span>Online now</span></div>
+      <div class="tile" data-tip="Games with a tournament running right now."><b id="t-live">-</b><span>Live games</span></div>
+    </div>
+    <div class="panel">
+      <h2 style="margin-bottom:10px">Games on this server</h2>
+      <p class="small" id="norooms">No games right now.</p>
+      <div class="tablewrap"><table id="rooms" hidden>
+        <thead><tr><th>Code</th><th>Stage</th><th>Robots</th><th>Connected</th><th>Boards</th><th>Settings</th><th>Matches left</th><th>Idle</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <p class="small" style="margin-top:10px">Games disappear after 6 idle hours or when the server restarts. Student names are never shown here.</p>
+    </div>
+  </section>
+</div>
+<script src="/js/tips.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const ss = { get() { try { return sessionStorage.getItem("ba-pin"); } catch { return null; } }, set(v) { try { v ? sessionStorage.setItem("ba-pin", v) : sessionStorage.removeItem("ba-pin"); } catch {} } };
+  let pin = ss.get(), timer = null;
+  const dur = (s) => (s >= 86400 ? `${Math.floor(s / 86400)}d ${Math.floor((s % 86400) / 3600)}h` : s >= 3600 ? `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m` : `${Math.floor(s / 60)}m`);
+  const STAGE = { lobby: "Lobby", tournament: "Tournament", done: "Finished" };
+  async function load() {
+    clearTimeout(timer);
+    let r;
+    try { r = await fetch("/api/status", { headers: { "x-teacher-pin": pin || "" } }).then((x) => x.json()); }
+    catch { $("when").textContent = "Can't reach the server. Trying again..."; timer = setTimeout(load, 10000); return; }
+    if (!r.ok) { pin = null; ss.set(null); $("v-status").hidden = true; $("v-pin").hidden = false; $("pinmsg").textContent = r.error; return; }
+    $("v-pin").hidden = true; $("v-status").hidden = false;
+    $("t-up").textContent = dur(r.uptime);
+    $("t-ver").textContent = r.app + (r.commit ? " · " + r.commit : " · local");
+    $("t-mem").textContent = r.memoryMB + " MB";
+    $("t-online").textContent = r.online.online; $("t-live").textContent = r.online.live;
+    const body = $("rooms").tBodies[0]; body.innerHTML = "";
+    r.rooms.forEach((g) => {
+      const tr = document.createElement("tr");
+      const cells = [g.code, "", g.robots, g.connected, g.boards, `${g.weight} kg${g.bo3 ? (g.bo3 === 1 ? " · Bo3 final" : " · Bo3 semis+") : ""}`, g.matchesLeft == null ? "-" : g.matchesLeft, g.idleMin ? g.idleMin + " min" : "now"];
+      cells.forEach((c, i) => { const td = document.createElement("td"); if (i === 0) td.className = "code"; td.textContent = c; tr.appendChild(td); });
+      const ph = document.createElement("span"); ph.className = "ph " + g.phase; ph.textContent = STAGE[g.phase] || g.phase; tr.children[1].appendChild(ph);
+      body.appendChild(tr);
+    });
+    $("rooms").hidden = !r.rooms.length; $("norooms").hidden = !!r.rooms.length;
+    $("when").textContent = "Updated " + new Date().toLocaleTimeString() + " · refreshes every 10 seconds";
+    timer = setTimeout(load, 10000);
+  }
+  $("pinform").addEventListener("submit", (e) => { e.preventDefault(); pin = $("pin").value.trim(); $("pinmsg").textContent = ""; if (pin) { ss.set(pin); load(); } });
+  $("lock").onclick = () => { clearTimeout(timer); pin = null; ss.set(null); $("pin").value = ""; $("v-status").hidden = true; $("v-pin").hidden = false; };
+  if (pin) load();
+})();
+</script>
+</body>
+</html>
