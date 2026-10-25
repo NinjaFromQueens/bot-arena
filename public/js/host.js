@@ -110,6 +110,7 @@
     if (!state) return;
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
+    renderRace();
     if (state.phase === "lobby") renderLobby();
     else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); renderClass(); }
   }
@@ -146,6 +147,16 @@
       have.delete(p.id);
     });
     have.forEach((el) => el.remove());
+  }
+
+  // fastest Robot Racer laps from this game (checked by the server)
+  function renderRace() {
+    const list = state.race || [], fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, "0")}`;
+    ["racep", "racep2"].forEach((id) => {
+      const box = $(id); box.hidden = !list.length; if (!list.length) return;
+      const ol = box.querySelector("ol"); ol.innerHTML = "";
+      list.slice(0, 5).forEach((r) => { const li = document.createElement("li"); li.innerHTML = '<span class="who"></span><span class="pts"></span>'; li.firstChild.textContent = r.builder; li.lastChild.textContent = fmt(r.time); ol.appendChild(li); });
+    });
   }
 
   function renderTour() {
@@ -188,6 +199,7 @@
     if (s.page === "learn") return s.n ? { text: "LESSON " + s.n, cls: "learn", tip: "Working on Lesson " + s.n + " in Robot Lessons." } : { text: "LESSONS", cls: "learn", tip: "Looking at the list of Robot Lessons." };
     if (s.page === "lab") return { text: s.n ? "LAB " + s.n : "LAB", cls: "lab", tip: s.n ? "Flying Car Lab, mission " + s.n + "." : "In the Flying Car Lab." };
     if (s.page === "practice") return { text: "PRACTICE", cls: "practice", tip: "In practice mode." };
+    if (s.page === "race") return { text: "RACER", cls: "practice", tip: "Driving in Robot Racer." };
     if (s.page === "home") return { text: "HOME", cls: "", tip: "On the home page." };
     return { text: "GAME", cls: "play", tip: "On the game page." };
   }

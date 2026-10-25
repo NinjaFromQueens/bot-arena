@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot Racer</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Layout: left = the track (canvas) + lap report; right = the garage (gear, tires, what they do) + class leaderboard. */
+  .wrap { max-width: 1400px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .race { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 960px) { .race { grid-template-columns: minmax(0, 1fr); } }
+  .stagecard { padding: 0; overflow: hidden; }
+  .stagebox { position: relative; }
+  #road { aspect-ratio: 16 / 9; touch-action: none; }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+  .ctrl .spacer { flex: 1; }
+  .toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; cursor: pointer; user-select: none; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
+  .keys { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  /* touch controls over the track */
+  .touch { position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; padding: 10px; pointer-events: none; }
+  .touch .pad { display: flex; gap: 10px; pointer-events: auto; }
+  .touch button { width: 64px; height: 64px; border-radius: 16px; border: 2px solid #ffffff55; background: #14131699; color: #fff; font-family: var(--display); font-weight: 700; font-size: 15px; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .touch button.on { background: var(--orange); color: var(--ink); border-color: var(--orange); }
+  .touch .gas { width: 84px; }
+
+  .garage { display: grid; gap: 14px; }
+  .garage h2 { margin-bottom: 6px; }
+  .opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .opts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .opt { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: pointer; display: grid; gap: 2px; color: var(--fg); font: inherit; }
+  .opt b { font-family: var(--display); font-size: 17px; }
+  .opt span { font-size: 12px; color: var(--muted); }
+  .opt[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .opt:disabled { opacity: .5; cursor: not-allowed; }
+  .pdesc { margin: 8px 0 0; font-size: 14px; line-height: 1.35; color: var(--muted); }
+  .gstats { display: grid; grid-template-columns: 6.6em minmax(0, 1fr) 5.4em; gap: 7px 10px; align-items: center; font-size: 14px; margin-top: 12px; }
+  .gstats .bar { height: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .gstats .bar i { display: block; height: 100%; border-radius: 6px; transition: width .3s cubic-bezier(.3,1.3,.5,1); }
+  .gstats .n { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .bestline { margin-top: 12px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .bestline b { color: var(--gold); font-size: 15px; }
+
+  .report { display: grid; gap: 10px; }
+  .report:empty { display: none; }
+  .headline { font-family: var(--display); font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .headline.good { color: var(--good); }
+  .nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 560px) { .nums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .nums div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .nums b { display: block; font-family: var(--mono); font-size: 19px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .nums span { font-size: 12px; color: var(--muted); }
+  .finding { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); animation: logIn .3s ease-out both; }
+  .finding .ic { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink); }
+  .finding.good .ic { background: var(--good); } .finding.bad .ic { background: var(--bad); } .finding.info .ic { background: var(--blue); }
+  .finding.bad { border-color: #ff5d5d55; }
+  .finding h4 { margin: 0 0 2px; font-family: var(--display); font-size: 16px; }
+  .finding p { color: #d9d5de; font-size: 15px; margin: 0; }
+  .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
+  .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+  .repctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  .board { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .board li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 7px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .board li.me { border-color: var(--orange); }
+  .board .rk { font-family: var(--mono); font-weight: 700; color: var(--muted); }
+  .board .nm { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .board .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .board .tm { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .board button { padding: 5px 9px; font-size: 12px; }
+</style>
+</head>
+<body data-page="race">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Robot Racer</h1></div>
+    </a>
+    <div class="headright">
+      <a class="btn ghost" href="/learn" style="padding:8px 14px" data-tip="Robot Lessons: motors, gears, sensors and more.">Lessons</a>
+      <a class="btn ghost" href="/practice" style="padding:8px 14px" data-tip="Practice mode: build robots and battle them.">Practice</a>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
+    </div>
+  </header>
+  <p class="intro" style="margin-bottom:12px">Pick a <b>gear ratio</b> and <b>tires</b> for your robot car, then race one lap against the clock. The track has long straights, a tight hairpin and a very steep hill, so no setup is best everywhere. After each lap, the report shows where your setup helped and where it held you back.</p>
+
+  <div class="race">
+    <div style="display:grid;gap:14px;min-width:0">
+      <div class="panel stagecard">
+        <div class="stagebox">
+          <canvas id="road" aria-label="The race track, seen from behind your robot car"></canvas>
+          <div class="touch" id="touch" hidden>
+            <div class="pad"><button type="button" data-k="left" aria-label="Steer left">◀</button><button type="button" data-k="right" aria-label="Steer right">▶</button></div>
+            <div class="pad"><button type="button" data-k="brake" aria-label="Brake">BRAKE</button><button type="button" class="gas" data-k="gas" aria-label="Gas">GAS</button></div>
+          </div>
+        </div>
+        <div class="ctrl">
+          <button class="btn big" id="go" type="button" data-tip="Line up on the start line and race one lap. Shortcut: Enter.">Start race</button>
+          <button class="btn ghost" id="quit" type="button" disabled data-tip="Stop this lap and go back to the garage.">Stop</button>
+          <span class="spacer"></span>
+          <label class="toggle" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
+          <span class="keys">Arrows or WASD · ↑ gas · ↓ brake · ← → steer</span>
+        </div>
+      </div>
+      <section class="panel report" id="report" aria-live="polite"></section>
+    </div>
+
+    <div class="garage">
+      <div class="panel">
+        <h2>Garage</h2>
+        <h3><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. A low gear (4:1) is fast but weak; a high gear (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
+        <div class="opts" id="o-gear"></div>
+        <p class="pdesc" id="d-gear"></p>
+        <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="Grippy tires hold the corners at higher speeds, but the soft rubber takes more push to roll.">Tires</span></h3>
+        <div class="opts three" id="o-tire"></div>
+        <p class="pdesc" id="d-tire"></p>
+        <div class="gstats" id="gstats"></div>
+        <p class="bestline" id="bestline"></p>
+      </div>
+      <div class="panel" id="classp" hidden>
+        <h2>Class leaderboard</h2>
+        <p class="small" id="classmsg"></p>
+        <ol class="board" id="board"></ol>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/race.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // one connection for presence and the class leaderboard
+  if (window.io && location.protocol !== "file:") window.baSocket = io();
+</script>
+<script src="/js/presence.js"></script>
+<script src="/js/racegame.js"></script>
+</body>
+</html>

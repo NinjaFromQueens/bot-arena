@@ -2,6 +2,7 @@
 //   offline/bot-arena-offline.html       practice mode (build robots, battle by bot code)
 //   offline/flying-car-lab-offline.html  the Flying Car Lab
 //   offline/robot-lessons-offline.html   the self-guided lessons
+//   offline/robot-racer-offline.html     Robot Racer time trials (the class leaderboard needs the server)
 // Run: npm run offline
 const fs = require("fs"), path = require("path");
 const root = path.join(__dirname, ".."), pub = path.join(root, "public"), out = path.join(root, "offline");
@@ -27,4 +28,5 @@ function bundle(page, links) {
 fs.writeFileSync(path.join(out, "bot-arena-offline.html"), bundle("practice.html", { "/lab": "flying-car-lab-offline.html", "/": "bot-arena-offline.html" }));
 fs.writeFileSync(path.join(out, "flying-car-lab-offline.html"), bundle("lab.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html" }));
 fs.writeFileSync(path.join(out, "robot-lessons-offline.html"), bundle("learn.html", { "/": "bot-arena-offline.html", "/practice": "bot-arena-offline.html", "/practice#challenges": "bot-arena-offline.html#challenges", "/lab": "flying-car-lab-offline.html" }));
-console.log("Built offline/bot-arena-offline.html, flying-car-lab-offline.html, robot-lessons-offline.html");
+fs.writeFileSync(path.join(out, "robot-racer-offline.html"), bundle("race.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html", "/practice": "bot-arena-offline.html" }));
+console.log("Built offline/bot-arena-offline.html, flying-car-lab-offline.html, robot-lessons-offline.html, robot-racer-offline.html");

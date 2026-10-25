@@ -22,6 +22,7 @@
   .settings .switch { gap: 8px; }
   .pcard .otag { position: absolute; left: 8px; top: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 2px 6px; border-radius: 6px; background: var(--bad); color: var(--ink); font-weight: 700; }
   .pcard.heavy canvas { opacity: .55; }
+  .racebox { margin-top: 12px; } .racebox h3 { margin-bottom: 6px; }
   .lobbyhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
   .count { font-family: var(--display); font-weight: 700; font-size: 28px; }
   .count b { color: var(--orange-hi); }
@@ -161,6 +162,7 @@
         </div>
         <div class="grid" id="players"></div>
         <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
+        <div class="racebox" id="racep" hidden><h3 data-tip="Fastest laps students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
         <p class="small" style="margin-top:12px">To remove a robot (for example, an inappropriate name), click the × on its card twice.</p>
       </div>
     </div>
@@ -210,6 +212,7 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
         <div class="log" id="log" aria-live="polite"></div>
       </div>
       <div class="side">
+        <div class="panel racebox" id="racep2" hidden><h3 data-tip="Fastest laps students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
         <div class="panel">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
             <h2>Bracket</h2><span class="small" id="left"></span>

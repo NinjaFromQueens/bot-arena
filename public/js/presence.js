@@ -21,6 +21,7 @@
     if (c.learn) bits.push(`${c.learn} in lessons`);
     if (c.lab) bits.push(`${c.lab} in the Lab`);
     if (c.practice) bits.push(`${c.practice} practicing`);
+    if (c.race) bits.push(`${c.race} racing`);
     if (c.live) bits.push(`${c.live} tournament${c.live === 1 ? "" : "s"} live`);
     el.innerHTML = `<i></i>${bits.join(" · ")}`; el.hidden = false;
   });

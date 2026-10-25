@@ -6,6 +6,7 @@ const express = require("express");
 const { Server } = require("socket.io");
 const Engine = require("./public/js/engine.js");
 const Flight = require("./public/js/flight.js");
+const Race = require("./public/js/race.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -85,6 +86,7 @@ function publicState(room) {
     phase: room.phase,
     players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, qpts: p.qpts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
     lesson: lessonState(room),
+    race: raceBoard(room).slice(0, 10).map((b) => ({ id: b.id, builder: b.builder, time: b.time })),
     lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
@@ -118,6 +120,15 @@ function pollUpdate(room) {
   for (const a of q.answers.values()) counts[a]++;
   toHosts(room, "room:poll", { id: q.id, counts, answered: q.answers.size, players: [...room.players.values()].filter((p) => p.connected && !p.out).length });
 }
+// ---------------- Robot Racer class laps ----------------
+// Students send laps from the race page with their saved game pass. A lap is its inputs (one letter per 1/60 s);
+// the server drives it again with the same physics and keeps each student's fastest, so times can't be made up.
+function raceBoard(room) {
+  if (!room.race) return [];
+  return [...room.race].map(([id, l]) => ({ id, builder: (room.players.get(id) || {}).builder || "?", time: l.time, setup: l.setup })).sort((a, b) => a.time - b.time);
+}
+function raceUpdate(room) { io.to("race:" + room.code).emit("race:board", raceBoard(room)); broadcast(room); }
+
 // ---------------- Flying Car Lab class challenge ----------------
 // The board picks a mission; students submit designs from the Lab page (with their saved game pass). The server
 // flies and grades every design itself, so the ranking can't be faked, and the board replays them.
@@ -163,10 +174,10 @@ function settleForfeits(room) {
 // ---------------- presence ----------------
 // Which page each connected device is on. The home page gets anonymous counts; a teacher's board gets
 // a page + number for each of its own students (only when the student's saved game pass checks out).
-const PAGES = ["home", "play", "host", "practice", "lab", "learn"];
+const PAGES = ["home", "play", "host", "practice", "lab", "learn", "race"];
 const presence = new Map(); // socket.id -> { page, n, t, code, playerId }
 function presenceCounts() {
-  const c = { online: 0, play: 0, practice: 0, lab: 0, learn: 0, live: 0 };
+  const c = { online: 0, play: 0, practice: 0, lab: 0, learn: 0, race: 0, live: 0 };
   for (const p of presence.values()) { if (p.page === "host") continue; c.online++; if (p.page in c) c[p.page]++; }
   for (const r of rooms.values()) if (r.phase === "tournament") c.live++;
   return c;
@@ -505,6 +516,34 @@ io.on("connection", (socket) => {
     const room = who && roomFor(who.code), p = room && room.players.get(who.playerId);
     return p && typeof who.token === "string" && p.token === who.token ? { room, p } : null;
   }
+  socket.on("race:check", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false });
+    socket.join("race:" + me.room.code);
+    cb && cb({ ok: true, board: raceBoard(me.room) });
+  });
+  socket.on("race:submit", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false, error: "Join your class's game first." });
+    const inputs = d && d.inputs;
+    if (typeof inputs !== "string" || inputs.length > Race.MAX_STEPS || !/^[a-l]*$/.test(inputs)) return cb && cb({ ok: false, error: "That lap can't be checked." });
+    const now = Date.now();
+    if (now - (me.p.lastRace || 0) < 2000) return cb && cb({ ok: false, error: "Wait a moment before sending again." });
+    me.p.lastRace = now;
+    const setup = Race.clampSetup(d.setup), r = Race.lap(setup, inputs);
+    if (!r.finished) return cb && cb({ ok: false, error: "That lap didn't reach the finish line." });
+    me.room.race = me.room.race || new Map();
+    const old = me.room.race.get(me.p.id), kept = !old || r.time < old.time;
+    if (kept) me.room.race.set(me.p.id, { time: r.time, setup, inputs });
+    const board = raceBoard(me.room);
+    cb && cb({ ok: true, kept, time: r.time, best: Math.min(r.time, old ? old.time : Infinity), rank: board.findIndex((b) => b.id === me.p.id) + 1 });
+    if (kept) raceUpdate(me.room);
+  });
+  socket.on("race:ghost", (d, cb) => {
+    const me = labPlayer(d && d.who), l = me && me.room.race && me.room.race.get(d.id);
+    if (!l) return cb && cb({ ok: false });
+    cb && cb({ ok: true, setup: l.setup, inputs: l.inputs, time: l.time });
+  });
   socket.on("lab:check", (d, cb) => {
     const me = labPlayer(d && d.who);
     if (!me) return cb && cb({ ok: false });

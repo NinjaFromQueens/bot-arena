@@ -78,6 +78,15 @@ Rules matter but don't decide everything: against the other brains, no rules win
 
 Each has two or three hints (the last one gives the answer), tappable W/L results that replay any of the 10 fights, and a "Why ___ won" card with a tip. Progress is saved on the device. The lesson "Think: if-then rules" teaches the idea first with a robot vacuum.
 
+## Robot Racer (`/race`)
+
+A retro pseudo-3D racing game about motors and gears. Students pick a **gear ratio** (4:1, 6:1, 8:1 or 12:1) and **tires** (Slick, Sport or Grippy), then race one lap: long straights, a tight hairpin and a very steep hill (30%). A low gear is fast on straights but nearly stalls on the hill; a high gear climbs well but has a low top speed. That's the same speed-for-torque trade-off as the DC motors lesson. Grippier tires hold the corners at higher speeds but roll less easily. On this track 6:1 is a little faster than 4:1, and 8:1 and 12:1 fall behind, so the right setup really depends on the track.
+
+- The garage shows each setup's top speed, Big Hill speed, starting push and Hairpin speed.
+- After each lap, a report explains the time with the real numbers ("that's the top speed of a 6:1 gear: the motor was at its max rpm") and gives one tip. Tips only suggest a change that really is faster: they're checked against the computer driver's laps with every setup.
+- Your best lap drives a see-through **ghost car**. Arrow keys or WASD, or on-screen buttons on touch screens.
+- In a class game, **Send to the class leaderboard** submits the lap. A lap is stored as its key presses (one per 1/60 s), and the server drives it again with the same physics, so times can't be faked. Classmates can race each other's laps as ghosts, and the board shows the fastest laps in the lobby and next to the bracket.
+
 ## Robot Lessons (`/learn`)
 
 Sixteen self-guided lessons, about 5 minutes each, that students can do on their own: What makes a robot? (Sense, Think, Act), Robot senses, Ultrasonic: seeing with sound, Lidar: seeing with light, Sensor showdown, Think: if-then rules, DC motors and gears, Servo motors, Stepper motors, Pick the right motor, Links and joints, Arm strength: levers and torque, Weight and trade-offs, Thrust vs. weight, Higher isn't always better, and Think like an engineer. Each lesson is a short run of cards with one hands-on interactive (robot-or-not sorting, sensor matching, fitting a robot under 75 kg, a thrust-vs-weight sandbox, a landing-speed slider) and check questions that must be answered correctly to continue.
@@ -173,6 +182,8 @@ public/js/play.js      Student device logic
 public/js/practice.js  Single-device practice mode, including the Brain Challenges page
 public/js/challenges.js The five Brain Challenges: robots, bosses, fixed seeds, hints (shared with tests)
 public/js/rulebot.js   The robot vacuum in the if-then rules lesson (shared with tests)
+public/js/race.js      Robot Racer physics, track, lap checking and lap report (shared with the server and tests)
+public/js/racegame.js  Robot Racer page: garage, pseudo-3D drawing, ghosts, class leaderboard
 public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
 public/js/lab.js       Flying Car Lab page: builder, animation, report
 public/js/learn.js     Self-guided lessons (content + interactives)
@@ -189,6 +200,7 @@ test/tune-brain.js     Tunes the Custom brain's moves so good rules beat bad one
 test/balance.test.js   Every part stays 45–55%, tip claims and rule claims stay true (part of npm test)
 test/challenges.test.js Every challenge's answer wins, naive rules lose, text claims are true (part of npm test)
 test/rulebot.test.js   The vacuum lesson's claims (order matters, the full program cleans the room) (part of npm test)
+test/race.test.js      Robot Racer: laps repeat exactly, gear/tire trade-offs, the track fits 6:1, the report's claims (part of npm test)
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
 test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips
