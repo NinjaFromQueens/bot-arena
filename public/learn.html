@@ -106,6 +106,17 @@
   .rtab.grid td { font-family: var(--mono); font-weight: 700; font-size: 17px; }
   .rtab td.yes { color: var(--good); } .rtab td.no { color: var(--bad); }
   .rtab td.cur { outline: 2px solid var(--orange); outline-offset: -3px; border-radius: 6px; }
+  /* motor lessons */
+  .simout.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 480px) { .simout.three b { font-size: 19px; } }
+  .tq { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .tq .row { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; }
+  .tq .row b { font-family: var(--mono); white-space: nowrap; }
+  .tqbar { position: relative; height: 14px; margin: 4px 0 2px; border-radius: 7px; background: var(--panel-hi); border: 1px solid var(--line); }
+  .tqbar i { display: block; height: 100%; width: 0; border-radius: 7px; background: var(--good); transition: width .4s ease; }
+  .tqbar i.bad { background: var(--bad); }
+  .tqbar span { position: absolute; top: -5px; bottom: -5px; left: 0; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--fg); }
+  .btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
   .done-card { text-align: center; justify-items: center; }
   .done-card .medal { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #ffe680, #ffd23f 55%, #c99a12); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 34px; box-shadow: 0 6px 0 #8f6d0a; animation: pop .6s cubic-bezier(.3,1.8,.5,1); }
 </style>
@@ -145,6 +156,7 @@
 <script src="/js/engine.js"></script>
 <script src="/js/flight.js"></script>
 <script src="/js/sensors.js"></script>
+<script src="/js/motors.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/js/learn.js"></script>
 </body>

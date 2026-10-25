@@ -14,6 +14,7 @@ Last updated: October 24, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| F-03 | Motors lesson unit | Branch `motors-lessons` (built on `battle-animation`). Four lessons with simulators: DC motors and gears, Servo motors, Stepper motors, Pick the right motor. Rules in `motors.js`, checked by `motors.test.js`. Waiting on teacher review. |
 | F-01 | Battle art and animation | Branch `battle-animation`. Per-tool attacks (hammer wind-up and slam, gripper clamp and hold, spinner blur and double hit), hit-stop, crit flash and camera punch, shield-block ripple, dodge afterimage, damage scars, smoke when low, K.O. slow motion, victory poses, garage arena with a cheering crowd. Waiting on teacher review before merging to `main`. |
 
 ---
@@ -21,8 +22,8 @@ Last updated: October 24, 2026
 ## 📋 Planned
 | # | Feature | Priority | Notes |
 |---|---|---|---|
-| F-02 | Arena backgrounds from Higgsfield | Low | Test 2–3 AI backgrounds against the code-drawn garage. The free plan has 1.05 credits; the illustration model costs 1.25 per image, so this needs more credits first. |
-| F-03 | Motors lesson unit | High | DC (speed and gearing), servo (pulse width sets the angle, built-in feedback), stepper (200 steps per turn, skipped steps under load), brushless. Simulators like the sensor lessons, with rules tested like `sensors.test.js`. |
+| F-02 | AI art for backgrounds and fighters (Higgsfield) | Low | Parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. Needs F-12 first. |
+| F-12 | Parts system for drawn fighters | Medium | Let battle robots be assembled from drawn part images (body, sensor head, arm, tool), recolored in code and animated on the existing skeleton (reach, hammer swing, clamp, spin). Art can then come from Higgsfield, Canva, or students. |
 | F-04 | More parts and weapons | High | A 4th or 5th option per slot (flipper, saw, drill, wedge) and maybe an attachment slot. Bot codes need digits above 2 (`parseCode`, `sanitizeBot`). Add an automated balance test that fails if any part leaves 45–55%. |
 | F-05 | Weight classes and best-of-3 | Medium | 50 / 75 / 100 kg divisions; best-of-3 in later rounds to cut luck. |
 | F-06 | Program your robot's brain | High | Simple if-then rules (for example, "if health < 30, shield") so skill beats luck and students practice logic. |

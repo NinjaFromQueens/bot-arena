@@ -128,6 +128,108 @@
       next: { label: "Pick the best sensor for your robot", href: "/practice" },
     },
     {
+      id: "dcmotor", n: "DC motors and gears", about: "Why robots need gearboxes: trading speed for strength.",
+      steps: [
+        { type: "read", html: `<p class="big">A DC motor spins whenever electricity flows through it.</p>
+          <svg class="part" viewBox="0 0 360 150" role="img" aria-label="A small hobby DC motor: a silver can with a metal shaft sticking out of one end and a red and a black wire on the other end.">
+            <path d="M24 62 C12 62 8 70 6 86" fill="none" stroke-width="4" stroke-linecap="round" stroke="#ff5d5d"/>
+            <path d="M24 90 C12 90 8 98 6 114" fill="none" stroke-width="4" stroke-linecap="round" stroke="#6d6a75"/>
+            <rect x="24" y="44" width="200" height="64" rx="14" fill="#cfd2d8" stroke="#141316" stroke-width="3"/>
+            <rect x="40" y="52" width="150" height="10" rx="5" fill="#eef0f3"/>
+            <rect x="224" y="62" width="22" height="28" rx="4" fill="#8f8b98" stroke="#141316" stroke-width="3"/>
+            <rect x="246" y="72" width="70" height="8" rx="3" fill="#8f8b98" stroke="#141316" stroke-width="2"/>
+            <g font-family="JetBrains Mono, monospace" font-size="13" fill="#f4f1ea"><text x="246" y="112">shaft spins</text><text x="4" y="138">+ and − wires</text><text x="54" y="30">coil and magnets inside</text></g>
+          </svg>
+          <p>Inside, a coil of wire becomes a magnet when current flows through it. Magnets around the coil push and pull it, so it spins. Little metal brushes keep switching the current so it keeps turning.</p>
+          <ul><li><b>More volts:</b> it spins faster.</li><li><b>Swap the two wires:</b> it spins the other way.</li></ul>` },
+        { type: "read", html: `<h3>Fast but weak</h3>
+          <p>A small motor spins thousands of times a minute (<b>rpm</b> means turns per minute). But its <b>torque</b>, its twisting strength, is tiny. Hook it straight to a wheel and a robot can't even climb a small ramp.</p>
+          <p>A <b>gearbox</b> fixes that. A small gear on the motor turns a bigger gear on the wheel. With a <b>20:1</b> gearbox, the motor turns 20 times for every 1 turn of the wheel, so the wheel:</p>
+          <ul><li>turns <b>20 times slower</b></li><li>pushes about <b>20 times harder</b> (a little less, because gears rub)</li></ul>
+          <p class="small">Big ratios like 50:1 use several pairs of gears in a row.</p>` },
+        { type: "interactive", kind: "dcsim" },
+        { type: "read", html: `<h3>When a motor stalls</h3>
+          <p>If the load is too heavy, the motor stops turning. That's called a <b>stall</b>. A stalled motor pulls the most electricity it can, and all that energy turns into heat. Leave it stalled and it can burn out.</p>
+          <p>So engineers pick the gear ratio carefully: enough torque that it never stalls, but not so much gearing that the robot crawls.</p>` },
+        { type: "quiz", q: "A motor spins at 6,000 rpm. It drives a wheel through a 20:1 gearbox. About how fast does the wheel turn?", options: ["120,000 rpm", "6,000 rpm", "300 rpm", "20 rpm"], answer: 2, explain: "The motor turns 20 times for each turn of the wheel: 6,000 ÷ 20 = 300 rpm." },
+        { type: "quiz", q: "Your robot stalls halfway up a steep ramp. What's the best fix?", options: ["Use more gearing, like 50:1 instead of 5:1", "Use less gearing, like 1:1", "Make the robot heavier", "Paint it a faster color"], answer: 0, explain: "More gearing gives the wheels more torque, so the robot can climb. It goes slower, but it gets there." },
+        { type: "quiz", q: "What does a gearbox trade?", options: ["Speed for strength (torque)", "Weight for color", "Batteries for wires", "Nothing. It just makes noise."], answer: 0, explain: "The wheel turns slower but pushes harder. That's the trade-off." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
+      id: "servo", n: "Servo motors", about: "Motors that move to an exact angle, like the joints of a robot arm.",
+      steps: [
+        { type: "read", html: `<p class="big">A servo moves to an angle you choose, then holds it there.</p>
+          <svg class="part" viewBox="0 0 360 160" role="img" aria-label="Inside a servo: a small motor, gears, a position sensor and a control chip, with three wires coming out.">
+            <rect x="20" y="40" width="250" height="96" rx="12" fill="#2468b3" stroke="#141316" stroke-width="3"/>
+            <rect x="110" y="16" width="70" height="24" rx="6" fill="#2468b3" stroke="#141316" stroke-width="3"/>
+            <rect x="128" y="6" width="90" height="14" rx="7" fill="#f4f1ea" stroke="#141316" stroke-width="3"/>
+            <g fill="#173f6b" stroke="#141316" stroke-width="2"><rect x="32" y="52" width="104" height="36" rx="6"/><rect x="146" y="52" width="112" height="36" rx="6"/><rect x="32" y="94" width="104" height="32" rx="6"/><rect x="146" y="94" width="112" height="32" rx="6"/></g>
+            <g font-family="JetBrains Mono, monospace" font-size="13" fill="#f4f1ea" text-anchor="middle"><text x="84" y="75">motor</text><text x="202" y="75">gears</text><text x="84" y="115">sensor</text><text x="202" y="115">chip</text></g>
+            <g stroke-width="4" fill="none" stroke-linecap="round"><path d="M270 100 C300 100 310 110 340 112" stroke="#ff5d5d"/><path d="M270 108 C300 108 310 118 340 122" stroke="#141316"/><path d="M270 116 C300 116 310 126 340 132" stroke="#ffd23f"/></g>
+            <text x="300" y="152" font-family="JetBrains Mono, monospace" font-size="12" fill="#aaa6b0" text-anchor="middle">3 wires</text>
+          </svg>
+          <p>Inside the little box: a small DC motor, gears to make it strong, a <b>position sensor</b> that measures the angle, and a <b>control chip</b>.</p>
+          <p>That makes a servo a tiny robot of its own. The sensor <b>Senses</b> the angle, the chip <b>Thinks</b> about how far off it is, and the motor <b>Acts</b> to fix it. The joints of our robot arm are servos.</p>` },
+        { type: "read", html: `<h3>Talking to a servo</h3>
+          <p>The robot's computer sends the servo a short pulse of electricity every <b>20 milliseconds</b> (50 times a second). How long each pulse lasts tells the servo where to point:</p>
+          <ul><li><b>1.0 ms</b> pulse: one end (0°)</li><li><b>1.5 ms</b> pulse: the middle (90°)</li><li><b>2.0 ms</b> pulse: the other end (180°)</li></ul>
+          <p class="small">These are typical numbers, and each servo model is a little different. Changing the length of a pulse like this is called <b>PWM</b>, pulse width modulation.</p>` },
+        { type: "interactive", kind: "servosim" },
+        { type: "read", html: `<h3>It checks itself</h3>
+          <p>A servo never stops checking. If something pushes the arm, the sensor notices the angle changed, and the motor pushes back until it's on target again. Checking and correcting like this is called <b>feedback</b>, or a <b>closed loop</b>.</p>
+          <p>Some servos are built to spin all the way around instead. On those <b>continuous rotation</b> servos, the pulse sets the speed and direction instead of the angle.</p>` },
+        { type: "quiz", q: "A servo gets a 1.5 ms pulse. Where does it point?", options: ["One end (0°)", "The middle (90°)", "The other end (180°)", "It spins forever"], answer: 1, explain: "1.5 ms is halfway between 1.0 ms and 2.0 ms, so the servo points to the middle." },
+        { type: "quiz", q: "Which part inside a servo lets it know its own angle?", options: ["The gears", "The position sensor", "The wires", "The plastic case"], answer: 1, explain: "The position sensor measures the angle, so the chip knows how far the motor still has to turn." },
+        { type: "quiz", q: "You push a servo's arm while it's holding 90°. What happens?", options: ["It stays wherever you push it", "It pushes back to 90°", "It turns off", "It jumps to 180°"], answer: 1, explain: "That's feedback: the sensor sees the angle changed, and the motor fixes it." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
+      id: "stepper", n: "Stepper motors", about: "Motors that move in tiny exact steps, like the ones in 3D printers.",
+      steps: [
+        { type: "read", html: `<p class="big">A stepper motor turns in tiny, exact steps.</p>
+          <p>Around the middle are coils of wire. The controller turns them on one after another, and each switch pulls the magnet in the middle around by one step.</p>
+          <p>Most steppers take <b>200 steps</b> to go all the way around. That's <b>1.8°</b> per step. Need a quarter turn? Send 50 steps.</p>
+          <p>3D printers, laser cutters and CNC machines use steppers to move to exact spots.</p>` },
+        { type: "read", html: `<h3>Counting without looking</h3>
+          <p>A stepper has no sensor. The controller counts the steps it sends and assumes the motor followed. That's called an <b>open loop</b>.</p>
+          <p>If the load is too heavy or the steps come too fast, the motor can't keep up and <b>skips steps</b>. The controller still thinks it's in the right place, but it isn't.</p>
+          <p>When it's stopped, a stepper holds its position strongly. That's called <b>holding torque</b>.</p>` },
+        { type: "interactive", kind: "stepsim" },
+        { type: "read", html: `<h3>How a 3D printer stays on track</h3>
+          <p>Before every print, a 3D printer <b>homes</b>: it moves each motor until a part taps a small switch at the edge. That switch is a touch sensor, and it tells the printer exactly where zero is. Then it counts steps from there.</p>
+          <p>If a print suddenly looks shifted halfway up, the motors probably skipped steps.</p>` },
+        { type: "quiz", q: "A stepper takes 200 steps per turn. How many steps make a quarter turn?", options: ["25", "50", "100", "200"], answer: 1, explain: "A quarter of 200 is 50, and 50 × 1.8° = 90°." },
+        { type: "quiz", q: "Why can a stepper end up in the wrong place without knowing?", options: ["It has no sensor, so skipped steps go unnoticed", "Its wires are too short", "It can only turn left", "It runs out of steps"], answer: 0, explain: "The controller only counts the steps it sent. If the motor skips some, nothing tells it." },
+        { type: "quiz", q: "Which machine is famous for using stepper motors?", options: ["A ceiling fan", "A 3D printer", "A drone", "A blender"], answer: 1, explain: "3D printers move the nozzle to exact spots by counting steps." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
+      id: "motorpick", n: "Pick the right motor", about: "DC, servo, stepper or brushless: match each job to the best motor.",
+      steps: [
+        { type: "read", html: `<p class="big">Every motor is good at a different job.</p>
+          <table class="rtab"><thead><tr><th>Motor</th><th>Best at</th><th>Used in</th></tr></thead><tbody>
+          <tr><td><b>DC gearmotor</b><small>DC motor + gearbox</small></td><td>spinning nonstop, simple speed control</td><td>robot car wheels, toys</td></tr>
+          <tr><td><b>Servo</b><small>motor + sensor + chip</small></td><td>moving to an exact angle and holding it</td><td>robot arm joints, steering, grippers</td></tr>
+          <tr><td><b>Stepper</b><small>coils switched in order</small></td><td>exact steps without a sensor</td><td>3D printers, CNC machines</td></tr>
+          <tr><td><b>Brushless</b><small>needs a speed controller</small></td><td>very fast, powerful and efficient</td><td>drones, e-bikes, many electric cars</td></tr>
+          </tbody></table>
+          <p><b>Brushless</b> motors have no brushes rubbing inside. A small computer called an <b>ESC</b> (electronic speed controller) switches the coils instead, so they last longer and waste less energy.</p>` },
+        { type: "interactive", kind: "motormatch" },
+        { type: "read", html: `<h3>Real robots use a team of motors</h3>
+          <ul><li><b>Robot vacuum:</b> DC gearmotors drive its wheels, and another motor spins its brushes.</li>
+          <li><b>Our robot arm:</b> servos at the joints, so each one moves to an exact angle.</li>
+          <li><b>3D printer:</b> steppers move the nozzle, and small fans cool the plastic.</li></ul>` },
+        { type: "quiz", q: "A drone needs motors that spin its propellers super fast without wasting battery. Which kind?", options: ["Servo", "Stepper", "Brushless", "No motor"], answer: 2, explain: "Brushless motors are fast, powerful and efficient. That's why almost every drone uses them." },
+        { type: "quiz", q: "In Bot Arena, what kind of motor would move each joint of a robot's Legs?", options: ["Servos", "One big fan motor", "A brushless drone motor", "No motor at all"], answer: 0, explain: "Walking robots move each leg joint to an exact angle, which is a servo's job." },
+        { type: "quiz", q: "Which motor would you pick to drive a robot car's wheels?", options: ["A DC gearmotor", "A stepper with no controller", "A servo stuck at 90°", "A brushless motor with no speed controller"], answer: 0, explain: "A DC gearmotor spins nonstop with plenty of torque, which is just what wheels need." },
+      ],
+      next: { label: "Build a robot in practice mode", href: "/practice" },
+    },
+    {
       id: "tradeoffs", n: "Weight and trade-offs", about: "Why engineers can't have everything, and how a weight limit forces choices.",
       steps: [
         { type: "read", html: `<p class="big">Engineers can't have everything. Every choice gives something and costs something.</p>
@@ -282,6 +384,18 @@
     if (!el) { el = document.createElement("div"); host.appendChild(el); }
     el.className = "feedback " + (good ? "good" : "bad"); el.innerHTML = html;
   }
+  // a row of choice chips (one pressed); tips are the tooltips for each chip
+  function chipRow(el, labels, tips, sel, onPick) {
+    el.innerHTML = "";
+    labels.forEach((l, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.setAttribute("aria-pressed", i === sel);
+      if (tips) b.setAttribute("data-tip", tips[i]);
+      b.onclick = () => { E.Sound.play("click"); onPick(i); };
+      el.appendChild(b);
+    });
+  }
+  const fmt0 = (n) => Math.round(n).toLocaleString("en-US");
+  const fmtDeg = (d) => (Number.isInteger(d) ? String(d) : d.toFixed(1)) + "°";
   // redraw every frame while the canvas is on screen; stops once the card moves on
   function animate(cv, frame) {
     const loop = (now) => { if (!cv.isConnected) return; if (cv.offsetParent) frame(now); requestAnimationFrame(loop); };
@@ -734,6 +848,320 @@
       };
       chips("#s-s", SENS.map((k) => SN.SENSORS[k].n), "s", SENS.map((k) => SENS_TIP[k])); chips("#s-t", TGT.map((t) => t[2]), "t", TGT.map((t) => t[3])); table(); tasks(); setNext(!!cur.ok[key]);
       animate(cv, draw);
+    },
+
+    dcsim(card) {
+      const MO = window.Motors, key = cur.step, LEN = 2; // the ramp is 2 m long
+      const TASKS = [["stall", "Make the motor stall"], ["climb", "Climb the 25° ramp"], ["best", "Find the fastest gear for the 10° ramp"]];
+      const RAMP_TIP = ["A flat track.", "A gentle 10° slope.", "A steep 25° slope."];
+      const GEAR_TIP = ["No gearbox: the motor turns the wheels directly.", "The motor turns 5 times for every wheel turn.", "The motor turns 20 times for every wheel turn.", "The motor turns 50 times for every wheel turn."];
+      const st = { ramp: 2, gear: 0, volt: 1, run: null, done: {}, last: 0, puff: 0 };
+      const fx = new E.FX();
+      card.innerHTML = `<h3>Gearbox simulator</h3><p>Pick a ramp, a gearbox and a battery, then press <b>Go!</b> Predict first: can the robot climb the steep ramp with no gearbox?</p>
+        <div class="sim"><canvas aria-label="Side view: a robot drives up a ramp. A diagram shows the motor gear turning the wheel gear."></canvas></div>
+        <div class="lbl">Ramp</div><div class="chips" id="d-ramp"></div>
+        <div class="lbl">Gearbox</div><div class="chips" id="d-gear"></div>
+        <div class="simrow"><div><div class="lbl">Battery</div><div class="chips" id="d-volt"></div></div><button class="btn" id="d-go" type="button" data-tip="Drive up the ramp with these choices.">Go!</button></div>
+        <div class="tq" tabindex="0" data-tip="The bar is the most twisting force the gearbox can give each wheel. The white line is what the ramp needs. Past the line, it climbs. Short of it, it stalls.">
+          <div class="row"><span>Torque each wheel needs</span><b id="d-need">-</b></div><div class="row"><span>Most the motor and gears can give</span><b id="d-have">-</b></div>
+          <div class="tqbar"><i id="d-havebar"></i><span id="d-needmark"></span></div></div>
+        <div class="readout simout three"><div tabindex="0" data-tip="How fast the motor itself spins, in turns per minute."><b id="d-mrpm">-</b>motor rpm</div><div tabindex="0" data-tip="How fast the wheels turn, after the gearbox."><b id="d-wrpm">-</b>wheel rpm</div><div tabindex="0" data-tip="How fast the robot moves."><b id="d-spd">-</b>robot speed</div></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="d-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const tasks = () => { q("#d-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const rows = () => {
+        chipRow(q("#d-ramp"), MO.RAMPS.map((r) => (r ? r + "° ramp" : "Flat")), RAMP_TIP, st.ramp, (i) => { st.ramp = i; reset(); });
+        chipRow(q("#d-gear"), MO.GEARS.map((g) => (g === 1 ? "None (1:1)" : g + ":1")), GEAR_TIP, st.gear, (i) => { st.gear = i; reset(); });
+        chipRow(q("#d-volt"), MO.VOLTS.map((v) => v + " V"), MO.VOLTS.map((v) => `A ${v}-volt battery. More volts make the motor spin faster and push harder.`), st.volt, (i) => { st.volt = i; reset(); });
+      };
+      const reset = () => {
+        st.run = null; ["#d-mrpm", "#d-wrpm", "#d-spd", "#d-need", "#d-have"].forEach((s) => (q(s).textContent = "-"));
+        q("#d-havebar").style.width = "0"; q("#d-needmark").style.left = "0"; rows();
+      };
+      q("#d-go").onclick = () => {
+        const g = MO.GEARS[st.gear], r = MO.RAMPS[st.ramp], v = MO.VOLTS[st.volt], res = MO.drive(g, r, v);
+        const secs = res.stalled ? 0 : LEN / res.speed; // real time to the top, squeezed into 1-6 s on screen
+        st.run = { t0: performance.now(), res, g, r, v, secs, show: res.stalled ? 2.2 : Math.max(1, Math.min(6, secs)), fin: false };
+        q(".fb").innerHTML = ""; // the last run's result would be confusing during this one
+        const mx = Math.max(res.need, res.have) * 1.15;
+        q("#d-need").textContent = res.need.toFixed(3) + " N·m"; q("#d-have").textContent = res.have.toFixed(3) + " N·m";
+        q("#d-havebar").style.width = (res.have / mx) * 100 + "%"; q("#d-havebar").className = res.stalled ? "bad" : "";
+        q("#d-needmark").style.left = (res.need / mx) * 100 + "%";
+        q("#d-mrpm").textContent = res.stalled ? "0" : fmt0(res.motorRpm); q("#d-wrpm").textContent = res.stalled ? "0" : fmt0(res.wheelRpm);
+        q("#d-spd").textContent = res.stalled ? "0 m/s" : res.speed.toFixed(2) + " m/s";
+        E.Sound.play(res.stalled ? "miss" : "go");
+      };
+      const finish = (run) => {
+        run.fin = true; const { res, g, r, v } = run;
+        if (res.stalled) st.done.stall = true;
+        if (!res.stalled && r === 25) st.done.climb = true;
+        const best = !res.stalled && r === 10 && g === MO.bestGear(10, v);
+        if (best) st.done.best = true;
+        tasks();
+        const all = TASKS.every(([k]) => st.done[k]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        const msg = res.stalled
+          ? `<b>Stalled!</b> Each wheel needs ${res.need.toFixed(3)} N·m to move, but ${g === 1 ? "with no gearbox" : `through this ${g}:1 gearbox`} it can only get ${res.have.toFixed(3)} N·m. More gearing means more torque.`
+          : `<b>Made it!</b> ${res.speed.toFixed(2)} m/s, so the 2 m ${r ? "ramp" : "track"} took ${run.secs.toFixed(1)} seconds. The motor spun ${fmt0(res.motorRpm)} rpm${g === 1 ? ", and with no gearbox the wheels spun just as fast" : `, and the ${g}:1 gearbox turned that into ${fmt0(res.wheelRpm)} rpm at the wheels`}.${best ? " That's the fastest gear for this ramp!" : ""}`;
+        setFb(card, !res.stalled || all, msg + (all ? "<br><b>All 3 experiments done!</b> Gears trade speed for torque." : ""));
+        E.Sound.play(res.stalled ? "miss" : "beep");
+      };
+      const gear = (ctx, x, y, r, a, fill) => { // a simple gear: a disc with square teeth
+        const n = Math.max(8, Math.round(r / 3.2));
+        ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = "#141316"; ctx.lineWidth = 1.5;
+        for (let i = 0; i < n; i++) { ctx.save(); ctx.rotate((i / n) * Math.PI * 2); ctx.fillRect(-r * 0.09 - 1.5, -r - 4, r * 0.18 + 3, 6); ctx.restore(); }
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(0, 0, Math.max(2, r * 0.18), 0, 7); ctx.fill();
+        ctx.strokeStyle = "rgba(20,19,22,.5)"; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(r * 0.75, 0); ctx.stroke(); // a mark so you can see it turn
+        ctx.restore();
+      };
+      const draw = (now) => {
+        const dt = Math.min(0.05, (now - (st.last || now)) / 1000); st.last = now;
+        const { ctx, w, h } = E.fit(cv), run = st.run, g = MO.GEARS[st.gear], r = run ? run.r : MO.RAMPS[st.ramp], th = (r * Math.PI) / 180;
+        const gy = h * 0.88, x0 = w * 0.33, L = w * 0.6, cl = w * 0.11, rw = w * 0.02;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "#2b2a30"; ctx.fillRect(0, gy, w, h - gy);
+        const ex = x0 + Math.cos(th) * L, ey = gy - Math.sin(th) * L;
+        ctx.strokeStyle = "#141316"; ctx.lineWidth = 2;
+        if (r) { ctx.fillStyle = "#3a3842"; ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(ex, ey); ctx.lineTo(ex, gy); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+        else { ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.moveTo(x0, gy - 1); ctx.lineTo(ex, gy - 1); ctx.stroke(); ctx.setLineDash([]); }
+        ctx.fillStyle = "#4fd18b"; ctx.fillRect(ex - 2, ey - h * 0.13, 3, h * 0.13); ctx.beginPath(); ctx.moveTo(ex + 1, ey - h * 0.13); ctx.lineTo(ex + h * 0.07, ey - h * 0.1); ctx.lineTo(ex + 1, ey - h * 0.07); ctx.fill(); // finish flag
+        const fs = Math.max(11, Math.round(h * 0.04));
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "left";
+        ctx.fillText(r ? `${r}° ramp · 2 m` : "flat · 2 m", x0 + w * 0.05, gy + fs + 4);
+        // where the robot is
+        let along = 0, shake = 0, stalled = false;
+        if (run) {
+          const k = Math.min(1, (now - run.t0) / 1000 / run.show);
+          if (run.res.stalled) { stalled = k < 1 || run.fin; shake = run.fin ? 0 : Math.sin(now / 16) * 2.2; } else along = k * (L - cl); // steady speed, like the real motor
+          if (stalled && !run.fin && (st.puff -= dt) <= 0) { st.puff = 0.18; fx.burst(x0 + Math.cos(th) * cl * 0.45, gy - Math.sin(th) * cl * 0.45 - rw * 3.6, 2, { colors: ["#6d6a75", "#8a8792"], kind: "smoke", speed: 30, g: -60, life: 1.2, size: 6, drag: 0.95, angle: -Math.PI / 2, spread: 1 }); }
+          if (!run.fin && k >= 1) finish(run);
+        }
+        const roll = along / rw; // wheels roll without slipping
+        const cx = x0 + Math.cos(th) * (along + cl / 2), cy = gy - Math.sin(th) * (along + cl / 2);
+        ctx.save(); ctx.translate(cx + shake, cy); ctx.rotate(-th); ctx.strokeStyle = "#141316"; ctx.lineWidth = 2;
+        ctx.fillStyle = "#f46524"; E.rr(ctx, -cl / 2, -rw * 2.7, cl, rw * 1.8, rw * 0.4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = stalled ? "#ff5d5d" : "#cfd2d8"; E.rr(ctx, -cl * 0.22, -rw * 3.7, cl * 0.42, rw * 1.05, rw * 0.35); ctx.fill(); ctx.stroke();
+        [-cl * 0.32, cl * 0.32].forEach((wx) => {
+          ctx.fillStyle = "#222126"; ctx.beginPath(); ctx.arc(wx, -rw, rw, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.strokeStyle = "#8f8b98"; ctx.lineWidth = 2; for (let s = 0; s < 3; s++) { const a = roll + s * 2.094; ctx.beginPath(); ctx.moveTo(wx, -rw); ctx.lineTo(wx + Math.cos(a) * rw * 0.75, -rw + Math.sin(a) * rw * 0.75); ctx.stroke(); }
+          ctx.strokeStyle = "#141316";
+        });
+        ctx.restore();
+        fx.update(dt); fx.draw(ctx);
+        // gear diagram: the motor's small gear drives the wheel's big gear
+        const pr = Math.max(h * 0.045, 11), R = pr * Math.min(g, 3.5), px = w * 0.04 + pr + 4, py = h * 0.3, gx = px + pr + R + 2;
+        const jitter = stalled && !(run && run.fin) ? Math.sin(now / 16) * 0.08 : 0;
+        gear(ctx, gx, py, R, -roll + jitter * 0.2, "#8f8b98");
+        gear(ctx, px, py, pr, roll * (R / pr) + jitter, stalled ? "#ff5d5d" : "#cfd2d8");
+        ctx.font = `600 ${Math.max(10, fs - 2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "left";
+        ctx.fillText("motor gear → wheel gear", px - pr, py + Math.max(pr, R) + fs + 6); ctx.textAlign = "center";
+        ctx.font = `700 ${fs + 4}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#ffd23f";
+        ctx.fillText(g === 1 ? "1:1" : `${g}:1`, (px + gx) / 2, py - Math.max(pr, R) - 12);
+        if (stalled && !(run && run.fin)) { ctx.fillStyle = "#ff5d5d"; ctx.fillText("STALLED!", x0 + cl / 2, gy - h * 0.3); }
+        if (run && run.fin && !run.res.stalled) { ctx.fillStyle = "#4fd18b"; ctx.fillText(`${run.secs.toFixed(1)} s`, ex - w * 0.04, ey - h * 0.16); }
+        ctx.textAlign = "left";
+      };
+      rows(); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
+    },
+
+    servosim(card) {
+      const MO = window.Motors, key = cur.step;
+      const BLOCKS = [[45, "#ff5d5d"], [135, "#38a7f0"]];
+      const TASKS = [["b45", "Point the arm at the red block (45°)"], ["b135", "Point the arm at the blue block (135°)"], ["push", "Push the arm and watch it fix itself"]];
+      const st = { ms: 1.5, angle: 90, done: {}, pushed: false, last: 0, shown: 0 };
+      card.innerHTML = `<h3>Servo simulator</h3><p>Slide the pulse width to aim the servo's arm. The bottom shows the signal the robot's computer sends. Then push the arm and see what the servo does.</p>
+        <div class="sim"><canvas aria-label="A servo with an arm that turns from 0 to 180 degrees, two target blocks, and the pulse signal underneath."></canvas></div>
+        <div class="slider" data-tip="How long each pulse lasts, in milliseconds. 1.0 ms points to 0°, 1.5 ms to 90°, 2.0 ms to 180°."><div class="row"><span>Pulse width</span><b id="v-ms"></b></div><input type="range" id="v-range" min="1" max="2" step="0.05" aria-label="Pulse width in milliseconds"></div>
+        <div class="simrow"><div class="readout simout" style="flex:1"><div tabindex="0" data-tip="The angle this pulse width asks for."><b id="v-target">-</b>target angle</div><div tabindex="0" data-tip="What the position sensor inside the servo measures right now."><b id="v-sense">-</b>sensor reads</div></div>
+        <button class="btn ghost" id="v-push" type="button" data-tip="Shove the arm away from its target.">Push the arm</button></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="v-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const tasks = () => { q("#v-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const complete = (k, msg) => {
+        if (st.done[k]) return;
+        st.done[k] = true; tasks(); E.Sound.play("beep");
+        const all = TASKS.every(([t]) => st.done[t]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        setFb(card, true, msg + (all ? "<br><b>All 3 done!</b> A servo is a tiny robot: Sense, Think, Act." : ""));
+      };
+      const setMs = (ms) => { st.ms = Math.round(ms * 100) / 100; q("#v-range").value = st.ms; q("#v-ms").textContent = st.ms.toFixed(2) + " ms"; };
+      q("#v-range").addEventListener("input", (e) => setMs(+e.target.value));
+      q("#v-push").onclick = () => { st.angle = Math.max(0, Math.min(180, st.angle + (st.angle < 120 ? 55 : -55))); st.pushed = true; E.Sound.play("hit"); };
+      const draw = (now) => {
+        const dt = Math.min(0.05, (now - (st.last || now)) / 1000); st.last = now;
+        const target = MO.servoAngle(st.ms);
+        st.angle = MO.servoStep(st.angle, target, dt);
+        const settled = Math.abs(st.angle - target) < 0.5;
+        if (settled && target === 45) complete("b45", "<b>On target!</b> A 1.25 ms pulse means 45°.");
+        if (settled && target === 135) complete("b135", "<b>On target!</b> A 1.75 ms pulse means 135°.");
+        if (st.pushed && settled) { st.pushed = false; complete("push", "<b>It fixed itself!</b> The sensor saw the arm move, so the motor pushed it back. That's feedback."); }
+        if (now - st.shown > 100) { st.shown = now; q("#v-target").textContent = fmtDeg(Math.round(target)); q("#v-sense").textContent = fmtDeg(Math.round(st.angle)); }
+        const { ctx, w, h } = E.fit(cv);
+        ctx.clearRect(0, 0, w, h);
+        const scopeY = h * 0.7, cx = w / 2, cy = scopeY - h * 0.1, R = Math.min(w * 0.3, h * 0.46);
+        const P = (deg, rad) => [cx + Math.cos((deg * Math.PI) / 180) * rad, cy - Math.sin((deg * Math.PI) / 180) * rad];
+        const fs = Math.max(11, Math.round(h * 0.038));
+        ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI, 0); ctx.stroke(); // protractor
+        ctx.font = `600 ${fs}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        for (let d = 0; d <= 180; d += 15) {
+          const [x1, y1] = P(d, R), [x2, y2] = P(d, R - (d % 45 ? 6 : 12));
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+          if (d % 45 === 0) { const [tx, ty] = P(d, R + fs * 1.3); ctx.fillText(d + "°", tx, ty); }
+        }
+        BLOCKS.forEach(([d, c]) => { const [bx, by] = P(d, R * 0.84), s = R * 0.12; ctx.fillStyle = c; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; E.rr(ctx, bx - s / 2, by - s / 2, s, s, 3); ctx.fill(); ctx.stroke(); });
+        const [tx, ty] = P(target, R * 0.7); // where the pulse asks it to point
+        ctx.strokeStyle = "rgba(255,138,80,.7)"; ctx.setLineDash([6, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tx, ty); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#2468b3"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; E.rr(ctx, cx - R * 0.42, cy - R * 0.12, R * 0.84, R * 0.32, 8); ctx.fill(); ctx.stroke(); // servo body
+        const [ax, ay] = P(st.angle, R * 0.62);
+        ctx.strokeStyle = "#141316"; ctx.lineWidth = R * 0.11; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke();
+        ctx.strokeStyle = "#f4f1ea"; ctx.lineWidth = R * 0.075; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke(); ctx.lineCap = "butt";
+        ctx.fillStyle = "#f4f1ea"; ctx.strokeStyle = "#141316"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, R * 0.07, 0, 7); ctx.fill(); ctx.stroke();
+        // the signal: one pulse every 20 ms, drawn over a 40 ms window
+        const sx = w * 0.06, sw = w * 0.88, sy = scopeY + h * 0.03, sh = h * 0.24, base = sy + sh * 0.85, top = sy + sh * 0.42, perMs = sw / 40;
+        ctx.fillStyle = "#121116"; E.rr(ctx, sx, sy, sw, sh, 8); ctx.fill();
+        ctx.strokeStyle = "rgba(79,209,139,.14)"; ctx.lineWidth = 1; for (let m = 0; m <= 40; m += 5) { ctx.beginPath(); ctx.moveTo(sx + m * perMs, sy); ctx.lineTo(sx + m * perMs, sy + sh); ctx.stroke(); }
+        ctx.strokeStyle = "#4fd18b"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(sx, base);
+        for (let p = 0; p < 2; p++) { const x = sx + (p * 20 + 2) * perMs; ctx.lineTo(x, base); ctx.lineTo(x, top); ctx.lineTo(x + st.ms * perMs, top); ctx.lineTo(x + st.ms * perMs, base); }
+        ctx.lineTo(sx + sw, base); ctx.stroke();
+        ctx.textAlign = "left"; ctx.fillStyle = "#4fd18b"; ctx.font = `600 ${Math.max(10, fs - 1)}px "JetBrains Mono", monospace`;
+        ctx.fillText(`${st.ms.toFixed(2)} ms pulse, every 20 ms`, sx + 8, sy + fs * 0.9);
+        ctx.textBaseline = "alphabetic";
+      };
+      setMs(st.ms); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
+    },
+
+    stepsim(card) {
+      const MO = window.Motors, key = cur.step, PER = 360 / MO.STEPPER.stepsPerRev;
+      const TASKS = [["quarter", "Make an exact quarter turn (90°)"], ["skip", "Make it skip steps"], ["full", "Make exactly one full turn (360°)"]];
+      const STEPS = [10, 50, 100, 200], LOADS = ["light", "heavy"];
+      const st = { si: 1, load: 0, rate: 400, sent: 0, moved: 0, run: null, done: {} };
+      card.innerHTML = `<h3>Stepper simulator</h3><p>Pick how many steps to send, how fast, and how heavy the load is. The left side shows the coils switching on in order. Each run starts from 0°.</p>
+        <div class="sim"><canvas aria-label="Left: a stepper's four coils and the magnet in the middle. Right: a dial showing where the shaft really is and where the controller thinks it is."></canvas></div>
+        <div class="lbl">Steps to send</div><div class="chips" id="p-steps"></div>
+        <div class="lbl">Load</div><div class="chips" id="p-load"></div>
+        <div class="slider" data-tip="How many steps the controller sends each second. Too fast for the load and the motor can't keep up."><div class="row"><span>Speed</span><b id="p-rv"></b></div><input type="range" id="p-rate" min="100" max="1000" step="50" aria-label="Steps per second"></div>
+        <div class="btnrow"><button class="btn" id="p-run" type="button" data-tip="Send the steps from 0°.">Run</button><button class="btn ghost" id="p-one" type="button" data-tip="Send a single step and watch the next coil switch on.">Step once</button></div>
+        <div class="readout simout three"><div tabindex="0" data-tip="Steps the controller has sent."><b id="p-sent">0</b>steps sent</div><div tabindex="0" data-tip="Where the controller thinks the shaft is: steps × 1.8°."><b id="p-thinks">0°</b>controller thinks</div><div tabindex="0" data-tip="Where the shaft really is."><b id="p-real">0°</b>really turned</div></div>
+        <div class="lbl">Experiments</div><ul class="tasks" id="p-tasks"></ul><div class="fb"></div>`;
+      const q = (sel) => card.querySelector(sel), cv = q("canvas");
+      const tasks = () => { q("#p-tasks").innerHTML = TASKS.map(([k, t]) => `<li${st.done[k] ? ' class="done"' : ""}>${t}</li>`).join(""); };
+      const rows = () => {
+        chipRow(q("#p-steps"), STEPS.map((n) => n + " steps"), STEPS.map((n) => `${n} × 1.8° = ${fmtDeg(n * PER)}`), st.si, (i) => { st.si = i; rows(); });
+        chipRow(q("#p-load"), ["Light load", "Heavy load"], ["Easy to turn. It can follow up to 800 steps per second.", "Hard to turn. Past 250 steps per second it starts to slip."], st.load, (i) => { st.load = i; rows(); });
+      };
+      const readouts = () => { q("#p-sent").textContent = st.sent; q("#p-thinks").textContent = fmtDeg(st.sent * PER); q("#p-real").textContent = fmtDeg(st.moved * PER); };
+      const setRate = (r) => { st.rate = r; q("#p-rate").value = r; q("#p-rv").textContent = r + " steps/s"; };
+      q("#p-rate").addEventListener("input", (e) => setRate(+e.target.value));
+      const complete = (msg, good) => {
+        tasks();
+        const all = TASKS.every(([t]) => st.done[t]);
+        if (all) { cur.ok[key] = true; setNext(true); }
+        setFb(card, good || all, msg + (all ? "<br><b>All 3 done!</b> Steppers are exact, as long as they don't skip." : ""));
+      };
+      q("#p-run").onclick = () => {
+        if (st.run && !st.run.fin) return;
+        const n = STEPS[st.si], load = LOADS[st.load];
+        st.sent = 0; st.moved = 0;
+        st.run = { t0: performance.now(), n, rate: st.rate, load, res: MO.stepperRun(n, st.rate, load), show: Math.max(0.8, Math.min(3, n / st.rate * 2)), fin: false };
+        E.Sound.play("scan");
+      };
+      q("#p-one").onclick = () => {
+        if (st.run && !st.run.fin) return;
+        st.sent++; st.moved++; readouts(); E.Sound.play("click"); // single steps are slow, so they never slip
+        if (st.sent === 50 && st.moved === 50 && !st.done.quarter) { st.done.quarter = true; complete("<b>Exactly 90°!</b> 50 steps × 1.8° = 90°.", true); }
+      };
+      const finish = (run) => {
+        run.fin = true; const { n, res } = run;
+        st.sent = n; st.moved = res.moved; readouts();
+        if (res.moved < n) {
+          st.done.skip = true; E.Sound.play("miss");
+          complete(`<b>Skipped steps!</b> It sent ${n} steps, so the controller thinks the shaft turned ${fmtDeg(res.thinksDeg)}. It really turned ${fmtDeg(res.realDeg)}. With no sensor, nothing noticed. A slower speed or a lighter load keeps every step.`, false);
+        } else {
+          if (n === 50) st.done.quarter = true;
+          if (n === 200) st.done.full = true;
+          E.Sound.play("beep");
+          complete(`<b>Every step landed.</b> ${n} steps × 1.8° = ${fmtDeg(res.realDeg)}, and the shaft really turned ${fmtDeg(res.realDeg)}.`, true);
+        }
+      };
+      const draw = (now) => {
+        const run = st.run;
+        if (run && !run.fin) {
+          const k = Math.min(1, (now - run.t0) / 1000 / run.show), sent = Math.floor(k * run.n);
+          st.sent = sent; st.moved = MO.stepperRun(sent, run.rate, run.load).moved; readouts();
+          if (k >= 1) finish(run);
+        }
+        const { ctx, w, h } = E.fit(cv);
+        ctx.clearRect(0, 0, w, h);
+        const fs = Math.max(11, Math.round(h * 0.04));
+        // left: the simple model, four coils around a magnet
+        const lx = w * 0.27, ly = h * 0.5, Rs = Math.min(w * 0.17, h * 0.36), active = st.sent % 4, rotor = st.moved % 4;
+        ctx.strokeStyle = "#141316"; ctx.lineWidth = 2;
+        ctx.fillStyle = "#2b2a30"; ctx.beginPath(); ctx.arc(lx, ly, Rs, 0, 7); ctx.fill(); ctx.stroke();
+        MO.COILS.forEach((name, i) => {
+          const a = -Math.PI / 2 + (i * Math.PI) / 2, on = i === active;
+          ctx.save(); ctx.translate(lx + Math.cos(a) * Rs * 0.72, ly + Math.sin(a) * Rs * 0.72); ctx.rotate(a + Math.PI / 2);
+          ctx.fillStyle = on ? "#f46524" : "#55535c"; E.rr(ctx, -Rs * 0.16, -Rs * 0.14, Rs * 0.32, Rs * 0.28, 4); ctx.fill(); ctx.stroke();
+          if (on) { ctx.shadowColor = "#f46524"; ctx.shadowBlur = 14; ctx.fill(); ctx.shadowBlur = 0; }
+          ctx.restore();
+          ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = on ? "#ff8a50" : "#aaa6b0";
+          ctx.fillText(name, lx + Math.cos(a) * (Rs + fs * 1.1), ly + Math.sin(a) * (Rs + fs * 1.1));
+        });
+        const ra = -Math.PI / 2 + (rotor * Math.PI) / 2; // the magnet points at the coil it last followed
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(ra);
+        ctx.fillStyle = "#ff5d5d"; E.rr(ctx, 0, -Rs * 0.09, Rs * 0.42, Rs * 0.18, 4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#38a7f0"; E.rr(ctx, -Rs * 0.42, -Rs * 0.09, Rs * 0.42, Rs * 0.18, 4); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#f4f1ea"; ctx.font = `700 ${Math.round(Rs * 0.13)}px "JetBrains Mono", monospace`; ctx.fillText("N", Rs * 0.28, 1);
+        ctx.restore();
+        ctx.font = `600 ${Math.max(10, fs - 2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
+        ctx.fillText(w < 520 ? "4-step model" : "simple model: 4 steps per turn", lx, h - fs * 0.8);
+        if (active !== rotor) { ctx.font = `700 ${fs + 4}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#ff5d5d"; ctx.fillText("SKIPPED!", lx, ly - Rs - fs * 2.4); }
+        // right: the real motor's shaft, 200 steps per turn
+        const dx = w * 0.72, dy = h * 0.5, Rd = Math.min(w * 0.2, h * 0.38), realA = st.moved * PER, thinkA = st.sent * PER;
+        const A = (deg) => -Math.PI / 2 + (deg * Math.PI) / 180;
+        ctx.fillStyle = "#1b1a1e"; ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(dx, dy, Rd, 0, 7); ctx.fill(); ctx.stroke();
+        for (let s = 0; s < 200; s += 10) { const a = A(s * PER), long = s % 50 === 0; ctx.beginPath(); ctx.moveTo(dx + Math.cos(a) * Rd, dy + Math.sin(a) * Rd); ctx.lineTo(dx + Math.cos(a) * (Rd - (long ? 12 : 6)), dy + Math.sin(a) * (Rd - (long ? 12 : 6))); ctx.stroke(); }
+        if (realA > 0) { ctx.strokeStyle = "rgba(79,209,139,.35)"; ctx.lineWidth = Rd * 0.12; ctx.beginPath(); ctx.arc(dx, dy, Rd * 0.8, A(0), A(Math.min(realA, 359.9))); ctx.stroke(); }
+        const hand = (deg, col, dash, len) => { const a = A(deg); ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx + Math.cos(a) * Rd * len, dy + Math.sin(a) * Rd * len); ctx.stroke(); ctx.setLineDash([]); };
+        if (thinkA !== realA) hand(thinkA, "#ff8a50", [7, 6], 0.9);
+        hand(realA, "#f4f1ea", [], 0.78);
+        ctx.fillStyle = "#f4f1ea"; ctx.beginPath(); ctx.arc(dx, dy, 6, 0, 7); ctx.fill();
+        ctx.font = `600 ${Math.max(10, fs - 2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
+        ctx.fillText(w < 520 ? "real: 200 steps/turn" : "real motor: 200 steps per turn", dx, h - fs * 0.8);
+        ctx.fillStyle = "#f4f1ea"; ctx.fillText("white: really turned", dx, dy - Rd - fs * 1.6);
+        if (thinkA !== realA) { ctx.fillStyle = "#ff8a50"; ctx.fillText("orange: controller thinks", dx, dy - Rd - fs * 0.5); }
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      };
+      rows(); setRate(st.rate); readouts(); tasks(); setNext(!!cur.ok[key]);
+      animate(cv, draw);
+    },
+
+    motormatch(card) {
+      const rows = [["Spin a drone's propellers super fast", "Brushless"], ["Move a robot arm's elbow to exactly 45°", "Servo"], ["Slide a 3D printer's nozzle to exact spots", "Stepper"], ["Drive the wheels of a robot car", "DC gearmotor"], ["Steer a toy car's front wheels left and right", "Servo"]];
+      const opts = ["DC gearmotor", "Servo", "Stepper", "Brushless"];
+      card.innerHTML = `<h3>Match the job to the motor</h3><p>Pick the best motor for each job. A motor can be the answer more than once.</p><div class="match"></div><div class="fb"></div>`;
+      const box = card.querySelector(".match"), fb = card.querySelector(".fb");
+      const check = () => {
+        let right = 0, all = true;
+        [...box.children].forEach((r, i) => {
+          const v = r.querySelector("select").value; if (!v) { all = false; r.className = "mrow"; return; }
+          const ok = v === rows[i][1]; right += ok; r.className = "mrow " + (ok ? "right" : "wrong");
+        });
+        const done = all && right === rows.length;
+        fb.innerHTML = all ? `<div class="feedback ${done ? "good" : "bad"}"><b>${done ? "All correct!" : `${right} of ${rows.length} right.`}</b> ${done ? "Speed: brushless. Angles: servo. Exact steps: stepper. Nonstop wheels: DC gearmotor." : "Fix the red ones."}</div>` : "";
+        if (done) cur.ok[cur.step] = true;
+        setNext(done || !!cur.ok[cur.step]);
+      };
+      rows.forEach(([job]) => {
+        const r = document.createElement("div"); r.className = "mrow";
+        r.innerHTML = `<span></span><select aria-label="Motor" data-tip="Pick the motor that fits this job best."><option value="">Pick...</option>${opts.map((o) => `<option>${o}</option>`).join("")}</select>`;
+        r.querySelector("span").textContent = job;
+        r.querySelector("select").onchange = () => { E.Sound.play("click"); check(); };
+        box.appendChild(r);
+      });
+      setNext(!!cur.ok[cur.step]);
     },
   };
 
