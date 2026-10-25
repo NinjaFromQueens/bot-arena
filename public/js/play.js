@@ -194,6 +194,17 @@
       : mine === q.answer ? `Correct! +1 quiz point (you have ${me.qpts}). ${q.explain}` : mine == null ? `The answer: ${q.options[q.answer]}. ${q.explain}` : `Not this time. ${q.explain}`;
   }
 
+  // the teacher started a Flying Car Lab challenge
+  function renderLab(me) {
+    const L = state && state.lab;
+    $("labbox").hidden = !L || !me;
+    if (!L || !me) return;
+    const mine = L.ids.includes(me.id);
+    $("lab-n").textContent = `Mission ${L.m + 1}: ${L.n}`;
+    $("lab-msg").textContent = !L.open ? (mine ? "Your car is in! Submissions are closed. Watch the board." : "Submissions are closed. Watch the board!") : mine ? "Your car is in! You can still improve it and submit again." : "Build a car for this mission and submit it to the board.";
+    $("lab-go").hidden = !L.open;
+  }
+
   function findMatch(id) {
     if (!state || !state.bracket) return null;
     for (const r of state.bracket.rounds) for (const m of r.matches) if (m.id === id) return m;
@@ -254,6 +265,7 @@
     const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
     renderPredict(me);
     renderLesson(me);
+    renderLab(me);
     if (state && state.phase === "lobby") myWhy = null;
     renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";

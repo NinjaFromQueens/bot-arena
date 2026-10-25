@@ -134,6 +134,22 @@
   @media (max-width: 960px) { .mobilebar { display: flex; } }
   @media (max-width: 560px) { .sheetnums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 440px) { .opt span { display: none; } .cards3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  /* class challenge */
+  .classlab { display: grid; gap: 10px; margin-bottom: 14px; border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
+  .classlab .cl-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+  .classlab .cl-head b { font-family: var(--display); font-size: 20px; }
+  .classlab .cl-tag { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--orange-hi); }
+  .classlab p { margin: 0; }
+  .cl-ctrl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .cl-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .cl-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .cl-list li.on { border-color: var(--orange); background: var(--orange-soft); }
+  .cl-list .rk { font-family: var(--mono); font-weight: 700; color: var(--muted); }
+  .cl-list .nm { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cl-list .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+  .cl-list .st { color: var(--gold, #ffd23f); letter-spacing: .1em; }
+  .cl-list button { padding: 6px 10px; font-size: 13px; }
+  .cl-now { font-family: var(--mono); font-size: 14px; color: var(--orange-hi); min-height: 1.4em; }
 </style>
 </head>
 <body data-page="lab">
@@ -150,6 +166,7 @@
   </header>
 
   <nav class="missions" id="missions" aria-label="Missions"></nav>
+  <section class="panel classlab" id="classlab" hidden aria-live="polite"></section>
   <div class="goalbar">
     <p class="goal" id="goal"></p>
     <div class="crit" id="crit"></div>
@@ -233,6 +250,10 @@
 <script src="/js/flight.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script>
+  // one connection for presence and the class challenge; opened from the board (?present) it's the game's host
+  if (window.io && location.protocol !== "file:") { window.baSocket = io(); if (/[?&]present\b/.test(location.search)) document.body.dataset.page = "host"; }
+</script>
 <script src="/js/presence.js"></script>
 <script src="/js/lab.js"></script>
 </body>

@@ -31,6 +31,7 @@
   .flash { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(20,19,22,.85); z-index: 50; padding: 24px; text-align: center; }
   .flash div { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 12vw, 80px); animation: pop .5s cubic-bezier(.3,1.8,.5,1); }
   .classline { margin: -6px 0 14px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--orange); background: var(--orange-soft); font-weight: 600; }
+  .labbox { width: 100%; display: grid; gap: 8px; justify-items: center; padding: 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--orange); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
   .lessonbox { width: 100%; display: grid; gap: 10px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--blue); animation: pop .4s cubic-bezier(.3,1.6,.5,1); text-align: left; }
   .lbq { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.25; margin: 0; }
   .lbopts { display: grid; gap: 8px; }
@@ -145,6 +146,12 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
       <canvas id="mybot" aria-label="Your robot"></canvas>
       <div class="status" id="status" role="status">You're in!</div>
       <p class="substatus" id="substatus"></p>
+      <div class="labbox" id="labbox" hidden>
+        <h3 style="justify-content:center;margin:0">Flying Car Lab challenge</h3>
+        <p class="lbq" id="lab-n"></p>
+        <p class="pmsg" id="lab-msg"></p>
+        <a class="btn" href="/lab" id="lab-go" data-tip="Open the Flying Car Lab, build a car for this mission, and submit it to the board.">Open the Lab</a>
+      </div>
       <div class="lessonbox" id="lessonbox" hidden>
         <h3 style="justify-content:center;margin:0" id="lb-head">Class poll</h3>
         <p class="lbq" id="lb-q"></p>

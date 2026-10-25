@@ -19,6 +19,8 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 **Presenting a lesson:** in the lobby, **Present a lesson** opens Robot Lessons on the board in the same tab. Every student who joined the game sees which lesson is up, and each quiz card becomes a **class poll** on their device. The board shows how many picked each answer (students don't see the split), and **Reveal the answer** shows it everywhere; right answers earn a quiz point. Next is never locked while presenting, so you set the pace. **Back to the game board** returns to the same game.
 
+**Flying Car Lab challenge:** in the lobby, **Flying Car challenge** opens the Lab on the board in the same tab. Pick a mission and it appears on every student's game page with an **Open the Lab** button. In the Lab they see a class banner, build a car, and press **Submit to the board** (they can resubmit until you close submissions). The server flies and grades every design itself, so the ranking is fair: completed first, then stars, then the lighter or cheaper car, then the softer landing. **Watch** flies any entry on the track, and **Play all, best last** flies them from last place to first.
+
 **Tooltips:** hover over (or tap, on a phone or Chromebook) any part, stat, button or setting in the games to see what it does. On the student build screen, the part you picked is always described under each slot.
 
 **Presentation clicker:** on the board, Space or → runs **Next match** (and starts the fight early while the Up Next card is up), so a clicker can drive the tournament.

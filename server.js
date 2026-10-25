@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const express = require("express");
 const { Server } = require("socket.io");
 const Engine = require("./public/js/engine.js");
+const Flight = require("./public/js/flight.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -84,6 +85,7 @@ function publicState(room) {
     phase: room.phase,
     players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, qpts: p.qpts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
     lesson: lessonState(room),
+    lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
       rounds: room.bracket.rounds.map((round, r) => ({
@@ -115,6 +117,22 @@ function pollUpdate(room) {
   const counts = q.options.map(() => 0);
   for (const a of q.answers.values()) counts[a]++;
   toHosts(room, "room:poll", { id: q.id, counts, answered: q.answers.size, players: [...room.players.values()].filter((p) => p.connected && !p.out).length });
+}
+// ---------------- Flying Car Lab class challenge ----------------
+// The board picks a mission; students submit designs from the Lab page (with their saved game pass). The server
+// flies and grades every design itself, so the ranking can't be faked, and the board replays them.
+function labScore(design, m) {
+  const r = Flight.simulate(design, Flight.MISSIONS[m]), g = Flight.grade(r);
+  return { stars: g.stars.filter(Boolean).length, complete: g.complete, effVal: g.effVal, vImp: Math.round(r.vImp * 10) / 10, maxY: Math.round(r.maxY * 10) / 10, outcome: r.outcome, landing: r.landing };
+}
+// best first: completed, more stars, then the more efficient design (lighter or cheaper), then the softer landing
+const labOrder = (a, b) => (b.score.complete - a.score.complete) || (b.score.stars - a.score.stars) || (a.score.effVal - b.score.effVal) || (a.score.vImp - b.score.vImp);
+function labInfo(room) { return room.lab ? { m: room.lab.m, open: room.lab.open } : null; }
+function labUpdate(room) {
+  io.to("lab:" + room.code).emit("lab:info", labInfo(room)); // students' Lab pages
+  if (!room.lab) return toHosts(room, "room:lab", null);
+  const entries = [...room.lab.entries].map(([id, e]) => ({ id, builder: (room.players.get(id) || {}).builder || "?", design: e.design, score: e.score })).sort(labOrder);
+  toHosts(room, "room:lab", { m: room.lab.m, open: room.lab.open, entries });
 }
 function broadcast(room) { room.lastActive = Date.now(); io.to(room.code).emit("room:state", publicState(room)); }
 // Some events only matter to the board (reactions, class status), so they skip the students' devices.
@@ -253,7 +271,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
-    broadcast(room); statusChanged(room); pollUpdate(room);
+    broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room);
   });
 
   socket.on("room:check", (d, cb) => {
@@ -466,6 +484,47 @@ io.on("connection", (socket) => {
     q.answers.set(joined.playerId, choice);
     cb && cb({ ok: true, choice });
     pollUpdate(room);
+  });
+  socket.on("host:lab", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const m = d && d.m;
+    if (!Number.isInteger(m) || m < 0 || m >= Flight.MISSIONS.length) return cb && cb({ ok: false });
+    if (!room.lab || room.lab.m !== m) room.lab = { m, open: true, entries: new Map() }; // a new mission starts fresh
+    if (typeof d.open === "boolean") room.lab.open = d.open;
+    cb && cb({ ok: true });
+    broadcast(room); labUpdate(room);
+  });
+  socket.on("host:labEnd", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    room.lab = null;
+    cb && cb({ ok: true });
+    broadcast(room); labUpdate(room);
+  });
+  // from a student's Lab page, which isn't the game page, so it proves who it is with the saved game pass
+  function labPlayer(who) {
+    const room = who && roomFor(who.code), p = room && room.players.get(who.playerId);
+    return p && typeof who.token === "string" && p.token === who.token ? { room, p } : null;
+  }
+  socket.on("lab:check", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false });
+    socket.join("lab:" + me.room.code);
+    const mine = me.room.lab && me.room.lab.entries.get(me.p.id);
+    cb && cb({ ok: true, lab: labInfo(me.room), score: mine ? mine.score : null });
+  });
+  socket.on("player:labSubmit", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false, error: "Join your class's game first." });
+    const L = me.room.lab;
+    if (!L) return cb && cb({ ok: false, error: "There's no class challenge right now." });
+    if (!L.open) return cb && cb({ ok: false, error: "Your teacher closed submissions." });
+    const now = Date.now();
+    if (now - (me.p.lastLab || 0) < 2000) return cb && cb({ ok: false, error: "Wait a moment before submitting again." });
+    me.p.lastLab = now;
+    const design = Flight.clampDesign((d && d.design) || {}), score = labScore(design, L.m);
+    L.entries.set(me.p.id, { design, score, at: now });
+    cb && cb({ ok: true, score });
+    broadcast(me.room); labUpdate(me.room);
   });
   socket.on("host:reactions", (d, cb) => {
     const room = requireHost(cb); if (!room) return;

@@ -23,7 +23,7 @@
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
       b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
-      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
+      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); classLab.onMission(i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
       el.appendChild(b);
     });
     const cur = el.children[mIdx]; if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch {}
@@ -524,6 +524,101 @@
       rep.appendChild(nb);
     }
   }
+
+  // ---------------- class challenge ----------------
+  // A student in a class game sees the teacher's mission here and can submit a design to the board (with their
+  // saved game pass). Opened from the board (/lab?present) this page is the game's host: it picks the mission,
+  // lists the designs as they come in (the server flies and ranks them), and replays any of them on the track.
+  const classLab = (() => {
+    const none = { onMission() {} }, socket = window.baSocket;
+    if (!socket) return none;
+    const box = $("classlab"), present = /[?&]present\b/.test(location.search);
+    const starsOf = (n) => "★".repeat(n) + "☆".repeat(3 - n);
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    if (present) {
+      let saved = null, ready = false, data = null, queue = [], playing = null;
+      try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
+      box.hidden = false;
+      box.innerHTML = `<div class="cl-head"><b>Class challenge</b><span class="cl-tag" id="cl-status">Connecting...</span></div>
+        <p id="cl-text">Pick a mission above. It shows up on every student's device, and their designs appear here.</p>
+        <div class="cl-ctrl">
+          <label class="toggle" data-tip="While this is on, students can submit (and replace) their design."><input type="checkbox" id="cl-open" checked> Accepting designs</label>
+          <button class="btn" id="cl-play" type="button" disabled data-tip="Fly every design on the track, from last place to first.">Play all, best last</button>
+          <button class="btn ghost" id="cl-end" type="button" data-tip="Clear this challenge. Students' devices stop showing it.">End challenge</button>
+          <a class="btn ghost" id="cl-board" data-tip="Go back to the game board. The challenge keeps going until you end it.">Back to the game board</a>
+        </div>
+        <p class="cl-now" id="cl-now"></p>
+        <ol class="cl-list" id="cl-list"></ol>`;
+      $("cl-board").href = "/host"; // server-only pages are linked from code: the offline build rejects them in markup
+      if (!saved) { $("cl-status").textContent = "No game in this tab"; $("cl-text").textContent = "Open the board (Host on the board) first, then press Flying Car challenge."; return none; }
+      const fly = (e, rank) => {
+        playing = e.id;
+        launch(F.simulate(e.design, F.MISSIONS[data.m]));
+        try { $("track").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "center" }); } catch {}
+        $("cl-now").textContent = `Now flying: ${e.builder}'s car (#${rank} · ${starsOf(e.score.stars)})`;
+        render();
+      };
+      const next = () => {
+        if (!queue.length) { $("cl-now").textContent = data && data.entries.length ? "That's everyone! Top of the list wins." : ""; playing = null; render(); return; }
+        const e = queue.shift(); fly(e, data.entries.indexOf(e) + 1);
+        const wait = setInterval(() => { if (!run || (run.phase === "after" && run.after > 2.4)) { clearInterval(wait); next(); } }, 250);
+      };
+      function render() {
+        $("cl-status").textContent = data ? `Mission ${data.m + 1} · ${data.entries.length} design${data.entries.length === 1 ? "" : "s"} in` : "No challenge running";
+        $("cl-text").textContent = data ? `Students are building for ${F.MISSIONS[data.m].n}. Pick another mission above to start over.` : "Pick a mission above to start a class challenge.";
+        $("cl-open").checked = !!(data && data.open); $("cl-open").disabled = !data;
+        $("cl-play").disabled = !data || !data.entries.length;
+        $("cl-list").innerHTML = "";
+        (data ? data.entries : []).forEach((e, i) => {
+          const li = document.createElement("li"); if (e.id === playing) li.className = "on";
+          li.innerHTML = `<span class="rk">#${i + 1}</span><span class="nm"></span><span class="st">${starsOf(e.score.stars)}</span><button class="btn ghost" type="button" data-tip="Fly this design on the track.">Watch</button>`;
+          const nm = li.querySelector(".nm"); nm.textContent = e.builder;
+          const sub = document.createElement("small"); sub.textContent = e.score.complete ? `landed at ${e.score.vImp} m/s · ${F.MISSIONS[data.m].eff.kind === "kg" ? F.kg(e.score.effVal) : F.money(e.score.effVal)}` : { short: "came up short", overshoot: "went too far" }[e.score.outcome] || "crashed"; nm.appendChild(sub);
+          li.querySelector("button").onclick = () => { queue = []; fly(e, i + 1); };
+          $("cl-list").appendChild(li);
+        });
+      }
+      socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
+        if (!r || !r.ok) { ready = false; $("cl-status").textContent = "That game has ended"; return; }
+        ready = true; $("cl-status").textContent = "Connected";
+      }));
+      socket.on("room:lab", (d) => { data = d; if (d && d.m !== mIdx) $("missions").children[d.m].click(); render(); });
+      $("cl-open").onchange = () => ready && data && socket.emit("host:lab", { m: data.m, open: $("cl-open").checked });
+      $("cl-play").onclick = () => { if (!data) return; queue = data.entries.slice().reverse(); next(); };
+      $("cl-end").onclick = () => ready && socket.emit("host:labEnd", {});
+      render();
+      return { onMission(i) { if (ready && (!data || data.m !== i)) socket.emit("host:lab", { m: i }); } };
+    }
+    // a student
+    let who = null, info = null, submitted = null, switched = -1;
+    try { const s = JSON.parse(localStorage.getItem("ba-session")); if (s && s.code && s.playerId && s.token) who = { code: s.code, playerId: s.playerId, token: s.token }; } catch {}
+    if (!who) return none;
+    function render() {
+      box.hidden = !info;
+      if (!info) return;
+      const m = F.MISSIONS[info.m], here = mIdx === info.m;
+      box.innerHTML = `<div class="cl-head"><b>Class challenge: ${esc(m.n)}</b><span class="cl-tag">MISSION ${info.m + 1}</span></div>
+        <p>Your teacher wants your best car for this mission. Submit it to the board, and you can submit again to replace it.</p>
+        <div class="cl-ctrl"><button class="btn" id="cl-submit" type="button" data-tip="Send this design to the board. The server flies it and ranks it against the class.">Submit to the board</button>
+        <a class="btn ghost" id="cl-back" data-tip="Back to your class's game page.">Back to the game</a></div>
+        <p class="cl-now" id="cl-msg"></p>`;
+      $("cl-back").href = "/play?code=" + encodeURIComponent(who.code);
+      const btn = $("cl-submit");
+      btn.disabled = !info.open || !here;
+      $("cl-msg").textContent = !info.open ? "Your teacher closed submissions. Watch the board!" : !here ? `Switch to Mission ${info.m + 1} to submit.` : submitted ? `Submitted: ${starsOf(submitted.stars)}. Watch the board, or improve it and submit again.` : "Not submitted yet.";
+      btn.onclick = () => socket.emit("player:labSubmit", { who, design }, (r) => {
+        if (r && r.ok) { submitted = r.score; Sound.play("win"); render(); } else $("cl-msg").textContent = (r && r.error) || "Couldn't submit. Try again.";
+      });
+    }
+    function apply(lab) {
+      info = lab;
+      if (info && switched !== info.m && mIdx !== info.m) { switched = info.m; $("missions").children[info.m].click(); }
+      render();
+    }
+    socket.on("connect", () => socket.emit("lab:check", { who }, (r) => { if (r && r.ok) { submitted = r.score || null; apply(r.lab); } }));
+    socket.on("lab:info", (lab) => { if (!lab || !info || lab.m !== info.m) submitted = null; apply(lab); });
+    return { onMission() { setTimeout(render, 0); } };
+  })();
 
   // ---------------- boot ----------------
   $("sound").onclick = () => { const on = Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
