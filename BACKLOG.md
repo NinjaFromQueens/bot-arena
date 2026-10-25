@@ -15,6 +15,7 @@ Last updated: October 24, 2026
 | # | Feature | Notes |
 |---|---|---|
 | F-03 | Motors lesson unit | Branch `motors-lessons` (built on `battle-animation`). Four lessons with simulators: DC motors and gears, Servo motors, Stepper motors, Pick the right motor. Rules in `motors.js`, checked by `motors.test.js`. Waiting on teacher review. |
+| F-09 | Emoji reactions | Branch `game-features`. Done and tested; waiting on review with the other game features. |
 | F-13 | Robot arm lessons | Same branch. Links and joints (arm simulator: reach, forward and inverse kinematics) and Arm strength (levers and torque with kg·cm servo ratings). Rules in `arm.js`, checked by `arm.test.js`. Waiting on teacher review. |
 | F-01 | Battle art and animation | Branch `battle-animation`. Per-tool attacks (hammer wind-up and slam, gripper clamp and hold, spinner blur and double hit), hit-stop, crit flash and camera punch, shield-block ripple, dodge afterimage, damage scars, smoke when low, K.O. slow motion, victory poses, garage arena with a cheering crowd. Waiting on teacher review before merging to `main`. |
 
@@ -30,7 +31,6 @@ Last updated: October 24, 2026
 | F-06 | Program your robot's brain | High | Simple if-then rules (for example, "if health < 30, shield") so skill beats luck and students practice logic. |
 | F-07 | Online counter and class status | Medium | Anonymous site-wide counts on the home page; names only inside a class game ("Maya: Lesson 4"); a teacher status page behind a PIN. No public name lists or open chat. |
 | F-08 | Live class mode for lessons | Medium | Teacher presents a lesson on the board, students follow with the game code, quiz questions become live polls (reuses the prediction system). |
-| F-09 | Emoji reactions during battles | Low | Preset emoji buttons on students' devices that pop up on the board. |
 | F-10 | Racing mini-game | Medium | Third-person view (three.js or retro fake-3D). Start with time trials and classmates' ghost laps; motor and gear tuning; later a line-following autonomous mode with IR sensors. |
 | F-11 | Database for saved progress | Low | Only when needed: class rosters, teacher progress dashboard, season leaderboards. Render's free plan has no persistent storage. |
 

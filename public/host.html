@@ -87,6 +87,9 @@
   .un-votes { display: flex; justify-content: space-between; align-items: center; gap: 1cqw; font-size: 1.9cqw; }
   .un-votes span:first-child { color: var(--orange-hi); font-weight: 700; } .un-votes span:last-child { color: var(--blue); font-weight: 700; }
   #un-msg { font-family: var(--display); font-weight: 700; color: var(--fg); text-align: center; }
+  .rxlayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .rx { position: absolute; bottom: 4%; font-size: clamp(22px, 3.4cqw, 48px); line-height: 1; animation: rxUp 2.6s ease-out forwards; }
+  @keyframes rxUp { 0% { transform: translateY(0) scale(.5); opacity: 0; } 12% { transform: translateY(-2cqw) scale(1.15); opacity: 1; } 100% { transform: translateY(-34cqw) scale(1); opacity: 0; } }
   #un-msg b { color: var(--gold); font-family: var(--mono); }
   .switch select { font-family: var(--mono); font-size: 13px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 7px; padding: 5px 6px; }
   .leaders { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; counter-reset: lb; }
@@ -163,6 +166,7 @@
               <div class="un-votes"><span id="un-ca">0 picks</span><span id="un-msg">Predict the winner on your device!</span><span id="un-cb">0 picks</span></div>
             </div>
           </div>
+          <div class="rxlayer" id="rxlayer" aria-hidden="true"></div>
         </div>
         <div class="huds">
           <div class="hud a"><div class="who"><span id="na">—</span><span id="ha">100</span></div><div class="hpbar"><i class="ghost" id="ga" style="width:100%"></i><i class="main" id="ba" style="width:100%"></i></div></div>
@@ -177,6 +181,7 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
           <label class="switch" id="ptimewrap" data-tip="How long students get to predict the winner before each fight.">Predict time
             <select id="ptime" aria-label="Prediction time"><option value="0">Off</option><option value="8">8 s</option><option value="12" selected>12 s</option><option value="20">20 s</option></select>
           </label>
+          <label class="switch" id="rxwrap" data-tip="Students can send emoji (👏 🔥 😮 😂 💪 🤖) that float up over the battle. They're anonymous, one per student every 1.2 seconds."><input type="checkbox" id="rxon" checked> Reactions</label>
           <label class="switch" id="autowrap" data-tip="Plays every match by itself. After each fight it waits 7 seconds so the class can read why the robot won."><input type="checkbox" id="auto"> Auto-play</label>
           <div class="seg" role="group" aria-label="Battle speed" id="speedseg" data-tip="Battle speed. The winner is the same at any speed.">
             <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button><button type="button" id="sp3" aria-pressed="false">3x</button>

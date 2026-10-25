@@ -159,6 +159,21 @@
   }
   $("flash").onclick = () => ($("flash").hidden = true);
 
+  // reactions: anonymous emoji that float up on the board
+  let rxCool = 0;
+  E.REACTIONS.forEach((emo, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = emo;
+    b.setAttribute("aria-label", "Send " + emo); b.setAttribute("data-tip", "Send " + emo + " to the board");
+    b.onclick = () => {
+      if (Date.now() < rxCool) return;
+      rxCool = Date.now() + 1200; $("rbtns").classList.add("cool"); setTimeout(() => $("rbtns").classList.remove("cool"), 1200);
+      socket.emit("player:react", { e: i });
+      const r = b.getBoundingClientRect(), f = document.createElement("span"); f.className = "rxfly"; f.textContent = emo;
+      f.style.left = r.left + r.width / 2 - 15 + "px"; f.style.top = r.top - 10 + "px"; document.body.appendChild(f); setTimeout(() => f.remove(), 1000);
+    };
+    $("rbtns").appendChild(b);
+  });
+
   function statusFor() {
     if (!state || !session) return { cls: "", text: "Connecting...", sub: "" };
     const me = state.players.find((p) => p.id === session.playerId);
@@ -194,6 +209,7 @@
     if (state && state.phase === "lobby") myWhy = null;
     renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";
+    $("reacts").hidden = !me || !state || state.phase === "lobby" || !state.reactions;
     if (me) $("mypts").textContent = me.pts || 0;
     const mine = state && state.phase === "done" && me ? (state.awards || []).filter((a) => a.playerId === me.id) : [];
     $("myawards").hidden = !mine.length;

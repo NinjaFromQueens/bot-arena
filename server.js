@@ -67,9 +67,12 @@ function publicState(room) {
     predict: room.current ? { open: room.current.open, a: room.current.votes.a, b: room.current.votes.b } : null,
     championId: room.championId || null,
     awards: room.phase === "done" ? room.awards || [] : [],
+    reactions: !room.reactionsOff,
   };
 }
 function broadcast(room) { room.lastActive = Date.now(); io.to(room.code).emit("room:state", publicState(room)); }
+// Some events only matter to the board (reactions, class status), so they skip the students' devices.
+function toHosts(room, ev, data) { for (const id of room.hosts) io.to(id).emit(ev, data); }
 function botWithBuilder(p) { return { ...p.bot, builder: p.builder }; }
 
 // Settle matches that can't be played: a removed player forfeits.
@@ -152,7 +155,7 @@ io.on("connection", (socket) => {
 
   socket.on("host:create", (_d, cb) => {
     const code = newCode();
-    const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now() };
+    const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now(), hosts: new Set([socket.id]) };
     rooms.set(code, room);
     joined = { room, role: "host" };
     socket.join(code);
@@ -163,7 +166,7 @@ io.on("connection", (socket) => {
   socket.on("host:resume", (d, cb) => {
     const room = roomFor(d && d.code);
     if (!room || room.hostKey !== (d && d.hostKey)) return cb && cb({ ok: false, error: "That game has ended." });
-    joined = { room, role: "host" };
+    joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
     broadcast(room);
@@ -287,6 +290,23 @@ io.on("connection", (socket) => {
     broadcast(room);
   });
 
+  // Anonymous emoji from students, shown floating over the battle on the board. One per student every 1.2 s.
+  socket.on("player:react", (d) => {
+    if (!joined || joined.role !== "player") return;
+    const room = joined.room, p = room.players.get(joined.playerId), e = d && d.e;
+    if (!p || room.reactionsOff || room.phase === "lobby" || !Number.isInteger(e) || e < 0 || e >= Engine.REACTIONS.length) return;
+    const now = Date.now();
+    if (now - (p.lastReact || 0) < 1200) return;
+    p.lastReact = now;
+    toHosts(room, "room:react", { e });
+  });
+  socket.on("host:reactions", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    room.reactionsOff = !(d && d.on);
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
+
   socket.on("host:lock", (_d, cb) => {
     const room = requireHost(cb); if (!room) return;
     if (room.current) room.current.open = false;
@@ -328,6 +348,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     if (!joined) return;
+    if (joined.role === "host") joined.room.hosts.delete(socket.id);
     if (joined.role === "player") {
       const p = joined.room.players.get(joined.playerId);
       if (p && p.socketId === socket.id) { p.connected = false; broadcast(joined.room); }

@@ -63,7 +63,13 @@
     else if (!code) create();
   });
   socket.on("disconnect", () => { $("hostmsg").textContent = "Reconnecting to the server..."; });
-  socket.on("room:state", (s) => { $("hostmsg").textContent = ""; state = s; render(); });
+  socket.on("room:state", (s) => { $("hostmsg").textContent = ""; state = s; $("rxon").checked = s.reactions; render(); });
+  socket.on("room:react", ({ e }) => {
+    const layer = $("rxlayer"), emo = E.REACTIONS[e];
+    if (!emo || layer.childElementCount > 24) return; // a full screen of emoji is enough
+    const s = document.createElement("span"); s.className = "rx"; s.textContent = emo;
+    s.style.left = 4 + Math.random() * 88 + "%"; layer.appendChild(s); setTimeout(() => s.remove(), 2600);
+  });
 
   function setupJoin() {
     const url = location.origin;
@@ -270,6 +276,7 @@
     });
   }
   $("next").onclick = nextMatch;
+  $("rxon").onchange = () => socket.emit("host:reactions", { on: $("rxon").checked });
   // Space or → runs Next match, so a presentation clicker can drive the tournament
   document.addEventListener("keydown", (e) => {
     if (![" ", "ArrowRight", "PageDown"].includes(e.key) || e.repeat || e.ctrlKey || e.altKey || e.metaKey) return;

@@ -42,6 +42,7 @@
     ],
   };
   const TUNE = { k: 2.9, base: 52 }; // attack points -> damage, base hit chance
+  const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
   const MAXW = 75;
   const SLOTS = ["body", "sensor", "brain", "tool"];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -513,6 +514,6 @@
     };
   })();
 
-  return { TUNE, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { TUNE, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
 });
