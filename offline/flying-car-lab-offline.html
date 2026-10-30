@@ -1075,49 +1075,93 @@ canvas { display: block; width: 100%; max-width: 100%; }
     drawBot(ctx, b, w * (dir === 1 ? 0.43 : 0.57), h * 0.92, s, dir, 0, { bob: 0 });
   }
 
-  // ---------------- sound (off until turned on) ----------------
+  // ---------------- sound effects (off until turned on) ----------------
+  // 8-bit style, like the music: pulse waves at three duty cycles, a triangle, and NES-style shift-register noise.
+  // Effects are scheduled from "now" (no timers), so Sound.render can play one into a buffer for the sound test page.
   const Sound = (() => {
-    let actx = null, on = false;
-    function tone(freq, dur, type = "square", vol = 0.08, slideTo) {
-      if (!on || !actx) return;
-      const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, t);
-      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+    let ctx = null, chip = null, out = null, on = false;
+    const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    function makeChip(c) { // the same chip as music.js, kept here so each file works on its own
+      const wave = (d) => {
+        const n = 64, re = new Float32Array(n), im = new Float32Array(n);
+        for (let k = 1; k < n; k++) { re[k] = Math.sin(2 * Math.PI * k * d) / (Math.PI * k); im[k] = (1 - Math.cos(2 * Math.PI * k * d)) / (Math.PI * k); }
+        return c.createPeriodicWave(re, im);
+      };
+      const lfsr = (short) => {
+        const buf = c.createBuffer(1, c.sampleRate, c.sampleRate), d = buf.getChannelData(0);
+        let r = 1; for (let i = 0; i < d.length; i++) { const fb = (r ^ (r >> (short ? 6 : 1))) & 1; r = (r >> 1) | (fb << 14); d[i] = r & 1 ? -0.8 : 0.8; }
+        return buf;
+      };
+      return { 0.125: wave(0.125), 0.25: wave(0.25), 0.5: wave(0.5), noise: lfsr(false), metal: lfsr(true) };
     }
-    function noise(dur, vol = 0.12, hp = 600) {
-      if (!on || !actx) return;
-      const len = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
-      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
-      f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
-      src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start();
+    function env(t, v, dur, sustain) {
+      const g = ctx.createGain(); g.gain.setValueAtTime(v, t); g.gain.setValueAtTime(v, t + dur * sustain); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      g.connect(out); return g;
     }
+    // one note: o.duty (0.125 thin, 0.25, 0.5 round) or o.tri, o.to slides to that frequency, o.at starts it later (seconds), o.vib wobbles it
+    function note(f, dur, o = {}) {
+      const t = ctx.currentTime + (o.at || 0), g = env(t, o.vol ?? 0.06, dur, o.sustain ?? 0.6), osc = ctx.createOscillator();
+      if (o.tri) osc.type = "triangle"; else osc.setPeriodicWave(chip[o.duty || 0.5]);
+      osc.frequency.setValueAtTime(f, t);
+      if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+      if (o.vib) { const lfo = ctx.createOscillator(), d = ctx.createGain(); lfo.frequency.value = 12; d.gain.value = f * 0.03; lfo.connect(d).connect(osc.frequency); lfo.start(t); lfo.stop(t + dur); }
+      osc.connect(g); osc.start(t); osc.stop(t + dur + 0.02);
+    }
+    // noise: o.rate is the brightness (1 bright hiss, 0.1 a low rumble), o.to the rate at the end, o.metal the buzzy short mode
+    function hiss(dur, o = {}) {
+      const t = ctx.currentTime + (o.at || 0), g = env(t, o.vol ?? 0.1, dur, o.sustain ?? 0.1), src = ctx.createBufferSource();
+      src.buffer = o.metal ? chip.metal : chip.noise; src.loop = true; src.playbackRate.setValueAtTime(o.rate || 1, t);
+      if (o.to) src.playbackRate.exponentialRampToValueAtTime(o.to, t + dur);
+      src.connect(g); src.start(t, Math.random() * 0.5); src.stop(t + dur + 0.02);
+    }
+    // a short tune: [midi note (0 = rest), length in steps] pairs
+    function tune(list, step, o = {}) { let at = o.at || 0; for (const [m, n] of list) { if (m) note(mtof(m), n * step * 0.92, { ...o, at }); at += n * step; } }
     const fx = {
-      click: () => tone(660, 0.05, "square", 0.04),
-      beep: () => tone(520, 0.12, "square", 0.06),
-      go: () => tone(880, 0.25, "square", 0.07),
-      join: () => { tone(660, 0.08, "square", 0.05); setTimeout(() => tone(990, 0.12, "square", 0.05), 80); },
-      scan: () => tone(1200, 0.18, "sine", 0.04, 1800),
-      think: () => tone(420, 0.1, "triangle", 0.05, 560),
-      hit: () => { noise(0.18, 0.18, 300); tone(140, 0.18, "sawtooth", 0.08, 60); },
-      miss: () => tone(900, 0.18, "sine", 0.05, 300),
-      ko: () => { tone(400, 0.7, "sawtooth", 0.07, 60); noise(0.5, 0.1, 200); },
-      win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 120)); },
-      whoosh: () => noise(1.2, 0.08, 900),
-      thud: () => { tone(90, 0.25, "sine", 0.12, 40); noise(0.2, 0.08, 150); },
-      fanfare: () => { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.22, "square", 0.07), i * 140)); },
+      click: () => note(mtof(91), 0.035, { duty: 0.125, vol: 0.045 }), // menu blip
+      beep: () => note(mtof(81), 0.09, { duty: 0.5, vol: 0.055 }), // countdown
+      go: () => tune([[72, 1], [76, 1], [79, 1], [84, 3]], 0.045, { duty: 0.25, vol: 0.06 }), // a rising "start!"
+      join: () => tune([[79, 1], [83, 1], [86, 1], [91, 1], [95, 1], [98, 2]], 0.035, { duty: 0.25, vol: 0.05 }), // a power-up run
+      scan: () => { note(1400, 0.08, { duty: 0.125, vol: 0.03, to: 2600 }); note(1400, 0.08, { duty: 0.125, vol: 0.025, to: 2600, at: 0.1 }); },
+      think: () => { note(mtof(78), 0.05, { duty: 0.125, vol: 0.04 }); note(mtof(83), 0.06, { duty: 0.125, vol: 0.04, at: 0.07 }); },
+      hit: () => { hiss(0.14, { rate: 0.5, to: 0.2, vol: 0.18 }); note(240, 0.12, { duty: 0.5, vol: 0.07, to: 55 }); },
+      miss: () => { note(1000, 0.14, { duty: 0.125, vol: 0.04, to: 240 }); hiss(0.08, { rate: 1, vol: 0.035 }); },
+      ko: () => { // an explosion: a long rumble, two more bursts, and a falling tone
+        hiss(0.7, { rate: 0.4, to: 0.08, vol: 0.2, sustain: 0.3 }); hiss(0.25, { rate: 0.6, to: 0.2, vol: 0.12, at: 0.18 }); hiss(0.25, { rate: 0.5, to: 0.15, vol: 0.1, at: 0.36 });
+        note(330, 0.6, { duty: 0.5, vol: 0.06, to: 40 });
+      },
+      win: () => { // a short "stage clear" jingle
+        tune([[84, 1], [88, 1], [91, 1], [96, 2], [91, 1], [96, 4]], 0.075, { duty: 0.25, vol: 0.06 });
+        tune([[60, 4], [55, 2], [60, 4]], 0.075, { tri: true, vol: 0.14 });
+      },
+      whoosh: () => hiss(1.1, { rate: 2.2, to: 0.5, vol: 0.07, sustain: 0.4 }),
+      thud: () => { note(110, 0.2, { tri: true, vol: 0.22, to: 40 }); hiss(0.12, { rate: 0.25, vol: 0.1 }); },
+      fanfare: () => { // the champion: lead, a harmony a third or fourth below, and a triangle bass
+        const step = 0.07;
+        tune([[67, 2], [72, 2], [76, 2], [79, 4], [76, 2], [79, 8], [81, 2], [79, 2], [76, 2], [84, 10]], step, { duty: 0.25, vol: 0.06 });
+        tune([[64, 2], [67, 2], [72, 2], [76, 4], [72, 2], [76, 8], [77, 2], [76, 2], [72, 2], [79, 10]], step, { duty: 0.125, vol: 0.035 });
+        tune([[48, 6], [55, 4], [48, 10], [53, 4], [55, 2], [48, 10]], step, { tri: true, vol: 0.14 });
+      },
     };
     return {
+      names: Object.keys(fx),
       get on() { return on; },
       toggle() {
         on = !on;
-        if (on && !actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { on = false; } }
-        if (on) fx.go();
+        if (on && !ctx) {
+          try { ctx = new (window.AudioContext || window.webkitAudioContext)(); out = ctx.createGain(); out.connect(ctx.destination); chip = makeChip(ctx); }
+          catch { on = false; ctx = null; }
+        }
+        if (on) { ctx.resume(); fx.go(); }
         return on;
       },
-      play(name) { try { fx[name] && fx[name](); } catch {} },
+      play(name) { if (!on || !ctx) return; try { fx[name] && fx[name](); } catch {} },
+      // render one effect without playing it (sound test page and level checks): resolves to an AudioBuffer
+      render(name, seconds = 3) {
+        const keep = [ctx, chip, out], off = new OfflineAudioContext(1, Math.ceil(seconds * 44100), 44100);
+        ctx = off; chip = makeChip(off); out = off.destination;
+        try { fx[name](); } finally { [ctx, chip, out] = keep; }
+        return off.startRendering();
+      },
     };
   })();
 
@@ -1576,6 +1620,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
 })();
 
 </script>
+
 <script>
   // one connection for presence and the class challenge; opened from the board (?present) it's the game's host
   if (window.io && location.protocol !== "file:") { window.baSocket = io(); if (/[?&]present\b/.test(location.search)) document.body.dataset.page = "host"; }

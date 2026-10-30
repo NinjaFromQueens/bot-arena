@@ -29,7 +29,7 @@ A classroom robotics game for Fall Robotics Academy. Students build a robot on t
 
 **Emoji reactions:** during the tournament, students can tap 👏 🔥 😮 😂 💪 🤖 on their device and the emoji floats up over the battle on the board. Reactions are anonymous and limited to one per student every 1.2 seconds, and the **Reactions** switch on the board turns them off.
 
-**Music:** the **Music** button on the board plays background loops made in the browser (no audio files): a laid-back groove in the lobby and between matches, a suspense loop while students predict, battle music during each fight (it cuts out at the KO so the win sound lands), and a victory anthem on the champion screen. Music and Sound are separate buttons, and both start off. Students' devices never play music.
+**Music and sound:** the **Music** button on the board plays original retro 8-bit tunes in the style of classic console games (no audio files: the browser plays them like an old game chip, with two square-wave channels, a triangle bass and a noise drum channel): a bouncy lobby tune in the lobby and between matches, a tense riff while students predict, a fast boss-battle track during each fight (it cuts out at the KO so the win jingle lands), and a victory song on the champion screen. The sound effects (hits, misses, the KO explosion, the win jingle, the champion fanfare) use the same chip sounds. Music and Sound are separate buttons, and both start off. Students' devices never play music. To hear everything before class, open **/soundtest** (linked under the lobby).
 
 ## The parts (balanced)
 

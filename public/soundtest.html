@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bot Arena · Sound test</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 10px 0 18px; }
+  .track { text-align: left; display: grid; gap: 4px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; font: inherit; }
+  .track b { font-family: var(--display); font-size: 19px; }
+  .track span { font-size: 14px; color: var(--muted); }
+  .track[aria-pressed="true"] { border-color: var(--orange); background: linear-gradient(180deg, var(--orange-soft), var(--panel)); }
+  .track[aria-pressed="true"] b::after { content: "  ♪ playing"; font-family: var(--mono); font-size: 12px; color: var(--orange-hi); }
+  .sfx { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+  .sfx button { padding: 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); font-family: var(--mono); font-size: 14px; cursor: pointer; text-align: left; }
+  .sfx button span { display: block; font-family: inherit; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sfx button:active { border-color: var(--orange); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Sound test</h1></div>
+    </a>
+    <a class="btn ghost" href="/host" data-tip="Go to the game board.">Game board</a>
+  </header>
+  <p class="intro">Hear the board's music and sound effects before class. Everything is made by the browser like an old 8-bit game chip: two square-wave channels, a triangle bass and a noise drum channel. No sound files. Turn your volume to a comfortable level here first.</p>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between"><h2>Music</h2><button class="btn ghost" id="stop" type="button" data-tip="Stop the music.">Stop</button></div>
+    <div class="tracks" id="tracks"></div>
+  </section>
+  <section class="panel" style="margin-top:14px">
+    <h2>Sound effects</h2>
+    <div class="sfx" id="sfx"></div>
+  </section>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/music.js"></script>
+<script src="/js/tips.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id), M = window.Music, S = window.Engine.Sound;
+  const TRACKS = [
+    ["garage", "Lobby", "Plays in the lobby and between matches."],
+    ["hype", "Up next", "Plays on the Up Next card while students predict."],
+    ["fight", "Fight", "Plays during every battle (it stops at the knockout)."],
+    ["champion", "Champion", "Plays on the champion screen after the fanfare."],
+  ];
+  const SFX = {
+    click: "buttons and choices", beep: "countdown ticks", go: "start, and Sound turned on", join: "a robot joins the lobby", scan: "sensors scanning",
+    think: "a robot thinks", hit: "an attack lands", miss: "an attack misses", ko: "a knockout", win: "a match is won", whoosh: "Flying Car Lab liftoff",
+    thud: "a hard landing", fanfare: "the champion",
+  };
+  let playing = null;
+  function render() { [...$("tracks").children].forEach((b) => b.setAttribute("aria-pressed", b.dataset.name === playing)); }
+  TRACKS.forEach(([name, title, when]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "track"; b.dataset.name = name;
+    b.innerHTML = "<b></b><span></span>"; b.firstChild.textContent = title; b.lastChild.textContent = when;
+    b.setAttribute("data-tip", `Play the ${title} music.`);
+    b.onclick = () => { M.play(name); if (!M.on) M.toggle(); playing = name; render(); };
+    $("tracks").appendChild(b);
+  });
+  $("stop").onclick = () => { M.play(null); playing = null; render(); };
+  S.names.forEach((n) => {
+    const b = document.createElement("button"); b.type = "button"; b.innerHTML = "<b></b><span></span>";
+    b.firstChild.textContent = n; b.lastChild.textContent = SFX[n] || "";
+    b.setAttribute("data-tip", `Play the "${n}" sound: ${SFX[n] || "a sound effect"}.`);
+    b.onclick = () => { if (!S.on) S.toggle(); S.play(n); };
+    $("sfx").appendChild(b);
+  });
+})();
+</script>
+</body>
+</html>

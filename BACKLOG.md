@@ -14,7 +14,7 @@ Last updated: October 24, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| — | Nothing in progress | Everything below was published to `main` on Oct 25, 2026 and tested on the live site. |
+| F-17 | Chiptune music and sound effects | Branch `chiptune-sound`. Original 8-bit console-style music (two pulse leads, triangle bass, NES-style noise drums, arpeggios, echo) for the board scenes, matching sound effects, and a sound test page. |
 
 ---
 

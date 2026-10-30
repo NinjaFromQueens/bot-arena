@@ -60,7 +60,7 @@ git push             # Render deploys in ~2 minutes
 | Motor simulator numbers (gearbox, servo, stepper) | `public/js/motors.js` → `DC`, `CART`, `GEARS`, `SERVO`, `STEPPER`. Then run `npm test`; it checks the motor lessons still tell the truth. |
 | What each sensor can and can't detect (sensor lesson simulators) | `public/js/sensors.js` → `SENSORS` (range, speed) and `SURFACES` (what fools what). Then run `npm test`; it checks the lessons still tell the truth. |
 | Tooltip text (the hint that pops up on hover or tap) | The `data-tip="..."` on that element in the page's HTML, or where the page's JS builds it (`builder.js` for robot parts and stats, `lab.js` for car parts). |
-| Background music on the board | `public/js/music.js` → `TRACKS` (tempo, chords, note patterns) and `VOL` (overall loudness). Run `npm test` after editing. |
+| Background music and sound effects on the board | `public/js/music.js` → `TRACKS` (tempo, chords, note patterns) and `VOL` (overall loudness); sound effects are `fx` inside `Sound` in `public/js/engine.js`. Listen on `/soundtest`. Run `npm test` after editing. |
 | Name filter words | `server.js` → `SUB` (blocked anywhere) and `WORD` (blocked as whole words) |
 | Colors and fonts | `public/css/style.css` → the `:root` block |
 | Home page text | `public/index.html` |
