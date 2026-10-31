@@ -53,6 +53,8 @@ git push             # Render deploys in ~2 minutes
 | Add a new part | Add it at the END of its slot in `PARTS` (old bot codes keep working), draw it in `drawBot`, add its swing timing in `battle.js` (`HIT`, `SPARKS`), add knobs for it in `test/tune.js`, then run `node test/tune.js 300` and copy in the numbers it suggests. |
 | Part descriptions students see | `public/js/engine.js` → each part's `d` (short) and `tip` (long) |
 | Flying car parts, missions, physics | `public/js/flight.js` → `MATERIALS`, `TANK`, `NOZZLE`, `GEARS`, `MISSIONS`. Then run `npm test` and `npm run lab`. |
+| Robot Racer tracks, gears, tires, car physics | `public/js/race.js` → `DEFS` (each track's sections, theme, and the straight/hill/corner its lap report talks about), `GEARS`, `TIRES`, `MOTOR`, `CAR`. Then run `npm test`: it checks every track still rewards the gear it's meant to and that the lap report tells the truth. Colors and scenery per theme: `public/js/racedraw.js` → `THEMES`. |
+| Race Day points and time limit | `server.js` → `GP_POINTS` (1st, 2nd, ... then 1 for any finish) and `GP_LIMIT` (seconds before a race ends). |
 | Flight report wording | `public/js/flight.js` → `explain()` and `tipFor()` |
 | "Why ___ won" battle wording | `public/js/engine.js` → `explainBattle()` |
 | Lessons (text, questions, answers) | `public/js/learn.js` → `LESSONS`. Each question has `options` and `answer` (0 = first option). |

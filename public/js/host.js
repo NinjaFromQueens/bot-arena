@@ -152,13 +152,13 @@
     have.forEach((el) => el.remove());
   }
 
-  // fastest Robot Racer laps from this game (checked by the server)
+  // the fastest Robot Racer lap on each track from this game (checked by the server)
   function renderRace() {
-    const list = state.race || [], fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, "0")}`;
+    const list = (state.race || []).filter((r, i, all) => all.findIndex((q) => q.track === r.track) === i), fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, "0")}`;
     ["racep", "racep2"].forEach((id) => {
       const box = $(id); box.hidden = !list.length; if (!list.length) return;
       const ol = box.querySelector("ol"); ol.innerHTML = "";
-      list.slice(0, 5).forEach((r) => { const li = document.createElement("li"); li.innerHTML = '<span class="who"></span><span class="pts"></span>'; li.firstChild.textContent = r.builder; li.lastChild.textContent = fmt(r.time); ol.appendChild(li); });
+      list.forEach((r) => { const li = document.createElement("li"); li.innerHTML = '<span class="who"></span><span class="pts"></span>'; li.firstChild.textContent = `${r.n}: ${r.builder}`; li.lastChild.textContent = fmt(r.time); ol.appendChild(li); });
     });
   }
 

@@ -72,6 +72,27 @@
   .board .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
   .board .tm { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   .board button { padding: 5px 9px; font-size: 12px; }
+
+  /* track picker */
+  .tracks { display: grid; gap: 6px; }
+  .tcard { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: center; text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 10px 6px 6px; cursor: pointer; color: var(--fg); font: inherit; }
+  .tcard canvas { width: 56px; height: 56px; }
+  .tcard b { display: block; font-family: var(--display); font-size: 16px; }
+  .tcard small { display: block; font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .tcard[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .tcard:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* Race Day */
+  .gpbox { border: 2px solid var(--orange); background: linear-gradient(135deg, var(--orange-soft), transparent 70%), var(--panel); }
+  .gphead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .gphead b { font-family: var(--display); font-size: 20px; }
+  .gptag { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em; padding: 3px 8px; border-radius: 6px; background: var(--orange); color: var(--ink); }
+  .gpbox p { margin: 4px 0 0; }
+  .gptable { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 15px; }
+  .gptable td { padding: 5px 6px; border-top: 1px solid var(--line); }
+  .gptable td:first-child { font-family: var(--mono); font-weight: 700; color: var(--muted); width: 3.2em; }
+  .gptable td:nth-child(n+3) { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gptable tr.me td { color: var(--orange-hi); font-weight: 700; }
 </style>
 </head>
 <body data-page="race">
@@ -87,7 +108,8 @@
       <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
-  <p class="intro" style="margin-bottom:12px">Pick a <b>gear ratio</b> and <b>tires</b> for your robot car, then race one lap against the clock. The track has long straights, a tight hairpin and a very steep hill, so no setup is best everywhere. After each lap, the report shows where your setup helped and where it held you back.</p>
+  <p class="intro" style="margin-bottom:12px">Pick a <b>track</b>, a <b>gear ratio</b> and <b>tires</b> for your robot car, then race one lap against the clock. Each track has its own straights, corners and hills, so no setup is best everywhere. After each lap, the report shows where your setup helped and where it held you back.</p>
+  <section class="panel gpbox" id="gpbox" aria-live="polite" hidden style="margin-bottom:14px"></section>
 
   <div class="race">
     <div style="display:grid;gap:14px;min-width:0">
@@ -113,7 +135,9 @@
     <div class="garage">
       <div class="panel">
         <h2>Garage</h2>
-        <h3><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. A low gear (4:1) is fast but weak; a high gear (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
+        <h3><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
+        <div class="tracks" id="o-track"></div>
+        <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. A low gear (4:1) is fast but weak; a high gear (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
         <div class="opts" id="o-gear"></div>
         <p class="pdesc" id="d-gear"></p>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="Grippy tires hold the corners at higher speeds, but the soft rubber takes more push to roll.">Tires</span></h3>
@@ -123,7 +147,7 @@
         <p class="bestline" id="bestline"></p>
       </div>
       <div class="panel" id="classp" hidden>
-        <h2>Class leaderboard</h2>
+        <h2 id="classh">Class leaderboard</h2>
         <p class="small" id="classmsg"></p>
         <ol class="board" id="board"></ol>
       </div>
@@ -132,6 +156,7 @@
 </div>
 <script src="/js/engine.js"></script>
 <script src="/js/race.js"></script>
+<script src="/js/racedraw.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>

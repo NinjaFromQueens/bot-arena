@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Race Day</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* The board's Race Day page: a TV-style view of the race (left) and what's happening now (right). Made for a projector. */
+  .wrap { max-width: 1600px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pill { font-family: var(--mono); font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+  .day { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 1000px) { .day { grid-template-columns: minmax(0, 1fr); } }
+  .stagecard { padding: 0; overflow: hidden; }
+  #tv { display: block; width: 100%; aspect-ratio: 16 / 9; cursor: pointer; }
+  .side { display: grid; gap: 12px; }
+  .side h2 { margin: 0; font-size: 26px; }
+  .side .sub { color: var(--muted); font-size: 16px; margin: 4px 0 0; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tag { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em; padding: 3px 8px; border-radius: 6px; background: var(--orange); color: var(--ink); vertical-align: middle; }
+
+  .tpick { display: grid; gap: 8px; }
+  .tpick button { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 12px 8px 8px; cursor: pointer; color: var(--fg); font: inherit; }
+  .tpick canvas { width: 64px; height: 64px; }
+  .tpick b { display: block; font-family: var(--display); font-size: 18px; }
+  .tpick small { display: block; font-size: 13px; color: var(--muted); line-height: 1.3; }
+  .tpick button[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .tpick .ord { position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--orange); color: var(--ink); font-family: var(--mono); font-weight: 700; font-size: 13px; }
+
+  .racers { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .racers li { font-size: 15px; padding: 4px 9px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+  .racers li i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .racers li.in { color: var(--fg); border-color: #4fd18b66; }
+
+  .chart { display: grid; grid-template-columns: 4.6em minmax(0, 1fr) 2em; gap: 6px 10px; align-items: center; font-size: 15px; }
+  .chart .bar { height: 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .chart .bar i { display: block; height: 100%; background: var(--orange); border-radius: 6px; transition: width .4s cubic-bezier(.3,1.3,.5,1); }
+  .chart .n { font-family: var(--mono); text-align: right; }
+
+  .live { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 64vh; overflow-y: auto; }
+  .live li { display: grid; grid-template-columns: 2.4em minmax(0, 1fr) 6.4em; gap: 2px 8px; align-items: center; padding: 4px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); cursor: pointer; }
+  .live li.cam { border-color: var(--orange); background: var(--orange-soft); }
+  .live .rk { font-family: var(--mono); font-weight: 700; color: var(--muted); }
+  .live .nm { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; }
+  .live .prog { grid-column: 2 / 4; height: 4px; background: var(--panel); border-radius: 3px; overflow: hidden; }
+  .live .prog i { display: block; height: 100%; border-radius: 3px; }
+  .live .st { font-family: var(--mono); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+  .live .done .st { color: var(--good); }
+
+  .res { width: 100%; border-collapse: collapse; font-size: 16px; }
+  .res th { text-align: left; font-size: 12px; font-family: var(--mono); color: var(--muted); font-weight: 500; padding: 4px 6px; }
+  .res td { padding: 6px; border-top: 1px solid var(--line); }
+  .res td:first-child { font-family: var(--mono); font-weight: 700; color: var(--muted); width: 2.6em; }
+  .res td.num { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .res td.pts { color: var(--gold); font-weight: 700; }
+  .res small { display: block; color: var(--muted); font-size: 12px; }
+  .lesson { padding: 10px 12px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
+  .lesson b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .awards { display: grid; gap: 8px; }
+  .award { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .award .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: #ffd23f22; }
+  .award b { display: block; font-family: var(--display); font-size: 15px; color: var(--gold); }
+  .award span { font-size: 16px; }
+  .award small { color: var(--muted); }
+</style>
+</head>
+<body data-page="host">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Race Day</h1></div>
+    </a>
+    <div class="headright">
+      <span class="pill" id="status">Connecting...</span>
+      <button class="soundbtn" id="music" type="button" aria-pressed="false" data-tip="Retro 8-bit music on the board: a garage tune between races, a tense riff on the starting grid, a racing track, and a victory song for the podium.">Music: off</button>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off: start lights, finishes, and the podium fanfare.">Sound: off</button>
+      <a class="btn ghost" id="toboard" href="/host" style="padding:8px 14px" data-tip="Go back to the game board. Race Day keeps its results until you close it.">Back to the game board</a>
+    </div>
+  </header>
+  <div class="day">
+    <div class="panel stagecard"><canvas id="tv" aria-label="The race, shown like a TV broadcast" data-tip="During a race, click a car on the track map or a name in the list to follow it with the camera."></canvas></div>
+    <section class="side" id="side" aria-live="polite"></section>
+  </div>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/race.js"></script>
+<script src="/js/racedraw.js"></script>
+<script src="/js/music.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // this tab is the game's host (opened from the board, same tab, so it has the game's ba-host)
+  if (window.io) window.baSocket = io();
+</script>
+<script src="/js/presence.js"></script>
+<script src="/js/raceday.js"></script>
+</body>
+</html>

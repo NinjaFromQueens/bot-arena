@@ -206,6 +206,17 @@
     $("lab-go").hidden = !L.open;
   }
 
+  // the teacher started Race Day (a Robot Racer Grand Prix)
+  function renderGp(me) {
+    const G = state && state.gp;
+    $("gpbox").hidden = !G || !me;
+    if (!G || !me) return;
+    const mine = G.standings.findIndex((s) => s.id === me.id);
+    $("gp-n").textContent = G.phase === "done" ? "Final results are on the board!" : `Race ${G.i + 1} of ${G.n}`;
+    $("gp-msg").textContent = { garage: "The garage is open. Open Robot Racer and pick your gear and tires.", countdown: "The race is starting! Open Robot Racer.", racing: "The race is on! Open Robot Racer to drive.", results: "Results are on the board. Next race soon.", done: "Thanks for racing!" }[G.phase] + (mine >= 0 ? ` You're #${mine + 1} with ${G.standings[mine].pts} points.` : "");
+    $("gp-go").hidden = G.phase === "done";
+  }
+
   function findMatch(id) {
     if (!state || !state.bracket) return null;
     for (const r of state.bracket.rounds) for (const m of r.matches) if (m.id === id) return m;
@@ -267,6 +278,7 @@
     renderPredict(me);
     renderLesson(me);
     renderLab(me);
+    renderGp(me);
     if (state && state.phase === "lobby") myWhy = null;
     renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";

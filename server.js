@@ -87,7 +87,8 @@ function publicState(room) {
     phase: room.phase,
     players: [...room.players.values()].map((p) => ({ id: p.id, builder: p.builder, bot: p.bot, connected: p.connected, out: p.out, pts: p.pts || 0, qpts: p.qpts || 0, over: Engine.statsOf(p.bot).wt > room.settings.maxw })),
     lesson: lessonState(room),
-    race: raceBoard(room).slice(0, 10).map((b) => ({ id: b.id, builder: b.builder, time: b.time })),
+    race: Race.TRACKS.map((tr) => raceBoard(room, tr.id).slice(0, 3).map((b) => ({ id: b.id, builder: b.builder, time: b.time, track: tr.id, n: tr.n }))).flat(),
+    gp: gpState(room),
     lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
@@ -121,14 +122,72 @@ function pollUpdate(room) {
   for (const a of q.answers.values()) counts[a]++;
   toHosts(room, "room:poll", { id: q.id, counts, answered: q.answers.size, players: [...room.players.values()].filter((p) => p.connected && !p.out).length });
 }
+// ---------------- Race Day (a Grand Prix for the whole class) ----------------
+// The board runs up to 3 races. Everyone drives at once on their own device; positions are shared live for display
+// only (5 times a second), and each finished lap is driven again by the server, which decides the results.
+const GP_LIMIT = 150, GP_POINTS = [10, 8, 6, 5, 4, 3, 2]; // seconds a race can last; points for 1st-7th, then 1 for finishing
+const gpPlayers = (room) => [...room.players.values()].filter((p) => !p.out);
+function gpState(room) {
+  const g = room.gp; if (!g) return null;
+  const name = (id) => (room.players.get(id) || {}).builder || "?";
+  return {
+    phase: g.phase, i: g.i, n: g.tracks.length, track: g.tracks[g.i], tracks: g.tracks, startAt: g.startAt, endAt: g.endAt, now: Date.now(), limit: GP_LIMIT,
+    racers: gpPlayers(room).map((p) => ({ id: p.id, builder: p.builder, color: Engine.COLORS[(p.bot && p.bot.color) | 0] || Engine.COLORS[0] })),
+    setups: [...g.setups].map(([id, s]) => ({ id, ...s })),
+    results: g.results.map((res) => res.map((r) => ({ ...r, builder: name(r.id) }))),
+    standings: gpStandings(room).map((s) => ({ ...s, builder: name(s.id) })),
+    awards: g.phase === "done" ? gpAwards(room).map((a) => ({ ...a, builder: name(a.id) })) : [],
+  };
+}
+function gpStandings(room) {
+  const g = room.gp, tot = new Map();
+  for (const res of g.results) for (const r of res) { const t = tot.get(r.id) || { id: r.id, pts: 0, best: Infinity }; t.pts += r.pts; if (r.time != null) t.best = Math.min(t.best, r.time); tot.set(r.id, t); }
+  return [...tot.values()].sort((a, b) => b.pts - a.pts || a.best - b.best).map((t) => ({ ...t, best: t.best === Infinity ? null : t.best }));
+}
+function gpAwards(room) {
+  const g = room.gp, out = [], all = g.results.flat(), st = gpStandings(room);
+  if (st[0]) out.push({ key: "champ", title: "Race Day Champion", id: st[0].id, detail: `${st[0].pts} points` });
+  const fast = all.filter((r) => r.time != null).sort((a, b) => a.time - b.time)[0];
+  if (fast) out.push({ key: "fast", title: "Fastest Lap", id: fast.id, detail: `${fast.time.toFixed(2)} s on ${Race.TRACKS[fast.track].n}` });
+  const clean = st.map((s) => ({ id: s.id, races: all.filter((r) => r.id === s.id && r.time != null) })).filter((s) => s.races.length === g.results.length)
+    .map((s) => ({ id: s.id, off: s.races.reduce((a, r) => a + r.off, 0) })).sort((a, b) => a.off - b.off)[0];
+  if (clean) out.push({ key: "clean", title: "Cleanest Driver", id: clean.id, detail: clean.off < 0.05 ? "never left the road" : `only ${clean.off.toFixed(1)} s on the grass` });
+  if (g.results.length > 1) { // the biggest jump up the order from the first race to the last
+    const place = (res, id) => { const k = res.findIndex((r) => r.id === id); return k < 0 ? null : k; };
+    const up = st.map((s) => ({ id: s.id, a: place(g.results[0], s.id), b: place(g.results[g.results.length - 1], s.id) })).filter((s) => s.a != null && s.b != null && s.a > s.b).sort((x, y) => (y.a - y.b) - (x.a - x.b))[0];
+    if (up) out.push({ key: "up", title: "Most Improved", id: up.id, detail: `from #${up.a + 1} to #${up.b + 1}` });
+  }
+  return out;
+}
+function gpUpdate(room) { io.to("race:" + room.code).emit("gp:state", gpState(room)); broadcast(room); }
+function gpEndRace(room) {
+  const g = room.gp; if (!g || g.phase !== "racing" && g.phase !== "countdown") return;
+  clearTimeout(g.timer); clearInterval(g.ticker);
+  const entrants = new Set([...g.live.keys(), ...g.laps.keys()]);
+  const rows = [...entrants].filter((id) => room.players.has(id)).map((id) => {
+    const lap = g.laps.get(id), live = g.live.get(id) || {};
+    return lap ? { id, track: g.tracks[g.i], time: lap.time, dist: 1, off: lap.off, setup: lap.setup } : { id, track: g.tracks[g.i], time: null, dist: Math.min(0.999, (live.z || 0) / Race.TRACKS[g.tracks[g.i]].LENGTH), off: 0, setup: g.setups.get(id) || null };
+  });
+  rows.sort((a, b) => (a.time == null) - (b.time == null) || (a.time - b.time) || (b.dist - a.dist));
+  let place = 0;
+  rows.forEach((r) => { r.pts = r.time == null ? 0 : GP_POINTS[place] ?? 1; if (r.time != null) place++; });
+  g.results[g.i] = rows; g.phase = "results";
+  gpUpdate(room);
+}
+function gpTicker(room) { // everyone's position, 5 times a second, to the race pages and the board
+  const g = room.gp; if (!g) return;
+  const snap = { t: Date.now(), cars: [...g.live].map(([id, c]) => [id, c.z, c.x, c.v, g.laps.has(id) ? 1 : 0]) };
+  io.to("race:" + room.code).emit("gp:live", snap); toHosts(room, "gp:live", snap);
+}
+
 // ---------------- Robot Racer class laps ----------------
 // Students send laps from the race page with their saved game pass. A lap is its inputs (one letter per 1/60 s);
 // the server drives it again with the same physics and keeps each student's fastest, so times can't be made up.
-function raceBoard(room) {
-  if (!room.race) return [];
-  return [...room.race].map(([id, l]) => ({ id, builder: (room.players.get(id) || {}).builder || "?", time: l.time, setup: l.setup })).sort((a, b) => a.time - b.time);
+function raceBoard(room, track = 0) {
+  const laps = room.race && room.race[track | 0]; if (!laps) return [];
+  return [...laps].map(([id, l]) => ({ id, builder: (room.players.get(id) || {}).builder || "?", time: l.time, setup: l.setup, track: track | 0 })).sort((a, b) => a.time - b.time);
 }
-function raceUpdate(room) { io.to("race:" + room.code).emit("race:board", raceBoard(room)); broadcast(room); }
+function raceUpdate(room, track) { io.to("race:" + room.code).emit("race:board", { track, board: raceBoard(room, track) }); broadcast(room); }
 
 // ---------------- Flying Car Lab class challenge ----------------
 // The board picks a mission; students submit designs from the Lab page (with their saved game pass). The server
@@ -255,6 +314,7 @@ function computeAwards(room) {
 
 io.on("connection", (socket) => {
   let joined = null; // { room, role: "host" | "player", playerId }
+  let raceMe = null; // a race page's student, checked once by race:check (Race Day events use it)
 
   function roomFor(code) { return rooms.get(String(code || "").toUpperCase().trim()); }
   function linkPresence(room, playerId) {
@@ -520,8 +580,8 @@ io.on("connection", (socket) => {
   socket.on("race:check", (d, cb) => {
     const me = labPlayer(d && d.who);
     if (!me) return cb && cb({ ok: false });
-    socket.join("race:" + me.room.code);
-    cb && cb({ ok: true, board: raceBoard(me.room) });
+    socket.join("race:" + me.room.code); raceMe = me;
+    cb && cb({ ok: true, boards: Race.TRACKS.map((tr) => raceBoard(me.room, tr.id)), gp: gpState(me.room) });
   });
   socket.on("race:submit", (d, cb) => {
     const me = labPlayer(d && d.who);
@@ -531,19 +591,77 @@ io.on("connection", (socket) => {
     const now = Date.now();
     if (now - (me.p.lastRace || 0) < 2000) return cb && cb({ ok: false, error: "Wait a moment before sending again." });
     me.p.lastRace = now;
-    const setup = Race.clampSetup(d.setup), r = Race.lap(setup, inputs);
+    const track = Race.trackOf(d.track).id, setup = Race.clampSetup(d.setup), r = Race.lap(setup, inputs, track);
     if (!r.finished) return cb && cb({ ok: false, error: "That lap didn't reach the finish line." });
-    me.room.race = me.room.race || new Map();
-    const old = me.room.race.get(me.p.id), kept = !old || r.time < old.time;
-    if (kept) me.room.race.set(me.p.id, { time: r.time, setup, inputs });
-    const board = raceBoard(me.room);
+    me.room.race = me.room.race || {}; const laps = (me.room.race[track] = me.room.race[track] || new Map());
+    const old = laps.get(me.p.id), kept = !old || r.time < old.time;
+    if (kept) laps.set(me.p.id, { time: r.time, setup, inputs });
+    const board = raceBoard(me.room, track);
     cb && cb({ ok: true, kept, time: r.time, best: Math.min(r.time, old ? old.time : Infinity), rank: board.findIndex((b) => b.id === me.p.id) + 1 });
-    if (kept) raceUpdate(me.room);
+    if (kept) raceUpdate(me.room, track);
   });
   socket.on("race:ghost", (d, cb) => {
-    const me = labPlayer(d && d.who), l = me && me.room.race && me.room.race.get(d.id);
+    const laps = (me0) => me0 && me0.room.race && me0.room.race[Race.trackOf(d && d.track).id];
+    const me = labPlayer(d && d.who), l = laps(me) && laps(me).get(d.id);
     if (!l) return cb && cb({ ok: false });
-    cb && cb({ ok: true, setup: l.setup, inputs: l.inputs, time: l.time });
+    cb && cb({ ok: true, setup: l.setup, inputs: l.inputs, time: l.time, track: Race.trackOf(d.track).id });
+  });
+  // Race Day: the board
+  socket.on("host:gp", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const tracks = Array.isArray(d && d.tracks) ? [...new Set(d.tracks)].filter((t) => Number.isInteger(t) && Race.TRACKS[t]).slice(0, 3) : [];
+    if (!tracks.length) return cb && cb({ ok: false, error: "Pick at least one track." });
+    if (room.gp) { clearTimeout(room.gp.timer); clearInterval(room.gp.ticker); }
+    room.gp = { tracks, i: 0, phase: "garage", startAt: null, endAt: null, live: new Map(), laps: new Map(), setups: new Map(), results: [] };
+    cb && cb({ ok: true }); gpUpdate(room);
+  });
+  socket.on("host:gpGo", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const g = room.gp; if (!g || g.phase !== "garage") return cb && cb({ ok: false });
+    const now = Date.now();
+    Object.assign(g, { phase: "countdown", startAt: now + 4000, endAt: now + 4000 + GP_LIMIT * 1000, live: new Map(), laps: new Map() });
+    g.timer = setTimeout(() => { if (g.phase === "countdown") { g.phase = "racing"; gpUpdate(room); } g.timer = setTimeout(() => gpEndRace(room), GP_LIMIT * 1000 + 3000); }, 4000);
+    g.ticker = setInterval(() => gpTicker(room), 200);
+    cb && cb({ ok: true }); gpUpdate(room);
+  });
+  socket.on("host:gpEndRace", (_d, cb) => { const room = requireHost(cb); if (!room) return; gpEndRace(room); cb && cb({ ok: true }); });
+  socket.on("host:gpNext", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const g = room.gp; if (!g || g.phase !== "results") return cb && cb({ ok: false });
+    if (g.i + 1 < g.tracks.length) Object.assign(g, { i: g.i + 1, phase: "garage", startAt: null, endAt: null, live: new Map(), laps: new Map() });
+    else g.phase = "done";
+    cb && cb({ ok: true }); gpUpdate(room);
+  });
+  socket.on("host:gpClose", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    if (room.gp) { clearTimeout(room.gp.timer); clearInterval(room.gp.ticker); }
+    room.gp = null; cb && cb({ ok: true }); gpUpdate(room);
+  });
+  // Race Day: a student's race page (registered by race:check)
+  socket.on("player:gpSetup", (d) => {
+    const g = raceMe && raceMe.room.gp; if (!g || g.phase !== "garage") return;
+    g.setups.set(raceMe.p.id, Race.clampSetup(d)); gpUpdate(raceMe.room);
+  });
+  socket.on("player:gpPos", (d) => {
+    const g = raceMe && raceMe.room.gp; if (!g || (g.phase !== "racing" && g.phase !== "countdown")) return;
+    const z = +(d && d.z), x = +(d && d.x), v = +(d && d.v), now = Date.now(), old = g.live.get(raceMe.p.id);
+    if (![z, x, v].every(Number.isFinite) || (old && now - old.at < 120)) return; // about 5 a second is plenty
+    g.live.set(raceMe.p.id, { z: Math.max(0, Math.min(z, Race.TRACKS[g.tracks[g.i]].LENGTH)), x: Math.max(-Race.WALL, Math.min(Race.WALL, x)), v: Math.max(0, Math.min(v, 40)), at: now });
+  });
+  socket.on("player:gpLap", (d, cb) => {
+    const me = raceMe, g = me && me.room.gp;
+    if (!g || g.phase !== "racing") return cb && cb({ ok: false, error: "The race isn't running." });
+    if (g.laps.has(me.p.id)) return cb && cb({ ok: false, error: "Your lap is already in." });
+    const inputs = d && d.inputs;
+    if (typeof inputs !== "string" || inputs.length > Race.MAX_STEPS || !/^[a-l]*$/.test(inputs)) return cb && cb({ ok: false, error: "That lap can't be checked." });
+    const setup = Race.clampSetup(d.setup), r = Race.lap(setup, inputs, g.tracks[g.i]);
+    if (!r.finished) return cb && cb({ ok: false, error: "That lap didn't reach the finish line." });
+    if (r.time > (Date.now() - g.startAt) / 1000 + 1.5) return cb && cb({ ok: false, error: "That lap finished before it could have." }); // a lap can't be shorter than the race so far
+    g.laps.set(me.p.id, { time: r.time, off: r.off, setup });
+    g.live.set(me.p.id, { z: Race.TRACKS[g.tracks[g.i]].LENGTH, x: 0, v: 0, at: Date.now() });
+    cb && cb({ ok: true, time: r.time, place: g.laps.size });
+    const racing = [...g.live.keys()].filter((id) => { const p = me.room.players.get(id); return p && !p.out; });
+    if (racing.length && racing.every((id) => g.laps.has(id))) gpEndRace(me.room); // everyone's home
   });
   socket.on("lab:check", (d, cb) => {
     const me = labPlayer(d && d.who);
@@ -626,7 +744,7 @@ io.on("connection", (socket) => {
 
 setInterval(() => {
   const now = Date.now();
-  for (const [code, room] of rooms) if (now - room.lastActive > ROOM_TTL_MS) rooms.delete(code);
+  for (const [code, room] of rooms) if (now - room.lastActive > ROOM_TTL_MS) { if (room.gp) { clearTimeout(room.gp.timer); clearInterval(room.gp.ticker); } rooms.delete(code); }
 }, 10 * 60 * 1000).unref();
 
 server.listen(PORT, () => console.log(`Bot Arena running at http://localhost:${PORT}`));

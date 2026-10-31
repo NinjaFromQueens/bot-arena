@@ -86,12 +86,29 @@ Students can also use their own drawings: in practice mode, **Your own part pict
 
 ## Robot Racer (`/race`)
 
-A retro pseudo-3D racing game about motors and gears. Students pick a **gear ratio** (4:1, 6:1, 8:1 or 12:1) and **tires** (Slick, Sport or Grippy), then race one lap: long straights, a tight hairpin and a very steep hill (30%). A low gear is fast on straights but nearly stalls on the hill; a high gear climbs well but has a low top speed. That's the same speed-for-torque trade-off as the DC motors lesson. Grippier tires hold the corners at higher speeds but roll less easily. On this track 6:1 is a little faster than 4:1, and 8:1 and 12:1 fall behind, so the right setup really depends on the track.
+A retro pseudo-3D racing game about motors and gears. Students pick a **track**, a **gear ratio** (4:1, 6:1, 8:1 or 12:1) and **tires** (Slick, Sport or Grippy), then race one lap. A low gear is fast on straights but weak on hills; a high gear climbs well but has a low top speed. That's the same speed-for-torque trade-off as the DC motors lesson. Grippier tires hold the corners at higher speeds but roll less easily. Each track rewards a different gear, so the right setup really depends on the track:
 
-- The garage shows each setup's top speed, Big Hill speed, starting push and Hairpin speed.
+| Track | What it's like | Fastest gear (computer driver) |
+|---|---|---|
+| Garage Circuit (dusk) | A hairpin, a steep 30% hill, then a long straight | 6:1, with 4:1 close behind |
+| Desert Speedway (day) | Long flat straights and wide turns | 4:1 (top speed is everything) |
+| Neon Peaks (night) | 40% climbs and tight switchbacks | 8:1; 4:1 stalls on the first climb |
+
+- The garage shows each setup's top speed, hill speed, starting push and corner speed on the chosen track. A gear too weak for a hill says "stalls here", and a car that stalls on a hill gets a "STALLED!" warning while driving.
 - After each lap, a report explains the time with the real numbers ("that's the top speed of a 6:1 gear: the motor was at its max rpm") and gives one tip. Tips only suggest a change that really is faster: they're checked against the computer driver's laps with every setup.
 - Your best lap drives a see-through **ghost car**. Arrow keys or WASD, or on-screen buttons on touch screens.
-- In a class game, **Send to the class leaderboard** submits the lap. A lap is stored as its key presses (one per 1/60 s), and the server drives it again with the same physics, so times can't be faked. Classmates can race each other's laps as ghosts, and the board shows the fastest laps in the lobby and next to the bracket.
+- In a class game, **Send to the class leaderboard** submits the lap. A lap is stored as its key presses (one per 1/60 s), and the server drives it again with the same physics, so times can't be faked. Each track has its own leaderboard; classmates can race each other's laps as ghosts, and the board shows the fastest lap on each track in the lobby and next to the bracket.
+
+### Race Day (the whole class races at once)
+
+Press **Race Day** in the board's lobby. It opens in the same tab and runs a Grand Prix of up to 3 races on the tracks you pick, in the order you pick them.
+
+1. **Garage**: students open **Robot Racer** (their game page shows a Race Day card with the link). Their page switches to the race's track, and they pick gear and tires. The board shows who's in and a live chart of what the class picked.
+2. **Start race**: five red lights, then green. Everyone drives at the same time on their own device and sees classmates' cars, with name tags, on the track. The board shows it like TV: a camera on the leader (click a name, or the picture, to follow someone else), a timing tower, a track map with every car, and the race clock.
+3. **Results**: the server drives every finished lap again to check it, then ranks them. Points: 10, 8, 6, 5, 4, 3, 2, then 1 for any finish; a car that doesn't finish in 2:30 (or when you press **End race now**) gets a DNF and 0. The board shows the top 3 on a podium, the results with each racer's setup, and "What the gears did": the class's best lap with each gear next to the computer driver's best setup for that track. Students can change their setup before the next race.
+4. **Final results**: the Race Day podium, standings and awards (Race Day Champion, Fastest Lap, Cleanest Driver, Most Improved). **Close Race Day** sends everyone back to free practice.
+
+Music (off by default) follows along: the garage tune between races, silence for the start lights, the racing track, and the victory song at the podium.
 
 ## Robot Lessons (`/learn`)
 
@@ -188,8 +205,10 @@ public/js/play.js      Student device logic
 public/js/practice.js  Single-device practice mode, including the Brain Challenges page
 public/js/challenges.js The five Brain Challenges: robots, bosses, fixed seeds, hints (shared with tests)
 public/js/rulebot.js   The robot vacuum in the if-then rules lesson (shared with tests)
-public/js/race.js      Robot Racer physics, track, lap checking and lap report (shared with the server and tests)
-public/js/racegame.js  Robot Racer page: garage, pseudo-3D drawing, ghosts, class leaderboard
+public/js/race.js      Robot Racer physics, the three tracks, lap checking and lap report (shared with the server and tests)
+public/js/racedraw.js  Robot Racer drawing: pseudo-3D road, themes, scenery, karts, track map (race page and Race Day board)
+public/js/racegame.js  Robot Racer page: track picker, garage, driving, ghosts, class leaderboard, Race Day for students
+public/js/raceday.js   Race Day board page: track picking, garage chart, TV-style live race, results, podium and awards
 public/js/flight.js    Flying Car Lab physics, missions, grading and flight-report explanations (shared with tests)
 public/js/lab.js       Flying Car Lab page: builder, animation, report
 public/js/learn.js     Self-guided lessons (content + interactives)
@@ -207,7 +226,7 @@ test/balance.test.js   Every part stays 45–55%, tip claims and rule claims sta
 test/challenges.test.js Every challenge's answer wins, naive rules lose, text claims are true (part of npm test)
 test/rulebot.test.js   The vacuum lesson's claims (order matters, the full program cleans the room) (part of npm test)
 test/art.test.js       Art packs name real parts, with boxes and files that exist (part of npm test)
-test/race.test.js      Robot Racer: laps repeat exactly, gear/tire trade-offs, the track fits 6:1, the report's claims (part of npm test)
+test/race.test.js      Robot Racer: laps repeat exactly, gear/tire trade-offs, each track's best gear, the report's claims (part of npm test)
 test/lab.test.js       Every Lab mission stays solvable; loopholes stay closed (part of npm test)
 test/lab-explore.js    Samples thousands of car designs per mission (npm run lab)
 test/lab-refs.js       Runs "typical student" designs and prints outcomes and tips

@@ -1,6 +1,6 @@
 # Bot Arena — Backlog
 
-Last updated: October 24, 2026
+Last updated: October 30, 2026
 
 ---
 
@@ -15,6 +15,8 @@ Last updated: October 24, 2026
 | # | Feature | Notes |
 |---|---|---|
 | F-17 | Chiptune music and sound effects | Branch `chiptune-sound`. Original 8-bit console-style music (two pulse leads, triangle bass, NES-style noise drums, arpeggios, echo) for the board scenes, matching sound effects, and a sound test page. |
+| F-18 | Race Day: multiplayer Grand Prix + racing graphics | Branch `race-day` (on `chiptune-sound`). Whole class races at once from the board's join code: live rivals on each screen, TV-style board view (leader camera, track map, live standings), up to 3 races with garage time, points, podium, awards; server-checked lap times. Three themed tracks that each favor a different gear; better kart, scenery, haze, particles, start lights. Built and tested locally (npm test, solo laps on all 3 tracks, a 2-race Grand Prix with a real browser and 3 socket players); not pushed. |
+| F-19 | Clearer board lobby | The lobby mixed the tournament with the Race Day, Flying Car and lesson buttons, so it wasn't clear what students were joining. Now: "Students join here" (code + QR), a Battle Bot Tournament panel (main event: robots, rules, Start), and a separate Other class activities panel. |
 
 ---
 
