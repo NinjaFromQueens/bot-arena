@@ -14,9 +14,7 @@ Last updated: October 30, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| F-17 | Chiptune music and sound effects | Branch `chiptune-sound`. Original 8-bit console-style music (two pulse leads, triangle bass, NES-style noise drums, arpeggios, echo) for the board scenes, matching sound effects, and a sound test page. |
-| F-18 | Race Day: multiplayer Grand Prix + racing graphics | Branch `race-day` (on `chiptune-sound`). Whole class races at once from the board's join code: live rivals on each screen, TV-style board view (leader camera, track map, live standings), up to 3 races with garage time, points, podium, awards; server-checked lap times. Three themed tracks that each favor a different gear; better kart, scenery, haze, particles, start lights. Built and tested locally (npm test, solo laps on all 3 tracks, a 2-race Grand Prix with a real browser and 3 socket players); not pushed. |
-| F-19 | Clearer board lobby | The lobby mixed the tournament with the Race Day, Flying Car and lesson buttons, so it wasn't clear what students were joining. Now: "Students join here" (code + QR), a Battle Bot Tournament panel (main event: robots, rules, Start), and a separate Other class activities panel. |
+| — | Nothing in progress | — |
 
 ---
 
@@ -24,6 +22,12 @@ Last updated: October 30, 2026
 | # | Feature | Priority | Notes |
 |---|---|---|---|
 | F-02 | AI art for backgrounds and fighters (Higgsfield) | Low | Parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. F-12 is done: generated pictures go in `public/art/` with a manifest. |
+| F-20 | Robot Racer paint shop | High | Students customize their car: two colors, a livery (stripe, flames, checkers, lightning, dots), a race number, body style (kart, F1, buggy, truck, hover pod), wheels, wing, trail color, and their battle robot as the driver. Looks only (gear and tires stay the only performance choices). Saved on the device as a short look code; the server checks it so classmates see your car in Race Day. |
+| F-21 | Racer teaching HUD | Medium | A hill profile strip under the track map (where the climbs are, where you are), a speed and rpm dial with a red line, and a chiptune motor sound whose pitch follows rpm, so students see and hear a gear run out of torque. |
+| F-22 | Battle stage: a look per sensor | Medium | The stage shows one generic scan beam today. Give each sensor its own: ultrasonic rings, a sweeping lidar laser, a camera lens flash, touch whiskers. Presentation only (battle.js), so results can't change. |
+| F-23 | Replay any finished match | Medium | Click a finished match in the bracket to watch it again (fights are seeded, so the server only needs to keep each match's seed). |
+| F-24 | Racer medals | Low | Bronze, silver and gold times on each track, set from the computer driver's best. |
+| F-25 | More game ideas (Oct 30 list) | Low | Racer: lighting (headlights, lamp pools), turning sprites and body roll, curbs and skid marks, lap replay, "car behind you" arrow, multi-lap Race Day, new tracks (ice rink, city streets, mountain pass), rain that lowers grip, track builder. Battles: paint patterns and faces, fighting-game TV look, visible damage, an arena per round, camera zooms, a bigger champion ceremony, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, low-graphics switch, big-text mode. |
 | F-11 | Database for saved progress | Low | Only when needed: class rosters, teacher progress dashboard, season leaderboards. Render's free plan has no persistent storage. |
 
 ---
@@ -31,6 +35,9 @@ Last updated: October 30, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-19 | Clearer board lobby: tournament panel, separate class activities | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | f3d9937 |
+| F-18 | Race Day: whole-class Robot Racer Grand Prix, three tracks, new racing graphics | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | e47ae9f |
+| F-17 | 8-bit chiptune music and sound effects, sound test page | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | f708a94 |
 | F-12 | Robot art packs: draw any part from a picture (sample pack, students' own pictures) | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 9a2743b |
 | F-10 | Robot Racer: pseudo-3D racing game about motors and gears, class leaderboard | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 091bfc3 |
 | F-16 | Flying Car Lab class challenge | Pushed to `main` Oct 25, 2026; checked on bot-arena-g5ew.onrender.com | 4025f52 |
