@@ -23,9 +23,26 @@
   .pcard .otag { position: absolute; left: 8px; top: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 2px 6px; border-radius: 6px; background: var(--bad); color: var(--ink); font-weight: 700; }
   .pcard.heavy canvas { opacity: .55; }
   .racebox { margin-top: 12px; } .racebox h3 { margin-bottom: 6px; }
-  .lobbyhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-  .count { font-family: var(--display); font-weight: 700; font-size: 28px; }
+  .joinpanel h2 { margin: 0; font-size: 22px; }
+  .lobbymain { display: grid; gap: 16px; min-width: 0; }
+  .tourpanel { border: 1.5px solid #f4652466; }
+  .sechead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  .sechead h2 { margin: 6px 0 0; font-size: clamp(24px, 2.4vw, 32px); }
+  .kicker { display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; }
+  .kicker.main { background: var(--orange); color: var(--ink); }
+  .kicker.opt { background: var(--panel-hi); color: var(--muted); border: 1px solid var(--line); }
+  .count { font-family: var(--display); font-weight: 700; font-size: 20px; margin-top: 2px; }
   .count b { color: var(--orange-hi); }
+  .startwrap { display: grid; gap: 4px; justify-items: end; text-align: right; }
+  .startwrap small { color: var(--muted); font-size: 13px; max-width: 22em; }
+  .lead { margin: 0 0 12px; font-size: 17px; color: var(--muted); max-width: 70ch; }
+  .lead b { color: var(--fg); }
+  .acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .act { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 2px 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--line); color: var(--fg); text-decoration: none; transition: border-color .15s, transform .15s; }
+  .act:hover, .act:focus-visible { border-color: var(--orange); transform: translateY(-2px); }
+  .act .ic { grid-row: span 2; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 22px; background: var(--panel-hi); }
+  .act b { font-family: var(--display); font-size: 18px; }
+  .act .ad { font-size: 14px; color: var(--muted); line-height: 1.3; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .pcard { position: relative; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px; display: grid; gap: 4px; text-align: center; animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
   .pcard canvas { width: 100%; aspect-ratio: 1; border-radius: 8px; }
@@ -138,6 +155,7 @@
   <section id="v-lobby" hidden>
     <div class="lobby">
       <div class="panel joinpanel">
+        <h2>Students join here</h2>
         <p class="step">1. Go to</p>
         <p class="url" id="joinurl"></p>
         <p class="step">2. Enter the code</p>
@@ -145,13 +163,20 @@
         <p class="step">or scan</p>
         <div id="qr" aria-label="QR code to join"></div>
       </div>
-      <div class="panel">
-        <div class="lobbyhead">
-          <div class="count"><b id="pcount">0</b> robots ready</div>
-          <a class="btn ghost" href="/lab?present" data-tip="Flying Car Lab class challenge: pick a mission, students submit designs from their devices, and you replay them on the board, ranked.">Flying Car challenge</a>
-          <a class="btn ghost" href="/learn?present" data-tip="Show a lesson on the board. Its quiz questions pop up on every student's device as a class poll. Come back here any time.">Present a lesson</a>
-          <button class="btn huge" id="start" type="button" disabled data-tip="Build the bracket and begin. Needs at least 2 robots. New students can't join after this.">Start tournament</button>
+      <div class="lobbymain">
+      <div class="panel tourpanel">
+        <div class="sechead">
+          <div>
+            <span class="kicker main">Main event</span>
+            <h2>Battle Bot Tournament</h2>
+            <p class="count"><b id="pcount">0</b> robots ready</p>
+          </div>
+          <div class="startwrap">
+            <button class="btn huge" id="start" type="button" disabled data-tip="Build the bracket and begin. Needs at least 2 robots. New students can't join after this.">Start tournament</button>
+            <small>Needs at least 2 robots. Students can't join after it starts.</small>
+          </div>
         </div>
+        <p class="lead">Students build a robot on their device and press <b>Join the tournament</b>. Their robots show up here. When everyone is in, press <b>Start tournament</b>.</p>
         <div class="settings">
           <label class="switch" data-tip="The weight limit for every robot in this game. Standard (75 kg) is the balanced one. Lightweight (50 kg) rules out Treads and the Hammer, so students need new plans. Open (100 kg) allows a few extra heavy builds. Robots over the limit are marked TOO HEAVY."><span>Weight class</span>
             <select id="wclass" aria-label="Weight class"></select></label>
@@ -162,8 +187,18 @@
         </div>
         <div class="grid" id="players"></div>
         <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
-        <div class="racebox" id="racep" hidden><h3 data-tip="Fastest laps students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
         <p class="small" style="margin-top:12px">To remove a robot (for example, an inappropriate name), click the × on its card twice. · <a href="/soundtest" style="color:inherit" data-tip="Hear the music and sound effects before class (opens the sound test page).">Sound test</a></p>
+      </div>
+      <div class="panel">
+        <div class="sechead"><div><span class="kicker opt">Optional</span><h2>Other class activities</h2></div></div>
+        <p class="lead">Students use the same game code, and their robots stay in the tournament. Open one on this screen, then press <b>Back to the game board</b> to come back here.</p>
+        <div class="acts">
+          <a class="act" href="/raceday" data-tip="Race Day: a Robot Racer Grand Prix. The whole class races at once on their own devices while the board shows it like TV, with points, a podium and awards."><span class="ic" aria-hidden="true">🏁</span><b>Race Day</b><span class="ad">Robot Racer Grand Prix: the whole class races at once.</span></a>
+          <a class="act" href="/lab?present" data-tip="Flying Car Lab class challenge: pick a mission, students submit designs from their devices, and you replay them on the board, ranked."><span class="ic" aria-hidden="true">🚀</span><b>Flying Car challenge</b><span class="ad">Students design a car for a mission. You replay them, ranked.</span></a>
+          <a class="act" href="/learn?present" data-tip="Show a lesson on the board. Its quiz questions pop up on every student's device as a class poll. Come back here any time."><span class="ic" aria-hidden="true">📖</span><b>Present a lesson</b><span class="ad">Show a lesson here. Its quiz pops up on every device.</span></a>
+        </div>
+        <div class="racebox" id="racep" hidden><h3 data-tip="The fastest lap on each track that students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
+      </div>
       </div>
     </div>
   </section>
@@ -212,7 +247,7 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
         <div class="log" id="log" aria-live="polite"></div>
       </div>
       <div class="side">
-        <div class="panel racebox" id="racep2" hidden><h3 data-tip="Fastest laps students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
+        <div class="panel racebox" id="racep2" hidden><h3 data-tip="The fastest lap on each track that students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
         <div class="panel">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
             <h2>Bracket</h2><span class="small" id="left"></span>
