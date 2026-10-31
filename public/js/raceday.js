@@ -38,7 +38,8 @@
     }
   }
 
-  const racers = () => new Map(((g && g.racers) || []).map((r) => [r.id, r]));
+  const paintOf = (r) => ({ ...r, color: r.look ? D.LOOKS.PAINT[r.look.c1] : r.color }); // a racer's color is their car's main paint
+  const racers = () => new Map(((g && g.racers) || []).map((r) => [r.id, paintOf(r)]));
   const trackNow = () => R.TRACKS[g ? g.track : picks[0] || 0];
   const clock = () => Date.now() + offset;
 
@@ -50,7 +51,7 @@
     const old = new Map(prev ? prev.cars.map((c) => [c[0], c]) : []), rs = racers();
     return cur.cars.filter((c) => rs.has(c[0])).map((c) => {
       const p = old.get(c[0]) || c, r = rs.get(c[0]);
-      return { id: c[0], z: p[1] + (c[1] - p[1]) * f, x: p[2] + (c[2] - p[2]) * f, v: p[3] + (c[3] - p[3]) * f, steer: clamp((c[2] - p[2]) * 1.5, -1, 1), done: !!c[4], color: r.color, name: r.builder };
+      return { id: c[0], z: p[1] + (c[1] - p[1]) * f, x: p[2] + (c[2] - p[2]) * f, v: p[3] + (c[3] - p[3]) * f, steer: clamp((c[2] - p[2]) * 1.5, -1, 1), done: !!c[4], color: r.color, look: r.look, name: r.builder };
     });
   }
   // finishers in the order they crossed the line, then everyone else by how far round they are
@@ -131,7 +132,7 @@
     }
   }
   function fill(phase) {
-    const rs = (g && g.racers) || (st ? st.players.filter((p) => !p.out).map((p) => ({ id: p.id, builder: p.builder, color: E.COLORS[(p.bot && p.bot.color) | 0] })) : []);
+    const rs = (g && g.racers.map(paintOf)) || (st ? st.players.filter((p) => !p.out).map((p) => ({ id: p.id, builder: p.builder, color: E.COLORS[(p.bot && p.bot.color) | 0] })) : []);
     if (phase === "setup") {
       const box = $("tpick"); box.innerHTML = "";
       R.TRACKS.forEach((tr) => {
@@ -219,7 +220,7 @@
       const gr = ctx.createLinearGradient(0, top, 0, base); gr.addColorStop(0, ["#ffd23f", "#d9d5de", "#e0975a"][k]); gr.addColorStop(1, "#2b2a30");
       ctx.fillStyle = gr; rr(ctx, x - bw / 2, top, bw, H[k] + 20, 10); ctx.fill();
       bigText(ctx, String(k + 1), x, top + H[k] * 0.45, H[k] * 0.5, "#fff");
-      D.kart(ctx, x, top - 2, ks, { color: r.color, t, v: 0, bob });
+      D.kart(ctx, x, top - 2, ks, { color: r.color, look: r.look, t, v: 0, bob });
       const ny = top - ks * 1.12 - h * 0.05;
       ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
       font(ctx, 700, h * (k ? 0.04 : 0.052), "display"); ctx.fillStyle = "#fff"; ctx.fillText(r.name, x, ny);
@@ -233,7 +234,7 @@
     if (phase === "countdown" || phase === "racing") {
       const list = cars(now), ordered = order(list);
       if (phase === "countdown") { // the starting grid, two by two, seen from behind
-        const grid = (list.length ? list : [...rs.values()].filter((r) => g.setups.some((s) => s.id === r.id)).map((r) => ({ id: r.id, color: r.color, name: r.builder })))
+        const grid = (list.length ? list : [...rs.values()].filter((r) => g.setups.some((s) => s.id === r.id)).map((r) => ({ id: r.id, color: r.color, look: r.look, name: r.builder })))
           .map((cc, k) => ({ ...cc, z: -Math.floor(k / 2) * 10 - (k % 2) * 5, x: k % 2 ? 1.6 : -1.6, v: 0 })); // staggered, so name tags don't overlap
         const back = grid.length ? Math.min(...grid.map((q) => q.z)) : 0, rem = (g.startAt - clock()) / 1000, L = lightsFor(rem);
         if (L !== lastLight) { if (typeof L === "number" && L > 0) Sound.play("beep"); if (L === "go") Sound.play("go"); lastLight = L; }
@@ -245,7 +246,7 @@
         if (cam) {
           const seg = T.segAt(cam.z);
           const pos = D.world(ctx, w, h, T, cam, list.filter((q) => q.id !== cam.id), { t, bgX, lights: elapsed < 1.5 ? "go" : 0 });
-          D.kart(ctx, pos.x, pos.y, pos.size, { color: cam.color, steer: cam.steer, t, v: cam.v });
+          D.kart(ctx, pos.x, pos.y, pos.size, { color: cam.color, look: cam.look, steer: cam.steer, t, v: cam.v });
           D.speedLines(ctx, w, h, pos.horizon, cam.v);
           bgX += seg.k * cam.v * dt * 900;
           // who the camera is on
@@ -284,7 +285,7 @@
       demoOn(T); demoStep(dt);
       D.world(ctx, w, h, T, demo.car, [], { t, bgX: (bgX += dt * 6) });
       const src = phase === "done" ? g.standings : (g.results[g.i] || []).filter((r) => r.time != null);
-      const rows = src.slice(0, 3).map((r) => ({ name: r.builder, color: (rs.get(r.id) || {}).color || "#9fd8ff", line: phase === "done" ? `${r.pts} pts` : fmtTime(r.time) }));
+      const rows = src.slice(0, 3).map((r) => ({ name: r.builder, color: (rs.get(r.id) || {}).color || "#9fd8ff", look: (rs.get(r.id) || {}).look, line: phase === "done" ? `${r.pts} pts` : fmtTime(r.time) }));
       if (phase === "done") {
         podium(ctx, w, h, t, rows, "RACE DAY CHAMPIONS", g.awards.length ? `Fastest lap: ${g.awards.find((a) => a.key === "fast") ? g.awards.find((a) => a.key === "fast").builder : "-"}` : "");
         confettiT -= dt;

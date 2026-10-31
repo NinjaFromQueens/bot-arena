@@ -13,13 +13,16 @@
   const kmh = (v) => Math.round(v * 3.6);
   const fmtTime = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, "0")}`;
   const nameOf = (su) => `${R.GEARS[su.gear]}:1 · ${R.TIRES[su.tire].n}`;
+  const MEDAL = { gold: "🥇", silver: "🥈", bronze: "🥉" }, medalTimes = (tr) => { const m = R.medals(tr); return `Gold ${fmtTime(m.gold)} · Silver ${fmtTime(m.silver)} · Bronze ${fmtTime(m.bronze)}`; };
 
   let track = R.trackOf(ls.get("race-track", 0)), setup = R.clampSetup(ls.get("race-setup", { gear: 1, tire: 1 }));
   const bests = ls.get("race-bests", {}); // track id -> { time, setup, inputs }
   { const old = ls.get("race-best", null); if (old && !bests[0]) bests[0] = old; } // from before there were several tracks
   for (const id of Object.keys(bests)) { const b = bests[id], r = b && b.inputs && R.lap(b.setup, b.inputs, +id); if (r && r.finished) b.time = r.time; else delete bests[id]; } // drive them again in case the physics changed
   const saved = ls.get("ba-bot", null) || ls.get("rba-bot", null);
-  const myColor = E.COLORS[(saved && saved.color) | 0] || E.COLORS[0];
+  // your car's look (the paint shop): starts in your robot's color with a random race number
+  let look = R.cleanLook(ls.get("race-look", null) || { c1: (saved && saved.color) | 0, num: 1 + Math.floor(Math.random() * 99) });
+  ls.set("race-look", look);
 
   // ---------------- class game (a saved game pass): leaderboards, ghosts, and Race Day ----------------
   const socket = window.baSocket;
@@ -43,6 +46,9 @@
     return { pos, steps: pos.length / 2 };
   }
   function reset() { car = R.newCar(); inputs = ""; acc = 0; secShown = -1; stall = 0; fx.p = []; fx.txt = []; lastLap = null; sent = false; }
+  let low = ls.get("race-low", false); // simple graphics for slower computers
+  $("lowgfx").checked = low;
+  $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); };
   function start() { // a solo time trial
     if (inGp() || state === "countdown" || state === "race") return;
     reset(); cd = 3.4;
@@ -73,8 +79,9 @@
     R.TRACKS.forEach((tr) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "tcard"; b.disabled = busy && tr.id !== track.id; b.setAttribute("aria-pressed", tr.id === track.id);
       b.innerHTML = '<canvas width="96" height="96" aria-hidden="true"></canvas><span><b></b><small></small></span>';
-      b.querySelector("b").textContent = tr.n; b.querySelector("small").textContent = tr.about;
-      b.setAttribute("data-tip", `${tr.n}: ${tr.about}${bests[tr.id] ? ` Your best: ${fmtTime(bests[tr.id].time)}.` : ""}`);
+      const md = bests[tr.id] && R.medalOf(bests[tr.id].time, tr);
+      b.querySelector("b").textContent = tr.n + (md ? " " + MEDAL[md] : ""); b.querySelector("small").textContent = tr.about;
+      b.setAttribute("data-tip", `${tr.n}: ${tr.about}${bests[tr.id] ? ` Your best: ${fmtTime(bests[tr.id].time)}${md ? ` (${md} medal)` : ""}.` : ""} Medals: ${medalTimes(tr)}.`);
       D.minimap(b.querySelector("canvas").getContext("2d"), 0, 0, 96, tr, []);
       b.onclick = () => { if (busy) return; track = tr; ls.set("race-track", tr.id); Sound.play("click"); stop(); renderBoard(); };
       $("o-track").appendChild(b);
@@ -109,7 +116,9 @@
     ];
     $("gstats").innerHTML = rows.map(([l, v, mx, txt, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${txt}</span>`).join("");
     const b = bests[track.id];
-    $("bestline").innerHTML = b ? `Your best on ${track.n}: <b>${fmtTime(b.time)}</b> (${nameOf(b.setup)})` : `No laps on ${track.n} yet. Your best lap becomes your ghost car.`;
+    const md = b && R.medalOf(b.time, track);
+    $("bestline").innerHTML = (b ? `Your best on ${track.n}: <b>${fmtTime(b.time)}</b> (${nameOf(b.setup)})${md ? ` ${MEDAL[md]}` : ""}` : `No laps on ${track.n} yet. Your best lap becomes your ghost car.`) +
+      `<br><span class="hastip" tabindex="0" data-tip="Gold means you matched the computer driver's best lap on this track, with its best setup. Silver is within 10% of it, bronze within 25%.">${medalTimes(track)}</span>`;
   }
   function renderAll() {
     renderTracks(); renderGarage(); renderGp();
@@ -124,7 +133,8 @@
     const rep = $("report"); rep.innerHTML = "";
     const e = R.explain(setup, r, track);
     const hd = document.createElement("div"); hd.className = "headline" + (r.finished && isBest ? " good" : "");
-    hd.textContent = r.finished ? `${track.n}: ${fmtTime(r.time)}${isBest ? "  · New best lap!" : bests[track.id] ? `  · best ${fmtTime(bests[track.id].time)}` : ""}` : `${track.n}: didn't finish`;
+    const md = r.finished && R.medalOf(r.time, track);
+    hd.textContent = r.finished ? `${track.n}: ${fmtTime(r.time)}${md ? `  ${MEDAL[md]} ${md[0].toUpperCase() + md.slice(1)} medal` : ""}${isBest ? "  · New best lap!" : bests[track.id] ? `  · best ${fmtTime(bests[track.id].time)}` : ""}` : `${track.n}: didn't finish`;
     rep.appendChild(hd);
     const vTop = Math.max(...r.sec.map((s) => s.vMax));
     const nums = document.createElement("div"); nums.className = "nums";
@@ -223,15 +233,62 @@
     const old = new Map(prev ? prev.cars.map((c) => [c[0], c]) : []);
     return cur.cars.filter((c) => c[0] !== (who && who.playerId)).map((c) => {
       const p = old.get(c[0]) || c, rc = cls.racers.get(c[0]) || {};
-      return { id: c[0], z: p[1] + (c[1] - p[1]) * f, x: p[2] + (c[2] - p[2]) * f, v: c[3], done: !!c[4], color: rc.color || "#9fd8ff", name: rc.builder || "" };
+      return { id: c[0], z: p[1] + (c[1] - p[1]) * f, x: p[2] + (c[2] - p[2]) * f, v: c[3], done: !!c[4], color: rc.look ? D.LOOKS.PAINT[rc.look.c1] : rc.color || "#9fd8ff", look: rc.look, name: rc.builder || "" };
     });
   }
   if (cls.on) {
-    socket.on("connect", () => socket.emit("race:check", { who }, (r) => { if (r && r.ok) { cls.boards = r.boards; gpApply(r.gp); renderBoard(); } }));
+    socket.on("connect", () => socket.emit("race:check", { who, look }, (r) => { if (r && r.ok) { cls.boards = r.boards; gpApply(r.gp); renderBoard(); } }));
     socket.on("race:board", (d) => { cls.boards[d.track] = d.board; renderBoard(); });
     socket.on("gp:state", gpApply);
     socket.on("gp:live", (snap) => { cls.live = { prev: cls.live.cur, cur: { ...snap, at: performance.now() } }; });
     setInterval(() => { if (inGp() && (state === "race" || state === "countdown")) socket.emit("player:gpPos", { z: car.z, x: car.x, v: car.v }); }, 200);
+  }
+
+  // ---------------- paint shop (looks only: the gear and tires are the only things that change speed) ----------------
+  const LK = D.LOOKS, NAMES = ["orange", "blue", "green", "purple", "gold", "pink", "white", "black", "silver", "lime", "teal", "mustard"];
+  function saveLook(next) {
+    look = R.cleanLook(next); ls.set("race-look", look); Sound.play("click"); renderPaint();
+    if (cls.on) socket.emit("race:look", look); // so classmates see it in Race Day
+  }
+  function renderPaint() {
+    const chips = (el, names, key, tip) => {
+      $(el).innerHTML = "";
+      names.forEach((n, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "pchip"; b.textContent = n;
+        b.setAttribute("aria-pressed", look[key] === i); b.setAttribute("data-tip", tip(i)); b.onclick = () => saveLook({ ...look, [key]: i });
+        $(el).appendChild(b);
+      });
+    };
+    const swatches = (el, colors, key, tip) => {
+      $(el).innerHTML = "";
+      colors.forEach((c, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "swatch" + (c ? "" : " none"); if (c) b.style.background = c;
+        b.setAttribute("aria-pressed", look[key] === i); b.setAttribute("aria-label", tip(i)); b.setAttribute("data-tip", tip(i)); b.onclick = () => saveLook({ ...look, [key]: i });
+        $(el).appendChild(b);
+      });
+    };
+    chips("p-body", LK.BODIES, "body", (i) => `${LK.BODIES[i]} body. Just for looks: every body drives the same.`);
+    swatches("p-c1", LK.PAINT, "c1", (i) => `Main color: ${NAMES[i]}`);
+    swatches("p-c2", LK.PAINT, "c2", (i) => `Second color: ${NAMES[i]}. It's used for the pattern and the wheel trim.`);
+    chips("p-liv", LK.LIVERIES, "liv", (i) => (i ? `${LK.LIVERIES[i]} pattern, in your second color.` : "No pattern: one color."));
+    chips("p-rim", LK.RIMS, "rim", (i) => [`Classic black tires.`, `A stripe in your second color on each tire.`, `Tires that glow in your second color.`][i]);
+    swatches("p-trail", LK.TRAILS, "trail", (i) => (i ? `Exhaust glow: ${NAMES[i - 1]}. It shows when you go fast.` : "No exhaust glow."));
+    const mine = saved && Number.isInteger(saved.sensor) ? saved.sensor + 1 : 0;
+    chips("p-head", LK.HEADS.map((n, i) => (i && i === mine ? `${n} (your robot)` : n)), "head",
+      (i) => (i ? `Your driver has a ${LK.HEADS[i].toLowerCase()} sensor head${i === mine ? ", like your battle robot" : ""}.` : "The standard racer bot driver."));
+    $("p-num").value = look.num;
+  }
+  $("p-num").onchange = () => saveLook({ ...look, num: clamp(Math.round(+$("p-num").value || 0), 0, 99) });
+  $("p-minus").onclick = () => saveLook({ ...look, num: (look.num + 99) % 100 });
+  $("p-plus").onclick = () => saveLook({ ...look, num: (look.num + 1) % 100 });
+  $("p-rand").onclick = () => { const r = (n) => Math.floor(Math.random() * n); saveLook({ body: r(5), c1: r(12), c2: r(12), liv: r(7), num: r(100), rim: r(3), trail: r(7), head: look.head }); };
+  function drawPaint(t) { // your car in the garage
+    const c = $("paintview"); if (!c.offsetParent) return;
+    const { ctx, w, h } = E.fit(c);
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#1d1c21"); g.addColorStop(1, "#3a3842"); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    const sp = ctx.createRadialGradient(w / 2, h * 0.1, 0, w / 2, h * 0.1, h * 1.1); sp.addColorStop(0, "rgba(255,236,190,.22)"); sp.addColorStop(1, "rgba(255,236,190,0)"); ctx.fillStyle = sp; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#26252b"; ctx.fillRect(0, h * 0.86, w, h * 0.14); ctx.fillStyle = "#f46524"; ctx.fillRect(0, h * 0.86, w, 2);
+    D.kart(ctx, w / 2, h * 0.88, Math.min(w * 0.42, h * 0.58), { look, t, v: look.trail ? 7 : 0, bob: RM ? 0 : Math.sin(t * 2) * 1.5 });
   }
 
   // ---------------- controls ----------------
@@ -251,6 +308,27 @@
   });
   $("touch").hidden = !matchMedia("(pointer: coarse)").matches;
   $("road").addEventListener("touchstart", () => ($("touch").hidden = false), { passive: true });
+  // the motor's sound: a chiptune note whose pitch follows the motor's rpm while you race (with Sound on), so you can
+  // hear a gear hit its top speed on a straight, or bog down on a hill
+  const motor = { ac: null, osc: null, gain: null };
+  function motorSound() {
+    const want = Sound.on && (state === "race" || state === "countdown") && !document.hidden;
+    if (want && !motor.ac) {
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)(), n = 32, re = new Float32Array(n), im = new Float32Array(n);
+        for (let k = 1; k < n; k++) { re[k] = Math.sin(2 * Math.PI * k * 0.25) / (Math.PI * k); im[k] = (1 - Math.cos(2 * Math.PI * k * 0.25)) / (Math.PI * k); } // a 25% pulse wave
+        const osc = ac.createOscillator(), lp = ac.createBiquadFilter(), gain = ac.createGain();
+        osc.setPeriodicWave(ac.createPeriodicWave(re, im)); lp.type = "lowpass"; lp.frequency.value = 1400; gain.gain.value = 0;
+        osc.connect(lp); lp.connect(gain); gain.connect(ac.destination); osc.start();
+        Object.assign(motor, { ac, osc, gain });
+      } catch { return; }
+    }
+    if (!motor.ac) return;
+    if (want && motor.ac.state === "suspended") motor.ac.resume();
+    const now = motor.ac.currentTime;
+    motor.gain.gain.setTargetAtTime(want ? 0.045 : 0, now, 0.06);
+    motor.osc.frequency.setTargetAtTime(50 + clamp(car.rpm / R.MOTOR.rpm, 0, 1.3) * 170, now, 0.03);
+  }
   $("sound").onclick = () => { const on = Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
 
   // ---------------- drawing ----------------
@@ -269,17 +347,39 @@
     fx.update(dt);
     const rv = rivals(now), gh = ghostCar(), cars = gh ? [...rv, gh] : rv;
     const rem = countdownLeft(), lights = state === "countdown" ? lightsFor(rem) : state === "race" && inputs.length < 60 ? "go" : 0;
-    const pos = D.world(ctx, w, h, track, car, cars, { t, bgX, lights });
+    const pos = D.world(ctx, w, h, track, car, cars, { t, bgX, lights, low });
     const inp = state === "race" ? input() : { steer: 0, brake: 0, gas: 0 }, seg = track.segAt(car.z), T = R.TIRES[setup.tire];
     const off = Math.abs(car.x) > R.ROAD && car.v > 1, slide = (car.v * car.v * Math.abs(seg.k)) / (T.mu * R.G) > 1;
-    if (!RM && off && Math.random() < 0.5) fx.burst(pos.x + (Math.random() - 0.5) * pos.size, pos.y, 1, { colors: track.theme === "desert" ? ["#c9925a", "#e0b07a"] : ["#7a5a3a", "#a1825e"], kind: "dust", speed: 60, g: -20, life: 0.8, size: 6, angle: -Math.PI / 2, spread: 1.2 });
-    if (!RM && slide && state === "race" && Math.random() < 0.6) fx.burst(pos.x + (Math.random() < 0.5 ? -1 : 1) * pos.size * 0.4, pos.y - 4, 1, { colors: ["#d9d5de", "#aaa6b0"], kind: "smoke", speed: 30, g: -40, life: 0.7, size: 8, drag: 0.95, angle: -Math.PI / 2, spread: 1 });
+    if (!RM && !low && off && Math.random() < 0.5) fx.burst(pos.x + (Math.random() - 0.5) * pos.size, pos.y, 1, { colors: track.theme === "desert" ? ["#c9925a", "#e0b07a"] : ["#7a5a3a", "#a1825e"], kind: "dust", speed: 60, g: -20, life: 0.8, size: 6, angle: -Math.PI / 2, spread: 1.2 });
+    if (!RM && !low && slide && state === "race" && Math.random() < 0.6) fx.burst(pos.x + (Math.random() < 0.5 ? -1 : 1) * pos.size * 0.4, pos.y - 4, 1, { colors: ["#d9d5de", "#aaa6b0"], kind: "smoke", speed: 30, g: -40, life: 0.7, size: 8, drag: 0.95, angle: -Math.PI / 2, spread: 1 });
     if (car.wall && state === "race" && Math.abs(car.x) >= R.WALL - 0.01 && car.v > 2 && t - wallT > 0.35) { wallT = t; Sound.play("hit"); if (!RM) fx.burst(pos.x + Math.sign(car.x) * pos.size * 0.6, pos.y - 10, 8, { colors: ["#ffd23f", "#fff6c8"], speed: 200, g: 300, life: 0.4, size: 3 }); }
-    D.kart(ctx, pos.x, pos.y + (off && !RM ? Math.sin(t * 40) * 2 : 0), pos.size, { color: myColor, steer: inp.steer, brake: inp.brake || state === "done", t, v: car.v });
-    if (state === "race") D.speedLines(ctx, w, h, pos.horizon, car.v);
+    D.kart(ctx, pos.x, pos.y + (off && !RM ? Math.sin(t * 40) * 2 : 0), pos.size, { look, steer: inp.steer, brake: inp.brake || state === "done", t, v: car.v });
+    if (state === "race" && !low) D.speedLines(ctx, w, h, pos.horizon, car.v);
     fx.draw(ctx);
     hud(ctx, w, h, t, dt, rv, gh, rem);
     if (state === "race" || state === "done") bgX += seg.k * car.v * dt * 900;
+  }
+  // the hill profile: how high the road is along the lap (the same scale on every track), you and your rivals on it.
+  // Climbs your gear can't make are red, slow ones yellow, so changing gear in the garage changes the colors.
+  const SPAN = Math.max(...R.TRACKS.map((tr) => { const ys = tr.segs.map((q) => q.y); return Math.max(...ys) - Math.min(...ys); }));
+  const climbCache = {};
+  function climbColors() {
+    const key = `${track.id}:${setup.gear}:${setup.tire}`;
+    return (climbCache[key] = climbCache[key] || track.segs.map((q) => { if (q.slope < 0.03) return 0; const v = R.climbSpeed(setup, q.slope); return v < 0.3 ? 2 : v < 3 ? 1 : 0; }));
+  }
+  function hills(ctx, x, y, pw, ph, fs, rv, gh) {
+    const segs = track.segs, N = segs.length, ys = segs.map((q) => q.y), y0 = Math.min(...ys), cols = climbColors();
+    ctx.fillStyle = "rgba(20,19,22,.62)"; rr(ctx, x, y, pw, ph, 10); ctx.fill();
+    const top = y + fs * 0.75, base = y + ph - 5, X = (z) => x + 8 + (z / track.LENGTH) * (pw - 16), Y = (yy) => base - ((yy - y0) / SPAN) * (base - top);
+    for (let i = 0; i < N; i++) { ctx.fillStyle = ["rgba(255,255,255,.16)", "rgba(255,210,63,.75)", "rgba(255,93,93,.9)"][cols[i]]; const xa = X(i * R.SEG), xb = X((i + 1) * R.SEG); ctx.fillRect(xa, Y(segs[i].y), xb - xa + 0.6, base - Y(segs[i].y)); }
+    ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1.5; ctx.beginPath(); segs.forEach((q, i) => (i ? ctx.lineTo(X(i * R.SEG), Y(q.y)) : ctx.moveTo(X(0), Y(q.y)))); ctx.stroke();
+    const dot = (z, col, r) => { const zz = clamp(z, 0, track.LENGTH - 0.01), i = Math.floor(zz / R.SEG); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(zz), Y(segs[i].y), r, 0, 7); ctx.fill(); };
+    rv.forEach((r) => dot(r.z, r.color, 3)); if (gh) dot(gh.z, "#9fd8ff", 3);
+    dot(car.z, D.LOOKS.PAINT[look.c1], 5); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.font = `700 ${Math.round(fs * 0.42)}px "JetBrains Mono", monospace`; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#aaa6b0"; ctx.fillText("HILLS", x + 8, y + fs * 0.55);
+    const worst = Math.max(0, ...cols);
+    if (worst) { ctx.textAlign = "right"; ctx.fillStyle = worst === 2 ? "#ff8a8a" : "#ffd23f"; ctx.fillText(worst === 2 ? `RED: TOO STEEP FOR ${R.GEARS[setup.gear]}:1` : `YELLOW: SLOW CLIMB IN ${R.GEARS[setup.gear]}:1`, x + pw - 8, y + fs * 0.55); ctx.textAlign = "left"; }
   }
   function hud(ctx, w, h, t, dt, rv, gh, rem) {
     const fs = Math.max(12, Math.round(h * 0.04)), panel = (x, y, ww, hh) => { ctx.fillStyle = "rgba(20,19,22,.62)"; rr(ctx, x, y, ww, hh, 10); ctx.fill(); };
@@ -289,17 +389,38 @@
     ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText(inGp() ? `RACE ${cls.gp.i + 1} · ${track.n.toUpperCase()}` : track.n.toUpperCase(), 22, 12 + fs * 0.85);
     ctx.font = `700 ${Math.round(fs * 1.2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#fff"; ctx.fillText(fmtTime(time), 22, 12 + fs * 2.05);
     ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.fillText(b ? "BEST " + fmtTime(b.time) : "NO BEST YET", 22, 12 + fs * 2.65);
-    const rpmF = clamp(car.rpm / R.MOTOR.rpm, 0, 1.2), bw = fs * 8.6, bx = w - 12 - bw;
-    panel(bx, 12, bw, fs * 3.4);
-    ctx.textAlign = "right"; ctx.font = `700 ${Math.round(fs * 1.25)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#fff"; ctx.fillText(kmh(car.v) + " km/h", w - 22, 12 + fs * 1.35);
-    ctx.fillStyle = "#26252b"; rr(ctx, bx + 10, 12 + fs * 1.8, bw - 20, fs * 0.5, 4); ctx.fill();
-    ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : rpmF > 0.8 ? "#ffd23f" : "#4fd18b"; rr(ctx, bx + 10, 12 + fs * 1.8, (bw - 20) * Math.min(1, rpmF), fs * 0.5, 4); ctx.fill();
-    ctx.font = `600 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0";
-    ctx.textAlign = "left"; ctx.fillText(`MOTOR ${rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm"}`, bx + 10, 12 + fs * 2.95);
-    ctx.textAlign = "right"; ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1`, w - 22, 12 + fs * 2.95);
+    // the motor's rpm on a dial: the red line is its top speed, where it can't push any harder
+    const rpmF = clamp(car.rpm / R.MOTOR.rpm, 0, 1.2), bw = fs * 8.6, bx = w - 12 - bw, MAXR = R.MOTOR.rpm * 1.2;
+    panel(bx, 12, bw, fs * 3.6);
+    const dcx = bx + fs * 2, dcy = 12 + fs * 2.2, dr = fs * 1.45, A0 = Math.PI * 0.75, A1 = Math.PI * 2.25, ang = (rpm) => A0 + (A1 - A0) * clamp(rpm / MAXR, 0, 1);
+    ctx.lineCap = "butt"; ctx.lineWidth = fs * 0.28;
+    ctx.strokeStyle = "#26252b"; ctx.beginPath(); ctx.arc(dcx, dcy, dr, A0, A1); ctx.stroke();
+    ctx.strokeStyle = "#ff5d5d88"; ctx.beginPath(); ctx.arc(dcx, dcy, dr, ang(R.MOTOR.rpm * 0.97), A1); ctx.stroke();
+    ctx.strokeStyle = rpmF >= 0.97 ? "#ff5d5d" : rpmF > 0.8 ? "#ffd23f" : "#4fd18b"; ctx.beginPath(); ctx.arc(dcx, dcy, dr, A0, ang(car.rpm)); ctx.stroke();
+    ctx.strokeStyle = "#aaa6b0"; ctx.lineWidth = 1.5;
+    for (let k = 0; k <= 6; k++) { const a = ang(k * 1000); ctx.beginPath(); ctx.moveTo(dcx + Math.cos(a) * (dr - fs * 0.42), dcy + Math.sin(a) * (dr - fs * 0.42)); ctx.lineTo(dcx + Math.cos(a) * (dr - fs * 0.62), dcy + Math.sin(a) * (dr - fs * 0.62)); ctx.stroke(); }
+    const na = ang(car.rpm); ctx.strokeStyle = "#fff"; ctx.lineWidth = Math.max(2, fs * 0.12); ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(dcx, dcy); ctx.lineTo(dcx + Math.cos(na) * dr * 0.88, dcy + Math.sin(na) * dr * 0.88); ctx.stroke(); ctx.lineCap = "butt";
+    ctx.fillStyle = "#f46524"; ctx.beginPath(); ctx.arc(dcx, dcy, fs * 0.16, 0, 7); ctx.fill();
+    ctx.textAlign = "center"; ctx.font = `600 ${Math.round(fs * 0.38)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("RPM", dcx, dcy + fs * 0.85);
+    ctx.textAlign = "right"; ctx.font = `700 ${Math.round(fs * 1.25)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#fff"; ctx.fillText(String(kmh(car.v)), w - 22, 12 + fs * 1.45);
+    ctx.font = `600 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("km/h", w - 22, 12 + fs * 2.05);
+    ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
+    ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
     // the track map, with everyone on it
     const ms = Math.round(Math.min(w, h) * 0.24);
-    D.minimap(ctx, 12, h - ms - 12, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: myColor, me: true }]);
+    D.minimap(ctx, 12, h - ms - 12, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
+    const ph = Math.max(34, Math.round(h * 0.11)), pxl = 12 + ms + 10, pw = Math.min(w - pxl - 12, w * 0.5);
+    if (pw > 120) hills(ctx, pxl, h - ph - ($("touch").hidden ? 12 : 92), pw, ph, fs, rv, gh);
+    // someone close behind you (karts behind you aren't drawn, they'd fill the screen)
+    const behind = state === "race" ? rv.filter((r) => !r.done && car.z - r.z > 0.5 && car.z - r.z < 20).sort((a, b) => b.z - a.z)[0] : null;
+    if (behind) {
+      const bw2 = fs * 9, by2 = h - Math.max(34, Math.round(h * 0.11)) - ($("touch").hidden ? 12 : 92) - fs * 1.6;
+      ctx.fillStyle = "rgba(20,19,22,.72)"; rr(ctx, w / 2 - bw2 / 2, by2, bw2, fs * 1.3, 8); ctx.fill();
+      ctx.fillStyle = behind.color; ctx.fillRect(w / 2 - bw2 / 2, by2, 5, fs * 1.3);
+      ctx.font = `700 ${Math.round(fs * 0.55)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";
+      ctx.fillText(`▼ ${behind.name} is ${Math.round(car.z - behind.z)} m behind you`, w / 2, by2 + fs * 0.66); ctx.textBaseline = "alphabetic";
+    }
     // position in Race Day
     if (inGp() && (state === "race" || state === "done") && rv.length) {
       const place = 1 + rv.filter((r) => r.done || r.z > car.z).length;
@@ -345,9 +466,9 @@
       doneT += dt; acc += dt;
       while (acc >= R.DT) { R.step(car, setup, { steer: 0, gas: 0, brake: 1 }, track); acc -= R.DT; } // roll to a stop past the line
     }
-    try { draw(now / 1000, dt, now); } catch (err) { console.error(err); }
+    try { draw(now / 1000, dt, now); drawPaint(now / 1000); motorSound(); } catch (err) { console.error(err); }
     requestAnimationFrame(loop);
   })(last);
-  renderAll(); renderBoard();
+  renderAll(); renderBoard(); renderPaint();
   window.__race = { get state() { return state; }, get car() { return car; }, get lastPlace() { return lastLap && lastLap.place; }, get inputs() { return inputs; }, get track() { return track; }, start, keys, setSetup(s) { setup = R.clampSetup(s); renderGarage(); }, setTrack(id) { track = R.trackOf(id); stop(); renderBoard(); } };
 })();

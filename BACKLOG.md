@@ -14,7 +14,11 @@ Last updated: October 30, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| — | Nothing in progress | — |
+| F-20 | Robot Racer paint shop | Branch `game-upgrades`. Students customize their car: two colors, a livery (stripe, flames, checkers, lightning, dots), a race number, body style (kart, F1, buggy, truck, hover pod), wheels, wing, trail color, and their battle robot as the driver. Looks only (gear and tires stay the only performance choices). Saved on the device as a short look code; the server checks it so classmates see your car in Race Day. |
+| F-21 | Racer teaching HUD | Branch `game-upgrades`. A hill profile strip under the track map (where the climbs are, where you are), a speed and rpm dial with a red line, and a chiptune motor sound whose pitch follows rpm, so students see and hear a gear run out of torque. |
+| F-22 | Battle stage: a look per sensor | Branch `game-upgrades`. The stage shows one generic scan beam today. Give each sensor its own: ultrasonic rings, a sweeping lidar laser, a camera lens flash, touch whiskers. Presentation only (battle.js), so results can't change. |
+| F-23 | Replay any finished match | Branch `game-upgrades`. Click a finished match in the bracket to watch it again (fights are seeded, so the server only needs to keep each match's seed). |
+| F-24 | Racer medals | Branch `game-upgrades`. Bronze, silver and gold times on each track, set from the computer driver's best. |
 
 ---
 
@@ -22,12 +26,7 @@ Last updated: October 30, 2026
 | # | Feature | Priority | Notes |
 |---|---|---|---|
 | F-02 | AI art for backgrounds and fighters (Higgsfield) | Low | Parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. F-12 is done: generated pictures go in `public/art/` with a manifest. |
-| F-20 | Robot Racer paint shop | High | Students customize their car: two colors, a livery (stripe, flames, checkers, lightning, dots), a race number, body style (kart, F1, buggy, truck, hover pod), wheels, wing, trail color, and their battle robot as the driver. Looks only (gear and tires stay the only performance choices). Saved on the device as a short look code; the server checks it so classmates see your car in Race Day. |
-| F-21 | Racer teaching HUD | Medium | A hill profile strip under the track map (where the climbs are, where you are), a speed and rpm dial with a red line, and a chiptune motor sound whose pitch follows rpm, so students see and hear a gear run out of torque. |
-| F-22 | Battle stage: a look per sensor | Medium | The stage shows one generic scan beam today. Give each sensor its own: ultrasonic rings, a sweeping lidar laser, a camera lens flash, touch whiskers. Presentation only (battle.js), so results can't change. |
-| F-23 | Replay any finished match | Medium | Click a finished match in the bracket to watch it again (fights are seeded, so the server only needs to keep each match's seed). |
-| F-24 | Racer medals | Low | Bronze, silver and gold times on each track, set from the computer driver's best. |
-| F-25 | More game ideas (Oct 30 list) | Low | Racer: lighting (headlights, lamp pools), turning sprites and body roll, curbs and skid marks, lap replay, "car behind you" arrow, multi-lap Race Day, new tracks (ice rink, city streets, mountain pass), rain that lowers grip, track builder. Battles: paint patterns and faces, fighting-game TV look, visible damage, an arena per round, camera zooms, a bigger champion ceremony, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, low-graphics switch, big-text mode. |
+| F-25 | More game ideas (still to build) | Low | Racer: turning sprites and body roll, curbs, a lap replay with trackside cameras, multi-lap Race Day, new tracks (ice rink, city streets, mountain pass), rain that lowers grip, a track builder, unlockable stickers for the paint shop. Battles: paint patterns and faces for robots, a fighting-game TV look, an arena per round, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, big-text mode. (Skid marks were tried and dropped: with the low camera they sit behind your own kart.) |
 | F-11 | Database for saved progress | Low | Only when needed: class rosters, teacher progress dashboard, season leaderboards. Render's free plan has no persistent storage. |
 
 ---

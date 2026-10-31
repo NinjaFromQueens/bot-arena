@@ -5,6 +5,7 @@
   const socket = io(); window.baSocket = socket;
   let state = null, code = null, playing = null, autoTimer = null, upnext = null;
   let series = null; // the match on the board: { m, g (game index), score, last (winner of the game just played) }
+  let replay = null; // a finished match being watched again: { a, b, seeds, g, round, why }
   const seen = new Set();
   let status = {}; // playerId -> { page, n } from the server: which page each student is on
 
@@ -44,6 +45,12 @@
       $("log").appendChild(d); $("log").scrollTop = $("log").scrollHeight;
     },
     onDone() {
+      if (replay) { // a replay never reports to the server
+        showWhy(replay.why, replay.a, replay.b); $("skip").disabled = true; replay.g++;
+        if (replay.g < replay.seeds.length) { setTimeout(() => replay && replayGame(), 2500); return; }
+        replay = null; $("next").disabled = false; M.play("garage"); if (state) render(); // render brings back the champion screen when the tournament is over
+        return;
+      }
       if (!playing) return;
       const id = playing.id;
       if (playing.why) showWhy(playing.why, playing.A, playing.B);
@@ -173,6 +180,13 @@
         if (r === 0 && m.bye) return;
         if (!m.winner && m.a && m.b) remaining++;
         const box = document.createElement("div"); box.className = "bm" + (m.id === state.currentMatchId ? " cur" : "");
+        if (m.winner && m.seeds && byId(m.a) && byId(m.b)) {
+          box.classList.add("replayable");
+          const rp = document.createElement("button"); rp.type = "button"; rp.className = "rp"; rp.textContent = "▶";
+          rp.setAttribute("aria-label", "Replay this match"); rp.setAttribute("data-tip", "Watch this match again, exactly as it happened. It doesn't change the bracket. Works between matches.");
+          rp.disabled = !!(playing || upnext || series || replay); rp.onclick = () => startReplay(m, r);
+          box.appendChild(rp);
+        }
         [m.a, m.b].forEach((pid) => {
           const row = document.createElement("div"), p = byId(pid);
           row.className = "slotrow" + (!p ? " tbd" : m.winner ? (m.winner === pid ? " win" : " lose") : "");
@@ -192,10 +206,16 @@
     ["next", "skip", "ptimewrap", "autowrap", "speedseg"].forEach((id) => ($(id).hidden = state.phase === "done")); // nothing left to play
     if (state.phase === "done" && stage.state !== "champ" && !playing) {
       const c = byId(state.championId);
-      if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }); M.play("champion", 1.5); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
+      if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }, "", podiumOf(br)); M.play("champion", 1.5); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
     }
   }
 
+  // who stands beside the champion: the final's loser, then whoever lost the semifinals
+  function podiumOf(br) {
+    const loser = (m) => (m && m.winner && m.a && m.b ? byId(m.winner === m.a ? m.b : m.a) : null), bot = (p) => p && { ...p.bot, builder: p.builder };
+    const fin = br.rounds[br.rounds.length - 1].matches[0], semis = br.rounds.length > 1 ? br.rounds[br.rounds.length - 2].matches : [];
+    return { second: bot(loser(fin)), thirds: semis.map(loser).filter(Boolean).map(bot) };
+  }
   function statusTag(p) {
     const s = status[p.id];
     if (!s) return p.connected ? { text: "GAME", cls: "play", tip: "On the game page." } : { text: "OFFLINE", cls: "", tip: "Not connected right now." };
@@ -310,6 +330,25 @@
     $("matchinfo").textContent = m.bestOf === 3 ? `${base} · Best of 3: ${series.score[0]}–${series.score[1]}` : base;
   }
 
+  // ---------- replays: a finished match, watched again (the same seeds give the same fight) ----------
+  function startReplay(m, r) {
+    if (playing || upnext || series || replay) return;
+    const A = byId(m.a), B = byId(m.b); if (!A || !B) return;
+    clearTimeout(autoTimer);
+    replay = { a: { ...A.bot, builder: A.builder }, b: { ...B.bot, builder: B.builder }, seeds: m.seeds, g: 0, round: state.bracket.rounds[r].name };
+    $("next").disabled = true; render(); replayGame();
+  }
+  function replayGame() {
+    const { a, b, seeds, g, round } = replay, sim = E.simulate(a, b, seeds[g]), many = seeds.length > 1;
+    replay.why = E.explainBattle(a, b, sim, state.settings && state.settings.maxw);
+    $("log").innerHTML = ""; $("why").hidden = true; hideUpNext();
+    $("na").textContent = a.name; $("nb").textContent = b.name;
+    $("roundname").textContent = "Replay: " + round;
+    $("matchinfo").textContent = `${a.name} (${a.builder}) vs ${b.name} (${b.builder})${many ? ` · game ${g + 1} of ${seeds.length}` : ""}`;
+    stage.setBots(a, b, `REPLAY · ${round.toUpperCase()}${many ? ` · GAME ${g + 1}` : ""}`);
+    setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; }, 300);
+  }
+
   // ---------- controls ----------
   $("start").onclick = () => {
     E.Sound.play("go");
@@ -318,7 +357,7 @@
   function nextMatch() {
     clearTimeout(autoTimer);
     if (upnext) { startFight(upnext.m); return; } // "Fight now" while the card is up
-    if (playing) return;
+    if (playing || replay) return;
     if (series) { playing = { id: series.m.id }; playGame(); return; } // the next game of a best of 3
     $("next").disabled = true;
     socket.emit("host:next", {}, (r) => {

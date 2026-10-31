@@ -171,6 +171,37 @@
     return { top: balance(0), hill: balance(track.steep), push: Math.round(Math.min(T.mu * m * G, motorForce(0, gear).F)), accel: Math.round(t10 * 10) / 10, accelTo: Math.min(8, balance(0)), corner: Math.sqrt((T.mu * G) / track.tight), gear, tire: T.n };
   }
 
+  // the steady speed a setup can hold up a slope (about 0 means it stalls): the hill profile colors climbs with it
+  function climbSpeed(setup, slope) {
+    setup = clampSetup(setup);
+    const T = TIRES[setup.tire], gear = GEARS[setup.gear], m = CAR.kg;
+    let lo = 0, hi = 40;
+    for (let i = 0; i < 50; i++) { const v = (lo + hi) / 2, f = Math.min(T.mu * m * G, motorForce(v, gear).F) - T.crr * m * G - 0.5 * CAR.rho * CAR.cdA * v * v - (m * G * slope) / Math.sqrt(1 + slope * slope); f > 0 ? (lo = v) : (hi = v); }
+    return lo;
+  }
+
+  // medals: gold matches the computer driver's best lap on the track (any setup), silver and bronze are within 10% and 25%
+  function medals(track) {
+    const best = Math.min(...autoTimes(track).flat());
+    return { gold: Math.round(best * 100) / 100, silver: Math.ceil(best * 110) / 100, bronze: Math.ceil(best * 125) / 100 };
+  }
+  function medalOf(time, track) { // compared in hundredths, the way times are shown
+    if (time == null) return null;
+    const m = medals(track), t = Math.round(time * 100);
+    return t <= Math.round(m.gold * 100) ? "gold" : t <= Math.round(m.silver * 100) ? "silver" : t <= Math.round(m.bronze * 100) ? "bronze" : null;
+  }
+
+  // ---------------- car looks (the paint shop) ----------------
+  // Looks only: nothing here changes how a car drives. Each value is a choice number (racedraw.js has the names and
+  // colors); the server checks looks with cleanLook so classmates see each other's cars in Race Day.
+  const LOOK = { body: 5, c1: 12, c2: 12, liv: 7, num: 100, rim: 3, trail: 7, head: 5 };
+  const LOOK0 = { body: 0, c1: 0, c2: 6, liv: 1, num: 7, rim: 0, trail: 0, head: 0 };
+  function cleanLook(l) {
+    const out = {};
+    for (const k in LOOK) { const v = l && l[k] !== "" && l[k] != null ? Number(l[k]) : NaN; out[k] = Number.isInteger(v) && v >= 0 && v < LOOK[k] ? v : LOOK0[k]; }
+    return out;
+  }
+
   // ---------------- the lap report ----------------
   const kmh = (v) => Math.round(v * 3.6);
   // the computer driver's lap for every setup, worked out once: tips only suggest a change that really is faster
@@ -211,5 +242,5 @@
     return { items: out, tip, stats: st };
   }
 
-  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS };
+  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
 });

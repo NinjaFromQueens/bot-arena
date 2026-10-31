@@ -79,6 +79,11 @@
   .slotrow.lose { opacity: .4; }
   .slotrow.lose .nm { text-decoration: line-through; }
   .slotrow.tbd .nm { color: var(--muted); font-weight: 500; }
+  .bm { position: relative; }
+  .bm.replayable .slotrow { padding-right: 36px; }
+  .bm .rp { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-hi); color: var(--fg); font-size: 11px; cursor: pointer; padding: 0 0 0 2px; display: grid; place-items: center; }
+  .bm .rp:hover:not(:disabled), .bm .rp:focus-visible { border-color: var(--orange); color: var(--orange-hi); }
+  .bm .rp:disabled { opacity: .35; cursor: not-allowed; }
   .tourctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; user-select: none; }
   .switch input { width: 18px; height: 18px; accent-color: var(--orange); }

@@ -96,7 +96,7 @@ function publicState(room) {
         name: T.roundName(room.bracket, r),
         matches: round.map((m) => ({ id: m.id, a: m.a, b: m.b, bye: !!m.bye,
           // hide the result of the match on the board until the host's animation finishes
-          winner: room.current && room.current.matchId === m.id ? null : m.winner })),
+          winner: room.current && room.current.matchId === m.id ? null : m.winner, seeds: m.seeds || null })),
       })),
     },
     currentMatchId: room.current ? room.current.matchId : null,
@@ -132,7 +132,7 @@ function gpState(room) {
   const name = (id) => (room.players.get(id) || {}).builder || "?";
   return {
     phase: g.phase, i: g.i, n: g.tracks.length, track: g.tracks[g.i], tracks: g.tracks, startAt: g.startAt, endAt: g.endAt, now: Date.now(), limit: GP_LIMIT,
-    racers: gpPlayers(room).map((p) => ({ id: p.id, builder: p.builder, color: Engine.COLORS[(p.bot && p.bot.color) | 0] || Engine.COLORS[0] })),
+    racers: gpPlayers(room).map((p) => ({ id: p.id, builder: p.builder, color: Engine.COLORS[(p.bot && p.bot.color) | 0] || Engine.COLORS[0], look: p.raceLook || null })),
     setups: [...g.setups].map(([id, s]) => ({ id, ...s })),
     results: g.results.map((res) => res.map((r) => ({ ...r, builder: name(r.id) }))),
     standings: gpStandings(room).map((s) => ({ ...s, builder: name(s.id) })),
@@ -158,6 +158,9 @@ function gpAwards(room) {
     if (up) out.push({ key: "up", title: "Most Improved", id: up.id, detail: `from #${up.a + 1} to #${up.b + 1}` });
   }
   return out;
+}
+function gpLooks(room) { // paint shop changes reach Race Day at most every 300 ms, however fast students click
+  if (!room.gpLookTimer) room.gpLookTimer = setTimeout(() => { room.gpLookTimer = null; if (room.gp) gpUpdate(room); }, 300);
 }
 function gpUpdate(room) { io.to("race:" + room.code).emit("gp:state", gpState(room)); broadcast(room); }
 function gpEndRace(room) {
@@ -581,6 +584,8 @@ io.on("connection", (socket) => {
     const me = labPlayer(d && d.who);
     if (!me) return cb && cb({ ok: false });
     socket.join("race:" + me.room.code); raceMe = me;
+    if (d.look) me.p.raceLook = Race.cleanLook(d.look);
+    if (d.look && me.room.gp) gpLooks(me.room);
     cb && cb({ ok: true, boards: Race.TRACKS.map((tr) => raceBoard(me.room, tr.id)), gp: gpState(me.room) });
   });
   socket.on("race:submit", (d, cb) => {
@@ -636,6 +641,12 @@ io.on("connection", (socket) => {
     const room = requireHost(cb); if (!room) return;
     if (room.gp) { clearTimeout(room.gp.timer); clearInterval(room.gp.ticker); }
     room.gp = null; cb && cb({ ok: true }); gpUpdate(room);
+  });
+  // a student changed their car in the paint shop (looks only)
+  socket.on("race:look", (d) => {
+    if (!raceMe || !d || typeof d !== "object") return;
+    raceMe.p.raceLook = Race.cleanLook(d);
+    if (raceMe.room.gp) gpLooks(raceMe.room);
   });
   // Race Day: a student's race page (registered by race:check)
   socket.on("player:gpSetup", (d) => {
@@ -703,6 +714,7 @@ io.on("connection", (socket) => {
     const c = room.current;
     if (!c || c.matchId !== (d && d.matchId)) return cb && cb({ ok: false });
     T.setWinner(room.bracket, c.r, c.m, c.winnerId);
+    room.bracket.rounds[c.r][c.m].seeds = c.games.map((g) => g.seed); // so the board can replay it: same seeds, same fight
     room.current = null;
     const correct = [];
     for (const [pid, side] of c.picks) {

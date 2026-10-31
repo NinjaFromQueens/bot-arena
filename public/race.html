@@ -82,6 +82,24 @@
   .tcard[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
   .tcard:disabled { opacity: .45; cursor: not-allowed; }
 
+  /* paint shop */
+  .paint summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .paint summary::-webkit-details-marker { display: none; }
+  .paint summary h2 { margin: 0; }
+  .paint summary .chev { color: var(--muted); font-family: var(--mono); transition: transform .2s; }
+  .paint[open] summary .chev { transform: rotate(90deg); }
+  #paintview { width: 100%; aspect-ratio: 5 / 3; border-radius: 10px; margin: 10px 0 2px; display: block; }
+  .paint h3 { margin: 12px 0 6px; }
+  .paint .swatches { gap: 7px; }
+  .paint .swatch { width: 30px; height: 30px; }
+  .paint .swatch.none { background: repeating-linear-gradient(45deg, var(--bg) 0 4px, var(--line) 4px 8px); }
+  .pchips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pchip { font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .pchip[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .numrow { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .numrow input { width: 4.5em; font-family: var(--mono); font-size: 18px; text-align: center; background: var(--bg); color: var(--fg); border: 1.5px solid var(--line); border-radius: 9px; padding: 6px; }
+  .numrow button { min-width: 40px; }
+
   /* Race Day */
   .gpbox { border: 2px solid var(--orange); background: linear-gradient(135deg, var(--orange-soft), transparent 70%), var(--panel); }
   .gphead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -125,6 +143,7 @@
           <button class="btn big" id="go" type="button" data-tip="Line up on the start line and race one lap. Shortcut: Enter.">Start race</button>
           <button class="btn ghost" id="quit" type="button" disabled data-tip="Stop this lap and go back to the garage.">Stop</button>
           <span class="spacer"></span>
+          <label class="toggle" data-tip="Draws less scenery and a shorter view, for slower computers. Driving and lap times are exactly the same."><input type="checkbox" id="lowgfx"> Simple graphics</label>
           <label class="toggle" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
           <span class="keys">Arrows or WASD · ↑ gas · ↓ brake · ← → steer</span>
         </div>
@@ -146,6 +165,25 @@
         <div class="gstats" id="gstats"></div>
         <p class="bestline" id="bestline"></p>
       </div>
+      <details class="panel paint" id="paintp" open>
+        <summary data-tip="Show or hide the paint shop."><h2>Paint shop</h2><span class="chev" aria-hidden="true">›</span></summary>
+        <p class="small" style="margin-top:6px">Make the car yours. Looks never change your speed: only the gear and tires do. In Race Day, your class sees your car.</p>
+        <canvas id="paintview" aria-label="Your car, from behind"></canvas>
+        <h3>Body</h3><div class="pchips" id="p-body"></div>
+        <h3>Main color</h3><div class="swatches" id="p-c1"></div>
+        <h3>Second color</h3><div class="swatches" id="p-c2"></div>
+        <h3>Pattern</h3><div class="pchips" id="p-liv"></div>
+        <h3>Race number</h3>
+        <div class="numrow">
+          <button class="btn ghost" id="p-minus" type="button" aria-label="Lower number" data-tip="Lower the race number.">−</button>
+          <input id="p-num" type="number" min="0" max="99" inputmode="numeric" aria-label="Race number" data-tip="Your race number, 0 to 99. It's on the back of your car.">
+          <button class="btn ghost" id="p-plus" type="button" aria-label="Higher number" data-tip="Raise the race number.">+</button>
+        </div>
+        <h3>Wheel trim</h3><div class="pchips" id="p-rim"></div>
+        <h3>Exhaust glow</h3><div class="swatches" id="p-trail"></div>
+        <h3>Driver</h3><div class="pchips" id="p-head"></div>
+        <div style="margin-top:14px"><button class="btn ghost" id="p-rand" type="button" data-tip="Random body, colors, pattern, number, trim and glow. Keeps your driver.">Surprise me</button></div>
+      </details>
       <div class="panel" id="classp" hidden>
         <h2 id="classh">Class leaderboard</h2>
         <p class="small" id="classmsg"></p>

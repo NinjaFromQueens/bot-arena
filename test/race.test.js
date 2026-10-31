@@ -54,4 +54,16 @@ assert(/lower gear/.test(speed6.tip), "6:1 on Desert Speedway: the tip says a lo
 let wild = ""; { const car = R.newCar(); while (car.z < R.TRACK.LENGTH && car.t < R.MAX_STEPS) { const i = { steer: 0, gas: 1, brake: 0 }; wild += R.encode(i); R.step(car, four, i); } }
 const rw = R.lap(four, wild), ew = R.explain(four, rw);
 assert(rw.off > 2 && ew.items.some((i) => /Off the road/.test(i.title)) && /Brake/.test(ew.tip), "never braking: off the road, tip says brake");
+// the hill profile's climb speeds agree with the garage numbers (4:1 stalls on Neon Peaks' climbs, 8:1 doesn't)
+assert(Math.abs(R.climbSpeed({ gear: 1, tire: 1 }, 0.3) - R.setupStats({ gear: 1, tire: 1 }).hill) < 1e-9, "climbSpeed matches the garage's hill speed");
+assert(R.climbSpeed(four, peaks.steep) < 0.3 && R.climbSpeed({ gear: 2, tire: 1 }, peaks.steep) > 1, "4:1 stalls on a 40% climb, 8:1 climbs it");
+// medals: in order, and the computer driver's best lap earns gold
+for (const tr of R.TRACKS) {
+  const m = R.medals(tr), at = R.autoTimes(tr), best = Math.min(...at.flat());
+  assert(m.gold < m.silver && m.silver < m.bronze, `${tr.n}: medal times in order`);
+  assert(R.medalOf(best, tr) === "gold" && R.medalOf(m.silver, tr) === "silver" && R.medalOf(m.bronze + 0.01, tr) === null && R.medalOf(null, tr) === null, `${tr.n}: medals match the times`);
+}
+// looks: anything odd falls back to the default, good values (also as strings) are kept
+assert.deepStrictEqual(R.cleanLook({ body: 4, c1: "11", c2: 3, liv: 6, num: 99, rim: 2, trail: 6, head: 4 }), { body: 4, c1: 11, c2: 3, liv: 6, num: 99, rim: 2, trail: 6, head: 4 });
+assert.deepStrictEqual(R.cleanLook({ body: 9, c1: -1, c2: 1.5, liv: "x", num: 100, rim: null, trail: {}, head: "" }), R.cleanLook(null), "bad look values fall back to the defaults");
 console.log(`Race tests passed (${R.TRACKS.map((t, i) => `${t.n}: ${fmt([g0, g1, g2][i])}`).join(" | ")})`);

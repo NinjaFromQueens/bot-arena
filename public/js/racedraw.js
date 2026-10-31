@@ -94,10 +94,10 @@
     }
     ctx.lineTo(w, horizon + 1); ctx.closePath(); ctx.fill();
   }
-  function sky(ctx, w, h, horizon, th, t, bgX) {
+  function sky(ctx, w, h, horizon, th, t, bgX, low) {
     const g = ctx.createLinearGradient(0, 0, 0, horizon); g.addColorStop(0, th.sky[0]); g.addColorStop(0.6, th.sky[1]); g.addColorStop(1, th.sky[2]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    if (th.stars) { ctx.fillStyle = "#fff"; for (const [sx, sy, sz] of starField) { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(t * 2 + sx * 50); ctx.fillRect(sx * w, sy * horizon * 0.9, sz, sz); } ctx.globalAlpha = 1; }
+    if (th.stars && !low) { ctx.fillStyle = "#fff"; for (const [sx, sy, sz] of starField) { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(t * 2 + sx * 50); ctx.fillRect(sx * w, sy * horizon * 0.9, sz, sz); } ctx.globalAlpha = 1; }
     const orb = th.sun || th.moon;
     if (orb) {
       const ox = ((orb[1] * w - bgX * 0.05) % w + w) % w, oy = horizon * orb[2], r = h * orb[3];
@@ -111,7 +111,7 @@
       for (let k = -1; k < 26; k++) {
         const bx = k * (w / 24) - (o % (w / 24)), id = k + Math.floor(o / (w / 24)), bh = h * (0.04 + 0.09 * Math.abs(Math.sin(id * 2.3))), bw = w / 24 - 3;
         ctx.fillStyle = th.skyline; ctx.fillRect(bx, horizon - bh, bw, bh);
-        ctx.fillStyle = th.windows; for (let wy = horizon - bh + 4; wy < horizon - 4; wy += 7) for (let wx = bx + 3; wx < bx + bw - 3; wx += 6) if (Math.sin(wx * 12.9 + wy * 7.3 + id) > 0.35) ctx.fillRect(wx, wy, 2, 3);
+        if (!low) { ctx.fillStyle = th.windows; for (let wy = horizon - bh + 4; wy < horizon - 4; wy += 7) for (let wx = bx + 3; wx < bx + bw - 3; wx += 6) if (Math.sin(wx * 12.9 + wy * 7.3 + id) > 0.35) ctx.fillRect(wx, wy, 2, 3); }
       }
     }
     hills(ctx, w, horizon, h, bgX * 0.35, th.hills[1], 0.07, 2.9, th.mesas);
@@ -122,16 +122,18 @@
   function quad(ctx, c, x1, y1, x2, y2, x3, y3, x4, y4) { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill(); }
   /* Draw the world from behind cam (a car: { z, x }). cars: [{ z, x, color, name, ghost, me, brake, steer, v }] (me is drawn
      separately by the caller as the big kart in front). o: { t, bgX, lights: 0-5 red lights on, or "go" }. Returns where the
-     camera car sits on screen, so the caller can draw it. */
+     camera car sits on screen, so the caller can draw it. o.low: simple graphics
+     (a shorter view, no far scenery, stars or windows) for slower computers. */
   function world(ctx, w, h, track, cam, cars, o) {
     const th = THEMES[track.theme], half = w / 2, horizon = h * 0.43, N = track.segs.length, L = track.LENGTH;
     const camZ = cam.z - CAM_BACK, camX = cam.x * 0.7, camY = roadY(track, cam.z) + CAM_H;
-    sky(ctx, w, h, horizon, th, o.t, o.bgX || 0);
+    sky(ctx, w, h, horizon, th, o.t, o.bgX || 0, o.low);
+    const drawN = o.low ? 90 : DRAW, lamp = th.stars; // headlights at night
     const cz = ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz % SEG) / SEG;
     let x = 0, dx = -track.segs[base].k * SEG * SEG * BEND * pct, maxy = h;
     const proj = new Array(DRAW);
     const P = (px, py, z) => { const ppm = (DEPTH / z) * half; return { sx: half + (px - camX) * ppm, sy: horizon + (camY - py) * ppm, ppm }; };
-    for (let n = 0; n < DRAW; n++) {
+    for (let n = 0; n < drawN; n++) {
       const i = (base + n) % N, s = track.segs[i], z1 = (n - pct) * SEG, z2 = z1 + SEG;
       const p1 = z1 > 0.3 ? P(x, s.y, z1) : null, p2 = P(x + dx, track.segs[(i + 1) % N].y, z2);
       proj[n] = p1 && { i, ...p1, clip: maxy };
@@ -145,6 +147,12 @@
       quad(ctx, rum, p1.sx - r1 - u1, p1.sy, p1.sx - r1, p1.sy, p2.sx - r2, p2.sy, p2.sx - r2 - u2, p2.sy);
       quad(ctx, rum, p1.sx + r1, p1.sy, p1.sx + r1 + u1, p1.sy, p2.sx + r2 + u2, p2.sy, p2.sx + r2, p2.sy);
       quad(ctx, mix(th.road[alt], th.haze, f), p1.sx - r1, p1.sy, p1.sx + r1, p1.sy, p2.sx + r2, p2.sy, p2.sx - r2, p2.sy);
+      if (lamp && z1 > CAM_BACK + 0.5 && z1 < CAM_BACK + 18) { // a pool of headlight on the road ahead of the camera car
+        const k1 = (z1 - CAM_BACK) / 18, k2 = (z2 - CAM_BACK) / 18, w1 = 0.6 + 3.4 * k1, w2 = 0.6 + 3.4 * k2;
+        ctx.globalCompositeOperation = "lighter"; // light adds to the road and its glowing lines
+        quad(ctx, `rgba(255,226,170,${(0.2 * Math.pow(1 - k1, 1.4)).toFixed(3)})`, p1.sx + (cam.x - w1) * p1.ppm, p1.sy, p1.sx + (cam.x + w1) * p1.ppm, p1.sy, p2.sx + (cam.x + w2) * p2.ppm, p2.sy, p2.sx + (cam.x - w2) * p2.ppm, p2.sy);
+        ctx.globalCompositeOperation = "source-over";
+      }
       if (alt) { const l1 = 0.1 * p1.ppm, l2 = 0.1 * p2.ppm, c = mix(th.line, th.haze, f); [-1.33, 1.33].forEach((lx) => quad(ctx, c, p1.sx + lx * p1.ppm - l1, p1.sy, p1.sx + lx * p1.ppm + l1, p1.sy, p2.sx + lx * p2.ppm + l2, p2.sy, p2.sx + lx * p2.ppm - l2, p2.sy)); }
       if (i === 0 || i === N - 1) { // checkered start/finish line
         for (let k = 0; k < 10; k++) for (let ri = 0; ri < 2; ri++) {
@@ -163,16 +171,16 @@
     const sc = scenery(track), others = cars.filter((c) => !c.me).map((c) => {
       let d = c.z - camZ; if (d < -L / 2) d += L; if (d > L / 2) d -= L; // the shortest way round the loop
       const n = Math.floor(d / SEG + pct); return { c, d, n, f: d / SEG + pct - n };
-    }).filter((g) => g.d > CAM_BACK - 0.8 && g.n < DRAW - 2).sort((a, b) => b.d - a.d); // a car behind the camera car would fill the screen
+    }).filter((g) => g.d > CAM_BACK - 0.8 && g.n < drawN - 2).sort((a, b) => b.d - a.d); // a car behind the camera car would fill the screen
     let gi = 0;
-    for (let n = DRAW - 2; n >= 1; n--) {
+    for (let n = drawN - 2; n >= 1; n--) {
       const pr = proj[n]; if (!pr) continue;
-      for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
+      if (!o.low || n < 55) for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
       while (gi < others.length && others[gi].n >= n) {
         const g = others[gi++], a = proj[g.n], b = proj[g.n + 1]; if (!a || !b) continue;
         const sx = a.sx + (b.sx - a.sx) * g.f, sy = a.sy + (b.sy - a.sy) * g.f, ppm = a.ppm + (b.ppm - a.ppm) * g.f;
         ctx.save(); ctx.beginPath(); ctx.rect(0, 0, w, a.clip); ctx.clip();
-        kart(ctx, sx + g.c.x * ppm, sy, 1.5 * ppm, { color: g.c.color, alpha: g.c.ghost ? 0.45 : 1, brake: g.c.brake, steer: g.c.steer, t: o.t, v: g.c.v || 0 });
+        kart(ctx, sx + g.c.x * ppm, sy, 1.5 * ppm, { color: g.c.color, look: g.c.look, alpha: g.c.ghost ? 0.45 : 1, brake: g.c.brake, steer: g.c.steer, t: o.t, v: g.c.v || 0 });
         if (g.c.name && g.d < 60) nameTag(ctx, sx + g.c.x * ppm, sy - Math.min(2.5 * ppm, 1.6 * ppm + 30), g.c.name, g.c.color, Math.min(1, ppm / 25)); // above camera height, so tags of cars one behind another spread apart (but close to a near kart)
         ctx.restore();
       }
@@ -231,34 +239,138 @@
     ctx.restore(); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
   }
   // a robot kart from behind, with its robot riding it; x, y is the ground under its middle, size its width in pixels
-  function kart(ctx, x, y, size, o) {
-    const s = size, col = o.color || "#f46524", t = o.t || 0, v = o.v || 0;
-    ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha; ctx.translate(x, y + (o.bob || 0)); ctx.rotate((o.steer || 0) * 0.05);
-    ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(0, 0, s * 0.62, s * 0.1, 0, 0, 7); ctx.fill();
-    // rear tires, tread rolling with speed
+  // ---------------- karts ----------------
+  // Paint shop choices (race.js LOOK has how many of each; cleanLook checks them). Looks never change how a car drives.
+  const PAINT = [...E.COLORS, "#f4f1ea", "#2b2a30", "#a9a6b0", "#9be15d", "#2ec4b6", "#d4a017"]; // robot colors, then white, black, silver, lime, teal, gold
+  const LOOKS = {
+    PAINT, TRAILS: [null, ...E.COLORS],
+    BODIES: ["Kart", "Formula", "Buggy", "Monster truck", "Hover pod"],
+    LIVERIES: ["Plain", "Stripe", "Twin stripes", "Flames", "Checkers", "Lightning", "Dots"],
+    RIMS: ["Classic", "Color stripe", "Neon glow"],
+    HEADS: ["Racer bot", "Camera", "Ultrasonic", "Touch", "Lidar"], // 1-4: a battle robot's sensor head (its sensor + 1)
+  };
+  // each body in kart sizes (y up is negative): tire center and size, body box, where the rider sits, the number plate
+  const SHAPE = [
+    { tx: 0.43, tw: 0.26, th: 0.42, box: [-0.36, -0.42, 0.36, -0.07], seat: -0.4, plate: -0.3, light: [0.2, -0.2] },
+    { tx: 0.5, tw: 0.3, th: 0.4, box: [-0.4, -0.36, 0.4, -0.06], seat: -0.3, plate: -0.25, light: [0, -0.12] },
+    { tx: 0.46, tw: 0.3, th: 0.52, box: [-0.32, -0.42, 0.32, -0.1], seat: -0.4, plate: -0.3, light: [0.22, -0.2] },
+    { tx: 0.54, tw: 0.32, th: 0.62, box: [-0.42, -0.74, 0.42, -0.12], seat: -0.72, plate: -0.46, light: [0.32, -0.24] },
+    { tx: 0, tw: 0, th: 0, box: [-0.48, -0.5, 0.48, -0.16], seat: -0.42, plate: -0.34, light: [0.3, -0.3] },
+  ];
+  function bodyPath(b, s) {
+    const p = new Path2D(), [x0, y0, x1, y1] = SHAPE[b].box.map((q) => q * s);
+    if (b === 0) { p.moveTo(x0, y1); p.lineTo(x1, y1); p.lineTo(x1 - 0.07 * s, y0); p.lineTo(x0 + 0.07 * s, y0); p.closePath(); }
+    else if (b === 1) { p.moveTo(x0, y1); p.lineTo(x1, y1); p.lineTo(x1 - 0.1 * s, y1 - 0.12 * s); p.lineTo(0.15 * s, y0); p.lineTo(-0.15 * s, y0); p.lineTo(x0 + 0.1 * s, y1 - 0.12 * s); p.closePath(); }
+    else if (b === 4) p.ellipse(0, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, 0, 0, Math.PI * 2);
+    else { const r = 0.06 * s; p.moveTo(x0 + r, y0); p.arcTo(x1, y0, x1, y1, r); p.arcTo(x1, y1, x0, y1, r); p.arcTo(x0, y1, x0, y0, r); p.arcTo(x0, y0, x1, y0, r); p.closePath(); }
+    return p;
+  }
+  function livery(ctx, liv, b, s, c2) { // drawn inside the body's outline
+    const [x0, y0, x1, y1] = SHAPE[b].box.map((q) => q * s), w = x1 - x0, h = y1 - y0, m = (y0 + y1) / 2;
+    ctx.fillStyle = c2;
+    if (liv === 1) ctx.fillRect(-0.07 * s, y0, 0.14 * s, h);
+    else if (liv === 2) { ctx.fillRect(-0.17 * s, y0, 0.07 * s, h); ctx.fillRect(0.1 * s, y0, 0.07 * s, h); }
+    else if (liv === 3) { // flames licking up from the bottom
+      const n = 5, fw = w / n; ctx.beginPath(); ctx.moveTo(x0, y1);
+      for (let k = 0; k < n; k++) { const xa = x0 + k * fw, tip = y1 - h * (0.55 + 0.3 * (k % 2)); ctx.quadraticCurveTo(xa + fw * 0.15, y1 - h * 0.45, xa + fw * 0.5, tip); ctx.quadraticCurveTo(xa + fw * 0.6, y1 - h * 0.3, xa + fw, y1); }
+      ctx.closePath(); ctx.fill();
+    } else if (liv === 4) { const c = 0.09 * s; for (let i = 0; x0 + i * c < x1; i++) for (let j = 0; y1 - (j + 1) * c > y0 + h * 0.3; j++) if ((i + j) % 2 === 0) ctx.fillRect(x0 + i * c, y1 - (j + 1) * c, c, c); }
+    else if (liv === 5) { ctx.beginPath(); ctx.moveTo(x0, m - h * 0.12); ctx.lineTo(-0.08 * s, m - h * 0.22); ctx.lineTo(0.02 * s, m + h * 0.04); ctx.lineTo(x1, m - h * 0.06); ctx.lineTo(x1, m + h * 0.12); ctx.lineTo(0.06 * s, m + h * 0.26); ctx.lineTo(-0.04 * s, m); ctx.lineTo(x0, m + h * 0.08); ctx.closePath(); ctx.fill(); }
+    else if (liv === 6) { const r = 0.035 * s; for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) { ctx.beginPath(); ctx.arc(x0 + (i + 0.25 + (j % 2) * 0.5) * (w / 6), y0 + (j + 0.5) * (h / 4), r, 0, 7); ctx.fill(); } }
+  }
+  function tires(ctx, b, s, t, v, rim, c2, a0) { // rear tires, the tread rolling with speed
+    const S = SHAPE[b]; if (!S.tw) return;
+    const knob = b === 2 || b === 3, step = knob ? 0.14 : 0.1, off = ((t * v * 0.9) % step) * s;
     [-1, 1].forEach((sd) => {
-      const tx = sd * s * 0.43 - s * 0.13; ctx.fillStyle = "#1b1a1e"; rr(ctx, tx, -s * 0.42, s * 0.26, s * 0.42, s * 0.06); ctx.fill();
-      ctx.save(); rr(ctx, tx, -s * 0.42, s * 0.26, s * 0.42, s * 0.06); ctx.clip(); ctx.fillStyle = "#2f2d35";
-      const off = ((t * v * 0.9) % 0.1) * s; for (let k = -1; k < 6; k++) ctx.fillRect(tx, -s * 0.42 + k * s * 0.1 + off, s * 0.26, s * 0.03); ctx.restore();
+      const tw = s * S.tw, th = s * S.th, tx = sd * s * S.tx - tw / 2, top = -th, r = s * 0.06;
+      ctx.fillStyle = "#1b1a1e"; rr(ctx, tx, top, tw, th, r); ctx.fill();
+      ctx.save(); rr(ctx, tx, top, tw, th, r); ctx.clip(); ctx.fillStyle = "#2f2d35";
+      for (let k = -1; k < S.th / step + 1; k++) ctx.fillRect(tx + (knob ? tw * 0.12 : 0), top + k * s * step + off, knob ? tw * 0.76 : tw, s * (knob ? 0.06 : 0.03));
+      if (rim === 1) { ctx.fillStyle = c2; ctx.fillRect(tx + tw * 0.42, top, tw * 0.16, th); }
+      ctx.restore();
+      if (rim === 2) { ctx.save(); ctx.globalAlpha = a0 * (0.6 + 0.4 * Math.sin(t * 6)); ctx.strokeStyle = c2; ctx.lineWidth = Math.max(1.5, s * 0.03); rr(ctx, tx, top, tw, th, r); ctx.stroke(); ctx.restore(); }
     });
-    ctx.fillStyle = "#2b2a30"; ctx.fillRect(-s * 0.32, -s * 0.24, s * 0.64, s * 0.06); // axle
-    // body
-    ctx.fillStyle = col; ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, s * 0.025);
-    ctx.beginPath(); ctx.moveTo(-s * 0.36, -s * 0.07); ctx.lineTo(s * 0.36, -s * 0.07); ctx.lineTo(s * 0.29, -s * 0.42); ctx.lineTo(-s * 0.29, -s * 0.42); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "rgba(255,255,255,.22)"; ctx.fillRect(-s * 0.25, -s * 0.39, s * 0.22, s * 0.05);
-    ctx.fillStyle = o.brake ? "#ff3b3b" : "#7a1d1d"; rr(ctx, -s * 0.27, -s * 0.2, s * 0.13, s * 0.06, s * 0.02); ctx.fill(); rr(ctx, s * 0.14, -s * 0.2, s * 0.13, s * 0.06, s * 0.02); ctx.fill();
-    if (o.brake && !(o.alpha < 1)) { ctx.fillStyle = "rgba(255,60,60,.25)"; ctx.beginPath(); ctx.arc(-s * 0.2, -s * 0.17, s * 0.13, 0, 7); ctx.arc(s * 0.2, -s * 0.17, s * 0.13, 0, 7); ctx.fill(); }
-    // the robot riding it: torso in its color, a head that leans into the turn
-    ctx.fillStyle = col; rr(ctx, -s * 0.17, -s * 0.66, s * 0.34, s * 0.26, s * 0.06); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "rgba(0,0,0,.2)"; ctx.fillRect(-s * 0.12, -s * 0.58, s * 0.24, s * 0.04);
-    ctx.save(); ctx.translate((o.steer || 0) * s * 0.03, 0);
-    ctx.fillStyle = "#d9d5de"; rr(ctx, -s * 0.15, -s * 0.9, s * 0.3, s * 0.24, s * 0.06); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#8a8692"; for (let k = 0; k < 2; k++) ctx.fillRect(-s * 0.09, -s * 0.84 + k * s * 0.07, s * 0.18, s * 0.025);
-    ctx.strokeStyle = "#d9d5de"; ctx.lineWidth = Math.max(1, s * 0.02); ctx.beginPath(); ctx.moveTo(-s * 0.06, -s * 0.9); ctx.lineTo(-s * 0.08, -s * 1.02); ctx.stroke();
-    ctx.fillStyle = "#ff5d5d"; ctx.beginPath(); ctx.arc(-s * 0.08, -s * 1.04, s * 0.03, 0, 7); ctx.fill();
+  }
+  function rider(ctx, s, seat, col, head, steer, t) { // a robot driver: the racer bot, or a battle robot's sensor head
+    ctx.fillStyle = col; rr(ctx, -s * 0.17, seat - s * 0.26, s * 0.34, s * 0.26, s * 0.06); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(0,0,0,.2)"; ctx.fillRect(-s * 0.12, seat - s * 0.18, s * 0.24, s * 0.04);
+    ctx.save(); ctx.translate((steer || 0) * s * 0.03, 0);
+    const hy = seat - s * 0.5, hw = head === 1 ? 0.36 : 0.3;
+    ctx.fillStyle = "#d9d5de"; rr(ctx, -s * hw / 2, hy, s * hw, s * 0.24, s * 0.06); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#8a8692"; for (let k = 0; k < 2; k++) ctx.fillRect(-s * 0.09, hy + s * 0.06 + k * s * 0.07, s * 0.18, s * 0.025);
+    ctx.lineWidth = Math.max(1, s * 0.02);
+    if (head === 1) { // camera: a lens on top
+      ctx.fillStyle = "#2b2a30"; ctx.beginPath(); ctx.arc(0, hy, s * 0.08, Math.PI, 0); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#38a7f0"; ctx.beginPath(); ctx.arc(0, hy - s * 0.025, s * 0.03, 0, 7); ctx.fill();
+    } else if (head === 2) { // ultrasonic: two sound cans
+      ctx.fillStyle = "#a9a6b0"; [-1, 1].forEach((sd) => { rr(ctx, sd * s * 0.09 - s * 0.05, hy - s * 0.09, s * 0.1, s * 0.1, s * 0.03); ctx.fill(); ctx.stroke(); });
+    } else if (head === 3) { // touch: whiskers that twitch
+      [-1, 1].forEach((sd) => {
+        const wob = Math.sin(t * 5 + sd) * s * 0.02, ex = sd * s * 0.3 + wob, ey = hy - s * 0.12;
+        ctx.strokeStyle = "#d9d5de"; ctx.beginPath(); ctx.moveTo(sd * s * 0.08, hy); ctx.quadraticCurveTo(sd * s * 0.2, hy - s * 0.2, ex, ey); ctx.stroke();
+        ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.arc(ex, ey, s * 0.03, 0, 7); ctx.fill();
+      });
+    } else if (head === 4) { // lidar: a spinning dome
+      ctx.fillStyle = "#2b2a30"; ctx.beginPath(); ctx.ellipse(0, hy, s * 0.1, s * 0.08, 0, Math.PI, 0); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ff3b3b"; ctx.beginPath(); ctx.arc(Math.sin(t * 9) * s * 0.06, hy - s * 0.04, s * 0.024, 0, 7); ctx.fill();
+    } else { // the racer bot's antenna
+      ctx.strokeStyle = "#d9d5de"; ctx.beginPath(); ctx.moveTo(-s * 0.06, hy); ctx.lineTo(-s * 0.08, hy - s * 0.12); ctx.stroke();
+      ctx.fillStyle = "#ff5d5d"; ctx.beginPath(); ctx.arc(-s * 0.08, hy - s * 0.14, s * 0.03, 0, 7); ctx.fill();
+    }
     ctx.restore();
-    ctx.fillStyle = "#141316"; ctx.fillRect(-s * 0.4, -s * 0.47, s * 0.8, s * 0.05); // rear wing
-    ctx.fillRect(-s * 0.4, -s * 0.47, s * 0.04, s * 0.14); ctx.fillRect(s * 0.36, -s * 0.47, s * 0.04, s * 0.14);
+  }
+  // a kart from behind. o: color (when there's no look), look (paint shop), steer, brake, alpha, bob, t, v
+  function kart(ctx, x, y, size, o) {
+    const s = size, L = o.look, b = L ? L.body : 0, S = SHAPE[b], t = o.t || 0, v = o.v || 0, a0 = o.alpha == null ? 1 : o.alpha;
+    const col = L ? PAINT[L.c1] : o.color || "#f46524", c2 = L ? PAINT[L.c2] : "#f4f1ea", hover = b === 4;
+    ctx.save(); ctx.globalAlpha = a0; ctx.translate(x, y + (o.bob || 0)); ctx.rotate((o.steer || 0) * 0.05);
+    ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(0, 0, s * (hover ? 0.5 : 0.62), s * 0.1, 0, 0, 7); ctx.fill();
+    if (hover) { // a glow on the road under the pod, which floats
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.5); g.addColorStop(0, "rgba(62,232,255,.55)"); g.addColorStop(1, "rgba(62,232,255,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, s * 0.5, s * 0.14, 0, 0, 7); ctx.fill();
+      ctx.translate(0, -s * (0.12 + Math.sin(t * 3) * 0.02));
+    }
+    tires(ctx, b, s, t, v, L ? L.rim : 0, c2, a0);
+    if (b === 0) { ctx.fillStyle = "#2b2a30"; ctx.fillRect(-s * 0.32, -s * 0.24, s * 0.64, s * 0.06); } // axle
+    const tc = L && LOOKS.TRAILS[L.trail];
+    if (tc && v > 3) { // exhaust glow, longer at speed
+      const k = clamp((v - 3) / 10, 0, 1), yb = S.box[3] * s;
+      ctx.fillStyle = tc; ctx.globalAlpha = a0 * 0.85;
+      [-1, 1].forEach((sd) => { const len = s * (0.12 + 0.2 * k) * (0.8 + 0.4 * Math.abs(Math.sin(t * 30 + sd))); ctx.beginPath(); ctx.moveTo(sd * s * 0.14 - s * 0.05, yb); ctx.lineTo(sd * s * 0.14 + s * 0.05, yb); ctx.lineTo(sd * s * 0.14, yb + len); ctx.closePath(); ctx.fill(); });
+      ctx.globalAlpha = a0;
+    }
+    const body = bodyPath(b, s);
+    ctx.fillStyle = col; ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, s * 0.025);
+    ctx.fill(body);
+    ctx.save(); ctx.clip(body);
+    if (L && L.liv) livery(ctx, L.liv, b, s, c2);
+    ctx.fillStyle = "rgba(255,255,255,.22)"; ctx.fillRect(S.box[0] * s + s * 0.11, S.box[1] * s + s * 0.03, s * 0.22, s * 0.05);
+    ctx.restore();
+    ctx.stroke(body);
+    if (b === 3) { ctx.fillStyle = "rgba(0,0,0,.25)"; ctx.fillRect(-s * 0.36, -s * 0.32, s * 0.72, s * 0.025); } // the truck's tailgate
+    const [lx, ly] = S.light; ctx.fillStyle = o.brake ? "#ff3b3b" : "#7a1d1d";
+    (lx ? [-lx, lx] : [0]).forEach((px) => { rr(ctx, (px - 0.065) * s, ly * s, s * 0.13, s * 0.06, s * 0.02); ctx.fill(); });
+    if (o.brake && !(a0 < 1)) { ctx.fillStyle = "rgba(255,60,60,.25)"; ctx.beginPath(); (lx ? [-lx, lx] : [0]).forEach((px) => { ctx.moveTo(px * s + s * 0.13, (ly + 0.03) * s); ctx.arc(px * s, (ly + 0.03) * s, s * 0.13, 0, 7); }); ctx.fill(); }
+    if (L) { // the race number
+      const pw = s * 0.2, ph = s * 0.1, py = S.plate * s;
+      ctx.fillStyle = "#f4f1ea"; rr(ctx, -pw / 2, py - ph / 2, pw, ph, s * 0.02); ctx.fill(); ctx.lineWidth = Math.max(1, s * 0.012); ctx.stroke();
+      ctx.fillStyle = "#141316"; ctx.font = `700 ${Math.max(6, Math.round(s * 0.085))}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(String(L.num), 0, py + s * 0.005); ctx.lineWidth = Math.max(1.5, s * 0.025); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    }
+    rider(ctx, s, S.seat * s, col, L ? L.head : 0, o.steer, t);
+    ctx.fillStyle = "#141316";
+    if (b === 0) { // rear wing
+      ctx.fillRect(-s * 0.4, -s * 0.47, s * 0.8, s * 0.05); ctx.fillRect(-s * 0.4, -s * 0.47, s * 0.04, s * 0.14); ctx.fillRect(s * 0.36, -s * 0.47, s * 0.04, s * 0.14);
+    } else if (b === 1) { // a big wing on struts, with end plates
+      ctx.fillRect(-s * 0.18, -s * 0.58, s * 0.04, s * 0.22); ctx.fillRect(s * 0.14, -s * 0.58, s * 0.04, s * 0.22);
+      ctx.fillStyle = col; rr(ctx, -s * 0.5, -s * 0.66, s, s * 0.09, s * 0.02); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = c2; ctx.fillRect(-s * 0.48, -s * 0.6, s * 0.96, s * 0.02);
+      ctx.fillStyle = "#141316"; ctx.fillRect(-s * 0.53, -s * 0.71, s * 0.05, s * 0.18); ctx.fillRect(s * 0.48, -s * 0.71, s * 0.05, s * 0.18);
+    } else if (b === 2) { // roll cage
+      ctx.strokeStyle = "#2b2a30"; ctx.lineWidth = Math.max(2, s * 0.045); ctx.beginPath(); ctx.moveTo(-s * 0.3, -s * 0.4); ctx.lineTo(-s * 0.22, -s * 1.02); ctx.lineTo(s * 0.22, -s * 1.02); ctx.lineTo(s * 0.3, -s * 0.4); ctx.stroke();
+    } else if (b === 4) { // fins
+      ctx.fillStyle = col; [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.moveTo(sd * s * 0.42, -s * 0.38); ctx.lineTo(sd * s * 0.62, -s * 0.54); ctx.lineTo(sd * s * 0.48, -s * 0.26); ctx.closePath(); ctx.fill(); ctx.stroke(); });
+    }
     ctx.restore();
   }
   // faint streaks from the middle of the screen at speed
@@ -270,5 +382,5 @@
       const cx = w / 2, cy = horizon; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.6); ctx.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len) * 0.6); ctx.stroke();
     }
   }
-  window.RaceDraw = { THEMES, world, kart, minimap, speedLines, nameTag, roadY, trackMap, CAM_BACK };
+  window.RaceDraw = { THEMES, LOOKS, world, kart, minimap, speedLines, nameTag, roadY, trackMap, CAM_BACK };
 })();

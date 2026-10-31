@@ -1467,9 +1467,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       while (this.queue.length) this.log(this.queue.shift());
       if (win && win.kind === "win") { this.log(win); this.hp = win.hp; this.held = [false, false]; this.cb.onHP && this.cb.onHP(this.hp); this.startKO(win.me); }
     }
-    showChampion(bot, label) {
+    showChampion(bot, label, podium = {}) { // podium: { second, thirds: [] } for the steps beside the champion
       clearTimeout(this.timer);
-      Object.assign(this, { state: "champ", champ: bot, champLabel: label || "", champT: 0, queue: [], ev: null });
+      Object.assign(this, { state: "champ", champ: bot, champLabel: label || "", champT: 0, queue: [], ev: null, podium });
+      this.fx.p = []; this.fx.rings = []; this.fx.txt = []; // nothing left over from the last fight
       Sound.play("fanfare");
       this.confetti(140);
     }
@@ -1593,7 +1594,17 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         rg.addColorStop(0, pool); rg.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(px, py, w * 0.16, h * 0.07, 0, 0, 7); ctx.fill();
       });
-      ctx.font = `700 ${Math.round(h * 0.04)}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.18)";
+      if (/\bFINAL\b/.test(this.banner || "") && this.state !== "champ") { // the final gets gold lights sweeping the arena
+        ctx.save(); ctx.globalCompositeOperation = "lighter";
+        [0.38, 0.62].forEach((sx, k) => {
+          const a = Math.sin(t * (RM ? 0 : 0.9) + k * Math.PI) * 0.45, x0 = w * sx, y0 = h * 0.02, len = h * 0.95;
+          const g = ctx.createLinearGradient(x0, y0, x0, y0 + len); g.addColorStop(0, "rgba(255,210,63,.22)"); g.addColorStop(1, "rgba(255,210,63,0)");
+          ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0 - w * 0.012, y0); ctx.lineTo(x0 + w * 0.012, y0);
+          ctx.lineTo(x0 + Math.sin(a + 0.12) * len, y0 + Math.cos(a + 0.12) * len); ctx.lineTo(x0 + Math.sin(a - 0.12) * len, y0 + Math.cos(a - 0.12) * len); ctx.closePath(); ctx.fill();
+        });
+        ctx.restore();
+      }
+      ctx.font = `700 ${Math.round(h * 0.04)}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = /\bFINAL\b/.test(this.banner || "") ? "rgba(255,210,63,.4)" : "rgba(255,255,255,.18)";
       if (this.state !== "champ") ctx.fillText(this.banner || "FALL ROBOTICS ACADEMY  ·  BOT ARENA", w / 2, h * 0.135);
       if (this.state !== "champ") {
         ctx.strokeStyle = "rgba(244,101,36,.4)"; ctx.lineWidth = 2; ctx.setLineDash([10, 8]);
@@ -1652,6 +1663,8 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       [[a, 0], [b, 1]].forEach(([bt, k]) => {
         if (!bt) return;
         const p = this.pos(k), dir = k === 0 ? 1 : -1, dmg = 1 - this.hp[k] / 100;
+        if (!RM && tdt > 0 && this.hp[k] > 0 && this.hp[k] < 35 && (this.state === "fight" || this.state === "ko") && Math.random() < (this.hp[k] < 15 ? 0.45 : 0.2)) // badly hurt: smoke
+          this.fx.burst(p.x + slide[k] + (Math.random() - 0.5) * p.s * 0.6, p.mid - p.s * 0.6, 1, { colors: ["#4a4852", "#6d6a75"], kind: "smoke", speed: 30, g: -60, life: 1.2, size: 9, drag: 0.96, angle: -Math.PI / 2, spread: 0.7 });
         let x = p.x + slide[k], reach = 0, tilt = 0, hop = 0, hammer, clamp2, flipA;
         const acting = e && this.state === "fight" && e.kind === "act" && e.me === k;
         if (acting) {
@@ -1696,17 +1709,36 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       });
       if (e && this.state === "fight" && (e.kind === "sense" || e.kind === "think") && this.head[e.me]) {
         const p = this.pos(e.me), q = this.pos(1 - e.me), dir = e.me === 0 ? 1 : -1, k = clamp(this.evT / 0.5, 0, 1);
-        if (e.kind === "sense") {
-          const { headX: hx, headY: hy } = this.head[e.me];
-          ctx.save(); ctx.globalAlpha = 0.55;
-          const g = ctx.createLinearGradient(hx, 0, q.x, 0); g.addColorStop(0, "rgba(56,167,240,.8)"); g.addColorStop(1, "rgba(56,167,240,.05)");
-          ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(hx, hy);
-          const reachX = hx + (q.x - hx) * ease.out(k);
-          ctx.lineTo(reachX, q.mid - q.s * 1.1); ctx.lineTo(reachX, q.mid + q.s * 0.8); ctx.closePath(); ctx.fill();
-          ctx.strokeStyle = "#38a7f0"; ctx.globalAlpha = 0.9 * k; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
-          ctx.strokeRect(q.x - q.s, q.mid - q.s * 1.55, q.s * 2, q.s * 2.45); ctx.setLineDash([]);
-          ctx.font = `700 ${Math.round(q.s * 0.22)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#38a7f0"; ctx.textAlign = "center";
-          ctx.fillText("TARGET", q.x, q.mid - q.s * 1.65); ctx.textAlign = "left";
+        if (e.kind === "sense") { // each sensor senses its own way, in the color of its part
+          const { headX: hx, headY: hy } = this.head[e.me], sn = this.bots[e.me].sensor | 0, col = ["#38a7f0", "#4fd18b", "#ffd23f", "#ff3b3b"][sn];
+          const tx = q.x - dir * q.s * 0.55, ty = q.mid - q.s * 0.35, T = this.evT;
+          ctx.save(); ctx.lineCap = "round";
+          if (sn === 0) { // camera: a lens flash, a view cone, then focus brackets close in on the target
+            if (!RM && T < 0.18) { ctx.globalAlpha = 1 - T / 0.18; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(hx, hy, p.s * (0.12 + T * 1.4), 0, 7); ctx.fill(); }
+            ctx.globalAlpha = 0.4; const g = ctx.createLinearGradient(hx, 0, q.x, 0); g.addColorStop(0, "rgba(56,167,240,.8)"); g.addColorStop(1, "rgba(56,167,240,.05)"); ctx.fillStyle = g;
+            const reachX = hx + (q.x - hx) * ease.out(k); ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(reachX, q.mid - q.s * 1.1); ctx.lineTo(reachX, q.mid + q.s * 0.8); ctx.closePath(); ctx.fill();
+            const grow = 1 + (1 - ease.out(k)) * 0.7, cx = q.x, cy = q.mid - q.s * 0.33, hw = q.s * grow, hh = q.s * 1.22 * grow, c = q.s * 0.35;
+            ctx.globalAlpha = 0.95; ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, q.s * 0.05);
+            [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => { const x0 = cx + sx * hw, y0 = cy + sy * hh; ctx.beginPath(); ctx.moveTo(x0, y0 - sy * c); ctx.lineTo(x0, y0); ctx.lineTo(x0 - sx * c, y0); ctx.stroke(); });
+          } else if (sn === 1) { // ultrasonic: sound waves fly out to the target, and a fainter echo comes back
+            ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, p.s * 0.045);
+            const wave = (x, y, r, face) => { ctx.beginPath(); if (face > 0) ctx.arc(x - r, y, r, -0.7, 0.7); else ctx.arc(x + r, y, r, Math.PI - 0.7, Math.PI + 0.7); ctx.stroke(); };
+            for (let i = 0; i < 4; i++) { const f = T * 2.2 - i * 0.18; if (f > 0 && f < 1) { ctx.globalAlpha = 0.9 * (1 - f * 0.5); wave(hx + (tx - hx) * f, hy + (ty - hy) * f, p.s * (0.2 + 0.5 * f), dir); } }
+            for (let i = 0; i < 3; i++) { const f = T * 2.2 - 0.8 - i * 0.18; if (f > 0 && f < 1) { ctx.globalAlpha = 0.45 * (1 - f); wave(tx + (hx - tx) * f, ty + (hy - ty) * f, p.s * (0.7 - 0.4 * f), -dir); } }
+          } else if (sn === 2) { // touch: whiskers reach out and feel for the enemy, then a "felt it" ripple
+            const reach = ease.out(k) * Math.abs(q.x - hx) * 0.55, jit = RM ? 0 : Math.sin(T * 60) * p.s * 0.02;
+            ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = Math.max(2, p.s * 0.035);
+            [-1, 1].forEach((sy) => { const ex = hx + dir * reach, ey = hy + sy * p.s * 0.25 + jit; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + dir * reach * 0.5, hy + sy * p.s * 0.45, ex, ey); ctx.stroke(); ctx.beginPath(); ctx.arc(ex, ey, p.s * 0.055, 0, 7); ctx.fill(); });
+            if (k >= 1) { ctx.globalAlpha = Math.max(0, 1 - (T - 0.5) * 4); ctx.beginPath(); ctx.arc(hx + dir * reach, hy, p.s * (0.2 + (T - 0.5) * 1.2), 0, 7); ctx.stroke(); }
+          } else { // lidar: a laser sweeps over the enemy and maps it, dot by dot
+            const ly = q.mid - q.s * 0.4 + Math.sin(T * 16) * q.s * 0.85;
+            ctx.strokeStyle = col; ctx.globalAlpha = 0.9; ctx.lineWidth = Math.max(1.5, p.s * 0.025); ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(q.x - dir * q.s * 0.3, ly); ctx.stroke();
+            ctx.fillStyle = col;
+            for (let i = 0, n = Math.floor(30 * k); i < n; i++) { const a = i * 2.4, d = ((i * 53) % 100) / 100; { const z = Math.max(3, q.s * 0.045); ctx.fillRect(q.x + Math.cos(a) * q.s * 0.7 * d - z / 2, q.mid - q.s * 0.35 + Math.sin(a) * q.s * 0.95 * d - z / 2, z, z); } }
+          }
+          const pct = (/(\d+)% chance/.exec(e.txt) || [])[1];
+          ctx.globalAlpha = Math.min(1, k * 1.5); ctx.font = `700 ${Math.round(q.s * 0.2)}px "JetBrains Mono", monospace`; ctx.fillStyle = col; ctx.textAlign = "center";
+          ctx.fillText(`${E.PARTS.sensor[sn].n.toUpperCase()}${pct ? ` · ${pct}% TO HIT` : ""}`, q.x, q.mid - q.s * 1.65); ctx.textAlign = "left";
           ctx.restore();
         } else {
           const bx = p.x + dir * p.s * 0.2, by = p.top - p.s * 0.1, sc = ease.back(clamp(this.evT / 0.25, 0, 1));
@@ -1749,6 +1781,21 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
       ctx.save(); ctx.translate(w / 2, gy - s * 1.4); ctx.rotate(t * 0.2); ctx.fillStyle = "rgba(255,210,63,.08)";
       for (let i = 0; i < 12; i++) { ctx.rotate(Math.PI / 6); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w, -w * 0.08); ctx.lineTo(w, w * 0.08); ctx.fill(); }
       ctx.restore();
+      // the runner-up and the semifinalists on lower steps, looking at the champion
+      const pd = this.podium || {}, k2 = ease.back(clamp((this.champT - 0.5) / 0.6, 0, 1));
+      [[pd.second ? [pd.second] : [], -1, "#d9d5de", s * 0.25, "2"], [pd.thirds || [], 1, "#e0975a", s * 0.45, "3"]].forEach(([bots, side, col, drop, num]) => {
+        if (!bots.length || k2 <= 0) return;
+        const cx = w / 2 + side * s * 3.05, top = gy + drop;
+        ctx.fillStyle = col; rr(ctx, cx - s * 1.25, top, s * 2.5, h - top + 10, 8); ctx.fill();
+        ctx.font = `700 ${Math.round(s * 0.3)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#141316"; ctx.fillText(num, cx, top + s * 0.26);
+        const bs = s * (bots.length > 1 ? 0.5 : 0.68) * k2;
+        bots.forEach((bt, i) => {
+          const bx = cx + (bots.length > 1 ? (i ? 1 : -1) * s * 0.58 : 0);
+          drawBot(ctx, bt, bx, top, bs, -side, t, {});
+          ctx.font = `700 ${Math.round(s * 0.2)}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#f4f1ea"; ctx.textAlign = "center";
+          ctx.fillText(bt.name, bx, top - bs * 2.9 - s * 0.08);
+        });
+      });
       // podium
       ctx.fillStyle = "#ffd23f"; rr(ctx, w / 2 - s * 1.5, gy, s * 3, h - gy + 10, 8); ctx.fill();
       ctx.font = `700 ${Math.round(s * 0.35)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#141316";
