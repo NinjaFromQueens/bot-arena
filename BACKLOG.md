@@ -30,6 +30,7 @@ Last updated: October 30, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| B-01 | Audit fixes: replay of the final cut short by game updates; Race Day laps limited to one try per second; garage picks throttled; race page no longer drives 36 laps on load (track par) | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 0a38d0c |
 | F-25a | Extras: night headlights, "close behind" warning, simple graphics, smoke when badly hurt, gold lights for the final, top-3 podium | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
 | F-24 | Racer medals on every track | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
 | F-23 | Replay any finished match from the bracket | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
