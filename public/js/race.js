@@ -25,9 +25,10 @@
   // ---------------- tracks ----------------
   // k: curvature (1/radius, + is a right turn), slope: rise per meter. Changes are eased over ~10 m.
   // Every track climbs as much as it drops, so the lap joins up. keys name the sections the lap report talks about.
-  // Each track rewards a different setup (test/race.test.js checks it): that's the lesson.
+  // Each track rewards a different setup (test/race.test.js checks it): that's the lesson. par is the computer driver's
+  // best lap there (any setup), kept here so pages don't drive 36 laps to show medals; the test says if it's out of date.
   const DEFS = [
-    { id: 0, n: "Garage Circuit", theme: "dusk", about: "A steep hill after a hairpin, then a long straight. A middle gear fits best.",
+    { id: 0, n: "Garage Circuit", theme: "dusk", par: 62.96, about: "A steep hill after a hairpin, then a long straight. A middle gear fits best.",
       keys: { straight: "Long straight", hill: "Big Hill", corner: "Hairpin" }, sections: [
         { n: "Start straight", len: 70 },
         { n: "Sweeper", len: 60, k: 1 / 30 },
@@ -41,7 +42,7 @@
         { n: "Final turn", len: 40, k: -1 / 18 },
         { n: "Home straight", len: 60 },
       ] },
-    { id: 1, n: "Desert Speedway", theme: "desert", about: "Long, flat straights and wide turns. Top speed is everything.",
+    { id: 1, n: "Desert Speedway", theme: "desert", par: 53.73, about: "Long, flat straights and wide turns. Top speed is everything.",
       keys: { straight: "Back straight", hill: "Dune", corner: "Chicane" }, sections: [
         { n: "Start straight", len: 120 },
         { n: "Turn 1", len: 70, k: 1 / 40 },
@@ -53,7 +54,7 @@
         { n: "Turn 3", len: 60, k: 1 / 40 },
         { n: "Home straight", len: 110 },
       ] },
-    { id: 2, n: "Neon Peaks", theme: "night", about: "Steep climbs and tight switchbacks at night. Pushing force matters most.",
+    { id: 2, n: "Neon Peaks", theme: "night", par: 76.11, about: "Steep climbs and tight switchbacks at night. Pushing force matters most.",
       keys: { straight: "Ridge", hill: "First climb", corner: "Switchback" }, sections: [
         { n: "Start straight", len: 30 },
         { n: "First climb", len: 70, slope: 0.4 },
@@ -180,9 +181,9 @@
     return lo;
   }
 
-  // medals: gold matches the computer driver's best lap on the track (any setup), silver and bronze are within 10% and 25%
+  // medals: gold matches the computer driver's best lap on the track (its par), silver and bronze are within 10% and 25%
   function medals(track) {
-    const best = Math.min(...autoTimes(track).flat());
+    const best = trackOf(track).par;
     return { gold: Math.round(best * 100) / 100, silver: Math.ceil(best * 110) / 100, bronze: Math.ceil(best * 125) / 100 };
   }
   function medalOf(time, track) { // compared in hundredths, the way times are shown

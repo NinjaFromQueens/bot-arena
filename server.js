@@ -159,7 +159,7 @@ function gpAwards(room) {
   }
   return out;
 }
-function gpLooks(room) { // paint shop changes reach Race Day at most every 300 ms, however fast students click
+function gpSoon(room) { // garage picks and paint shop changes reach everyone at most every 300 ms, however fast students click
   if (!room.gpLookTimer) room.gpLookTimer = setTimeout(() => { room.gpLookTimer = null; if (room.gp) gpUpdate(room); }, 300);
 }
 function gpUpdate(room) { io.to("race:" + room.code).emit("gp:state", gpState(room)); broadcast(room); }
@@ -585,7 +585,7 @@ io.on("connection", (socket) => {
     if (!me) return cb && cb({ ok: false });
     socket.join("race:" + me.room.code); raceMe = me;
     if (d.look) me.p.raceLook = Race.cleanLook(d.look);
-    if (d.look && me.room.gp) gpLooks(me.room);
+    if (d.look && me.room.gp) gpSoon(me.room);
     cb && cb({ ok: true, boards: Race.TRACKS.map((tr) => raceBoard(me.room, tr.id)), gp: gpState(me.room) });
   });
   socket.on("race:submit", (d, cb) => {
@@ -646,12 +646,12 @@ io.on("connection", (socket) => {
   socket.on("race:look", (d) => {
     if (!raceMe || !d || typeof d !== "object") return;
     raceMe.p.raceLook = Race.cleanLook(d);
-    if (raceMe.room.gp) gpLooks(raceMe.room);
+    if (raceMe.room.gp) gpSoon(raceMe.room);
   });
   // Race Day: a student's race page (registered by race:check)
   socket.on("player:gpSetup", (d) => {
     const g = raceMe && raceMe.room.gp; if (!g || g.phase !== "garage") return;
-    g.setups.set(raceMe.p.id, Race.clampSetup(d)); gpUpdate(raceMe.room);
+    g.setups.set(raceMe.p.id, Race.clampSetup(d)); gpSoon(raceMe.room);
   });
   socket.on("player:gpPos", (d) => {
     const g = raceMe && raceMe.room.gp; if (!g || (g.phase !== "racing" && g.phase !== "countdown")) return;
@@ -663,6 +663,9 @@ io.on("connection", (socket) => {
     const me = raceMe, g = me && me.room.gp;
     if (!g || g.phase !== "racing") return cb && cb({ ok: false, error: "The race isn't running." });
     if (g.laps.has(me.p.id)) return cb && cb({ ok: false, error: "Your lap is already in." });
+    const now = Date.now();
+    if (now - (me.p.gpLapAt || 0) < 1000) return cb && cb({ ok: false, error: "Wait a moment before sending again." });
+    me.p.gpLapAt = now;
     const inputs = d && d.inputs;
     if (typeof inputs !== "string" || inputs.length > Race.MAX_STEPS || !/^[a-l]*$/.test(inputs)) return cb && cb({ ok: false, error: "That lap can't be checked." });
     const setup = Race.clampSetup(d.setup), r = Race.lap(setup, inputs, g.tracks[g.i]);

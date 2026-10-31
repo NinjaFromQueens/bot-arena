@@ -204,7 +204,7 @@
     $("left").textContent = state.phase === "done" ? "Finished" : `${remaining} match${remaining === 1 ? "" : "es"} left`;
     $("donectl").hidden = state.phase !== "done";
     ["next", "skip", "ptimewrap", "autowrap", "speedseg"].forEach((id) => ($(id).hidden = state.phase === "done")); // nothing left to play
-    if (state.phase === "done" && stage.state !== "champ" && !playing) {
+    if (state.phase === "done" && stage.state !== "champ" && !playing && !replay) {
       const c = byId(state.championId);
       if (c) { hideUpNext(); stage.showChampion({ ...c.bot, builder: c.builder }, "", podiumOf(br)); M.play("champion", 1.5); $("roundname").textContent = "Champion"; $("matchinfo").textContent = ""; }
     }

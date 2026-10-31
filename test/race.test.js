@@ -60,6 +60,7 @@ assert(R.climbSpeed(four, peaks.steep) < 0.3 && R.climbSpeed({ gear: 2, tire: 1 
 // medals: in order, and the computer driver's best lap earns gold
 for (const tr of R.TRACKS) {
   const m = R.medals(tr), at = R.autoTimes(tr), best = Math.min(...at.flat());
+  assert.strictEqual(tr.par, Math.round(best * 100) / 100, `${tr.n}: par is out of date. Set it to ${Math.round(best * 100) / 100} in race.js`);
   assert(m.gold < m.silver && m.silver < m.bronze, `${tr.n}: medal times in order`);
   assert(R.medalOf(best, tr) === "gold" && R.medalOf(m.silver, tr) === "silver" && R.medalOf(m.bronze + 0.01, tr) === null && R.medalOf(null, tr) === null, `${tr.n}: medals match the times`);
 }
