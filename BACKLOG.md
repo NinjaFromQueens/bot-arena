@@ -14,11 +14,7 @@ Last updated: October 30, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| F-20 | Robot Racer paint shop | Branch `game-upgrades`. Students customize their car: two colors, a livery (stripe, flames, checkers, lightning, dots), a race number, body style (kart, F1, buggy, truck, hover pod), wheels, wing, trail color, and their battle robot as the driver. Looks only (gear and tires stay the only performance choices). Saved on the device as a short look code; the server checks it so classmates see your car in Race Day. |
-| F-21 | Racer teaching HUD | Branch `game-upgrades`. A hill profile strip under the track map (where the climbs are, where you are), a speed and rpm dial with a red line, and a chiptune motor sound whose pitch follows rpm, so students see and hear a gear run out of torque. |
-| F-22 | Battle stage: a look per sensor | Branch `game-upgrades`. The stage shows one generic scan beam today. Give each sensor its own: ultrasonic rings, a sweeping lidar laser, a camera lens flash, touch whiskers. Presentation only (battle.js), so results can't change. |
-| F-23 | Replay any finished match | Branch `game-upgrades`. Click a finished match in the bracket to watch it again (fights are seeded, so the server only needs to keep each match's seed). |
-| F-24 | Racer medals | Branch `game-upgrades`. Bronze, silver and gold times on each track, set from the computer driver's best. |
+| — | Nothing in progress | — |
 
 ---
 
@@ -34,6 +30,12 @@ Last updated: October 30, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-25a | Extras: night headlights, "close behind" warning, simple graphics, smoke when badly hurt, gold lights for the final, top-3 podium | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
+| F-24 | Racer medals on every track | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
+| F-23 | Replay any finished match from the bracket | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
+| F-22 | Battle stage: a look per sensor (camera brackets, ultrasonic waves, touch whiskers, lidar sweep) with the hit chance | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
+| F-21 | Racer teaching HUD: rpm dial, hill profile (red = too steep for your gear), motor sound | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
+| F-20 | Robot Racer paint shop: bodies, colors, patterns, numbers, trims, exhaust, driver heads; classmates see it in Race Day | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
 | F-19 | Clearer board lobby: tournament panel, separate class activities | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | f3d9937 |
 | F-18 | Race Day: whole-class Robot Racer Grand Prix, three tracks, new racing graphics | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | e47ae9f |
 | F-17 | 8-bit chiptune music and sound effects, sound test page | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | f708a94 |
