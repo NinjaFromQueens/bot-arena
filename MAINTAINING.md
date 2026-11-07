@@ -57,6 +57,9 @@ git push             # Render deploys in ~2 minutes
 | Paint shop choices (car bodies, colors, patterns) | `public/js/racedraw.js` → `LOOKS` (names and colors) and `SHAPE` (where each body's parts sit); `public/js/race.js` → `LOOK` (how many of each, which the server checks). Add new choices at the END of a list so saved cars keep their look. Looks never change speed. |
 | Medal times | `public/js/race.js` → each track's `par` in `DEFS` (the computer driver's best lap) and `medals` (silver and bronze are 10% and 25% slower). If you change the car or track numbers, `npm test` tells you the new `par` to type in. |
 | Quick chat messages | `public/js/engine.js` → `QUICK`. Add new ones at the END (students send positions). `{a}` and `{b}` become the names of the robots fighting now. |
+| What a student account saves | `KEYS` in both `lib/accounts.js` (how the server checks each one) and `public/js/account.js` (which localStorage keys get copied). Add a key to both, with a check that cleans or rejects bad values. |
+| Lessons on the teacher dashboard | `public/js/catalog.js` → `LESSONS` (`npm test` checks it matches the lesson files: ids in `index.json` order, the Recruit title) |
+| Picture-password pictures | `public/js/catalog.js` → `PICS`. Add new ones at the END: the database stores positions. |
 | Race Day points and time limit | `server.js` → `GP_POINTS` (1st, 2nd, ... then 1 for any finish) and `GP_LIMIT` (seconds before a race ends). |
 | Flight report wording | `public/js/flight.js` → `explain()` and `tipFor()` |
 | "Why ___ won" battle wording | `public/js/engine.js` → `explainBattle()` |
@@ -81,7 +84,11 @@ Then fix it locally (or with Claude Code), run `npm test`, and push again.
 ## Things to know
 
 - **Games live in memory.** If Render restarts the server (a deploy, or a crash), any tournament in progress ends. Don't push updates during class.
-- **Lessons, Lab progress, and practice robots are saved on each student's device** (browser storage). Clearing browser data or switching devices starts them fresh. No student data is stored on the server.
+- **Lessons, Lab progress, and practice robots are saved on each student's device** (browser storage). Clearing browser data or switching devices starts them fresh, unless the student signs in to a class account: then the account keeps a copy (see below).
+- **Class accounts need two settings on Render.** Until both are set, sign-in stays hidden and nothing else changes.
+  1. **Database:** in Render, **New → PostgreSQL**, in the same region as the web service. Render's free database is deleted after about a month, so pick a paid one (the smallest is a few dollars a month). When it's ready, copy its **Internal Database URL**, open the **bot-arena** service → **Environment**, and add `DATABASE_URL` with that value. The tables are made automatically on the next start.
+  2. **Google sign-in:** at console.cloud.google.com, make a project, set up the **OAuth consent screen** (External; app name and your email; the default email/profile scopes), then **Credentials → Create credentials → OAuth client ID → Web application**. Under **Authorized JavaScript origins** add `https://circuitrebels.org`, `https://www.circuitrebels.org` and `https://bot-arena-g5ew.onrender.com` (and `http://localhost:3000` for testing). Copy the **Client ID** (no secret is needed) and add it on Render as `GOOGLE_CLIENT_ID`. Publish the consent screen so any teacher can sign in.
+- **Accounts on your own computer:** `DEV_LOGIN=1 npm run dev` uses a temporary in-memory database (gone when the server stops) and a test teacher sign-in instead of Google. It never turns on on Render.
 - **Free plan limits:** the app sleeps after 15 minutes idle. If the wake-up wait becomes a problem, Render's paid Starter plan keeps it always on.
 - **Tests protect you.** `npm test` checks that the bracket works for any class size, battles are fair and repeatable, and every Flying Car mission can still be beaten. If a change makes a mission impossible, the test tells you which one.
 - **Offline backups go stale.** After changing anything in `public/`, run `npm run offline` and commit, so the backup files match the live app.

@@ -163,7 +163,20 @@ The physics (`public/js/flight.js`) is a deterministic 2D simulation: gravity, t
 Other pages:
 - `/practice` — single-device robot building, battles with the same rules as the tournament, and the Brain Challenges.
 
-Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (click the × on its lobby card twice). No accounts, no student data is stored. Games live in server memory and disappear after 6 idle hours.
+Classroom safety: names pass a word filter (it blocks bad words without blocking real names like Michelle, Diego or Cassidy), and the host can remove any robot (click the × on its lobby card twice). Live games need no accounts and store no student data: they live in server memory and disappear after 6 idle hours. (Class accounts, below, are separate and optional.)
+
+## Class accounts (saved progress)
+
+With class accounts turned on, students' progress follows them to any computer, and teachers see it on a dashboard.
+
+- **Teachers** sign in at `/teacher` with Google, make a class (it gets a 6-character code), and add students by name: first name and last initial is enough. Each student gets a **3-picture password** (like 🐱 🚀 ⭐). **Print login cards** makes a card per student with the code and their pictures.
+- **Students** sign in at `/login` (or **Sign in** at the top of any page): type the class code, tap their name, tap their 3 pictures. No email, nothing hard to type. Five wrong tries lock that student out for 5 minutes. **Sign out** clears the computer for the next student.
+- **What's saved:** lessons and quiz scores, Flying Car Lab stars and design, Brain Challenges, Robot Racer best laps, car and setup, their robots, and the story: each mission's steps, mission predictions and their reading level. If a student uses two computers at once, their story progress from both is put together. The pages still save on the device as before, and the account keeps a copy. Racer laps are driven again by the server, so medals on the dashboard are real. The first time a student signs in, any progress already on that computer comes along.
+- **The dashboard** shows each student's lessons (and each lesson's first-try quiz score), Lab stars, Brain Challenges, story missions finished, race medals and when they last signed in, refreshing every 20 seconds. **Download spreadsheet** exports it all. **New pictures** gives a student a new password and signs them out everywhere; **Remove** deletes a student and their progress, and **Delete class** deletes the whole class.
+- **Privacy:** the server keeps the teacher's name and email (from Google) and each student's name and progress, nothing else. Pictures are hidden on the dashboard until you turn on **Show pictures**, so you can project it.
+- Live games (tournaments, Race Day, Lab challenges, lessons on the board) work exactly as before and don't need accounts.
+
+**Turning it on** takes two settings on Render (see MAINTAINING.md for the steps): `DATABASE_URL` (a Render Postgres database) and `GOOGLE_CLIENT_ID` (from Google Cloud). Until then, the sign-in links stay hidden and the rest of the site works as usual. To try it on your own computer, run `DEV_LOGIN=1 npm run dev`: it uses a temporary in-memory database and adds a test teacher sign-in instead of Google.
 
 ## Backup plan (if students can't join)
 

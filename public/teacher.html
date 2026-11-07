@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teacher dashboard · Circuit Rebels</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Teacher dashboard: sign in with Google, classes, each class's roster and progress, login cards, spreadsheet. */
+  .wrap { max-width: 1300px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .page { display: grid; gap: 14px; }
+  .lead { color: var(--muted); font-size: 16px; max-width: 70ch; margin: 4px 0 0; }
+  .signin { display: grid; gap: 12px; justify-items: start; max-width: 640px; }
+  .privacy { font-size: 13px; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; }
+  .newclass { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .newclass input { max-width: 280px; }
+  .classes { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 12px; }
+  .ccard { text-align: left; display: grid; gap: 4px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; font: inherit; }
+  .ccard:hover, .ccard:focus-visible { border-color: var(--orange); }
+  .ccard b { font-family: var(--display); font-size: 19px; }
+  .ccard .code { font-family: var(--mono); color: var(--orange-hi); letter-spacing: .12em; }
+  .classhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .bigcode { font-family: var(--mono); font-weight: 700; font-size: 34px; letter-spacing: .14em; color: var(--orange-hi); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .addbox { display: grid; gap: 8px; max-width: 520px; }
+  .addbox textarea { font: inherit; font-size: 16px; min-height: 140px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; resize: vertical; }
+  .tablewrap { overflow-x: auto; }
+  table.roster { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .roster th { text-align: left; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; white-space: nowrap; }
+  .roster td { padding: 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+  .roster td.nm { font-family: var(--display); font-weight: 700; white-space: nowrap; }
+  .roster .num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .roster .pics { font-size: 22px; letter-spacing: 4px; white-space: nowrap; }
+  .roster .bar { width: 90px; height: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 6px; }
+  .roster .bar i { display: block; height: 100%; background: var(--good); }
+  .roster .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .roster button.mini { font: inherit; font-size: 13px; padding: 5px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-hi); color: var(--fg); cursor: pointer; white-space: nowrap; }
+  .roster button.mini.danger { color: var(--bad); }
+  .roster button.mini.confirm { background: var(--bad); color: var(--ink); border-color: var(--bad); }
+  .matrix td.l { text-align: center; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  .matrix td.l.done { color: var(--good); }
+  .matrix td.l.part { color: var(--gold); }
+  .btn.confirm { background: var(--bad); color: var(--ink); border-color: var(--bad); }
+  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; user-select: none; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--orange); }
+  .empty { border: 2px dashed var(--line); border-radius: 14px; padding: 28px 20px; text-align: center; color: var(--muted); }
+  /* login cards: shown only when printing */
+  #cards { display: none; }
+  @media print {
+    body { background: #fff; }
+    body > .wrap { display: none; }
+    #cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10mm; padding: 6mm; color: #000; font-family: Arial, sans-serif; }
+    .lcard { border: 1.5px dashed #555; border-radius: 4mm; padding: 6mm; break-inside: avoid; }
+    .lcard .n { font-size: 20pt; font-weight: 700; }
+    .lcard .p { font-size: 34pt; letter-spacing: 6mm; margin: 3mm 0; }
+    .lcard .s { font-size: 11pt; }
+  }
+</style>
+</head>
+<body data-page="teacher">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Teacher dashboard</h1></div>
+    </a>
+    <div class="headright">
+      <span class="acct" id="me" hidden><span class="acct-who" id="mename"></span><button type="button" id="signout" data-tip="Sign out of your teacher account on this computer.">Sign out</button></span>
+      <a class="btn ghost" href="/host" style="padding:8px 14px" data-tip="Run a live tournament on the projector.">Host a game</a>
+    </div>
+  </header>
+  <p class="warn" id="msg" role="status"></p>
+
+  <section class="panel signin" id="s-signin" hidden>
+    <h2>Teacher sign in</h2>
+    <p class="lead">Make classes, print login cards for your students, and see what each student has finished: lessons, Lab missions, Brain Challenges and race times.</p>
+    <div id="gbtn"></div>
+    <p class="small" id="nogoogle" hidden>Google sign-in isn't set up on this server yet.</p>
+    <form id="devform" class="newclass" hidden autocomplete="off">
+      <input type="text" id="devname" placeholder="Test teacher name" aria-label="Test teacher name">
+      <button class="btn" type="submit" data-tip="Only on a test server: sign in without Google.">Test sign in</button>
+    </form>
+    <p class="privacy">What's saved: your name and email from Google, and for each student their name (first name and last initial) and their progress. Removing a student deletes their data.</p>
+  </section>
+
+  <section class="panel signin" id="s-off" hidden>
+    <h2>Accounts aren't set up yet</h2>
+    <p class="lead">This server doesn't have a database for class accounts. Everything else (lessons, games, live tournaments) works as usual.</p>
+  </section>
+
+  <section class="page" id="s-classes" hidden>
+    <div class="panel">
+      <h2>Your classes</h2>
+      <p class="lead">Each class gets its own code. Students sign in at <b class="siteurl"></b> with the code, then tap their name and their 3 pictures.</p>
+      <form class="newclass" id="newclass" autocomplete="off">
+        <input type="text" id="classname" maxlength="40" placeholder="Class name, like Period 3" aria-label="Class name">
+        <button class="btn" type="submit" data-tip="Make a new class with its own sign-in code.">Make a class</button>
+      </form>
+      <div class="classes" id="classes"></div>
+    </div>
+  </section>
+
+  <section class="page" id="s-class" hidden>
+    <div class="panel">
+      <p class="small"><a href="#" id="toclasses" style="color:inherit" data-tip="Back to all your classes.">← All classes</a></p>
+      <div class="classhead">
+        <div>
+          <h2 id="cname"></h2>
+          <p class="lead">Students sign in at <b class="siteurl"></b> with this code:</p>
+          <div class="bigcode" id="ccode"></div>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" id="addbtn" data-tip="Add students to this class. Each one gets a 3-picture password.">Add students</button>
+          <button class="btn ghost" type="button" id="cardsbtn" data-tip="Print a card for each student with the class code and their 3 pictures.">Print login cards</button>
+          <a class="btn ghost" id="csv" data-tip="Download everyone's progress as a spreadsheet (opens in Excel or Google Sheets).">Download spreadsheet</a>
+          <button class="btn ghost" type="button" id="delclass" data-tip="Delete this class and all its students' progress. Click twice to confirm.">Delete class</button>
+        </div>
+      </div>
+      <form class="addbox" id="addbox" hidden autocomplete="off">
+        <label class="small" for="names">One name per line. First name and last initial is enough, like Maya R.</label>
+        <textarea id="names" aria-label="Student names, one per line"></textarea>
+        <div class="actions"><button class="btn" type="submit" data-tip="Add these students. Their pictures appear in the list.">Add to class</button><span class="small" id="addmsg"></span></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="classhead">
+        <h2>Students and progress</h2>
+        <div class="actions">
+          <label class="switch" data-tip="Show each student's 3 pictures. Turn this off before projecting your screen."><input type="checkbox" id="showpics"> Show pictures</label>
+          <label class="switch" data-tip="Show each lesson's quiz score for every student."><input type="checkbox" id="showlessons"> Lesson details</label>
+        </div>
+      </div>
+      <div class="tablewrap"><table class="roster" id="roster"></table></div>
+      <div class="empty" id="noone" hidden>No students yet. Press <b>Add students</b> and type their names.</div>
+    </div>
+  </section>
+</div>
+<div id="cards" aria-hidden="true"></div>
+<script src="/js/engine.js"></script>
+<script src="/js/race.js"></script>
+<script src="/js/flight.js"></script>
+<script src="/js/challenges.js"></script>
+<script src="/js/catalog.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/js/teacher.js"></script>
+</body>
+</html>

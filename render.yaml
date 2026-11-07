@@ -11,3 +11,7 @@ services:
         value: "20"
       - key: TEACHER_PIN # optional: turns on /status; set the value in Render, never in this file
         sync: false
+      - key: DATABASE_URL # optional: a Render Postgres database's Internal URL turns on class accounts
+        sync: false
+      - key: GOOGLE_CLIENT_ID # optional: the Google OAuth client ID for teacher sign-in (see MAINTAINING.md)
+        sync: false

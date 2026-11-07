@@ -35,6 +35,8 @@ app.get("/art/manifest.json", (_req, res) => res.json({ parts: {} })); // no art
 app.get("/vendor/qrcode.js", (_req, res) => res.sendFile(path.join(__dirname, "node_modules/qrcode-generator/qrcode.js")));
 app.get("/healthz", (_req, res) => res.json({ ok: true, rooms: rooms.size }));
 app.set("trust proxy", 1); // behind Render's proxy, so req.ip is the visitor (for the PIN limit)
+// Teacher accounts, classes and saved student progress (lib/accounts.js, under /api/account). Live games don't use them.
+require("./lib/accounts")({ app, isBlocked, Engine, Flight, Race });
 
 // Teacher status page (/status): server health and the games running, behind the TEACHER_PIN setting.
 // Counts only, never student names. Ten wrong PINs from one address lock it out for 10 minutes.
