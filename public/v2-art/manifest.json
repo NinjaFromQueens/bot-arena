@@ -1,0 +1,18 @@
+{
+  "name": "Version 2 parts (preview)",
+  "parts": {
+    "body.0": { "src": "wheels.png", "box": [-0.65, -0.761, 1.3, 0.761] },
+    "body.1": { "src": "treads.png", "box": [-0.9, -0.652, 1.8, 0.652] },
+    "body.2": { "src": "legs.png", "box": [-0.479, -0.9, 0.958, 0.9] },
+    "body.3": { "src": "wedge.png", "box": [-0.95, -0.578, 2.2, 0.578] },
+    "sensor.0": { "src": "camera.png", "box": [-0.436, -0.313, 0.874, 0.628] },
+    "sensor.1": { "src": "ultrasonic.png", "box": [-0.436, -0.3, 0.876, 0.603] },
+    "sensor.2": { "src": "touch.png", "box": [-0.417, -0.322, 1.128, 0.644] },
+    "sensor.3": { "src": "lidar.png", "box": [-0.44, -0.437, 0.886, 0.727] },
+    "tool.0": { "src": "gripper.png", "box": [0, -0.282, 0.6, 0.563] },
+    "tool.1": { "src": "hammer.png", "box": [0, -0.358, 0.7, 0.668] },
+    "tool.2": { "src": "spinner.png", "box": [-0.018, -0.359, 0.641, 0.623], "pivot": [0.3, 0] },
+    "tool.3": { "src": "flipper.png", "box": [-0.102, -0.17, 0.7, 0.251] },
+    "tool.4": { "src": "drill.png", "box": [0, -0.148, 0.7, 0.296] }
+  }
+}

@@ -24,6 +24,12 @@
   .online b { color: var(--fg); }
   .online i { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px #4fd18b26; flex: none; }
   .tagline { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--orange); text-transform: uppercase; }
+  .v2strip { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; align-items: center; gap: 14px 22px; margin-top: 14px; text-decoration: none; color: inherit; }
+  .v2strip:hover { border-color: var(--orange); }
+  .v2strip img { display: block; width: 100%; height: auto; border-radius: 10px; }
+  .v2strip h2 { font-size: 22px; }
+  .v2strip > div { display: grid; gap: 4px; }
+  @media (max-width: 720px) { .v2strip { grid-template-columns: minmax(0, 1fr); } .v2strip img { max-width: 320px; } }
 </style>
 </head>
 <body data-page="home">
@@ -75,6 +81,12 @@
     <p class="small"><a href="/status" style="color:inherit" data-tip="Server health, the deployed version and the games running. Needs the teacher PIN.">Server status</a></p></div>
     <a class="btn big ghost" href="/host">Host on the board</a>
   </div>
+  <a class="panel v2strip" href="/v2" data-tip="A first look at Circuit Rebels, the next version of Bot Arena, for teachers and schools: class accounts, fights on every screen, class chat and new robot art.">
+    <img src="/img/v2/hero-thumb.webp" width="480" height="271" alt="" loading="lazy">
+    <div><span class="tagline">Coming soon</span><h2>Bot Arena is becoming Circuit Rebels</h2>
+    <p class="intro">Class accounts, saved progress, fights on every screen and all-new robot art. Schools can sign up for information.</p></div>
+    <span class="btn big ghost">See what's coming</span>
+  </a>
 </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>

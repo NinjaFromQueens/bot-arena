@@ -1,6 +1,6 @@
 # Bot Arena — Backlog
 
-Last updated: October 30, 2026
+Last updated: November 7, 2026
 
 ---
 
@@ -14,14 +14,18 @@ Last updated: October 30, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| — | Nothing in progress | — |
+| F-28 | Version 2 preview page and educator interest form | Branch `v2-preview` (from the live site; worktree folder `bot-arena-v2`). A separate "Coming in Version 2" page with screenshots of what's coming, plus an embedded Google Form for teachers, educators and school leaders; one button on the home page. Games untouched. Built and tested (desktop + 375px, no console errors, every image loads, home join form unaffected): `public/v2.html` at `/v2`, "See what's coming" panel under the teachers panel on the home page. Waiting on the Google Form link (`FORM_URL` in v2.html), then publish before graduation. |
+| F-02 | Game art with Higgsfield | Started: style test first (0.5 credits), then gray part templates as sprite sheets (the game recolors them), karts, backgrounds and preview art. Budget up to 100 credits. Art stays off the live game until approved. Done so far (61.5 credits, including 41.25 on story art): style test, 3 part sheets in style A (bodies, sensors, tools; jobs 3ac80e2f, eafc0dad, 8f3047f6), hero in style B (job 2f2bde8c), 5 racer kart bodies as gray paint templates seen from behind (c83bb167), the battle arena (5470bed1) and the three track backdrops (b0816acc garage, d3b686ba desert, 996f30e6 neon). Sliced into 13 parts in `public/v2-art/` with a checked manifest; only the preview page loads it. To use it in the game later: copy `public/v2-art/` to `public/art/`. The preview page shows the arena behind its robot demo and a racer demo (track, body, paint). Using the karts, arena and tracks in the real game needs code in racedraw.js/battle.js (after graduation). |
 
 ---
 
 ## 📋 Planned
 | # | Feature | Priority | Notes |
 |---|---|---|---|
-| F-02 | AI art for backgrounds and fighters (Higgsfield) | Low | Parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. F-12 is done: generated pictures go in `public/art/` with a manifest. |
+| F-29 | Preview onboarding flow | High | Replace the one long /v2 page with a step-by-step tour: the new name, the story, lessons, games, new art, the Workshop hub, classroom features, then the sign-up form at the end. Static page only, so it's safe to publish before graduation. Draft built Nov 7: public/tour.html (/tour), 8 steps, every picture from one ART list at the top of its script (story art in public/assets/), tested at desktop and 375px. Waiting for the teacher's review; once approved, point the home page panel at /tour and push. |
+| F-30 | Story mode: The Resistance | High | Teacher's story doc (Nov 7, 2026): OMNI, Volt, Commander Rivet, Sparrow, Torque; 12 chapters in 3 acts, each chapter = briefing, existing lesson, reskinned mission, debrief. Wrap lessons in story frames (`story.js` data + a frame in learn.js), keep lesson claims tested. Decided Nov 7: the kids' group is called the Circuit Rebels (not "the Spark"); story progress unlocks looks only (Volt skins, paint, voice lines, rank badges), never Bot Arena parts, so class tournaments stay fair. Recruit tier (grades 4-8) first; Cadet and Operative tiers later. Art: the teacher's Story Mode Asset Prompts pack, in the style approved Nov 7 (hand-drawn 2D with ink lines and painted backgrounds; OMNI's digital world in cel-shaded 3D; see art-work/story/STYLE.md; no older game art as references). Made so far: Volt model sheet + all 7 stages, Rivet/Sparrow/Torque model sheets, recruit, OMNI and Warden reference sheets, in public/assets/ with every pack ID in public/assets/story-assets.json. Needs accounts (F-11/accounts branch) to save progress across devices. New AI lessons for chapters 11-12. After graduation. |
+| F-31 | The Workshop: multiplayer hub | Medium | Class-only lobby: robot avatars built from parts (no photos), walk around a 2D Workshop, quick messages and emotes only (decided Nov 7: no free typing or voice, at any grade), doors into Arena, Racer, Lab and story chapters. Teacher sees and moderates everyone. After graduation. |
+| F-32 | Rename the platform to Circuit Rebels | Medium | Preview page and home panel use the name now ("Bot Arena is becoming Circuit Rebels"). The games, logo, titles, offline backups and docs change after graduation. Check the name (trademark, domain) before printing it. |
 | F-25 | More game ideas (still to build) | Low | Racer: turning sprites and body roll, curbs, a lap replay with trackside cameras, multi-lap Race Day, new tracks (ice rink, city streets, mountain pass), rain that lowers grip, a track builder, unlockable stickers for the paint shop. Battles: paint patterns and faces for robots, a fighting-game TV look, an arena per round, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, big-text mode. (Skid marks were tried and dropped: with the low camera they sit behind your own kart.) |
 | F-11 | Database for saved progress | Low | Only when needed: class rosters, teacher progress dashboard, season leaderboards. Render's free plan has no persistent storage. |
 

@@ -17,7 +17,8 @@ function checkPack(dir) {
   return Object.keys(m.parts).length;
 }
 const n = checkPack(path.join(__dirname, "../public/art-sample"));
+const v2 = checkPack(path.join(__dirname, "../public/v2-art")); // the Version 2 preview page's pack
 const live = path.join(__dirname, "../public/art");
 const m = fs.existsSync(path.join(live, "manifest.json")) ? checkPack(live) : 0;
 assert(typeof E.setArt === "function" && typeof E.loadArt === "function", "engine exposes setArt/loadArt");
-console.log(`Art tests passed (sample pack: ${n} parts${m ? `, installed pack: ${m} parts` : ""})`);
+console.log(`Art tests passed (sample pack: ${n} parts, Version 2 pack: ${v2} parts${m ? `, installed pack: ${m} parts` : ""})`);

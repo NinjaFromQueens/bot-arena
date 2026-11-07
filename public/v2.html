@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circuit Rebels Preview</title>
+<meta name="description" content="Bot Arena is becoming Circuit Rebels: class accounts and saved progress, fights on every student's screen, safe class chat and all-new robot art. Schools can sign up for information.">
+<meta property="og:title" content="Circuit Rebels: robotics and physics for your whole school">
+<meta property="og:description" content="Self-paced robotics and physics that students want to play. See what's coming and get information for your school.">
+<meta property="og:image" content="https://bot-arena-g5ew.onrender.com/img/v2/hero.webp">
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .kick { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+  .sec { display: grid; gap: 18px; margin-top: 56px; }
+  .sec > header { display: grid; gap: 8px; }
+  .sec h2 { font-size: clamp(26px, 4vw, 38px); line-height: 1.05; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 64ch; font-size: 18px; }
+
+  /* hero: the headline sits in the picture's dark sky; on phones it moves above the picture */
+  .hero2 { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #0e0d13; }
+  /* the picture slides up under the text by about its empty sky (the top 28%), so the robots stay in full view */
+  .hero2 img { display: block; width: 100%; height: auto; aspect-ratio: 2688 / 1520; margin-top: -15%; -webkit-mask-image: linear-gradient(transparent, #000 16%); mask-image: linear-gradient(transparent, #000 16%); }
+  .hero2 .over { position: relative; z-index: 1; display: grid; gap: 14px; justify-items: start; padding: clamp(20px, 4vw, 48px) clamp(20px, 4vw, 48px) 0; }
+  .hero2 h1 { font-size: clamp(36px, 5.6vw, 68px); max-width: 15ch; }
+  .hero2 .lede { color: #d9d5df; max-width: 56ch; }
+  .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); background: var(--gold); padding: 5px 10px; border-radius: 6px; }
+  @media (max-width: 760px) {
+    .hero2 .over { padding: 20px 18px 0; }
+    .hero2 img { margin-top: -4%; }
+  }
+
+  /* what's already here */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .stat { display: grid; gap: 2px; padding: 16px 18px; }
+  .stat b { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--orange-hi); }
+  .stat span { font-family: var(--display); font-weight: 700; font-size: 18px; }
+  .stat small { color: var(--muted); font-size: 14px; }
+
+  /* feature rows */
+  .feat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(18px, 4vw, 48px); align-items: center; }
+  .feat.flip > .media { order: -1; }
+  .feat .txt { display: grid; gap: 12px; align-content: start; }
+  .feat h3 { all: unset; font-family: var(--display); font-weight: 700; font-size: clamp(22px, 3vw, 30px); line-height: 1.1; text-wrap: balance; }
+  .feat ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--muted); }
+  .feat li b { color: var(--fg); font-weight: 600; }
+  .state { justify-self: start; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: var(--blue-soft); color: var(--blue); border: 1px solid #38a7f055; }
+  .state.new { background: var(--orange-soft); color: var(--orange-hi); border-color: #f4652466; }
+  @media (max-width: 860px) { .feat { grid-template-columns: minmax(0, 1fr); } .feat.flip > .media { order: 0; } }
+  .shot { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); background: #111015; box-shadow: 0 18px 40px #0007; }
+  .phone { justify-self: center; width: min(300px, 100%); padding: 10px; border-radius: 34px; background: #0e0d13; border: 1px solid var(--line); box-shadow: 0 18px 40px #0007; }
+  .phone img { display: block; width: 100%; height: auto; border-radius: 24px; }
+  .stack { position: relative; padding-bottom: 70px; }
+  .stack .top { position: absolute; right: -6px; bottom: 0; width: 64%; }
+  @media (max-width: 520px) { .stack { padding-bottom: 0; display: grid; gap: 12px; } .stack .top { position: static; width: 100%; } }
+
+  /* a mock of the student sign-in (Version 2 accounts) */
+  .signin { justify-self: center; width: min(400px, 100%); display: grid; gap: 14px; padding: 20px; }
+  .signin .step { display: grid; gap: 6px; }
+  .signin .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .signin .lbl i { font-style: normal; color: var(--orange); margin-right: 6px; }
+  .fake { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-family: var(--display); font-weight: 700; font-size: 20px; }
+  .fake.code { letter-spacing: .3em; text-align: center; font-size: 26px; }
+  .pics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .pics span { aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .pics span.on { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+  .pics span { font-size: clamp(22px, 6vw, 30px); line-height: 1; }
+  .saved { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--good); font-weight: 600; }
+  .saved::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px #4fd18b26; }
+
+  /* live robot demo */
+  .art { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .art { grid-template-columns: minmax(0, 1fr); } }
+  .demo { display: grid; gap: 12px; }
+  .demo canvas { display: block; width: 100%; height: clamp(220px, 30vw, 300px); border-radius: 12px; background: radial-gradient(60% 90% at 30% 100%, #f465241f, transparent 70%), radial-gradient(60% 90% at 70% 100%, #38a7f01f, transparent 70%), #141318; border: 1px solid var(--line); }
+  .democtl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { border: 0; background: var(--panel-hi); padding: 9px 14px; font-family: var(--display); font-weight: 700; font-size: 15px; cursor: pointer; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--orange); color: #fff; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .cap { font-size: 14px; color: var(--muted); min-height: 2.9em; }
+  .cap b { color: var(--fg); font-family: var(--display); }
+  .racer { display: grid; gap: 12px; }
+  .racer canvas { display: block; width: 100%; height: clamp(240px, 34vw, 400px); border-radius: 12px; background: #141318; border: 1px solid var(--line); }
+  .racectl { display: grid; gap: 10px; }
+  .racectl .row { display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; }
+  .racectl .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); min-width: 48px; }
+  .racectl .seg { flex-wrap: wrap; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+  .swatches button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+  .swatches button[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 3px var(--orange-soft); }
+  figure { margin: 0; display: grid; gap: 8px; }
+  figcaption { font-size: 14px; color: var(--muted); }
+
+  /* classroom points */
+  .points { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .point { display: grid; gap: 6px; align-content: start; }
+  .point h3 { all: unset; font-family: var(--display); font-weight: 700; font-size: 19px; }
+  .point p { color: var(--muted); font-size: 16px; }
+
+  /* the interest form */
+  .interest { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); padding: clamp(18px, 3vw, 32px); display: grid; gap: 18px; }
+  .interest .who { display: flex; flex-wrap: wrap; gap: 8px; }
+  .interest .who span { font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  .formbox { background: #fff; border-radius: 12px; overflow: hidden; width: 100%; max-width: 780px; justify-self: center; }
+  .formbox iframe { display: block; width: 100%; height: 1750px; border: 0; }
+  .soon { justify-self: center; width: 100%; max-width: 780px; text-align: center; padding: 28px 18px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); }
+  .soon b { display: block; color: var(--fg); font-family: var(--display); font-size: 20px; margin-bottom: 4px; }
+  footer.foot { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body data-page="v2">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Fall Robotics Academy</small><span style="font-family:var(--display);font-weight:700;font-size:28px;line-height:1">Circuit Rebels</span></div>
+    </a>
+    <a class="btn ghost" href="/" data-tip="Go back to the Bot Arena home page. Everything there works today.">Back to Bot Arena</a>
+  </header>
+
+  <section class="hero2">
+    <div class="over">
+      <span class="badge">Bot Arena is becoming</span>
+      <h1>Circuit Rebels</h1>
+      <p class="lede">Robotics and physics for your whole school. Students build robots, battle the class and learn how machines sense, think and act. The next version adds class accounts, saved progress, fights on every screen, safe class chat and all-new art.</p>
+      <div class="ctas">
+        <a class="btn big" href="#interest" data-tip="Jump to the short form for teachers, coaches and school leaders.">Get information for your school</a>
+        <a class="btn big ghost" href="/practice" data-tip="Build a robot and battle it right now, on this device. No sign-in needed.">Try today's version</a>
+      </div>
+    </div>
+    <img src="/img/v2/hero.webp" width="1800" height="1018" alt="Two toy robots battle in an arena: an orange robot on wheels swings a hammer at a blue robot on treads with a spinning blade.">
+  </section>
+
+  <section class="sec" aria-labelledby="h-now">
+    <header><span class="kick">Already in Bot Arena</span><h2 id="h-now">Free to try today, in any browser</h2></header>
+    <div class="stats">
+      <div class="panel stat"><b>16</b><span>Robot lessons</span><small>Sensors, motors, robot arms and if-then programming, each with a simulator.</small></div>
+      <div class="panel stat"><b>8</b><span>Flying Car missions</span><small>Thrust, weight and landing: every flight explains why it worked or didn't.</small></div>
+      <div class="panel stat"><b>3</b><span>Robot Racer tracks</span><small>Tune gear ratios and tires, then race your ghost and your class.</small></div>
+      <div class="panel stat"><b>5</b><span>Brain Challenges</span><small>Program a robot's if-then rules to beat a boss.</small></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-v2">
+    <header><span class="kick">Coming in Circuit Rebels</span><h2 id="h-v2">What's new</h2></header>
+
+    <div class="feat">
+      <div class="txt">
+        <span class="state">In testing</span>
+        <h3>Class accounts and saved progress</h3>
+        <p class="lede">Students pick up where they left off, on any Chromebook. Teachers see who finished what.</p>
+        <ul>
+          <li><b>Teachers</b> sign in with Google, make a class and print login cards.</li>
+          <li><b>Students</b> sign in with the class code, their name and 3 secret pictures. They don't need an email address.</li>
+          <li><b>Saved:</b> robots, lessons, Flying Car missions, Brain Challenges and race times.</li>
+          <li><b>Teacher dashboard:</b> each student's progress at a glance.</li>
+        </ul>
+      </div>
+      <div class="media panel signin" role="img" aria-label="A design preview of the student sign-in: the class code, the student's name, and a picture password of three pictures.">
+        <div class="step"><span class="lbl"><i>1</i>Class code</span><div class="fake code">ROBO</div></div>
+        <div class="step"><span class="lbl"><i>2</i>Your name</span><div class="fake">Maya</div></div>
+        <div class="step"><span class="lbl"><i>3</i>Your picture password</span>
+          <div class="pics">
+            <span class="on" title="robot">🤖</span>
+            <span title="rocket">🚀</span>
+            <span title="star">⭐</span>
+            <span class="on" title="cat">🐱</span>
+            <span title="dog">🐶</span>
+            <span class="on" title="pizza">🍕</span>
+            <span title="ball">⚽</span>
+            <span title="rainbow">🌈</span>
+          </div>
+        </div>
+        <span class="saved">Robot and 6 lessons saved</span>
+      </div>
+    </div>
+
+    <div class="feat flip">
+      <div class="txt">
+        <span class="state">In testing</span>
+        <h3>Every fight on every screen</h3>
+        <p class="lede">When the board starts a fight, it plays on each student's device at the same moment: the same robots and the same winner.</p>
+        <ul>
+          <li>The board's <b>speed</b> and <b>Skip</b> carry over to every device.</li>
+          <li><b>Announcements</b> from the teacher show up on every screen.</li>
+          <li>During <b>Race Day</b>, students who aren't driving watch the race live.</li>
+          <li>A student can turn fights off on their device, and the teacher can turn them off for everyone.</li>
+        </ul>
+      </div>
+      <div class="media phone"><img src="/img/v2/phone-fight.webp" width="390" height="405" alt="A student's phone showing a teacher announcement and a live semifinal between two robots."></div>
+    </div>
+
+    <div class="feat">
+      <div class="txt">
+        <span class="state">In testing</span>
+        <h3>Class chat that's safe by design</h3>
+        <p class="lede">Students cheer with ready-made messages like "Good game!" or "Go SPARKY!". Nobody can type, so there's nothing to filter and no way to share personal details.</p>
+        <ul>
+          <li>Messages pop up over the battle on the board.</li>
+          <li>Teachers can turn chat <b>off</b>, use <b>slow mode</b>, <b>mute</b> a student or <b>clear</b> the chat.</li>
+          <li>Chat disappears when the game ends. Nothing is saved.</li>
+        </ul>
+      </div>
+      <div class="media stack">
+        <img class="shot" src="/img/v2/chat-bubble.webp" width="845" height="476" alt="The board's arena with a chat bubble that says Go VOLTA! over the robots.">
+        <img class="shot top" src="/img/v2/chat-panel.webp" width="530" height="288" alt="The teacher's Class chat panel with Chat, Slow mode and Fights on devices switches and a Mute button next to each message.">
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-art">
+    <header>
+      <span class="state new">First look</span>
+      <h2 id="h-art">All-new robot art</h2>
+      <p class="lede">Every body, sensor and tool has been redrawn, plus a new arena. They still move the same way: hammers swing, spinners spin and flippers snap. Switch between today's art and the new art below.</p>
+    </header>
+    <div class="art">
+      <div class="panel demo">
+        <canvas id="demo" aria-label="Two robots taking turns attacking, drawn with the art you choose."></canvas>
+        <div class="democtl">
+          <div class="seg" role="group" aria-label="Which art">
+            <button type="button" id="artOld" aria-pressed="false" data-tip="Show the robots the way Bot Arena draws them today.">Today</button>
+            <button type="button" id="artNew" aria-pressed="true" data-tip="Show the same robots with the new Circuit Rebels art.">New art</button>
+          </div>
+          <button class="btn ghost" type="button" id="shuffle" data-tip="Build two new robots with random bodies, sensors, tools and colors.">New robots</button>
+        </div>
+        <p class="cap" id="cap" aria-live="polite"></p>
+      </div>
+      <figure>
+        <img class="shot" src="/img/v2/board-art.webp" width="845" height="795" alt="A real fight on the class board with the new art: SPARKY's hammer lands a critical hit on TREADZ while TREADZ's lidar scans, with the Sense, Think, Act battle log below.">
+        <figcaption>A real fight on the class board with the new parts, Sense, Think, Act log and all.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-race">
+    <header>
+      <span class="state new">First look</span>
+      <h2 id="h-race">New karts and race tracks</h2>
+      <p class="lede">Robot Racer's five car bodies and three tracks, redrawn. Pick a track, a body and a color from the paint shop.</p>
+    </header>
+    <div class="panel racer">
+      <canvas id="race" aria-label="A robot race car driving down the track you pick, painted the color you pick."></canvas>
+      <div class="racectl">
+        <div class="row"><span class="lbl">Track</span><div class="seg" role="group" aria-label="Track" id="tracks"></div></div>
+        <div class="row"><span class="lbl">Body</span><div class="seg" role="group" aria-label="Car body" id="bodies"></div></div>
+        <div class="row"><span class="lbl">Paint</span><div class="swatches" role="group" aria-label="Paint color" id="paints"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-class">
+    <header><span class="kick">Made for classrooms</span><h2 id="h-class">Built with a real robotics class</h2></header>
+    <div class="points">
+      <div class="panel point"><h3>Runs in a browser</h3><p>Chromebooks, phones and the classroom projector. Nothing to install.</p></div>
+      <div class="panel point"><h3>Self-paced or teacher-led</h3><p>Students work through lessons and labs on their own. Teachers run tournaments, Race Day and live lessons for the whole class.</p></div>
+      <div class="panel point"><h3>Student privacy first</h3><p>Students' names only show on their own class's board and devices. Circuit Rebels accounts don't need student emails.</p></div>
+      <div class="panel point"><h3>Tested by students</h3><p>Built and played every week by students at Fall Robotics Academy in New York City.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="interest" aria-labelledby="h-form">
+    <div class="panel interest">
+      <header style="display:grid;gap:10px">
+        <span class="kick">For schools</span>
+        <h2 id="h-form">Bring Circuit Rebels to your school</h2>
+        <p class="lede">Tell us a little about your school and we'll send pricing, pilot details and a demo when Circuit Rebels is ready. It takes about two minutes.</p>
+        <div class="who" aria-label="Who this form is for"><span>Teachers</span><span>Coaches and educators</span><span>School leaders</span><span>Districts</span></div>
+      </header>
+      <div id="formslot"></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Circuit Rebels, the next version of Bot Arena · Fall Robotics Academy, New York City</span>
+    <span>Circuit Rebels is in development. Features may change before launch.</span>
+  </footer>
+</div>
+<script src="/js/engine.js"></script>
+<script>
+  // Paste the Google Form's link here (Send → the <> tab gives the embed link). Empty shows "coming soon".
+  const FORM_URL = "";
+
+  (function form() {
+    const slot = document.getElementById("formslot");
+    if (!/^https:\/\/docs\.google\.com\/forms\//.test(FORM_URL)) {
+      slot.innerHTML = '<div class="soon"><b>The sign-up form opens soon.</b>Check back in a few days.</div>';
+      return;
+    }
+    const u = new URL(FORM_URL); u.searchParams.set("embedded", "true");
+    const box = document.createElement("div"), f = document.createElement("iframe"), alt = document.createElement("p");
+    box.className = "formbox"; f.src = u.href; f.title = "Circuit Rebels interest form"; f.loading = "lazy"; f.textContent = "Loading the form…"; box.appendChild(f);
+    const open = new URL(FORM_URL); open.searchParams.delete("embedded");
+    alt.className = "small"; alt.style.textAlign = "center";
+    const a = document.createElement("a"); a.href = open.href; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open the form in a new tab";
+    a.setAttribute("data-tip", "Some school networks hide forms inside pages. This opens the same form on its own.");
+    alt.append("Form not showing? ", a); slot.append(box, alt);
+  })();
+
+  // Live demo: two robots take turns attacking, drawn by the game's own engine with or without the Version 2 art pack.
+  (function demo() {
+    const E = window.Engine, cv = document.getElementById("demo"), ctx = cv.getContext("2d"), cap = document.getElementById("cap");
+    const NAMES = ["SPARKY", "TREADZ", "BOLT", "NOVA", "GEARS", "ZIPPY", "TORQUE", "PIXEL", "RIVET", "COMET"];
+    let pack = null, useArt = true;
+    let bots = [{ name: "SPARKY", body: 0, sensor: 0, brain: 1, tool: 1, color: 0 }, { name: "TREADZ", body: 1, sensor: 3, brain: 2, tool: 2, color: 1 }];
+    const r = (n) => Math.floor(Math.random() * n);
+    function caption() {
+      const d = (b) => `<b>${b.name}</b>: ${E.PARTS.body[b.body].n}, ${E.PARTS.sensor[b.sensor].n}, ${E.PARTS.tool[b.tool].n}`;
+      cap.innerHTML = `${d(bots[0])}<br>${d(bots[1])}`;
+    }
+    function draw(now) {
+      const box = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      const W = box.width, H = box.height;
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      const gy = H * 0.86, s = Math.min(H * 0.8 / 2.9, W / 7.4), t = now / 1000;
+      if (useArt && arena.complete && arena.naturalWidth) { // the new arena: its stage floor (84% down the picture) under the robots' feet
+        const dw = Math.max(W, H / 0.9 * arena.naturalWidth / arena.naturalHeight), dh = dw * arena.naturalHeight / arena.naturalWidth;
+        let y = Math.min(0, gy - 0.84 * dh); if (y + dh < H) y = H - dh;
+        ctx.drawImage(arena, (W - dw) / 2, y, dw, dh);
+      } else {
+        ctx.strokeStyle = "#ffffff14"; ctx.lineWidth = 1;
+        for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(0, gy + k * k * 3); ctx.lineTo(W, gy + k * k * 3); ctx.stroke(); }
+      }
+      const phase = t % 1.7, who = Math.floor(t / 1.7) % 2, l = E.RM ? 0 : (phase < 0.6 ? phase / 0.6 : 0);
+      E.drawBot(ctx, bots[0], W * 0.3, gy, s, 1, t, { lunge: who === 0 ? l : 0 });
+      E.drawBot(ctx, bots[1], W * 0.7, gy, s, -1, t, { lunge: who === 1 ? l : 0 });
+      if (!E.RM) requestAnimationFrame(draw);
+    }
+    const redraw = () => { if (E.RM) draw(600); };
+    const arena = new Image(); arena.onload = redraw; arena.src = "/img/v2/arena.webp";
+    function setArt(on) {
+      useArt = on; E.setArt(on ? pack : null);
+      document.getElementById("artNew").setAttribute("aria-pressed", on); document.getElementById("artOld").setAttribute("aria-pressed", !on);
+      redraw();
+    }
+    document.getElementById("artNew").onclick = () => setArt(true);
+    document.getElementById("artOld").onclick = () => setArt(false);
+    document.getElementById("shuffle").onclick = () => {
+      const a = r(NAMES.length); let b = r(NAMES.length - 1); if (b >= a) b++;
+      const c = r(6); let c2 = r(5); if (c2 >= c) c2++;
+      bots = [{ name: NAMES[a], body: r(4), sensor: r(4), brain: r(3), tool: r(5), color: c }, { name: NAMES[b], body: r(4), sensor: r(4), brain: r(3), tool: r(5), color: c2 }];
+      caption(); redraw();
+    };
+    window.addEventListener("resize", redraw);
+    caption();
+    E.loadArt("/v2-art/manifest.json").then((p) => { pack = p; setArt(useArt); });
+    if (E.RM) draw(600); else requestAnimationFrame(draw);
+  })();
+
+  // Robot Racer preview: a track backdrop, a road drawn over its ground, and a kart painted with a paint-shop color.
+  (function racer() {
+    const RM = window.Engine.RM, cv = document.getElementById("race"), ctx = cv.getContext("2d");
+    const TRACKS = [
+      { n: "Garage Circuit", src: "garage", horizon: 0.818, road: ["#3b3a42", "#34333b"], rumble: ["#ff5d5d", "#f4f1ea"] },
+      { n: "Desert Speedway", src: "desert", horizon: 0.738, road: ["#5b5249", "#544b43"], rumble: ["#f46524", "#f4f1ea"] },
+      { n: "Neon Peaks", src: "neon", horizon: 0.736, road: ["#232a45", "#1e243c"], rumble: ["#ff5d8f", "#2ec4b6"] },
+    ];
+    // where each picture's robot driver ends (it keeps its own colors), as a share of the height from the top
+    const BODIES = [{ n: "Kart", src: "kart", cut: 0.4 }, { n: "Formula", src: "formula", cut: 0.33 }, { n: "Buggy", src: "buggy", cut: 0.39 }, { n: "Monster truck", src: "monster", cut: 0.25 }, { n: "Hover pod", src: "hover", cut: 0.36 }];
+    const PAINT = [...window.Engine.COLORS, "#f4f1ea", "#2b2a30", "#a9a6b0", "#9be15d", "#2ec4b6", "#d4a017"];
+    const PAINT_N = ["Orange", "Blue", "Green", "Purple", "Yellow", "Pink", "White", "Black", "Silver", "Lime", "Teal", "Gold"];
+    let tr = 0, body = 0, paint = 0, z = 0, last = 0;
+    const load = (src) => { const i = new Image(); i.onload = () => { if (RM) draw(0); }; i.src = src; return i; };
+    TRACKS.forEach((t) => { t.img = load("/img/v2/track-" + t.src + ".webp"); });
+    BODIES.forEach((b) => { b.img = load("/img/v2/kart-" + b.src + ".webp"); });
+    const painted = new Map();
+    function kartImg() { // multiply the paint into the body, keep the driver and the picture's outline
+      const b = BODIES[body], key = body + ":" + paint;
+      if (!b.img.complete || !b.img.naturalWidth) return null;
+      if (!painted.has(key)) {
+        const w = b.img.naturalWidth, h = b.img.naturalHeight, c = document.createElement("canvas"); c.width = w; c.height = h;
+        const x = c.getContext("2d"); x.drawImage(b.img, 0, 0);
+        x.globalCompositeOperation = "multiply"; x.fillStyle = PAINT[paint]; x.fillRect(0, h * b.cut, w, h);
+        x.globalCompositeOperation = "destination-in"; x.drawImage(b.img, 0, 0);
+        // the template's light gray darkens the paint when multiplied, so lift the painted part back up (not the driver)
+        const out = document.createElement("canvas"); out.width = w; out.height = h; const o = out.getContext("2d"), top = Math.round(h * b.cut);
+        o.drawImage(c, 0, 0, w, top, 0, 0, w, top);
+        o.filter = "brightness(1.32) saturate(1.08)"; o.drawImage(c, 0, top, w, h - top, 0, top, w, h - top);
+        painted.set(key, out);
+      }
+      return painted.get(key);
+    }
+    function draw(now) {
+      const box = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1), W = box.width, H = box.height;
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const T = TRACKS[tr], hy = H * 0.56;
+      if (now && last) z += Math.min(0.05, (now - last) / 1000) * 3.2;
+      last = now;
+      // backdrop: the picture's horizon on the road's horizon, the ground color below it
+      if (T.img.complete && T.img.naturalWidth) {
+        const dw = Math.max(W, H * T.img.naturalWidth / T.img.naturalHeight), dh = dw * T.img.naturalHeight / T.img.naturalWidth;
+        const y = Math.min(0, hy - T.horizon * dh);
+        if (!T.ground) {
+          const c = document.createElement("canvas"); c.width = c.height = 1; const x = c.getContext("2d");
+          x.drawImage(T.img, T.img.naturalWidth / 2, T.img.naturalHeight - 4, 1, 1, 0, 0, 1, 1);
+          const d = x.getImageData(0, 0, 1, 1).data; T.ground = "rgb(" + d[0] + "," + d[1] + "," + d[2] + ")";
+        }
+        ctx.fillStyle = T.ground; ctx.fillRect(0, 0, W, H);
+        ctx.drawImage(T.img, (W - dw) / 2, y, dw, dh);
+      } else { ctx.fillStyle = "#141318"; ctx.fillRect(0, 0, W, H); }
+      // the road, one row at a time: narrow at the horizon, wide at the bottom, stripes sliding toward you
+      for (let yy = Math.ceil(hy) + 1; yy < H; yy++) {
+        const p = (yy - hy) / (H - hy), half = W * (0.015 + 0.43 * p), d = 1 / p, k = Math.floor(d * 1.6 - z * 1.6) & 1, cx = W / 2;
+        ctx.fillStyle = T.rumble[k]; ctx.fillRect(cx - half * 1.1, yy, half * 2.2, 1);
+        ctx.fillStyle = T.road[k]; ctx.fillRect(cx - half, yy, half * 2, 1);
+        if (k) { ctx.fillStyle = "#f4f1eacc"; ctx.fillRect(cx - half * 0.025, yy, half * 0.05, 1); }
+      }
+      // the kart, with a soft shadow and a little sway
+      const img = kartImg();
+      if (img) {
+        const t = (now || 0) / 1000, kh = H * 0.42, kw = kh * img.width / img.height;
+        const kx = W / 2 - kw / 2 + (RM ? 0 : Math.sin(t * 1.3) * W * 0.03), ky = H * 0.97 - kh + (RM ? 0 : Math.sin(t * 9) * 1.2);
+        ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(kx + kw / 2, H * 0.96, kw * 0.46, kh * 0.06, 0, 0, 7); ctx.fill();
+        ctx.drawImage(img, kx, ky, kw, kh);
+      }
+      if (!RM) requestAnimationFrame(draw);
+    }
+    function buttons(boxId, list, tip, get, set) {
+      const box = document.getElementById(boxId);
+      list.forEach((item, i) => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = item.n; b.setAttribute("data-tip", tip(item));
+        b.onclick = () => { set(i); [...box.children].forEach((x, j) => x.setAttribute("aria-pressed", j === get())); if (RM) draw(0); };
+        b.setAttribute("aria-pressed", i === get()); box.appendChild(b);
+      });
+    }
+    buttons("tracks", TRACKS, (t) => "Show the " + t.n + " track.", () => tr, (i) => (tr = i));
+    buttons("bodies", BODIES, (b) => "Drive the " + b.n + " body. Bodies change the look, not the speed.", () => body, (i) => (body = i));
+    const pbox = document.getElementById("paints");
+    PAINT.forEach((c, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.style.background = c;
+      b.setAttribute("aria-label", PAINT_N[i]); b.setAttribute("data-tip", "Paint it " + PAINT_N[i].toLowerCase() + ".");
+      b.setAttribute("aria-pressed", i === paint);
+      b.onclick = () => { paint = i; [...pbox.children].forEach((x, j) => x.setAttribute("aria-pressed", j === i)); if (RM) draw(0); };
+      pbox.appendChild(b);
+    });
+    window.addEventListener("resize", () => { if (RM) draw(0); });
+    if (RM) draw(0); else requestAnimationFrame(draw);
+  })();
+</script>
+<script src="/js/tips.js"></script>
+</body>
+</html>
