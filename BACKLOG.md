@@ -14,8 +14,8 @@ Last updated: November 7, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| F-28 | Version 2 preview page and educator interest form | Branch `v2-preview` (from the live site; worktree folder `bot-arena-v2`). A separate "Coming in Version 2" page with screenshots of what's coming, plus an embedded Google Form for teachers, educators and school leaders; one button on the home page. Games untouched. Built and tested (desktop + 375px, no console errors, every image loads, home join form unaffected): `public/v2.html` at `/v2`, "See what's coming" panel under the teachers panel on the home page. Waiting on the Google Form link (`FORM_URL` in v2.html), then publish before graduation. |
-| F-02 | Game art with Higgsfield | Started: style test first (0.5 credits), then gray part templates as sprite sheets (the game recolors them), karts, backgrounds and preview art. Budget up to 100 credits. Art stays off the live game until approved. Done so far (61.5 credits, including 41.25 on story art): style test, 3 part sheets in style A (bodies, sensors, tools; jobs 3ac80e2f, eafc0dad, 8f3047f6), hero in style B (job 2f2bde8c), 5 racer kart bodies as gray paint templates seen from behind (c83bb167), the battle arena (5470bed1) and the three track backdrops (b0816acc garage, d3b686ba desert, 996f30e6 neon). Sliced into 13 parts in `public/v2-art/` with a checked manifest; only the preview page loads it. To use it in the game later: copy `public/v2-art/` to `public/art/`. The preview page shows the arena behind its robot demo and a racer demo (track, body, paint). Using the karts, arena and tracks in the real game needs code in racedraw.js/battle.js (after graduation). |
+| F-28b | Google Form link for the preview | The teacher makes the form, then paste its link into `FORM_URL` in `public/v2.html` (and `public/tour.html`). Until then both pages say "The sign-up form opens soon." |
+| F-02 | Story art with Higgsfield | First pass (robot parts, arena, karts, tracks) is done and live on /v2 (see Completed F-02a). Now: the Story Mode Asset Prompts pack in the approved style (art-work/story/STYLE.md), budget raised to about 195 credits total (Nov 7). Saved in `public/assets/` with every pack ID in `public/assets/story-assets.json`; not pushed. |
 
 ---
 
@@ -34,6 +34,8 @@ Last updated: November 7, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-28 | Circuit Rebels preview page (`/v2`): what's coming, live robot and racer demos with the new art, a "Bot Arena is becoming Circuit Rebels" panel on the home page, and a slot for the educator interest form | Pushed to `main` Nov 7, 2026 (5pm, no class game running); checked on bot-arena-g5ew.onrender.com (all 24 browser checks, games unchanged) | 8461ec9 |
+| F-02a | Game art first pass with Higgsfield: 13 robot parts (preview-only pack in `public/v2-art/`), the arena, 5 kart bodies and 3 track backdrops, shown on the preview page only | Pushed to `main` Nov 7, 2026 with F-28 | 8461ec9 |
 | B-01 | Audit fixes: replay of the final cut short by game updates; Race Day laps limited to one try per second; garage picks throttled; race page no longer drives 36 laps on load (track par) | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 0a38d0c |
 | F-25a | Extras: night headlights, "close behind" warning, simple graphics, smoke when badly hurt, gold lights for the final, top-3 podium | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
 | F-24 | Racer medals on every track | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
