@@ -1,4 +1,5 @@
-/* Student device: name -> build robot -> join -> live status during the tournament. */
+/* Student device: name -> build robot -> join -> live status during the tournament: the fight itself (in step with the
+   board), class chat (quick messages only), teacher announcements, and Race Day live for students who aren't driving. */
 (function () {
   const E = window.Engine;
   const $ = (id) => document.getElementById(id);
@@ -79,7 +80,7 @@
     if (session) join(true); // reconnect after refresh or dropped wifi
   });
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
-  socket.on("room:state", (s) => { state = s; applyLimit(s.settings && s.settings.maxw); render(); });
+  socket.on("room:state", (s) => { state = s; if (s.gp) gpOffset = s.gp.now - Date.now(); applyLimit(s.settings && s.settings.maxw); render(); });
   // this game's weight class: the builder's limit and every "75 kg" on the page follow it
   let limitShown = 0;
   function applyLimit(kg) {
@@ -159,7 +160,7 @@
     const nm = side ? (side === "a" ? pa : pb).bot.name : "";
     $("pmsg").textContent = open
       ? (side ? `You picked ${nm}. You can switch until time runs out.` : "Tap the robot you think will win.")
-      : (side ? `Locked in: ${nm}. Watch the board!` : "Predictions are closed. Watch the board!");
+      : (side ? `Locked in: ${nm}. Watch the fight!` : "Predictions are closed. Watch the fight!");
   }
 
   // the teacher is presenting a lesson: show where they are, and its quiz questions as a poll
@@ -215,6 +216,8 @@
     $("gp-n").textContent = G.phase === "done" ? "Final results are on the board!" : `Race ${G.i + 1} of ${G.n}`;
     $("gp-msg").textContent = { garage: "The garage is open. Open Robot Racer and pick your gear and tires.", countdown: "The race is starting! Open Robot Racer.", racing: "The race is on! Open Robot Racer to drive.", results: "Results are on the board. Next race soon.", done: "Thanks for racing!" }[G.phase] + (mine >= 0 ? ` You're #${mine + 1} with ${G.standings[mine].pts} points.` : "");
     $("gp-go").hidden = G.phase === "done";
+    const live = G.phase === "countdown" || G.phase === "racing"; // the race, live, right here
+    $("gp-watch").hidden = !live; $("gp-top").hidden = !live;
   }
 
   function findMatch(id) {
@@ -242,6 +245,115 @@
     };
     $("rbtns").appendChild(b);
   });
+
+  // ---------------- the fight on this screen ----------------
+  // Once predictions close, the board sends the fight it's playing (its seed), and this screen replays the same fight in
+  // step with it: the same events, so the same winner. Speed and Skip follow the board.
+  const watch = { on: store.get("ba-watch", true), cur: null };
+  $("watchon").checked = watch.on;
+  $("watchon").onchange = () => { watch.on = $("watchon").checked; store.set("ba-watch", watch.on); if (!watch.on) watch.cur = null; render(); };
+  const wStage = new BattleStage($("w-arena"), {
+    onHP(hp) { $("w-ba").style.width = hp[0] + "%"; $("w-bb").style.width = hp[1] + "%"; $("w-ha").textContent = Math.round(hp[0]); $("w-hb").textContent = Math.round(hp[1]); },
+    onLog(e, bot) { $("w-log").textContent = bot.name + e.txt; },
+  });
+  socket.on("room:watch", (w) => {
+    if (!watch.on || !session) return;
+    watch.cur = w; render(); // the stage only moves while it's on screen, so show it first
+    $("w-title").textContent = `${w.round}${w.bestOf === 3 ? ` · game ${w.g + 1}` : ""}: ${w.a.name} vs ${w.b.name}`;
+    $("w-na").textContent = w.a.name; $("w-nb").textContent = w.b.name; $("w-log").textContent = "";
+    wStage.speed = w.speed; wStage.setBots(w.a, w.b, w.round.toUpperCase());
+    wStage.play(E.simulate(w.a, w.b, w.seed).events);
+  });
+  socket.on("room:watchCtl", (c) => { if (!watch.cur) return; if (c.speed) wStage.speed = c.speed; if (c.skip) wStage.skip(); });
+  function renderWatch(me) {
+    const fights = !!(state && state.live && state.live.fights);
+    $("watchpref").hidden = !me || !fights || state.phase !== "tournament";
+    const on = !!(watch.on && fights && watch.cur && state.currentMatchId === watch.cur.matchId);
+    if (!on && watch.cur && state && state.currentMatchId !== watch.cur.matchId) watch.cur = null; // that match is over
+    $("watchbox").hidden = !on;
+  }
+
+  // ---------------- class chat: quick messages only (Engine.QUICK), nothing typed ----------------
+  let feed = [], chatUntil = 0, quickSig = "";
+  socket.on("room:chatlog", (log) => { feed = (log || []).slice(-30); renderFeed(); });
+  socket.on("room:chat", (m) => { feed.push(m); if (feed.length > 30) feed.shift(); renderFeed(); });
+  socket.on("room:chatClear", () => { feed = []; renderFeed(); });
+  function renderFeed() {
+    const ol = $("feed"); ol.innerHTML = "";
+    if (!feed.length) { const li = document.createElement("li"); li.className = "small"; li.textContent = "No messages yet. Tap one below to say something to the class."; ol.appendChild(li); }
+    feed.slice(-12).forEach((m) => {
+      const li = document.createElement("li"), b = document.createElement("b");
+      if (session && m.pid === session.playerId) li.className = "me";
+      b.textContent = m.name; li.append(b, document.createTextNode(m.text)); ol.appendChild(li);
+    });
+    ol.scrollTop = ol.scrollHeight;
+  }
+  function sendChat(q) {
+    if (Date.now() < chatUntil) return;
+    socket.emit("player:chat", { q }, (r) => {
+      if (r && r.ok) { const wait = state && state.live && state.live.slow ? 10000 : 3000; chatUntil = Date.now() + wait; E.Sound.play("click"); render(); setTimeout(render, wait + 50); }
+      else if (r && r.error) $("chatmsg").textContent = r.error;
+    });
+  }
+  function renderChat(me) {
+    const L = state && state.live;
+    $("chatbox").hidden = !me || !L || !L.chat;
+    if ($("chatbox").hidden) return;
+    const m = state.currentMatchId ? findMatch(state.currentMatchId) : null;
+    const pa = m && state.players.find((p) => p.id === m.a), pb = m && state.players.find((p) => p.id === m.b);
+    const sig = pa && pb ? pa.bot.name + "|" + pb.bot.name : "";
+    if (sig !== quickSig || !$("quick").children.length) { // cheering buttons name the robots fighting now
+      quickSig = sig; $("quick").innerHTML = "";
+      E.QUICK.forEach((t, i) => {
+        const side = t.includes("{a}") ? "a" : t.includes("{b}") ? "b" : "";
+        if (side && !sig) return;
+        const b = document.createElement("button"); b.type = "button"; if (side) b.className = side;
+        b.textContent = t.replace("{a}", pa ? pa.bot.name : "").replace("{b}", pb ? pb.bot.name : "");
+        b.setAttribute("data-tip", "Send this to the class chat. Everyone sees it with your name.");
+        b.onclick = () => sendChat(i);
+        $("quick").appendChild(b);
+      });
+    }
+    const muted = L.muted.includes(me.id), waiting = Date.now() < chatUntil;
+    [...$("quick").children].forEach((b) => (b.disabled = muted || waiting));
+    $("chatmsg").textContent = muted ? "Your teacher turned off chat for you." : L.slow ? "Slow mode: one message every 10 seconds." : "";
+  }
+
+  // ---------------- a message from the teacher (shown for 10 minutes) ----------------
+  let annT = 0;
+  function renderAnnounce(me) {
+    const A = state && state.announce, on = !!(me && A && Date.now() - A.t < 10 * 60e3);
+    $("announce").hidden = !on;
+    if (!on) return;
+    $("announce-t").textContent = A.text;
+    if (A.t !== annT) { annT = A.t; E.Sound.play("beep"); if (navigator.vibrate) try { navigator.vibrate(120); } catch {} }
+  }
+
+  // ---------------- Race Day live, for students who aren't driving ----------------
+  let gpLive = { prev: null, cur: null }, gpOffset = 0;
+  socket.on("gp:live", (snap) => { gpLive = { prev: gpLive.cur, cur: { ...snap, at: performance.now() } }; renderGpTop(); });
+  function raceCars(now) { // a fifth of a second behind live, so cars move smoothly between updates
+    const { prev, cur } = gpLive, G = state && state.gp; if (!cur || !G) return [];
+    const f = prev ? E.clamp((now - 200 - prev.at) / Math.max(1, cur.at - prev.at), 0, 1) : 1, old = new Map(prev ? prev.cars.map((c) => [c[0], c]) : []), rs = new Map(G.racers.map((r) => [r.id, r]));
+    return cur.cars.filter((c) => rs.has(c[0])).map((c) => {
+      const p = old.get(c[0]) || c, r = rs.get(c[0]);
+      return { id: c[0], z: p[1] + (c[1] - p[1]) * f, x: p[2] + (c[2] - p[2]) * f, v: c[3], done: !!c[4], name: r.builder, look: r.look, color: r.look ? RaceDraw.LOOKS.PAINT[r.look.c1] : r.color };
+    }).sort((a, b) => (b.done - a.done) || b.z - a.z);
+  }
+  function renderGpTop() {
+    const ol = $("gp-top"); if (ol.hidden) return;
+    ol.innerHTML = "";
+    raceCars(performance.now()).slice(0, 5).forEach((c) => { const li = document.createElement("li"), a = document.createElement("span"), b = document.createElement("span"); a.textContent = c.name; b.textContent = c.done ? "finished" : Math.round(c.v * 3.6) + " km/h"; li.append(a, b); ol.appendChild(li); });
+  }
+  function drawRace(t, now) {
+    const c = $("gp-watch"), G = state && state.gp; if (!c.offsetParent || !G) return;
+    const { ctx, w, h } = E.fit(c), T = Race.TRACKS[G.track], list = raceCars(now), lead = list.find((q) => !q.done) || list[0];
+    const rem = G.startAt ? (G.startAt - (Date.now() + gpOffset)) / 1000 : 9, lights = G.phase === "countdown" ? (rem > 3 ? 0 : Math.min(5, Math.floor((3 - rem) / 0.6) + 1)) : 0;
+    const cam = lead || { z: 0, x: 0 }, pos = RaceDraw.world(ctx, w, h, T, cam, list.filter((q) => q !== lead), { t, lights, low: true });
+    if (lead) RaceDraw.kart(ctx, pos.x, pos.y, pos.size, { color: lead.color, look: lead.look, t, v: lead.v });
+    if (lead) E.bigText(ctx, lead.name, w * 0.22, h * 0.9, h * 0.075, lead.color); // the leader, clear of the name tags up the road
+    else E.bigText(ctx, G.phase === "countdown" ? "GET READY" : "WAITING FOR RACERS", w / 2, h * 0.14, h * 0.09, "#ffd23f");
+  }
 
   function statusFor() {
     if (!state || !session) return { cls: "", text: "Connecting...", sub: "" };
@@ -279,6 +391,9 @@
     renderLesson(me);
     renderLab(me);
     renderGp(me);
+    renderWatch(me);
+    renderChat(me);
+    renderAnnounce(me);
     if (state && state.phase === "lobby") myWhy = null;
     renderWhy();
     $("ptsline").hidden = !me || !state || state.phase === "lobby";
@@ -308,6 +423,7 @@
       const s = Math.min(w / 4.2, h / 3.2), ph = t % (live ? 1.2 : 3.2), lunge = ph < 0.55 ? ph / 0.55 : 0;
       E.drawBot(ctx, builder.bot, w / 2 - s * 0.25, h * 0.85, s, 1, t, { lunge });
     }
+    try { drawRace(t, now); } catch (err) { console.error(err); }
     requestAnimationFrame(loop);
   })(last);
 

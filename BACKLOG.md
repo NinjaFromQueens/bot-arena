@@ -1,6 +1,6 @@
 # Bot Arena — Backlog
 
-Last updated: October 30, 2026
+Last updated: November 7, 2026
 
 ---
 
@@ -14,7 +14,7 @@ Last updated: October 30, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| — | Nothing in progress | — |
+| F-27 | Watch live games and class chat | Branch `watch-and-chat` (from the live site; class accounts stay separate on the `accounts` branch). Built: each fight plays on students' devices in step with the board (after predictions close), Race Day live on game pages for non-racers, quick chat (preset messages only) with bubbles on the board, teacher announcements, and board controls (chat on/off, slow mode, mute, clear, fights on devices). Later, only if wanted: free typing (off by default, filtered, moderated) and a watch link for outsiders (separate code, robot names only). |
 
 ---
 
