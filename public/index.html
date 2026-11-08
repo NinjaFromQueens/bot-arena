@@ -8,7 +8,22 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/css/style.css">
 <style>
-  .hero { display: grid; gap: 10px; margin: 24px 0 26px; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 18px 32px; align-items: center; margin: 24px 0 26px; }
+  .hero-main { display: grid; gap: 10px; }
+  @media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+  /* Bot Arena is becoming Circuit Rebels */
+  .cr-promo { padding: 0; overflow: hidden; display: grid; border-color: #f4652499; box-shadow: 0 0 0 4px var(--orange-soft); }
+  .cr-promo img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 407; object-fit: cover; }
+  .cr-body { padding: 14px 16px 16px; display: grid; gap: 8px; }
+  .cr-badge { justify-self: start; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); background: var(--gold); padding: 3px 8px; border-radius: 5px; }
+  .cr-promo h2 { font-size: 24px; text-wrap: balance; } .cr-promo h2 b { color: var(--orange-hi); }
+  .cr-promo p { color: var(--muted); font-size: 15px; }
+  .cr-cta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .cr-qr { display: flex; gap: 10px; align-items: center; }
+  .cr-qr canvas { width: 92px; height: 92px; border-radius: 6px; background: #fff; }
+  .cr-qr span { font-family: var(--display); font-weight: 700; font-size: 14px; max-width: 9ch; line-height: 1.15; }
+  @media (max-width: 720px) { .cr-qr { display: none; } }
+  @media (max-width: 720px) { .cr-promo img, .cr-promo p { display: none; } .cr-body { padding: 12px 14px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; } .cr-badge { grid-column: 1 / -1; } .cr-promo h2 { font-size: 18px; } .cr-cta .btn { padding: 9px 14px; } } /* a slim banner on phones so the Join box stays near the top */ /* on a phone you tap the button; you can't scan your own screen */
   .hero h1 { font-size: clamp(40px, 9vw, 72px); }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
   
@@ -41,10 +56,24 @@
     </a>
   </header>
   <section class="hero">
-    <span class="tagline">Sense · Think · Act</span>
-    <h1>Build a robot.<br>Battle the class.</h1>
-    <p class="intro">Design a robot on your own device, join your teacher's game with a code, and watch your bot fight in the tournament on the board.</p>
-    <p class="online" id="online" hidden></p>
+    <div class="hero-main">
+      <span class="tagline">Sense · Think · Act</span>
+      <h1>Build a robot.<br>Battle the class.</h1>
+      <p class="intro">Design a robot on your own device, join your teacher's game with a code, and watch your bot fight in the tournament on the board.</p>
+      <p class="online" id="online" hidden></p>
+    </div>
+    <aside class="panel cr-promo" aria-label="Bot Arena is becoming Circuit Rebels">
+      <img src="/img/tour/promo.webp" width="720" height="407" alt="The Circuit Rebels crew and their robot Volt on a rooftop at sunset, facing a city run by an AI.">
+      <div class="cr-body">
+        <span class="cr-badge">Coming soon</span>
+        <h2>Bot Arena is becoming <b>Circuit Rebels</b></h2>
+        <p>A story where students learn how machines sense, think and act, then use it to take their city back from an AI. Same games, all-new world.</p>
+        <div class="cr-cta">
+          <div class="cr-qr" data-tip="Scan with a phone to watch the Circuit Rebels trailer."><canvas id="crqr" width="1" height="1" aria-label="QR code to the Circuit Rebels trailer"></canvas><span>Scan to watch the trailer</span></div>
+          <a class="btn" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Watch the trailer</a>
+        </div>
+      </div>
+    </aside>
   </section>
   <div class="cards">
     <form class="panel card join" id="joinform" autocomplete="off">
@@ -102,6 +131,17 @@
       else msg.textContent = r.error;
     });
   });
+</script>
+<script src="/vendor/qrcode.js"></script>
+<script>
+  // QR code to the trailer, drawn from this site's own address (so it follows a custom domain)
+  (function () {
+    const c = document.getElementById("crqr"); if (!c || !window.qrcode) return;
+    const q = qrcode(0, "M"); q.addData(location.origin + "/tour"); q.make();
+    const n = q.getModuleCount(), m = 2, cell = Math.max(2, Math.floor(184 / (n + m * 2))), x = c.getContext("2d");
+    c.width = c.height = cell * (n + m * 2); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#141316";
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + m) * cell, (r + m) * cell, cell, cell);
+  })();
 </script>
 <script src="/js/presence.js"></script>
 </body>
