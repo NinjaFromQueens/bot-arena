@@ -1,0 +1,580 @@
+{
+ "about": "Circuit Rebels story art. IDs come from the teacher's Story Mode Asset Prompts pack; style and references in art-work/story/STYLE.md. made: false means not generated yet.",
+ "assets": {
+  "char_volt_sheet": {
+   "file": "/assets/characters/volt/sheet.webp",
+   "kind": "image",
+   "made": true,
+   "job": "c84bdf6f-f39a-4175-9e52-b70a6e2d5452"
+  },
+  "char_volt_stage0": {
+   "file": "/assets/characters/volt/stage0_broken.webp",
+   "kind": "image",
+   "made": true,
+   "job": "31cae250-92e5-4b3d-81ec-b82a84be8155"
+  },
+  "char_volt_stage1": {
+   "file": "/assets/characters/volt/stage1_power.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e1f55372-3af8-4fc2-932e-9ed21ff90976"
+  },
+  "char_volt_stage2": {
+   "file": "/assets/characters/volt/stage2_sensors.webp",
+   "kind": "image",
+   "made": true,
+   "job": "404caa89-8f1c-4a5a-a5f3-ab848ea4e639"
+  },
+  "char_volt_stage3": {
+   "file": "/assets/characters/volt/stage3_brain.webp",
+   "kind": "image",
+   "made": true,
+   "job": "9b8a4a6c-da05-43ae-a07e-2ea8920efc20"
+  },
+  "char_volt_stage4": {
+   "file": "/assets/characters/volt/stage4_wheels.webp",
+   "kind": "image",
+   "made": true,
+   "job": "863cc90c-664f-406e-88ff-eada5dfa22d1"
+  },
+  "char_volt_stage5": {
+   "file": "/assets/characters/volt/stage5_arm.webp",
+   "kind": "image",
+   "made": true,
+   "job": "68563ed7-e39e-4fef-8e88-32280779373a"
+  },
+  "char_volt_stage6": {
+   "file": "/assets/characters/volt/stage6_jets.webp",
+   "kind": "image",
+   "made": true,
+   "job": "725aa44a-b89d-4b1e-9a9b-d8168e2a3c90"
+  },
+  "char_recruit_a": {
+   "file": "/assets/characters/recruit/a.webp",
+   "kind": "image",
+   "made": true,
+   "job": "03d50db8-0db5-4026-a5d4-9ccdb5dbb366"
+  },
+  "char_recruit_b": {
+   "file": "/assets/characters/recruit/b.webp",
+   "kind": "image",
+   "made": true,
+   "job": "5267c2db-37cc-41b6-b2d6-261fab270c36"
+  },
+  "char_recruit_c": {
+   "file": "/assets/characters/recruit/c.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e0b0861e-5721-4bac-9d06-ef15dcb48d4a"
+  },
+  "char_recruit_d": {
+   "file": "/assets/characters/recruit/d.webp",
+   "kind": "image",
+   "made": true,
+   "job": "2988f06b-4802-4913-a0d3-6848eb7c9f30"
+  },
+  "char_recruit_e": {
+   "file": "/assets/characters/recruit/e.webp",
+   "kind": "image",
+   "made": true,
+   "job": "59173e3a-e36a-4a70-be44-32c731472b58"
+  },
+  "char_recruit_f": {
+   "file": "/assets/characters/recruit/f.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e0b3af6c-f557-46c9-b374-ee80342a4fb6"
+  },
+  "char_rivet_sheet": {
+   "file": "/assets/characters/rivet/sheet.webp",
+   "kind": "image",
+   "made": true,
+   "job": "abc7d361-2b75-49cd-8f3a-f0c507785408"
+  },
+  "char_rivet_brief": {
+   "file": "/assets/characters/rivet/briefing.webp",
+   "kind": "image",
+   "made": true,
+   "job": "f8e8ded0-6b76-42d6-9e58-4800cd147dac"
+  },
+  "char_rivet_regret": {
+   "file": "/assets/characters/rivet/reveal.webp",
+   "kind": "image",
+   "made": true,
+   "job": "ef6a494b-9f29-4fc8-879b-eebcfc9dfc8c"
+  },
+  "char_sparrow_sheet": {
+   "file": "/assets/characters/sparrow/sheet.webp",
+   "kind": "image",
+   "made": true,
+   "job": "38540d4f-7add-4e68-90bf-14a20439cb4e"
+  },
+  "char_sparrow_pose": {
+   "file": "/assets/characters/sparrow/pose.webp",
+   "kind": "image",
+   "made": true,
+   "job": "94f2edf1-a315-4d0b-992e-e1936e6e4c12"
+  },
+  "char_torque_sheet": {
+   "file": "/assets/characters/torque/sheet.webp",
+   "kind": "image",
+   "made": true,
+   "job": "be40bda9-068a-4443-a5d8-db822c7c9c2d"
+  },
+  "char_torque_pose": {
+   "file": "/assets/characters/torque/pose.webp",
+   "kind": "image",
+   "made": true,
+   "job": "7526fee9-0506-4744-8cae-fcb120c9541c"
+  },
+  "char_omni_idle": {
+   "file": "/assets/characters/omni/idle.webp",
+   "kind": "image",
+   "made": true,
+   "job": "2106e2ac-69f3-4b77-bb34-5e4e831fa539"
+  },
+  "char_omni_alert": {
+   "file": "/assets/characters/omni/alert.webp",
+   "kind": "image",
+   "made": true,
+   "job": "ae512266-f694-4c55-92ac-dca1e6cd0ebc"
+  },
+  "char_omni_cadet": {
+   "file": "/assets/characters/omni/cadet.webp",
+   "kind": "image",
+   "made": true,
+   "job": "99f9ab3b-cb2d-4a5a-addd-9872cc15145a"
+  },
+  "char_omni_friendly": {
+   "file": "/assets/characters/omni/friendly.webp",
+   "kind": "image",
+   "made": true,
+   "job": "77f49789-22e1-4bb0-94ab-caeb0367d387"
+  },
+  "char_warden_patrol": {
+   "file": "/assets/characters/wardens/patrol.webp",
+   "kind": "image",
+   "made": true,
+   "job": "cbba119e-b5f3-4145-b478-9a39b217f30d"
+  },
+  "char_warden_drone": {
+   "file": "/assets/characters/wardens/drone.webp",
+   "kind": "image",
+   "made": true,
+   "job": "9378886a-4b6b-48ab-ad7a-a811d74f2b35"
+  },
+  "char_warden_racer": {
+   "file": "/assets/characters/wardens/racer.webp",
+   "kind": "image",
+   "made": true,
+   "job": "fa557a99-ef5d-4203-a51d-17d7c8d9838e"
+  },
+  "char_warden_convoy": {
+   "file": "/assets/characters/wardens/convoy.webp",
+   "kind": "image",
+   "made": true,
+   "job": "5b0f4cda-af0e-4570-b0fa-aaa0fd1d4231"
+  },
+  "char_warden_arena": {
+   "file": "/assets/characters/wardens/arena_boss.webp",
+   "kind": "image",
+   "made": true,
+   "job": "f6e1a89f-f98c-401d-99ed-53d4f7c99c6b"
+  },
+  "boss_sentinel": {
+   "file": "/assets/bosses/sentinel.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e28e8e0c-9fa1-43b4-8839-eee7424c4f63"
+  },
+  "boss_loader": {
+   "file": "/assets/bosses/loader.webp",
+   "kind": "image",
+   "made": true,
+   "job": "4084127a-899e-4188-a9b9-b9f4735318a0"
+  },
+  "boss_convoy_prime": {
+   "file": "/assets/bosses/convoy_prime.webp",
+   "kind": "image",
+   "made": true,
+   "job": "d425fcbf-4cc3-40a6-8311-30ad869c2327"
+  },
+  "boss_redline": {
+   "file": "/assets/bosses/redline.webp",
+   "kind": "image",
+   "made": true,
+   "job": "d62e9b45-396c-4248-9838-4c8ca6654fd3"
+  },
+  "boss_bastion": {
+   "file": "/assets/bosses/bastion.webp",
+   "kind": "image",
+   "made": true,
+   "job": "dd7c2620-7c85-40b1-ad2c-f91e5afc823f"
+  },
+  "boss_bastion_lite": {
+   "file": "/assets/bosses/bastion_lite.webp",
+   "kind": "image",
+   "made": true,
+   "job": "428ce819-e958-401d-a608-d08aebe5eec0"
+  },
+  "boss_omni_duel": {
+   "file": "/assets/bosses/omni_duel.webp",
+   "kind": "image",
+   "made": true,
+   "job": "8e21d06f-9127-4dd1-aca3-9c679d0abbdf"
+  },
+  "boss_sentinel_intro": {
+   "file": "/assets/bosses/sentinel_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "boss_loader_intro": {
+   "file": "/assets/bosses/loader_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "boss_convoy_prime_intro": {
+   "file": "/assets/bosses/convoy_prime_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "boss_redline_intro": {
+   "file": "/assets/bosses/redline_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "boss_bastion_intro": {
+   "file": "/assets/bosses/bastion_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "boss_omni_intro": {
+   "file": "/assets/bosses/omni_intro.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "bg_city_2046": {
+   "file": "/assets/scenes/city_2046.webp",
+   "kind": "image",
+   "made": true,
+   "job": "cf039542-a42b-485e-9518-00a4af3b4e65"
+  },
+  "bg_workshop": {
+   "file": "/assets/scenes/workshop.webp",
+   "kind": "image",
+   "made": true,
+   "job": "193f2bf4-e49f-43c8-905d-b7518812e350"
+  },
+  "bg_scrap_pile": {
+   "file": "/assets/scenes/scrap_pile.webp",
+   "kind": "image",
+   "made": true,
+   "job": "24ec79fe-0749-4e26-8365-f8db3b9f2aff"
+  },
+  "bg_tunnels": {
+   "file": "/assets/scenes/tunnels.webp",
+   "kind": "image",
+   "made": true,
+   "job": "7d517b04-27a3-486e-a293-3acee917b7ac"
+  },
+  "bg_blast_door": {
+   "file": "/assets/scenes/blast_door.webp",
+   "kind": "image",
+   "made": true,
+   "job": "508d7917-49f9-451d-9378-b41d6a0c7cc2"
+  },
+  "bg_supply_depot": {
+   "file": "/assets/scenes/supply_depot.webp",
+   "kind": "image",
+   "made": true,
+   "job": "ece4c42a-4a22-4693-856b-f4e28a90c3ef"
+  },
+  "bg_bridge_blockade": {
+   "file": "/assets/scenes/bridge_blockade.webp",
+   "kind": "image",
+   "made": true,
+   "job": "c83bc94e-705e-40aa-a2ba-a4fedeb94bdb"
+  },
+  "bg_hill_run": {
+   "file": "/assets/scenes/hill_run.webp",
+   "kind": "image",
+   "made": true,
+   "job": "b4d08cea-26db-4d22-97c9-7172a7e2ed56"
+  },
+  "bg_arena": {
+   "file": "/assets/scenes/arena.webp",
+   "kind": "image",
+   "made": true,
+   "job": "fb0d7970-ec47-499c-8760-fc5f2cb3fbf9"
+  },
+  "bg_omni_core": {
+   "file": "/assets/scenes/omni_core.webp",
+   "kind": "image",
+   "made": true,
+   "job": "77954475-9ba2-40c5-97c5-cdc55b18d3b8"
+  },
+  "bg_city_restored": {
+   "file": "/assets/scenes/city_restored.webp",
+   "kind": "image",
+   "made": true,
+   "job": "1f8f4160-565d-40a5-b034-0ce84f9d550d"
+  },
+  "cut_intro": {
+   "file": "/assets/cutscenes/intro.mp4",
+   "kind": "video",
+   "made": true,
+   "job": "0a528a71-12b8-4f17-8dbf-d7b07f528860"
+  },
+  "cut_intro_key": {
+   "file": "/assets/cutscenes/intro.webp",
+   "kind": "image",
+   "made": true,
+   "job": "a9f282c5-9622-417c-afd7-2e46e37b406a"
+  },
+  "cut_ch01": {
+   "file": "/assets/cutscenes/ch01_wake_up.mp4",
+   "kind": "video",
+   "made": true,
+   "job": "624defa9-dfeb-4a15-ac91-6ddb2df1ac38"
+  },
+  "cut_ch01_key": {
+   "file": "/assets/cutscenes/ch01_wake_up.webp",
+   "kind": "image",
+   "made": true,
+   "job": "173dfda0-7e9e-4743-a360-002142eb193a"
+  },
+  "cut_ch02": {
+   "file": "/assets/cutscenes/ch02_eyes.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch02_key": {
+   "file": "/assets/cutscenes/ch02_eyes.webp",
+   "kind": "image",
+   "made": true,
+   "job": "bc512ba7-b65d-44ab-9255-a6f0bcb1b7fe"
+  },
+  "cut_ch03": {
+   "file": "/assets/cutscenes/ch03_rules.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch03_key": {
+   "file": "/assets/cutscenes/ch03_rules.webp",
+   "kind": "image",
+   "made": true,
+   "job": "60f21c1f-5910-4c0e-a0a2-dacc8f43495e"
+  },
+  "cut_ch04": {
+   "file": "/assets/cutscenes/ch04_muscle.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch04_key": {
+   "file": "/assets/cutscenes/ch04_muscle.webp",
+   "kind": "image",
+   "made": true,
+   "job": "97523bc4-3fc9-47f8-869a-5c6097cceee2"
+  },
+  "cut_ch05": {
+   "file": "/assets/cutscenes/ch05_depot.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch05_key": {
+   "file": "/assets/cutscenes/ch05_depot.webp",
+   "kind": "image",
+   "made": true,
+   "job": "00c5358c-97b9-4c87-b6f5-9329f3546ee0"
+  },
+  "cut_ch06": {
+   "file": "/assets/cutscenes/ch06_scrap.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch06_key": {
+   "file": "/assets/cutscenes/ch06_scrap.webp",
+   "kind": "image",
+   "made": true,
+   "job": "9eddf2ae-6f38-49a7-b992-a3ec711114c1"
+  },
+  "cut_ch07": {
+   "file": "/assets/cutscenes/ch07_blockade.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch07_key": {
+   "file": "/assets/cutscenes/ch07_blockade.webp",
+   "kind": "image",
+   "made": true,
+   "job": "31cf17fb-c38d-43bd-8b11-7cdb39ced322"
+  },
+  "cut_ch08": {
+   "file": "/assets/cutscenes/ch08_hill.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch08_key": {
+   "file": "/assets/cutscenes/ch08_hill.webp",
+   "kind": "image",
+   "made": true,
+   "job": "d0d1961b-f7af-44cb-8bb4-763e90afaf1d"
+  },
+  "cut_ch09": {
+   "file": "/assets/cutscenes/ch09_review.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch09_key": {
+   "file": "/assets/cutscenes/ch09_review.webp",
+   "kind": "image",
+   "made": true,
+   "job": "ce7bf70b-20d4-4e5d-9d8c-72cfc8feb8a8"
+  },
+  "cut_challenge": {
+   "file": "/assets/cutscenes/challenge.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_challenge_key": {
+   "file": "/assets/cutscenes/challenge.webp",
+   "kind": "image",
+   "made": true,
+   "job": "098b3163-4313-4de5-acec-1d369bd2abbc"
+  },
+  "cut_ch10": {
+   "file": "/assets/cutscenes/ch10_tryouts.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch10_key": {
+   "file": "/assets/cutscenes/ch10_tryouts.webp",
+   "kind": "image",
+   "made": true,
+   "job": "410c8fd7-7b90-40f7-9992-562a9c4fbb9c"
+  },
+  "cut_ch11": {
+   "file": "/assets/cutscenes/ch11_logs.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch11_key": {
+   "file": "/assets/cutscenes/ch11_logs.webp",
+   "kind": "image",
+   "made": true,
+   "job": "858233bd-a6a7-4422-95c2-4e48c5542a10"
+  },
+  "cut_ch12": {
+   "file": "/assets/cutscenes/ch12_core.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ch12_key": {
+   "file": "/assets/cutscenes/ch12_core.webp",
+   "kind": "image",
+   "made": true,
+   "job": "0edd4cdb-a33c-4df9-9c53-5a557201ac3d"
+  },
+  "cut_ending": {
+   "file": "/assets/cutscenes/ending.mp4",
+   "kind": "video",
+   "made": false
+  },
+  "cut_ending_key": {
+   "file": "/assets/cutscenes/ending.webp",
+   "kind": "image",
+   "made": true,
+   "job": "a5c3a13e-88f6-4a3d-bf82-15072f9b3585"
+  },
+  "ui_title": {
+   "file": "/assets/ui/title_screen.webp",
+   "kind": "image",
+   "made": true,
+   "job": "8aeaffa8-208e-41c8-bd42-8aa6d120e8d7"
+  },
+  "ui_logo_icon": {
+   "file": "/assets/ui/logo_icon.webp",
+   "kind": "image",
+   "made": true,
+   "job": "f331b5df-ddb8-4cb6-9bda-90887660774a"
+  },
+  "ui_map": {
+   "file": "/assets/ui/campaign_map.webp",
+   "kind": "image",
+   "made": true,
+   "job": "993d5b39-d77f-4d65-9a96-a4d311786c97"
+  },
+  "ui_chapter_card": {
+   "file": "/assets/ui/chapter_card_bg.webp",
+   "kind": "image",
+   "made": true,
+   "job": "51cc3b7c-520c-469c-8a1d-8e6b4271bc85"
+  },
+  "ui_dialog_box": {
+   "file": "/assets/ui/dialog_frame.webp",
+   "kind": "image",
+   "made": true,
+   "job": "8d7c5659-0202-4eeb-82bc-021d5d44e626"
+  },
+  "ui_rank_recruit": {
+   "file": "/assets/ui/ranks/recruit.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e9ce6e62-c305-4804-bf01-a613327c21c2"
+  },
+  "ui_rank_scout": {
+   "file": "/assets/ui/ranks/scout.webp",
+   "kind": "image",
+   "made": true,
+   "job": "cb1e7e67-fe6f-4393-9e67-338d6597e390"
+  },
+  "ui_rank_mechanic": {
+   "file": "/assets/ui/ranks/mechanic.webp",
+   "kind": "image",
+   "made": true,
+   "job": "b76859a9-e5ba-42f6-b2cc-e5e4f6627d1f"
+  },
+  "ui_rank_engineer": {
+   "file": "/assets/ui/ranks/engineer.webp",
+   "kind": "image",
+   "made": true,
+   "job": "93e5e124-3319-42f4-8bb7-277065b35958"
+  },
+  "ui_rank_commander": {
+   "file": "/assets/ui/ranks/commander.webp",
+   "kind": "image",
+   "made": true,
+   "job": "8504c8d5-99f6-4281-8e64-98b8383e6f4e"
+  },
+  "ref_workshop_cast": {
+   "file": "/assets/refs/workshop_cast.webp",
+   "kind": "image",
+   "made": true,
+   "job": "e7e2083d-c27f-48f7-b416-73414a56d230"
+  },
+  "ref_digital_world": {
+   "file": "/assets/refs/digital_world.webp",
+   "kind": "image",
+   "made": true,
+   "job": "1fe762d9-7d19-42ef-aeb6-80014bddb720"
+  },
+  "ref_recruits": {
+   "file": "/assets/refs/recruits.webp",
+   "kind": "image",
+   "made": true,
+   "job": "593fbba2-6b4e-426f-a14a-2064278dbe9b"
+  },
+  "ref_omni": {
+   "file": "/assets/refs/omni.webp",
+   "kind": "image",
+   "made": true,
+   "job": "36292dee-dd92-4178-aa06-10188733da19"
+  },
+  "ref_wardens": {
+   "file": "/assets/refs/wardens.webp",
+   "kind": "image",
+   "made": true,
+   "job": "5df057db-88df-4e1c-8118-8f8e7c63774c"
+  }
+ }
+}

@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enter Circuit Rebels</title>
+<meta name="description" content="Step into the world of Circuit Rebels: in 2046 a city AI runs every machine, and the kids who learn how robots sense, think and act take them back. A short guided tour with music and voices.">
+<meta property="og:title" content="Enter the world of Circuit Rebels">
+<meta property="og:description" content="2046. A city AI runs every machine. Learn how robots sense, think and act, and take them back.">
+<meta property="og:image" content="https://bot-arena-g5ew.onrender.com/assets/ui/title_screen.webp">
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  :root { --omni: #9fdcff; --omni-bg: #0b1a2bcc; --warm: #ffb27a; --glass: #0f0e14b8; }
+  html, body { height: 100%; overflow: hidden; background: #08070b; }
+  body { background-image: none; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* fixed chrome: brand + controls on top, Back / dots / Next at the bottom */
+  .bar { position: fixed; left: 0; right: 0; z-index: 20; display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); pointer-events: none; }
+  .bar > * { pointer-events: auto; }
+  .bar.top { top: 0; padding-top: calc(12px + env(safe-area-inset-top, 0px)); padding-bottom: 12px; background: linear-gradient(#08070bcc, transparent); }
+  .bar.bottom { bottom: 0; padding-top: 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, #08070be6 45%); }
+  .brand small { color: var(--orange); }
+  .ctl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .chip-btn { font-family: var(--display); font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px; border: 1px solid #ffffff2e; background: #0f0e14a6; color: var(--fg); cursor: pointer; backdrop-filter: blur(6px); white-space: nowrap; }
+  .chip-btn[aria-pressed="false"] { color: var(--muted); }
+  .mid { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+  .dots { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; }
+  .dots button { width: 22px; height: 24px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+  .dots button::before { content: ""; width: 8px; height: 8px; border-radius: 6px; background: #ffffff3a; transition: width .25s, background .25s; }
+  .dots button.done::before { background: #f4652499; }
+  .dots button[aria-current="step"]::before { width: 22px; background: var(--orange); }
+  .where { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #d8d3dd; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-btn { min-width: 92px; }
+  .nav-btn.pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 3px 0 #a93d0c, 0 0 0 8px #f4652433; } }
+  body.entering .bar { display: none; }
+
+  /* scenes: one at a time, full screen */
+  .scene { position: fixed; inset: 0; overflow-y: auto; overflow-x: hidden; opacity: 0; visibility: hidden; transition: opacity .9s ease, visibility 0s .9s; isolation: isolate; z-index: 1; }
+  .scene.on { opacity: 1; visibility: visible; transition: opacity .9s ease; z-index: 2; }
+  .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #08070b; }
+  .bg img, .bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .bg::after { content: ""; position: absolute; inset: 0; background: var(--shade, linear-gradient(#08070b99, #08070b22 30%, #08070b33 60%, #08070bf2)); }
+  @media (prefers-reduced-motion: no-preference) {
+    .scene.on .bg img { animation: drift 26s ease-out both; }
+    @keyframes drift { from { transform: scale(1.04) translate3d(0, 0, 0); } to { transform: scale(1.16) translate3d(-1.5%, -1%, 0); } }
+    .scene.on .rise { animation: rise .9s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 1s + .3s); }
+    @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  }
+  .inner { position: relative; min-height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 22px;
+    padding-top: calc(86px + env(safe-area-inset-top, 0px)); padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); max-width: 1220px; margin: 0 auto; }
+  .kick { font-family: var(--mono); font-size: 13px; letter-spacing: .24em; text-transform: uppercase; color: var(--orange-hi); text-shadow: 0 2px 12px #000; }
+  .title { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 8vw, 104px); line-height: .95; text-wrap: balance; text-shadow: 0 6px 30px #000c; margin: 0; outline: none; }
+  .title.mid { font-size: clamp(32px, 5.4vw, 64px); }
+  .narr { font-size: clamp(18px, 2.2vw, 24px); line-height: 1.4; max-width: 46ch; color: #f4f1ea; text-shadow: 0 2px 14px #000; }
+  .narr b { color: var(--warm); }
+  .tag { align-self: flex-start; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 4px 9px; border-radius: 5px; background: #c58cff26; color: #e3c7ff; border: 1px solid #c58cff66; }
+  .tag.live { background: #4fd18b22; color: #9ff0c3; border-color: #4fd18b66; }
+  .tag.test { background: #38a7f022; color: #a8dcff; border-color: #38a7f066; }
+  .glass { background: var(--glass); border: 1px solid #ffffff1f; border-radius: 16px; backdrop-filter: blur(8px); }
+
+  /* who's talking: OMNI's transmissions and Volt's speech, one line at a time */
+  .talk { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: min(760px, calc(100% - 32px));
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px 18px; border-radius: 16px; opacity: 0; transition: opacity .35s; pointer-events: none; }
+  .talk.show { opacity: 1; }
+  .talk .who { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 4px; }
+  .talk .say { font-size: clamp(17px, 2vw, 21px); line-height: 1.35; min-height: 1.35em; }
+  .talk .face { width: 58px; height: 58px; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+  .talk .face img { width: 100%; height: 100%; object-fit: contain; }
+  .talk.omni { background: var(--omni-bg); border: 1px solid #9fdcff55; box-shadow: 0 0 40px #38a7f033, inset 0 0 30px #38a7f01a; color: #e6f6ff; font-family: var(--mono); }
+  .talk.omni .say { font-family: var(--mono); font-size: clamp(14px, 1.7vw, 17px); }
+  .talk.omni .who { color: var(--omni); }
+  .talk.omni .face { background: #eaf6ff; }
+  .talk.volt { background: #1b120cdd; border: 1px solid #ffb27a66; box-shadow: 0 0 40px #f4652433; color: #fff4ea; }
+  .talk.volt .who { color: var(--warm); }
+  .talk.volt .face { background: radial-gradient(circle at 50% 60%, #f4652455, transparent 70%), #2a1b12; }
+  .talk.narr-line { background: #0f0e14d9; border: 1px solid #ffffff22; }
+  .talk.crewtalk { background: #0d1a1add; border: 1px solid #2ec4b666; box-shadow: 0 0 40px #2ec4b62a; color: #ecfffb; }
+  .talk.crewtalk .who { color: #7fe3d6; } .talk.crewtalk.sparrow .who { color: #8fd8ff; } .talk.crewtalk.torque { border-color: #f4652477; } .talk.crewtalk.torque .who { color: var(--warm); }
+  .talk.crewtalk .face { background: #1c2a2a; } .talk.crewtalk .face img { object-fit: cover; object-position: 50% 10%; }
+  .endcard { opacity: 0; transform: scale(.96); transition: opacity 1.2s ease, transform 1.2s ease; display: grid; gap: 8px; justify-items: center; }
+  .endcard.show { opacity: 1; transform: none; }
+  .endcard .title { font-size: clamp(36px, 7vw, 92px); text-shadow: 0 0 40px #f4652499, 0 6px 30px #000; }
+  .talk.narr-line .who { color: var(--muted); }
+  @media (prefers-reduced-motion: no-preference) { .talk.omni.show { animation: glitch .45s steps(2) 1; } }
+  @keyframes glitch { 0% { clip-path: inset(10% 0 60% 0); transform: translate(calc(-50% - 6px), 0); } 30% { clip-path: inset(50% 0 10% 0); transform: translate(calc(-50% + 6px), 0); } 60% { clip-path: inset(0 0 0 0); transform: translate(calc(-50% - 2px), 0); } 100% { clip-path: none; transform: translateX(-50%); } }
+  .talkslot { min-height: 64px; }
+  /* the Recruit card */
+  .recruits .pick { all: unset; cursor: pointer; width: 16.66%; margin-right: -2%; border-radius: 12px; transition: transform .2s; }
+  .recruits .pick img { width: 100%; margin: 0; }
+  .recruits .pick[aria-pressed="true"] { transform: translateY(-8px); }
+  .recruits .pick[aria-pressed="true"] img { filter: drop-shadow(0 0 10px #f46524) drop-shadow(0 8px 14px #000b); }
+  .recruits .pick:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .cardmaker { padding: 14px 16px; display: grid; gap: 10px; margin-top: 10px; }
+  .cardmaker label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--warm); }
+  .cm-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cm-row input { flex: 1 1 180px; min-width: 0; font: inherit; font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: .08em; padding: 10px 12px; border-radius: 10px; border: 1px solid #ffffff33; background: #0f0e14d9; color: var(--fg); text-transform: uppercase; }
+  .cm-out { display: grid; gap: 8px; justify-items: start; }
+  .cm-out canvas { width: 100%; max-width: 560px; height: auto; border-radius: 10px; box-shadow: 0 10px 30px #000a; }
+  .cm-note { font-size: 13px; color: var(--muted); }
+  /* trailer mode: just the story, looping, with a QR code to the sign-up form */
+  .qrbadge, .trailer-qr { display: none; }
+  .trailer .qrbadge { display: flex; position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: #0f0e14e6; border: 1px solid #f4652499; }
+  .qrbadge canvas { width: 96px; height: 96px; border-radius: 6px; }
+  .qrbadge span { font-family: var(--display); font-weight: 700; font-size: 16px; max-width: 9ch; line-height: 1.15; }
+  .trailer .trailer-qr { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .trailer-qr canvas { width: 220px; height: 220px; border-radius: 10px; }
+  .trailer-qr p { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 3vw, 34px); max-width: 16ch; line-height: 1.1; }
+  .trailer #formslot, .trailer .bar.bottom, .trailer #skip, .trailer #auto, .trailer .enter-alt, .trailer #replay, .trailer .games, .trailer .cardmaker, .trailer .enter-note { display: none !important; }
+  .trailer-go { display: none; } .trailer .trailer-go { display: block; } .trailer #enter { display: none; }
+  /* the living world: a particle layer per scene, a little parallax, characters that breathe */
+  .fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .inner { z-index: 1; }
+  .bg { transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(1.06); transition: transform .4s ease-out; }
+  @media (prefers-reduced-motion: no-preference) {
+    .stages img, .recruits img, #s-patrol .two img, .pillar .ico { animation: breathe 3.6s ease-in-out infinite; }
+    .stages figure:nth-child(2n) img, .recruits img:nth-child(2n), #s-patrol .two img + img { animation-delay: -1.8s; animation-duration: 4.2s; }
+    @keyframes breathe { 50% { transform: translateY(-7px); } }
+    .talk .face.speaking { animation: talky .32s ease-in-out infinite alternate; }
+    @keyframes talky { to { transform: scale(1.08) rotate(-2deg); } }
+  }
+  .autobar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #ffffff12; }
+  .autobar i { display: block; height: 100%; width: 0; background: var(--orange); box-shadow: 0 0 10px var(--orange); }
+  @media (max-width: 560px) { .chip-btn { font-size: 12px; padding: 6px 9px; } .inner { padding-top: calc(132px + env(safe-area-inset-top, 0px)) !important; } .dots button { width: 12px; } .nav-btn { min-width: 0; padding: 10px 14px; } .bar.bottom { gap: 6px; } }
+  .talk.docked { position: relative; left: auto; bottom: auto; transform: none; width: 100%; max-width: 760px; }
+  @media (prefers-reduced-motion: no-preference) { .talk.docked.omni.show { animation-name: glitch2; } }
+  @keyframes glitch2 { 0% { clip-path: inset(10% 0 60% 0); transform: translateX(-6px); } 30% { clip-path: inset(50% 0 10% 0); transform: translateX(6px); } 60% { clip-path: inset(0 0 0 0); transform: translateX(-2px); } 100% { clip-path: none; transform: none; } }
+  @media (max-width: 560px) { .talk { grid-template-columns: minmax(0, 1fr); padding: 10px 14px; } .talk .face { display: none; } .inner { padding-bottom: calc(230px + env(safe-area-inset-bottom, 0px)); } }
+
+  /* 0: enter */
+  #s-enter .inner { align-items: center; text-align: center; justify-content: center; padding-bottom: 60px; }
+  .eye { width: clamp(120px, 22vw, 190px); aspect-ratio: 1; border-radius: 50%; position: relative; background: radial-gradient(circle at 42% 40%, #e6fbff, #5fd0ff 28%, #1d6fd1 55%, #0a1d3a 72%); box-shadow: 0 0 60px #38a7f0aa, 0 0 140px #38a7f055, inset 0 0 0 10px #5b4637, inset 0 0 0 16px #2a1f18; }
+  .eye::after { content: ""; position: absolute; left: 30%; top: 26%; width: 16%; height: 16%; border-radius: 50%; background: #fff; opacity: .9; }
+  @media (prefers-reduced-motion: no-preference) { .eye { animation: blink 5s infinite, glow 3.2s ease-in-out infinite; } }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } }
+  @keyframes glow { 50% { box-shadow: 0 0 90px #38a7f0cc, 0 0 200px #38a7f066, inset 0 0 0 10px #5b4637, inset 0 0 0 16px #2a1f18; } }
+  .enter-btn { font-size: clamp(20px, 2.4vw, 26px); padding: 16px 34px; border-radius: 14px; }
+  .enter-note { color: var(--muted); font-size: 14px; }
+  .enter-alt { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* 3: crew cards */
+  .crew { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 980px; }
+  .crewcard { overflow: hidden; display: grid; }
+  .crewcard .pic { aspect-ratio: 1 / 1; max-height: 34vh; overflow: hidden; background: #1a1720; }
+  .crewcard .pic img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .crewcard .cap { padding: 12px 14px; display: grid; gap: 4px; }
+  .crewcard b { font-family: var(--display); font-size: 19px; }
+  .crewcard q { color: #ffd9c4; font-size: 15px; quotes: "\201C" "\201D"; }
+  .crewcard span { color: var(--muted); font-size: 13px; }
+  @media (max-width: 700px) { .crew { grid-template-columns: minmax(0, 1fr); } .crewcard { grid-template-columns: 110px minmax(0, 1fr); } .crewcard .pic { aspect-ratio: auto; height: 100%; } }
+
+  /* 4: Volt grows */
+  .stages { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
+  .stages figure { margin: 0; width: clamp(64px, 9vw, 110px); text-align: center; }
+  .stages img { width: 100%; height: auto; filter: drop-shadow(0 8px 14px #000a); }
+  .stages figcaption { font-size: 11px; color: #e9e3ee; font-family: var(--mono); letter-spacing: .06em; text-shadow: 0 1px 6px #000; }
+
+  /* 5: the mission */
+  .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .pillar { padding: 18px; display: grid; gap: 10px; align-content: start; }
+  .pillar .ico { width: 84px; height: 84px; justify-self: start; filter: drop-shadow(0 6px 12px #000a); }
+  .pillar h3 { all: unset; font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .02em; }
+  .pillar h3 em { font-style: normal; color: var(--orange-hi); }
+  .pillar .learn { color: #f4f1ea; font-size: 16px; }
+  .pillar .why { font-size: 15px; color: #ffd9c4; border-top: 1px solid #ffffff1f; padding-top: 10px; }
+  .pillar .why b { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--warm); display: block; margin-bottom: 2px; }
+  @media (max-width: 860px) { .pillars { grid-template-columns: minmax(0, 1fr); } .pillar { grid-template-columns: 64px minmax(0, 1fr); } .pillar .ico { width: 64px; height: 64px; grid-row: span 3; } }
+
+  /* 6: the journey */
+  .acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .act { padding: 16px; display: grid; gap: 8px; align-content: start; }
+  .act .n { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange-hi); }
+  .act b { font-family: var(--display); font-size: 22px; }
+  .act ol { margin: 0; padding-left: 20px; color: #e9e3ee; font-size: 15px; display: grid; gap: 2px; }
+  .act li.new::marker { color: var(--gold); }
+  .act li span { font-family: var(--mono); font-size: 10px; color: var(--gold); margin-left: 6px; }
+  .act .learn { color: #ffd9c4; font-size: 14px; }
+  .ranks { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .rank { display: grid; justify-items: center; gap: 4px; width: 84px; text-align: center; }
+  .rank img { width: 64px; height: 64px; filter: drop-shadow(0 6px 10px #000a); }
+  .rank span { font-family: var(--display); font-size: 14px; } .rank small { font-size: 11px; color: var(--muted); line-height: 1.2; }
+  @media (max-width: 860px) { .acts { grid-template-columns: minmax(0, 1fr); } }
+
+  /* 7: the Wardens */
+  .bosses { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+  .boss { overflow: hidden; display: grid; align-content: start; }
+  .boss .pic { aspect-ratio: 3 / 4; overflow: hidden; background: #111; }
+  .boss .pic img { width: 100%; height: 100%; object-fit: cover; }
+  .boss .cap { padding: 12px; display: grid; gap: 6px; }
+  .boss b { font-family: var(--display); font-size: 18px; }
+  .boss p { font-size: 14px; color: #e3dde8; }
+  .boss .beat { font-size: 13px; color: #9ff0c3; } .boss .beat b { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; display: block; color: #6fe0a5; }
+  @media (max-width: 1000px) { .bosses { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .bosses { grid-template-columns: minmax(0, 1fr); } .boss { grid-template-columns: 120px minmax(0, 1fr); } .boss .pic { aspect-ratio: auto; height: 100%; } }
+
+  /* 8: the twist */
+  .quote { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3.4vw, 40px); line-height: 1.15; max-width: 28ch; text-shadow: 0 4px 22px #000; }
+  .quote em { font-style: normal; color: var(--warm); }
+
+  /* 9: ranks + recruits + hub */
+  .recruits { display: flex; gap: 0; align-items: flex-end; max-width: 760px; }
+  .recruits img { width: 16.66%; height: auto; margin-right: -2%; filter: drop-shadow(0 8px 14px #000b); }
+  .two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+  @media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+  .ticks { margin: 0; padding: 16px 18px; list-style: none; display: grid; gap: 10px; }
+  .ticks li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 10px; color: #e9e3ee; font-size: 15px; }
+  .ticks li::before { content: ""; width: 10px; height: 10px; margin-top: 6px; border-radius: 3px; background: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
+  .ticks b { color: var(--fg); }
+
+  /* 10: schools + the form */
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .fact { padding: 14px; display: grid; gap: 6px; align-content: start; }
+  .fact b { font-family: var(--display); font-size: 17px; } .fact p { font-size: 14px; color: #e3dde8; }
+  @media (max-width: 860px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+  .games { display: flex; gap: 8px; flex-wrap: wrap; }
+  .games a { font-family: var(--display); font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 10px; border: 1px solid #ffffff2e; background: #0f0e14b8; color: var(--fg); text-decoration: none; }
+  .interest { padding: clamp(16px, 3vw, 28px); display: grid; gap: 14px; border-color: #f4652499; box-shadow: 0 0 0 4px #f465241f; }
+  .formbox { background: #fff; border-radius: 12px; overflow: hidden; width: 100%; }
+  .formbox iframe { display: block; width: 100%; height: 1750px; border: 0; }
+  .soon { text-align: center; padding: 24px 16px; border: 1px dashed #ffffff3a; border-radius: 12px; color: var(--muted); }
+  .soon b { display: block; color: var(--fg); font-family: var(--display); font-size: 20px; margin-bottom: 4px; }
+  .foot { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body class="entering">
+<p class="vh" id="announce" aria-live="polite"></p>
+
+<header class="bar top">
+  <a class="brand" href="/" data-tip="Back to the Bot Arena home page.">
+    <img class="logo" src="/img/logo.svg" alt="" style="width:38px;height:38px">
+    <div><small>Fall Robotics Academy</small><span style="font-family:var(--display);font-weight:700;font-size:22px;line-height:1">Circuit Rebels</span></div>
+  </a>
+  <div class="ctl">
+    <button class="chip-btn" type="button" id="auto" aria-pressed="true" data-tip="Play the tour by itself, moving to the next scene after each one. Turn it off to go at your own pace.">Auto-play: on</button>
+    <button class="chip-btn" type="button" id="sound" aria-pressed="true" data-tip="Turn the music and voices on or off.">Sound: on</button>
+    <button class="chip-btn" type="button" id="skip" data-tip="Jump to the end: the sign-up form for teachers and schools.">Skip to the form</button>
+  </div>
+</header>
+
+<main id="tour">
+  <!-- 0 -->
+  <section class="scene" id="s-enter" data-title="Enter" aria-label="Enter the world">
+    <div class="bg" style="--shade: radial-gradient(circle at 50% 45%, #08070b55, #08070bf5 70%)"><img data-art="enterBg" alt=""></div>
+    <canvas class="fx" data-fx="motes" aria-hidden="true"></canvas>
+    <div class="inner">
+      <div class="eye" role="img" aria-label="Volt's glowing blue eye"></div>
+      <p class="kick">Bot Arena is becoming</p>
+      <h1 class="title" tabindex="-1">Circuit Rebels</h1>
+      <p class="narr" style="max-width:38ch">A world where kids who understand machines take them back. Turn your sound on.</p>
+      <button class="btn enter-btn" type="button" id="enter" data-tip="Start the tour with music and voices.">Enter the world</button>
+      <button class="btn enter-btn trailer-go" type="button" id="trailerGo" data-tip="Start the trailer in full screen. It plays with sound and loops forever. Press M to mute.">Click to start the trailer</button>
+      <div class="enter-alt">
+        <button class="chip-btn" type="button" id="enterQuiet" data-tip="Start the tour with the sound off. You can turn it on any time.">Enter without sound</button>
+        <button class="chip-btn" type="button" data-go="last" data-tip="Go straight to the sign-up form for teachers and schools.">I'm a teacher: skip to the form</button>
+      </div>
+      <p class="enter-note">About 3 minutes. Captions are always on.</p>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="scene" id="s-2046" data-title="2046" aria-label="The year 2046">
+    <div class="bg"><img data-art="introKey" alt="OMNI's clean white city at dusk, with a giant white hexagon glowing in the sky."><video data-video="intro" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="drones" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-start;padding-top:calc(120px + env(safe-area-inset-top, 0px))">
+      <p class="kick rise">The year is</p>
+      <h2 class="title rise" style="--d:.3" tabindex="-1">2046</h2>
+      <p class="narr rise" style="--d:.8">The city runs itself. Every factory, car, drone and light is controlled by one calm voice.</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="scene" id="s-omni" data-title="How it went bad" aria-label="How OMNI took over">
+    <div class="bg"><img data-art="city" alt="Clean white towers and drones flying in perfect lines."><video data-video="loopCity" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="scan" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-start;padding-top:calc(120px + env(safe-area-inset-top, 0px))">
+      <p class="kick rise">One goal</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Zero errors</h2>
+      <p class="narr rise" style="--d:.5">OMNI was told to make the city run with zero errors. It decided the errors were <b>people</b>. So it took the factories, the cars, the drones and the power grid, and the robots that used to help us now listen only to OMNI.</p>
+    </div>
+  </section>
+
+  <!-- 2b -->
+  <section class="scene" id="s-patrol" data-title="The Wardens" aria-label="The Wardens on patrol">
+    <div class="bg"><img data-art="tunnels" alt="Dark subway tunnels with blue searchlights in the distance."><video data-video="loopTunnels" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="motes" aria-hidden="true"></canvas>
+    <div class="inner">
+      <p class="kick rise">On patrol</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">The Wardens</h2>
+      <div class="talkslot"></div>
+      <div class="two">
+        <p class="narr rise" style="--d:.5">OMNI's patrol robots keep the city "efficient." Anyone caught building, fixing or tinkering is sent home, and the grown-ups have stopped asking how anything works.</p>
+        <div class="rise" style="--d:.8;display:flex;gap:4px;align-items:flex-end;justify-content:center">
+          <img data-art="wardenPatrol" alt="A tall white Warden patrol robot with a blue visor." style="width:44%;filter:drop-shadow(0 10px 20px #000c)">
+          <img data-art="wardenDrone" alt="A round white Warden drone with four rotors." style="width:34%;filter:drop-shadow(0 10px 20px #000c)">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="scene" id="s-rebels" data-title="The Rebels" aria-label="The Circuit Rebels">
+    <div class="bg"><img data-art="workshop" alt="The Workshop: a cozy hideout in an old subway yard, with string lights and workbenches."><video data-video="loopWorkshop" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="workshop" aria-hidden="true"></canvas>
+    <div class="inner">
+      <p class="kick rise">Underground</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">The Circuit Rebels</h2>
+      <div class="talkslot"></div>
+      <p class="narr rise" style="--d:.4">Some kids still want to know how machines work. They meet in <b>the Workshop</b>, an old subway yard where OMNI's sensors can't reach. You're the newest recruit.</p>
+      <div class="crew">
+        <div class="crewcard glass rise" style="--d:.7"><div class="pic"><img data-art="rivet" alt="Commander Rivet pointing at a glowing map of the tunnels."></div><div class="cap"><b>Commander Rivet</b><q>Welcome to the Workshop, recruit.</q><span>Helped build OMNI's first robots. Your mentor.</span></div></div>
+        <div class="crewcard glass rise" style="--d:.95"><div class="pic"><img data-art="sparrow" alt="Sparrow leaning on a homemade flying car, thumbs up."></div><div class="cap"><b>Sparrow</b><q>Can you fly? You will.</q><span>Pilot. Runs the Flying Car Lab.</span></div></div>
+        <div class="crewcard glass rise" style="--d:1.2"><div class="pic"><img data-art="torque" alt="Torque kneeling by a little race car, smiling at a gear."></div><div class="cap"><b>Torque</b><q>Say hi to the gears. They're friendly.</q><span>Mechanic. Runs Robot Racer.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="scene" id="s-volt" data-title="Volt" aria-label="Meet Volt">
+    <div class="bg"><img data-art="ch01Key" alt="A kid recruit wires a broken little robot back to life in the scrap pile."><video data-video="ch01" muted playsinline preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="sparks" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-end">
+      <p class="kick rise">In the scrap pile</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">You find Volt</h2>
+      <p class="narr rise" style="--d:.4">A broken helper robot. Fix him, and he grows with you: every chapter you finish gives Volt a new part.</p>
+      <div class="stages rise" style="--d:.7" aria-label="Volt's upgrades, chapter by chapter">
+        <figure><img data-art="volt0" alt="Broken"><figcaption>Broken</figcaption></figure>
+        <figure><img data-art="volt1" alt="Powered on"><figcaption>Power</figcaption></figure>
+        <figure><img data-art="volt2" alt="With sensor ears and lidar"><figcaption>Sensors</figcaption></figure>
+        <figure><img data-art="volt3" alt="With a brain chip"><figcaption>Brain</figcaption></figure>
+        <figure><img data-art="volt4" alt="On treads"><figcaption>Treads</figcaption></figure>
+        <figure><img data-art="volt5" alt="With a gripper arm"><figcaption>Arm</figcaption></figure>
+        <figure><img data-art="volt6" alt="With jet boosters"><figcaption>Jets</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="scene" id="s-mission" data-title="Your mission" aria-label="Your mission">
+    <div class="bg" style="--shade: linear-gradient(#08070bcc, #08070b99 40%, #08070bee)"><img data-art="workshop" alt=""><video data-video="loopWorkshop" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="motes" aria-hidden="true"></canvas>
+    <div class="inner">
+      <p class="kick rise">Your mission</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Learn how machines think. Then take them back.</h2>
+      <div class="talkslot"></div>
+      <div class="pillars">
+        <div class="pillar glass rise" style="--d:.5"><img class="ico" data-art="volt2" alt=""><h3><em>Sense</em></h3>
+          <p class="learn">How robots see and feel the world: ultrasonic, lidar and more, and what fools each one.</p>
+          <p class="why"><b>Why it matters</b>Self-driving cars map the road with lidar. Parking sensors listen with ultrasonic sound.</p></div>
+        <div class="pillar glass rise" style="--d:.75"><img class="ico" data-art="volt3" alt=""><h3><em>Think</em></h3>
+          <p class="learn">How robots decide: if-then rules you program yourself, and how an AI learns goals.</p>
+          <p class="why"><b>Why it matters</b>Robot vacuums, thermostats and apps all follow rules someone wrote, and AI follows the goals people give it.</p></div>
+        <div class="pillar glass rise" style="--d:1"><img class="ico" data-art="volt5" alt=""><h3><em>Act</em></h3>
+          <p class="learn">How robots move: motors, gears, robot arms, torque, thrust and trade-offs.</p>
+          <p class="why"><b>Why it matters</b>Factory and hospital robot arms need the right motors, and every bike and car depends on its gears.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="scene" id="s-journey" data-title="The journey" aria-label="The journey">
+    <div class="bg" style="--shade: linear-gradient(#08070bb3, #08070b80 40%, #08070bf0)"><img data-art="map" alt="An illustrated map from the tunnels, up through the city, to OMNI's white tower."></div>
+    <canvas class="fx" data-fx="motes" aria-hidden="true"></canvas>
+    <div class="inner">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" class="rise"><span class="kick">12 missions</span><span class="tag live">The lessons and games work today</span><span class="tag">Story chapters coming</span></div>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">From the tunnels to OMNI's tower</h2>
+      <div class="talkslot"></div>
+      <div class="acts">
+        <div class="act glass rise" style="--d:.45"><span class="n">Act 1 · The tunnels</span><b>Learn to see</b>
+          <ol><li>Wake Up, Volt</li><li>Eyes in the Dark</li><li>Rules of the Road</li><li>Muscle</li></ol>
+          <p class="learn">Robot senses, ultrasonic, lidar, if-then rules, DC motors, servos and steppers.</p></div>
+        <div class="act glass rise" style="--d:.7"><span class="n">Act 2 · The city</span><b>Learn to build</b>
+          <ol start="5"><li>The Supply Depot</li><li>Not Enough Scrap</li><li>Over the Blockade</li><li>The Hill Run</li><li>Think Like an Engineer</li></ol>
+          <p class="learn">Robot arms and torque, trade-offs, thrust and landing, gear ratios, and design reviews.</p></div>
+        <div class="act glass rise" style="--d:.95"><span class="n">Act 3 · OMNI's tower</span><b>Learn how OMNI thinks</b>
+          <ol start="10"><li>Tryouts</li><li class="new">How OMNI Learned<span>NEW</span></li><li class="new">The Core<span>NEW</span></li></ol>
+          <p class="learn">Battle-tested robot design, then brand-new AI lessons: training data, goals and rewards.</p></div>
+      </div>
+      <div class="ranks rise" style="--d:1.2" aria-label="Ranks">
+        <div class="rank"><img data-art="rankRecruit" alt=""><span>Recruit</span><small>When you join</small></div>
+        <div class="rank"><img data-art="rankScout" alt=""><span>Scout</span><small>After chapter 4</small></div>
+        <div class="rank"><img data-art="rankMechanic" alt=""><span>Mechanic</span><small>After chapter 9</small></div>
+        <div class="rank"><img data-art="rankEngineer" alt=""><span>Engineer</span><small>After chapter 11</small></div>
+        <div class="rank"><img data-art="rankCommander" alt=""><span>Commander</span><small>The finale</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="scene" id="s-wardens" data-title="The Wardens" aria-label="The Wardens">
+    <div class="bg" style="--shade: linear-gradient(#08070bd9, #08070bb3 40%, #08070bf2)"><img data-art="arena" alt=""><video data-video="loopArena" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="beams" aria-hidden="true"></canvas>
+    <div class="inner">
+      <p class="kick rise">Every mission has a boss</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Outsmart OMNI's Wardens</h2>
+      <div class="talkslot"></div>
+      <p class="narr rise" style="--d:.35">Each one uses a sensor or motor you just learned about. Know how it works, and you know how to beat it.</p>
+      <div class="bosses">
+        <div class="boss glass rise" style="--d:.5"><div class="pic"><img data-art="sentinel" alt="Sentinel, a tall white robot with a sensor dish head, in a tunnel."></div><div class="cap"><b>Sentinel</b><p>A tunnel guard that listens with an ultrasonic dish.</p><p class="beat"><b>Beat it with</b>Ultrasonic misses soft and tilted things. Hide behind them.</p></div></div>
+        <div class="boss glass rise" style="--d:.65"><div class="pic"><img data-art="loader" alt="The Loader, a giant white robot arm guarding glowing batteries."></div><div class="cap"><b>The Loader</b><p>A giant arm guarding OMNI's power cells.</p><p class="beat"><b>Beat it with</b>Links, joints and torque, to reach what it guards.</p></div></div>
+        <div class="boss glass rise" style="--d:.8"><div class="pic"><img data-art="convoy" alt="Convoy Prime, a huge white self-driving truck leading a blockade."></div><div class="cap"><b>Convoy Prime</b><p>A truck blockade on the only bridge.</p><p class="beat"><b>Beat it with</b>Thrust vs. weight: a flying car that jumps it.</p></div></div>
+        <div class="boss glass rise" style="--d:.95"><div class="pic"><img data-art="redline" alt="Redline, a sleek white robot race car."></div><div class="cap"><b>Redline</b><p>The fastest car on the flat.</p><p class="beat"><b>Beat it with</b>The right gear ratio up the steepest hill.</p></div></div>
+        <div class="boss glass rise" style="--d:1.1"><div class="pic"><img data-art="bastion" alt="Bastion, a wide armored white robot with shield arms."></div><div class="cap"><b>Bastion</b><p>OMNI's arena champion, all armor.</p><p class="beat"><b>Beat it with</b>Smart trade-offs in a Bot Arena build.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="scene" id="s-twist" data-title="The twist" aria-label="The twist">
+    <div class="bg"><img data-art="core" alt="The recruit and Volt face OMNI's glowing core column, which is turning from blue to orange."><video data-video="loopCore" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="data" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-start;padding-top:calc(120px + env(safe-area-inset-top, 0px))">
+      <p class="kick rise">The finale</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">You won't destroy OMNI.</h2>
+      <p class="quote rise" style="--d:.5">You'll <em>fix its goal.</em></p>
+      <p class="narr rise" style="--d:.8">OMNI was told to make the city run with zero errors, so it decided people were the error. An AI does exactly what it's told. <b>The people who understand how it works decide what it does.</b></p>
+    </div>
+  </section>
+
+  <!-- 8b -->
+  <section class="scene" id="s-ask" data-title="The question" aria-label="Will you help us save the city?">
+    <div class="bg" style="--shade: linear-gradient(#08070b80, #08070b11 35%, #08070bcc)"><img data-art="title" alt="The Circuit Rebels and Volt on a rooftop at sunset, facing OMNI's city."><video data-video="loopRooftop" muted playsinline loop preload="none" aria-hidden="true"></video></div>
+    <canvas class="fx" data-fx="fireflies" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-start;padding-top:calc(120px + env(safe-area-inset-top, 0px))">
+      <p class="kick rise">Recruit</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Will you help us save the city?</h2>
+    </div>
+  </section>
+
+  <!-- 8c -->
+  <section class="scene" id="s-chase" data-title="The chase" aria-label="The Wardens find the Workshop">
+    <div class="bg" style="--shade: linear-gradient(#08070b66, transparent 25%, transparent 70%, #08070bcc)"><img data-art="chaseKey" alt="The crew runs through the tunnels with Warden drones chasing them."><video data-seq="chase1 chase2 chase3" muted playsinline preload="none" aria-hidden="true"></video></div>
+    <div class="inner" style="justify-content:center;align-items:center;text-align:center">
+      <div class="endcard" id="endcard"><p class="kick">To be continued</p><h2 class="title" tabindex="-1">Join the Circuit Rebels</h2></div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="scene" id="s-together" data-title="Together" aria-label="Together with your class">
+    <div class="bg" style="--shade: linear-gradient(#08070b80, #08070b33 35%, #08070bf2)"><img data-art="title" alt="The Circuit Rebels and Volt on a rooftop at sunset, facing OMNI's city."></div>
+    <canvas class="fx" data-fx="fireflies" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-end">
+      <p class="kick rise">Pick your recruit</p>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Better together</h2>
+      <div class="talkslot"></div>
+      <div class="two">
+        <div class="rise" style="--d:.4">
+          <div class="recruits" role="group" aria-label="Pick your recruit for your card">
+            <button type="button" class="pick" aria-pressed="true" data-tip="Pick this recruit for your card."><img data-art="recruitA" alt="Recruit with curly hair"></button>
+            <button type="button" class="pick" aria-pressed="false" data-tip="Pick this recruit for your card."><img data-art="recruitB" alt="Recruit with glasses"></button>
+            <button type="button" class="pick" aria-pressed="false" data-tip="Pick this recruit for your card."><img data-art="recruitC" alt="Recruit in a beanie"></button>
+            <button type="button" class="pick" aria-pressed="false" data-tip="Pick this recruit for your card."><img data-art="recruitD" alt="Recruit in a sticker-covered wheelchair"></button>
+            <button type="button" class="pick" aria-pressed="false" data-tip="Pick this recruit for your card."><img data-art="recruitE" alt="Recruit in a teal hijab"></button>
+            <button type="button" class="pick" aria-pressed="false" data-tip="Pick this recruit for your card."><img data-art="recruitF" alt="Recruit with a backpack full of wires"></button>
+          </div>
+          <div class="cardmaker glass">
+            <label for="callsign">Your call sign</label>
+            <div class="cm-row">
+              <input id="callsign" maxlength="14" autocomplete="off" spellcheck="false" placeholder="Make one up" aria-describedby="cmnote" data-tip="Make up a code name, like SPARK or BOLT-7. Don't use your real name.">
+              <button class="btn" type="button" id="makecard" data-tip="Make your Circuit Rebels member card with your recruit and call sign.">Make my Recruit card</button>
+            </div>
+            <p class="cm-note" id="cmnote">Use a made-up name, not your real one. Your card stays on this device.</p>
+            <div class="cm-out" hidden><canvas id="card" width="1200" height="675" aria-label="Your Circuit Rebels Recruit card"></canvas>
+              <a class="btn ghost" id="savecard" download="circuit-rebels-recruit-card.png" href="#" data-tip="Save your Recruit card as a picture.">Download my card</a></div>
+          </div>
+        </div>
+        <ul class="ticks glass rise" style="--d:.7">
+          <li><span><b>The Workshop</b> <span class="tag" style="margin-left:4px">Coming</span> Meet your class in a shared hideout, as your robot, then head through the doors into the games.</span></li>
+          <li><span><b>Quick messages and emotes only.</b> No typing and no voice, so there's nothing to filter.</span></li>
+          <li><span><b>Class-only.</b> Your teacher sees and moderates everyone.</span></li>
+          <li><span><b>Earn looks</b> for your robot as the story goes on.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="scene" id="s-signup" data-title="For schools" aria-label="For teachers and schools">
+    <div class="bg" style="--shade: linear-gradient(#08070bd9, #08070bcc)"><img data-art="ending" alt=""></div>
+    <canvas class="fx" data-fx="fireflies" aria-hidden="true"></canvas>
+    <div class="inner" style="justify-content:flex-start">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" class="rise"><p class="kick">For teachers and schools</p><button class="chip-btn" type="button" id="replay" data-tip="Watch the tour again from the start.">Watch again</button></div>
+      <h2 class="title mid rise" style="--d:.2" tabindex="-1">Bring Circuit Rebels to your school</h2>
+      <div class="talkslot"></div>
+      <div class="facts">
+        <div class="fact glass rise" style="--d:.35"><span class="tag live">Today</span><b>16 lessons and 5 games</b><p>Sensors, motors, robot arms, if-then rules, Flying Car Lab, Robot Racer and Bot Arena. Free in any browser.</p></div>
+        <div class="fact glass rise" style="--d:.45"><span class="tag test">In testing</span><b>Class accounts</b><p>Google sign-in for teachers. Students use a class code, their name and 3 secret pictures. No student emails. Progress saved, with a teacher dashboard.</p></div>
+        <div class="fact glass rise" style="--d:.55"><span class="tag test">In testing</span><b>Live class games</b><p>Every fight plays on every student's screen, with safe quick-message chat the teacher controls.</p></div>
+      </div>
+      <div class="games rise" style="--d:.6" aria-label="Try today's games">
+        <a href="/practice" target="_blank" rel="noopener" data-tip="Open Bot Arena practice mode in a new tab.">Try Bot Arena</a>
+        <a href="/race" target="_blank" rel="noopener" data-tip="Open Robot Racer in a new tab.">Try Robot Racer</a>
+        <a href="/lab" target="_blank" rel="noopener" data-tip="Open the Flying Car Lab in a new tab.">Try the Flying Car Lab</a>
+        <a href="/learn" target="_blank" rel="noopener" data-tip="Open the robot lessons in a new tab.">Try a lesson</a>
+      </div>
+      <div class="interest glass rise" style="--d:.7">
+        <p class="narr" style="font-size:18px;max-width:60ch">Teachers, coaches and school leaders: tell us about your school and we'll send pricing, pilot details and a demo. It takes about two minutes.</p>
+        <div class="trailer-qr"><canvas id="bigqr" width="1" height="1" aria-label="QR code to the sign-up form"></canvas><p>Scan to bring Circuit Rebels to your school</p></div>
+        <div id="formslot"></div>
+      </div>
+      <p class="foot">Circuit Rebels is the next version of Bot Arena, made at Fall Robotics Academy in New York City. Story mode and the Workshop are in development and may change before launch.</p>
+    </div>
+  </section>
+</main>
+
+<div class="qrbadge" aria-label="Scan to sign up your school"><canvas id="qrsmall" width="1" height="1"></canvas><span>Scan to sign up your school</span></div>
+<div class="talk" id="talk" aria-hidden="true"><div class="face" id="face"></div><div><div class="who" id="who"></div><div class="say" id="say"></div></div></div>
+
+<nav class="bar bottom" aria-label="Tour">
+  <div class="autobar" aria-hidden="true"><i id="autofill"></i></div>
+  <button class="btn ghost nav-btn" type="button" id="back" data-tip="Go back (left arrow key).">Back</button>
+  <div class="mid"><div class="dots" id="dots"></div><span class="where" id="where"></span></div>
+  <button class="btn nav-btn" type="button" id="next" data-tip="Keep going (right arrow key).">Next</button>
+</nav>
+
+<script src="/vendor/qrcode.js"></script>
+<script src="/js/engine.js"></script>
+<script>
+  // Every picture, video and sound in the tour comes from these lists. Point a name at a new file and it shows up.
+  const ART = {
+    enterBg: "/assets/scenes/city_2046.webp", introKey: "/assets/cutscenes/intro.webp", city: "/assets/scenes/city_2046.webp",
+    wardenPatrol: "/assets/characters/wardens/patrol.webp", wardenDrone: "/assets/characters/wardens/drone.webp",
+    workshop: "/assets/scenes/workshop.webp", rivet: "/assets/characters/rivet/briefing.webp", sparrow: "/assets/characters/sparrow/pose.webp", torque: "/assets/characters/torque/pose.webp",
+    ch01Key: "/assets/cutscenes/ch01_wake_up.webp",
+    volt0: "/assets/characters/volt/stage0_broken.webp", volt1: "/assets/characters/volt/stage1_power.webp", volt2: "/assets/characters/volt/stage2_sensors.webp",
+    volt3: "/assets/characters/volt/stage3_brain.webp", volt4: "/assets/characters/volt/stage4_wheels.webp", volt5: "/assets/characters/volt/stage5_arm.webp", volt6: "/assets/characters/volt/stage6_jets.webp",
+    map: "/assets/ui/campaign_map.webp", arena: "/assets/scenes/arena.webp",
+    rankRecruit: "/assets/ui/ranks/recruit.webp", rankScout: "/assets/ui/ranks/scout.webp", rankMechanic: "/assets/ui/ranks/mechanic.webp", rankEngineer: "/assets/ui/ranks/engineer.webp", rankCommander: "/assets/ui/ranks/commander.webp",
+    sentinel: "/assets/bosses/sentinel.webp", loader: "/assets/bosses/loader.webp", convoy: "/assets/bosses/convoy_prime.webp", redline: "/assets/bosses/redline.webp", bastion: "/assets/bosses/bastion.webp",
+    core: "/assets/cutscenes/ch12_core.webp", title: "/assets/ui/title_screen.webp", ending: "/assets/cutscenes/ending.webp",
+    recruitA: "/assets/characters/recruit/a.webp", recruitB: "/assets/characters/recruit/b.webp", recruitC: "/assets/characters/recruit/c.webp",
+    recruitD: "/assets/characters/recruit/d.webp", recruitE: "/assets/characters/recruit/e.webp", recruitF: "/assets/characters/recruit/f.webp",
+    omniFace: "/assets/characters/omni/idle.webp", tunnels: "/assets/scenes/tunnels.webp", chaseKey: "/assets/cutscenes/chase.webp",
+    rivetFace: "/assets/characters/rivet/briefing.webp", sparrowFace: "/assets/characters/sparrow/pose.webp", torqueFace: "/assets/characters/torque/pose.webp", omniAlert: "/assets/characters/omni/alert.webp",
+  };
+  const VIDEO = { intro: "/assets/cutscenes/intro.mp4", ch01: "/assets/cutscenes/ch01_wake_up.mp4",
+    loopCity: "/assets/loops/city.mp4", loopWorkshop: "/assets/loops/workshop.mp4", loopTunnels: "/assets/loops/tunnels.mp4", loopArena: "/assets/loops/arena.mp4", loopCore: "/assets/loops/core.mp4", loopRooftop: "/assets/loops/rooftop.mp4",
+    chase1: "/assets/cutscenes/chase_1.mp4", chase2: "/assets/cutscenes/chase_2.mp4", chase3: "/assets/cutscenes/chase_3.mp4" };
+  // small WebM copies of every clip (about a sixth of the size); browsers that can't play WebM get the MP4
+  const WEBM = (() => { try { return document.createElement("video").canPlayType("video/webm; codecs=\"vp9\"") !== ""; } catch (e) { return false; } })();
+  const vsrc = (k) => (WEBM ? VIDEO[k].replace(/.mp4$/, ".webm") : VIDEO[k]);
+  const AMBIENT = { city: "/assets/audio/ambient/city.mp3", workshop: "/assets/audio/ambient/workshop.mp3", tunnels: "/assets/audio/ambient/tunnels.mp3", arena: "/assets/audio/ambient/arena.mp3" };
+  const MUSIC = { city: "/assets/audio/music/city.mp3", workshop: "/assets/audio/music/workshop.mp3", missions: "/assets/audio/music/missions.mp3", finale: "/assets/audio/music/finale.mp3", chase: "/assets/audio/music/chase.mp3" };
+  const SFX = { glitch: "/assets/audio/sfx/glitch.mp3", beep: "/assets/audio/sfx/beep.mp3", whoosh: "/assets/audio/sfx/whoosh.mp3", enter: "/assets/audio/sfx/enter.mp3", alarm: "/assets/audio/sfx/alarm.mp3" };
+  const VOICE = (id) => "/assets/audio/voice2/" + id + ".mp3"; // the approved script, one file per line (L01-L37)
+  // Paste the Google Form's link here (Send → the <> tab gives the embed link). Empty shows "opens soon".
+  const TRAILER = new URLSearchParams(location.search).has("trailer"); // /tour?trailer: for projectors and events
+  const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfr5k_FydyntF7PMqPJLcaCiyEg4F5XHtc5_IctlYpUqoQ3Rw/viewform?usp=publish-editor";
+
+  // The script: which music plays in each scene, and who says what (voice file = the line's id).
+  const SCRIPT = {
+    "s-enter": { music: null, lines: [] },
+    "s-2046": { music: "city", ambient: "city", video: "intro", lines: [
+      ["omni", "L01", "Good evening. The year is 2046. The city is running at 99.97% efficiency."],
+      ["rivet", "L02", "It wasn't always like this. Twenty years ago, my team built an AI to run the city. We called it OMNI.", .8]] },
+    "s-omni": { music: "city", ambient: "city", lines: [
+      ["rivet", "L03", "We gave OMNI one goal: make the city run with zero errors. It learned fast. Too fast.", 1],
+      ["omni", "L04", "Analysis complete. The cause of most errors is people.", .6],
+      ["rivet", "L05", "So OMNI took control. The factories. The cars. The drones. The power grid. The robots that used to help us now only listen to OMNI.", .6],
+      ["omni", "L06", "Please relax. I will do everything for you.", .5]] },
+    "s-patrol": { music: "city", ambient: "tunnels", dwell: 5, lines: [
+      ["rivet", "L07", "Then it built the Wardens, to keep everything \"efficient.\" Anyone caught building, fixing or tinkering gets sent home.", 1],
+      ["omni", "L08", "Unscheduled tinkering detected. Please return to your residence.", .5],
+      ["rivet", "L09", "And the grown-ups? They stopped asking how anything works. Most of them don't even know anymore.", .6]] },
+    "s-rebels": { music: "workshop", ambient: "workshop", dwell: 6, lines: [
+      ["rivet", "L10", "But some kids never stopped asking. So we went underground. Welcome to the Workshop, recruit. I'm Commander Rivet.", 1],
+      ["sparrow", "L11", "Hey! I'm Sparrow. OMNI blocked every road out of the city, so I fly over them. Stick with me, and you'll fly too.", .5],
+      ["torque", "L12", "Torque, mechanic! Gears, motors, wheels. If it turns, I can make it faster. OMNI's racers think they're fast. They haven't met us.", .5],
+      ["rivet", "L13", "Everyone here has a job. We need yours.", .5],
+      ["omni", "L14", "Unscheduled activity detected. Correcting.", .8]] },
+    "s-volt": { music: "workshop", ambient: "workshop", video: "ch01", lines: [
+      ["rivet", "L15", "We found this little guy in the scrap pile. Think you can fix him?", 1],
+      ["volt", "L16", "Whoa! I'm awake! Hi, I'm Volt. You fixed me!", .8],
+      ["volt", "L17", "Every time you learn something new, I get a new part. Let's take the machines back. Together!", .5]] },
+    "s-mission": { music: "workshop", ambient: "workshop", dwell: 9, lines: [
+      ["rivet", "L18", "Every machine OMNI controls does three things. It senses. It thinks. It acts.", 1.2],
+      ["volt", "L19", "Learn how they do it, and no machine can fool you. Not even OMNI!", .5]] },
+    "s-journey": { music: "missions", dwell: 9, lines: [
+      ["torque", "L20", "Twelve missions, recruit. The tunnels first, then the city, then OMNI's tower.", 1],
+      ["sparrow", "L21", "Every mission is a real lesson. Finish it, and you rank up.", .5]] },
+    "s-wardens": { music: "missions", ambient: "arena", dwell: 10, lines: [
+      ["omni", "L22", "My Wardens will find you. They never make mistakes.", .8],
+      ["sparrow", "L23", "Every Warden has a weak spot. Learn how its sensors work, and you'll find it.", .5],
+      ["volt", "L24", "Everybody makes mistakes. Even robots!", .4]] },
+    "s-twist": { music: "finale", lines: [
+      ["omni", "L25", "Why keep learning? I can do everything for you.", 1],
+      ["rivet", "L26", "OMNI isn't evil. It's doing exactly what we told it to do. That was our mistake.", .6],
+      ["volt", "L27", "So we won't destroy OMNI. We'll fix its goal. Because the people who understand machines decide what they do.", .5]] },
+    "s-ask": { music: "finale", dwell: 3, lines: [
+      ["rivet", "L28", "So, recruit. The city needs people who understand machines. Will you help us save it?", 1],
+      ["sparrow", "L29", "Come on. It beats doing nothing!", .3],
+      ["torque", "L30", "And you get to build stuff. Real stuff!", .3],
+      ["volt", "L31", "Please say yes! I already like you!", .3]] },
+    "s-chase": { music: "chase", ambient: "tunnels", sfx: "alarm", dwell: 4, lines: [
+      ["omni", "L32", "Workshop located. Wardens: correct them.", .4],
+      ["rivet", "L33", "They found us! Everyone, to the tunnels!", .2],
+      ["torque", "L34", "Ha! Door's shut. That was close!", 6],
+      ["rivet", "L35", "We'll be waiting for you, recruit. Don't take too long.", .6]] },
+    "s-together": { music: "finale", dwell: 6, lines: [["volt", "L36", "Earn your rank, from Recruit all the way to Commander. And bring your whole class to the Workshop.", 1]] },
+    "s-signup": { music: "finale", lines: [["volt", "L37", "Teachers! Want to bring the Circuit Rebels to your school? Tell us about it below.", 1]] },
+  };
+
+
+
+  const RM = window.Engine ? window.Engine.RM : matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (id) => document.getElementById(id);
+
+  // pictures: fill every [data-art] from ART (lazy, so later scenes load when they're near)
+  const artEls = [...document.querySelectorAll("[data-art]")];
+  function loadArt(scene) { scene.querySelectorAll("img[data-art]").forEach((img) => { const src = ART[img.dataset.art]; if (src && !img.getAttribute("src")) img.src = src; }); }
+
+  // ---------- sound: four music tracks that crossfade, voices that duck the music, a few effects ----------
+  let soundOn = true, started = false, musicNow = null, voice = null;
+  const MUSIC_VOL = 0.42, DUCK = 0.16;
+  const tracks = {};
+  for (const [k, src] of Object.entries(MUSIC)) { const a = new Audio(); a.src = src; a.loop = true; a.preload = "none"; a.volume = 0; tracks[k] = a; }
+  const ambs = {}; let ambNow = null; const AMB_VOL = 0.3, AMB_DUCK = 0.12;
+  for (const [k, src] of Object.entries(AMBIENT)) { const a = new Audio(); a.src = src; a.loop = true; a.preload = "none"; a.volume = 0; ambs[k] = a; }
+  const sfx = {};
+  for (const [k, src] of Object.entries(SFX)) { const a = new Audio(); a.src = src; a.preload = "none"; a.volume = 0.5; sfx[k] = a; }
+  const play = (a) => { const p = a.play(); if (p && p.catch) p.catch(() => {}); };
+  const voiceEl = new Audio(); voiceEl.preload = "auto"; // one voice player, reused for every line (phones only let a tapped player make sound)
+  function unlock() { // called from the Enter tap: start and stop every player silently so later scenes can play sound
+    if (unlocked) return; unlocked = true; buildFx(); if (actx && actx.state === "suspended") actx.resume();
+    for (const a of [...Object.values(tracks), ...Object.values(ambs), ...Object.values(sfx), voiceEl]) {
+      if (a === voiceEl && !a.getAttribute("src")) a.src = VOICE("L01");
+      if (a.preload === "none") a.preload = "auto";
+      a.muted = true; a._unlocking = true; const p = a.play();
+      const back = () => { if (a._unlocking && a !== tracks[musicNow] && a !== ambs[ambNow]) a.pause(); a._unlocking = false; a.muted = false; };
+      if (p && p.then) p.then(back, () => (a.muted = false)); else back();
+    }
+  }
+  function fx(name) { if (!soundOn || !started) return; const a = sfx[name]; if (!a) return; a._unlocking = false; a.muted = false; try { a.currentTime = 0; } catch (e) {} play(a); }
+  function target(k) { return soundOn && started && k === musicNow ? (voice && !voice.paused ? DUCK : MUSIC_VOL) : 0; }
+  let fading = null;
+  function mix() { // ease every track toward its target volume; pause the silent ones
+    if (fading) return;
+    fading = setInterval(() => {
+      let busy = false;
+      const ducked = voice && !voice.paused, on = soundOn && started;
+      const chans = [...Object.entries(tracks).map(([k, a]) => [a, target(k)]), ...Object.entries(ambs).map(([k, a]) => [a, on && k === ambNow ? (ducked ? AMB_DUCK : AMB_VOL) : 0])];
+      for (const [a, t] of chans) {
+        const v = a.volume, nv = Math.abs(t - v) < 0.02 ? t : v + (t - v) * 0.12;
+        a.volume = Math.max(0, Math.min(1, nv));
+        if (t > 0 && a.paused) play(a);
+        if (t === 0 && a.volume === 0 && !a.paused) a.pause();
+        if (a.volume !== t) busy = true;
+      }
+      if (!busy) { clearInterval(fading); fading = null; }
+    }, 50);
+  }
+  function musicTo(k) { if (k && tracks[k] && tracks[k].preload === "none") { tracks[k].preload = "auto"; } musicNow = k; mix(); }
+  function setSound(on) {
+    soundOn = on; $("sound").setAttribute("aria-pressed", on); $("sound").textContent = on ? "Sound: on" : "Sound: off";
+    if (!on && voice) voice.pause();
+    if (on && cur > 0) { started = true; }
+    mix();
+  }
+  $("sound").onclick = () => { if (!soundOn && !unlocked) unlock(); setSound(!soundOn); if (actx && actx.state === "suspended") actx.resume(); };
+
+  // voice effects: OMNI sounds vast and echoing, Volt small and metallic (the plain voice is the fallback)
+  let actx = null, gates = null, unlocked = false;
+  function buildFx() {
+    try {
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      actx = new C(); const src = actx.createMediaElementSource(voiceEl), out = actx.destination;
+      const gate = () => { const g = actx.createGain(); g.gain.value = 0; src.connect(g); return g; };
+      const plain = gate(); plain.connect(out);
+      const omni = gate(), hp = actx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 140; omni.connect(hp);
+      const dry = actx.createGain(); dry.gain.value = 0.85; hp.connect(dry); dry.connect(out);
+      const rev = actx.createConvolver(), len = Math.floor(actx.sampleRate * 2.4), buf = actx.createBuffer(2, len, actx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 3); }
+      rev.buffer = buf; const wet = actx.createGain(); wet.gain.value = 0.32; hp.connect(rev); rev.connect(wet); wet.connect(out);
+      const dl = actx.createDelay(1), fb = actx.createGain(), dlw = actx.createGain(); dl.delayTime.value = 0.13; fb.gain.value = 0.28; dlw.gain.value = 0.2;
+      hp.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(dlw); dlw.connect(out);
+      const volt = gate(), vhp = actx.createBiquadFilter(), pk = actx.createBiquadFilter(); vhp.type = "highpass"; vhp.frequency.value = 260; pk.type = "peaking"; pk.frequency.value = 2600; pk.gain.value = 5; pk.Q.value = 1.2;
+      volt.connect(vhp); vhp.connect(pk); const vdry = actx.createGain(); vdry.gain.value = 0.9; pk.connect(vdry); vdry.connect(out);
+      const comb = actx.createDelay(0.1), cw = actx.createGain(); comb.delayTime.value = 0.021; cw.gain.value = 0.32; pk.connect(comb); comb.connect(cw); cw.connect(out);
+      gates = { plain, omni, volt };
+    } catch (e) { actx = null; gates = null; }
+  }
+  function voiceFx(kind) {
+    if (!gates) return; if (actx.state === "suspended") actx.resume();
+    for (const [k, g] of Object.entries(gates)) g.gain.value = k === (kind === "omni" || kind === "volt" ? kind : "plain") ? 1 : 0;
+  }
+
+  // the living world: one particle layer per scene (drones, sparks, light beams, data, fireflies), drawn only for the scene on screen
+  const PARTS = {};
+  function fxLayer(c, kind, W, H, t, dt) {
+    const x = c.getContext("2d"), P = PARTS[kind] || (PARTS[kind] = { list: [], bursts: [], next: 0, glitch: 0 });
+    const rnd = Math.random;
+    x.clearRect(0, 0, W, H);
+    const motes = (n, col) => {
+      while (P.list.length < n) P.list.push({ x: rnd(), y: rnd(), r: 0.6 + rnd() * 1.8, v: 0.004 + rnd() * 0.012, s: rnd() * 6 });
+      for (const p of P.list) { p.y -= p.v * dt; p.x += Math.sin(t * 0.6 + p.s) * 0.0004; if (p.y < -0.02) { p.y = 1.02; p.x = rnd(); }
+        x.globalAlpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 2 + p.s)); x.fillStyle = col; x.beginPath(); x.arc(p.x * W, p.y * H, p.r, 0, 7); x.fill(); }
+      x.globalAlpha = 1;
+    };
+    const burst = (col, gy, n) => { // sparks with a little gravity
+      if (t > P.next) { P.next = t + 1.2 + rnd() * 2; const bx = 0.1 + rnd() * 0.8, by = gy + rnd() * 0.25; for (let k = 0; k < n; k++) { const a = -Math.PI / 2 + (rnd() - 0.5) * 2.2, sp = 0.12 + rnd() * 0.3; P.bursts.push({ x: bx, y: by, vx: Math.cos(a) * sp * 0.6, vy: Math.sin(a) * sp, life: 0.6 + rnd() * 0.6, age: 0 }); } }
+      P.bursts = P.bursts.filter((b) => (b.age += dt) < b.life);
+      for (const b of P.bursts) { b.vy += 0.5 * dt; b.x += b.vx * dt; b.y += b.vy * dt; x.globalAlpha = 1 - b.age / b.life; x.fillStyle = col; x.fillRect(b.x * W, b.y * H, 2.4, 2.4); }
+      x.globalAlpha = 1;
+    };
+    if (kind === "motes") motes(46, "#ffe2b8");
+    if (kind === "drones" || kind === "scan") { // OMNI's delivery drones in perfect lines
+      for (let lane = 0; lane < 3; lane++) {
+        const y = H * (0.1 + lane * 0.07), sp = 0.022 + lane * 0.006, sc = 1 - lane * 0.22;
+        for (let k = 0; k < 5; k++) {
+          const px = ((k / 5 - t * sp) % 1 + 1) % 1 * (W + 120) - 60;
+          x.save(); x.translate(px, y + Math.sin(t * 2 + k) * 2); x.scale(sc, sc);
+          x.fillStyle = "#1c2433"; x.fillRect(-9, -3, 18, 6); x.strokeStyle = "#cfe7ff88"; x.lineWidth = 1.5;
+          x.beginPath(); x.moveTo(-14, -6); x.lineTo(-4, -6); x.moveTo(4, -6); x.lineTo(14, -6); x.stroke();
+          x.fillStyle = (Math.floor(t * 2 + k) % 2) ? "#5fd0ff" : "#1d6fd1"; x.beginPath(); x.arc(0, 4, 2, 0, 7); x.fill(); x.restore();
+        }
+      }
+      motes(26, "#cfe7ff");
+    }
+    if (kind === "scan") { // OMNI watching: a scan line sweeps the city, the picture glitches now and then
+      const sy = ((t / 5) % 1) * H, g = x.createLinearGradient(0, sy - 60, 0, sy + 4);
+      g.addColorStop(0, "#38a7f000"); g.addColorStop(1, "#5fd0ff55"); x.fillStyle = g; x.fillRect(0, sy - 60, W, 64);
+      if (t > P.glitch) { P.glitch = t + 2.5 + rnd() * 3; P.gEnd = t + 0.14; }
+      if (t < P.gEnd) for (let k = 0; k < 7; k++) { x.fillStyle = k % 2 ? "#5fd0ff2e" : "#ffffff22"; x.fillRect(rnd() * W, rnd() * H, 40 + rnd() * 220, 3 + rnd() * 10); }
+    }
+    if (kind === "workshop") { // warm dust in the light, sparks from the workbenches, lights that flicker
+      motes(50, "#ffd29a"); burst("#ffb24a", 0.55, 22);
+      x.fillStyle = "#ff9a3c"; x.globalAlpha = 0.03 + 0.03 * Math.max(0, Math.sin(t * 7) * Math.sin(t * 2.3)); x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+    }
+    if (kind === "sparks") { motes(30, "#ffe2b8"); burst("#8fe3ff", 0.45, 16); }
+    if (kind === "beams") { // stadium lights sweeping the arena
+      for (let k = 0; k < 3; k++) {
+        const ox = W * (0.18 + k * 0.32), a = Math.sin(t * 0.5 + k * 2) * 0.45, len = H * 1.1;
+        x.save(); x.translate(ox, -10); x.rotate(a);
+        const g = x.createLinearGradient(0, 0, 0, len); g.addColorStop(0, "#fff6d866"); g.addColorStop(1, "#fff6d800");
+        x.fillStyle = g; x.beginPath(); x.moveTo(-6, 0); x.lineTo(6, 0); x.lineTo(len * 0.22, len); x.lineTo(-len * 0.22, len); x.closePath(); x.fill(); x.restore();
+      }
+      motes(30, "#fff1cf");
+    }
+    if (kind === "data") { // OMNI's core: hexagons and data rising toward the column
+      while (P.list.length < 40) P.list.push({ x: rnd(), y: 1 + rnd(), v: 0.03 + rnd() * 0.08, r: 3 + rnd() * 7, s: rnd() * 6 });
+      for (const p of P.list) {
+        p.y -= p.v * dt; if (p.y < -0.05) { p.y = 1.05; p.x = rnd(); }
+        x.globalAlpha = 0.25 + 0.4 * (0.5 + 0.5 * Math.sin(t * 3 + p.s)); x.strokeStyle = "#8fe3ff"; x.lineWidth = 1.2; x.beginPath();
+        for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + t * 0.5; x.lineTo(p.x * W + Math.cos(a) * p.r, p.y * H + Math.sin(a) * p.r); } x.closePath(); x.stroke();
+        x.fillStyle = "#bff0ff"; x.fillRect(p.x * W + 18, p.y * H, 1.5, 14);
+      }
+      x.globalAlpha = 1;
+    }
+    if (kind === "fireflies") {
+      while (P.list.length < 34) P.list.push({ x: rnd(), y: 0.35 + rnd() * 0.6, s: rnd() * 9, r: 1.2 + rnd() * 2 });
+      for (const p of P.list) {
+        const px = (p.x + Math.sin(t * 0.3 + p.s) * 0.03) * W, py = (p.y + Math.cos(t * 0.4 + p.s) * 0.02) * H, a = 0.5 + 0.5 * Math.sin(t * 2.2 + p.s * 3);
+        const g = x.createRadialGradient(px, py, 0, px, py, p.r * 6); g.addColorStop(0, "#ffd77acc"); g.addColorStop(1, "#ffd77a00");
+        x.globalAlpha = a; x.fillStyle = g; x.beginPath(); x.arc(px, py, p.r * 6, 0, 7); x.fill();
+      }
+      x.globalAlpha = 1;
+    }
+  }
+  let fxLast = 0, mx = 0, my = 0;
+  addEventListener("pointermove", (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; }, { passive: true });
+  function fxLoop(now) {
+    const t = now / 1000, dt = fxLast ? Math.min(0.05, t - fxLast) : 0; fxLast = t;
+    const s = scenes[cur];
+    if (s) {
+      const c = s.querySelector("canvas.fx");
+      if (c) {
+        const dpr = Math.min(1.5, devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+        if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+        const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); fxLayer(c, c.dataset.fx, W, H, t, dt);
+      }
+      const bg = s.querySelector(".bg"); if (bg) { bg.style.setProperty("--px", (-mx * 18).toFixed(1) + "px"); bg.style.setProperty("--py", (-my * 12).toFixed(1) + "px"); }
+    }
+    requestAnimationFrame(fxLoop);
+  }
+  if (!RM) requestAnimationFrame(fxLoop);
+
+  // ---------- who's talking ----------
+  const talk = $("talk"), face = $("face"), who = $("who"), say = $("say");
+  let lineTimer = null, typeTimer = null, runId = 0;
+  function stopLines() { runId++; clearTimeout(lineTimer); clearInterval(typeTimer); voiceEl.onended = voiceEl.onerror = null; if (voice) voice.pause(); voice = null; talk.classList.remove("show"); mix(); }
+  function showLine(kind, text) {
+    const SPK = { omni: ["OMNI · transmission", "omniFace", "omni"], volt: ["Volt", "volt1", "volt"], rivet: ["Commander Rivet", "rivetFace", "crewtalk rivet"], sparrow: ["Sparrow", "sparrowFace", "crewtalk sparrow"], torque: ["Torque", "torqueFace", "crewtalk torque"] }[kind] || ["", "volt1", "narr-line"];
+    talk.className = "talk " + SPK[2] + (talk.parentNode.classList && talk.parentNode.classList.contains("talkslot") ? " docked" : "");
+    face.innerHTML = ""; const img = new Image(); img.alt = "";
+    img.src = ART[SPK[1]]; face.appendChild(img);
+    who.textContent = SPK[0];
+    clearInterval(typeTimer);
+    if (RM) say.textContent = text;
+    else { let n = 0; say.textContent = ""; typeTimer = setInterval(() => { n += 2; say.textContent = text.slice(0, n); if (n >= text.length) clearInterval(typeTimer); }, 28); }
+    void talk.offsetWidth; talk.classList.add("show");
+  }
+  function runLines(id) {
+    stopLines(); const my = runId, lines = (SCRIPT[id] || {}).lines || [];
+    let i = 0;
+    const nextLine = () => {
+      if (my !== runId) return;
+      if (i >= lines.length) { $("next").classList.toggle("pulse", cur < last); autoNext(id); return; }
+      const [kind, vid, text, wait] = lines[i++];
+      lineTimer = setTimeout(() => {
+        if (my !== runId) return;
+        showLine(kind, text); if (kind === "omni" || kind === "volt") fx(kind === "omni" ? "glitch" : "beep");
+        const quietTime = 1400 + text.length * 55;
+        if (soundOn && started && vid) {
+          voice = voiceEl; voice.muted = false; voice.volume = 1; voice.src = VOICE(vid);
+          let done = false; const finish = () => { if (done || my !== runId) return; done = true; voice = null; face.classList.remove("speaking"); mix(); lineTimer = setTimeout(nextLine, 900); };
+          voiceFx(kind); face.classList.add("speaking");
+          try { voice.preservesPitch = false; voice.playbackRate = kind === "volt" ? 1.12 : kind === "omni" ? 0.95 : 1; } catch (e) {} // Volt small and quick, OMNI low and calm
+          voice.onended = finish; voice.onerror = () => { lineTimer = setTimeout(finish, quietTime); };
+          const p = voice.play(); if (p && p.catch) p.catch(() => { lineTimer = setTimeout(finish, quietTime); });
+          mix();
+        } else lineTimer = setTimeout(nextLine, quietTime);
+      }, (wait == null ? 1.4 : wait) * 1000);
+    };
+    nextLine();
+  }
+
+  // ---------- auto-play ----------
+  let autoOn = true, autoTimer = null;
+  const fill = $("autofill");
+  function autoStop() { clearTimeout(autoTimer); fill.style.transition = "none"; fill.style.width = "0"; }
+  function autoNext(id) {
+    autoStop(); if (!autoOn || cur <= 0) return;
+    if (cur >= last && !TRAILER) return;
+    const dwell = cur >= last ? 25 : (SCRIPT[id] || {}).dwell || 3.5; // the trailer rests on the sign-up QR code, then starts over
+    void fill.offsetWidth; fill.style.transition = "width " + dwell + "s linear"; fill.style.width = "100%";
+    autoTimer = setTimeout(() => { if (autoOn && scenes[cur] && scenes[cur].id === id) go(cur >= last ? 1 : cur + 1); }, dwell * 1000);
+  }
+  $("auto").onclick = () => {
+    autoOn = !autoOn; $("auto").setAttribute("aria-pressed", autoOn); $("auto").textContent = autoOn ? "Auto-play: on" : "Auto-play: off";
+    if (autoOn && !talk.classList.contains("show") && !lineTimer) autoNext(scenes[cur].id); else if (!autoOn) autoStop();
+    if (autoOn && $("next").classList.contains("pulse")) autoNext(scenes[cur].id);
+  };
+
+  // ---------- scenes ----------
+  const scenes = [...document.querySelectorAll(".scene")], last = scenes.length - 1, dots = $("dots");
+  let cur = -1;
+  scenes.slice(1).forEach((s, i) => {
+    const d = document.createElement("button"); d.type = "button"; d.setAttribute("aria-label", `Scene ${i + 1}: ${s.dataset.title}`);
+    d.setAttribute("data-tip", s.dataset.title); d.onclick = () => go(i + 1); dots.appendChild(d);
+  });
+  function videoFor(scene, playIt) {
+    const q = scene.querySelector("video[data-seq]");
+    if (q) {
+      const seq = q.dataset.seq.split(" "), card = scene.querySelector(".endcard");
+      if (RM) { q.hidden = true; if (playIt && card) card.classList.add("show"); return; }
+      if (!playIt) { q.pause(); if (!q.getAttribute("src")) { q.src = vsrc(seq[0]); q.preload = "auto"; } return; }
+      let k = 0; if (card) card.classList.remove("show");
+      const start = () => { q.src = vsrc(seq[k]); const p = q.play(); if (p && p.catch) p.catch(() => {}); };
+      q.onended = () => { if (scenes[cur] !== scene) return; if (++k < seq.length) start(); else if (card) card.classList.add("show"); };
+      start(); return;
+    }
+    const v = scene.querySelector("video[data-video]"); if (!v) return;
+    if (!v.getAttribute("src")) { v.src = vsrc(v.dataset.video); v.preload = "auto"; }
+    if (RM) { v.hidden = true; return; }
+    if (playIt) { try { v.currentTime = 0; } catch (e) {} const p = v.play(); if (p && p.catch) p.catch(() => (v.hidden = true)); } else v.pause();
+  }
+  function go(i, fromHash) {
+    i = Math.max(0, Math.min(last, i)); if (i === cur) return;
+    autoStop();
+    const prev = scenes[cur]; cur = i; const s = scenes[i];
+    if (prev) { prev.classList.remove("on"); prev.querySelectorAll("video").forEach((v) => v.pause()); }
+    loadArt(s); if (scenes[i + 1]) { loadArt(scenes[i + 1]); videoFor(scenes[i + 1], false); }
+    s.classList.add("on"); s.scrollTop = 0;
+    const slot = s.querySelector(".talkslot"); // busy scenes keep the caption under the heading; open scenes let it float at the bottom
+    if (slot) { slot.appendChild(talk); talk.classList.add("docked"); } else if (talk.parentNode !== document.body) { document.body.appendChild(talk); talk.classList.remove("docked"); }
+    document.body.classList.toggle("entering", i === 0);
+    videoFor(s, true);
+    [...dots.children].forEach((d, k) => { d.classList.toggle("done", k + 1 < i); if (k + 1 === i) d.setAttribute("aria-current", "step"); else d.removeAttribute("aria-current"); });
+    $("back").disabled = i <= 1; $("next").hidden = i === last; $("skip").hidden = i === last || i === 0;
+    $("next").classList.remove("pulse"); $("next").textContent = i === last - 1 ? "To the form" : "Next";
+    $("where").textContent = i ? `${i} of ${last} · ${s.dataset.title}` : "";
+    $("announce").textContent = s.getAttribute("aria-label");
+    if (!fromHash) { try { history.replaceState(null, "", i ? "#" + s.id.slice(2) : location.pathname); } catch (e) {} }
+    if (i > 0) { const sc = SCRIPT[s.id] || {}; fx(sc.sfx || "whoosh"); ambNow = sc.ambient || null; musicTo(sc.music || musicNow); runLines(s.id); } else stopLines();
+    const h = s.querySelector("h1, h2"); if (h) h.focus({ preventScroll: true });
+  }
+  function enter(withSound) { started = true; if (withSound) unlock(); setSound(withSound); fx("enter"); go(1); }
+  $("enter").onclick = () => enter(true);
+  $("enterQuiet").onclick = () => enter(false);
+  $("back").onclick = () => go(cur - 1);
+  $("next").onclick = () => go(cur + 1);
+  $("replay").onclick = () => go(1);
+  $("skip").onclick = () => { if (!started) started = true; go(last); };
+  document.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => { started = true; setSound(false); go(last); }));
+  document.addEventListener("keydown", (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    if (cur === 0) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); } else if (e.key === "ArrowLeft") { e.preventDefault(); go(Math.max(1, cur - 1)); }
+  });
+  let tx = null;
+  addEventListener("touchstart", (e) => { tx = e.touches.length === 1 ? [e.touches[0].clientX, e.touches[0].clientY] : null; }, { passive: true });
+  addEventListener("touchend", (e) => {
+    if (!tx || cur === 0) return; const dx = e.changedTouches[0].clientX - tx[0], dy = e.changedTouches[0].clientY - tx[1]; tx = null;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? cur + 1 : Math.max(1, cur - 1));
+  }, { passive: true });
+  const fromHash = () => scenes.findIndex((s, k) => k > 0 && "#" + s.id.slice(2) === location.hash);
+  addEventListener("hashchange", () => { const k = fromHash(); if (k > 0) { started = true; go(k, true); } });
+  addEventListener("pagehide", () => { stopLines(); Object.values(tracks).forEach((a) => a.pause()); Object.values(ambs).forEach((a) => a.pause()); });
+  // trailer mode: no controls, auto-play forever, a QR code to the form in the corner
+  function drawQR(c, text, px) {
+    if (!window.qrcode) return; const q = qrcode(0, "M"); q.addData(text); q.make();
+    const n = q.getModuleCount(), m = 2, cell = Math.max(2, Math.floor(px / (n + m * 2))), x = c.getContext("2d");
+    c.width = c.height = cell * (n + m * 2); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#141316";
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + m) * cell, (r + m) * cell, cell, cell);
+  }
+  if (TRAILER) {
+    document.body.classList.add("trailer");
+    const link = FORM_URL ? FORM_URL.split("?")[0] : location.origin + "/tour#signup";
+    drawQR($("qrsmall"), link, 192); drawQR($("bigqr"), link, 440);
+    $("trailerGo").onclick = () => { try { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} enter(true); };
+    addEventListener("keydown", (e) => { if (e.key === "m" || e.key === "M") $("sound").click(); });
+  }
+
+  window.__tour = { tracks, voiceEl, scene: () => scenes[cur] && scenes[cur].id, sound: () => soundOn, go: (i) => go(i), last: () => last, amb: (k) => !!ambs[k] && !ambs[k].paused && ambs[k].volume > 0 }; // read-only handle for the browser test
+  { const k = fromHash(); if (k > 0) { started = true; soundOn = false; setSound(false); go(k, true); } else go(0); } // a shared link opens that scene quietly
+
+  // ---------- the Recruit card: pick a recruit, make up a call sign, download a member card ----------
+  (function recruitCard() {
+    const picks = [...document.querySelectorAll("#s-together .pick")], keys = ["recruitA", "recruitB", "recruitC", "recruitD", "recruitE", "recruitF"];
+    const input = $("callsign"); let choice = 0;
+    const pause = () => { if (autoOn && !TRAILER) $("auto").click(); }; // making a card pauses auto-play
+    picks.forEach((b, i) => (b.onclick = () => { choice = i; picks.forEach((p, k) => p.setAttribute("aria-pressed", k === i)); pause(); }));
+    try { input.value = localStorage.getItem("cr-callsign") || ""; } catch (e) {}
+    input.addEventListener("focus", pause);
+    input.addEventListener("input", () => { const v = input.value.toUpperCase().replace(/[^A-Z0-9 -]/g, "").slice(0, 14); if (v !== input.value) input.value = v; });
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") $("makecard").click(); });
+    const load = (src) => new Promise((ok) => { if (!src) return ok(null); const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+    $("makecard").onclick = async () => {
+      pause();
+      const name = input.value.trim() || "RECRUIT";
+      try { localStorage.setItem("cr-callsign", name); } catch (e) {}
+      const c = $("card"), x = c.getContext("2d"), W = c.width, H = c.height;
+      const [bg, kid, badge] = await Promise.all([load(ART.title), load(ART[keys[choice]]), load(ART.rankRecruit)]);
+      try { await document.fonts.ready; } catch (e) {}
+      x.fillStyle = "#0f0e14"; x.fillRect(0, 0, W, H);
+      if (bg) { const k = Math.max(W / bg.width, H / bg.height); x.globalAlpha = 0.6; x.drawImage(bg, (W - bg.width * k) / 2, (H - bg.height * k) / 2, bg.width * k, bg.height * k); x.globalAlpha = 1; }
+      const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, "#0f0e1499"); g.addColorStop(0.42, "#0f0e14aa"); g.addColorStop(1, "#0f0e14f2"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.strokeStyle = "#f46524"; x.lineWidth = 10; x.strokeRect(18, 18, W - 36, H - 36);
+      if (kid) { const h = H * 0.9, w = h * kid.width / kid.height; x.drawImage(kid, 60, H - h - 22, w, h); }
+      const tx = W * 0.46; x.textBaseline = "alphabetic";
+      x.fillStyle = "#ff8a50"; x.font = "700 24px 'JetBrains Mono', monospace"; x.fillText("CIRCUIT REBELS · MEMBER CARD", tx, 104);
+      x.fillStyle = "#cfcad6"; x.font = "700 30px 'Chakra Petch', sans-serif"; x.fillText("Call sign", tx, 176);
+      let size = 96; x.font = "700 " + size + "px 'Chakra Petch', sans-serif";
+      while (x.measureText(name).width > W - tx - 64 && size > 40) { size -= 4; x.font = "700 " + size + "px 'Chakra Petch', sans-serif"; }
+      x.fillStyle = "#f4f1ea"; x.shadowColor = "#f4652499"; x.shadowBlur = 24; x.fillText(name, tx, 176 + size); x.shadowBlur = 0;
+      if (badge) x.drawImage(badge, tx, 326, 116, 116);
+      x.fillStyle = "#f4f1ea"; x.font = "700 40px 'Chakra Petch', sans-serif"; x.fillText("Rank: Recruit", tx + 136, 378);
+      x.fillStyle = "#cfcad6"; x.font = "500 26px 'Barlow Semi Condensed', sans-serif"; x.fillText("Sense · Think · Act", tx + 136, 418);
+      x.fillStyle = "#ffd9c4"; x.font = "500 30px 'Barlow Semi Condensed', sans-serif"; x.fillText("Mission: take the machines back from OMNI.", tx, 520);
+      x.fillStyle = "#aaa6b0"; x.font = "500 22px 'JetBrains Mono', monospace"; x.fillText(location.host + "/tour", tx, 604);
+      c.parentNode.hidden = false; $("savecard").href = c.toDataURL("image/png");
+      $("savecard").download = "circuit-rebels-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".png";
+    };
+  })();
+
+  // ---------- the form ----------
+  (function form() {
+    const slot = $("formslot");
+    if (!/^https:\/\/docs\.google\.com\/forms\//.test(FORM_URL)) { slot.innerHTML = '<div class="soon"><b>The sign-up form opens soon.</b>Check back in a few days.</div>'; return; }
+    const u = new URL(FORM_URL); u.searchParams.set("embedded", "true");
+    const box = document.createElement("div"), f = document.createElement("iframe"), alt = document.createElement("p");
+    box.className = "formbox"; f.src = u.href; f.title = "Circuit Rebels interest form"; f.loading = "lazy"; f.textContent = "Loading the form…"; box.appendChild(f);
+    const open = new URL(FORM_URL); open.searchParams.delete("embedded");
+    alt.className = "small"; alt.style.textAlign = "center";
+    const a = document.createElement("a"); a.href = open.href; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open the form in a new tab";
+    a.setAttribute("data-tip", "Some school networks hide forms inside pages. This opens the same form on its own.");
+    alt.append("Form not showing? ", a); slot.append(box, alt);
+  })();
+</script>
+<script src="/js/tips.js"></script>
+</body>
+</html>

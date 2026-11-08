@@ -1,3 +1,7 @@
 node_modules/
 .DS_Store
 *.log
+
+# story art sources and the full-size MP4 clips (the site ships the small WebM copies)
+art-work/
+public/assets/**/*.mp4

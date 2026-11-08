@@ -68,6 +68,7 @@ git push             # Render deploys in ~2 minutes
 | Name filter words | `server.js` → `SUB` (blocked anywhere) and `WORD` (blocked as whole words) |
 | Colors and fonts | `public/css/style.css` → the `:root` block |
 | Home page text | `public/index.html` |
+| The Circuit Rebels tour (words, voices, music, pictures) | `public/tour.html` → `SCRIPT` (who says what in each scene) and the `ART` / `VIDEO` / `MUSIC` lists at the top of its script. A changed line needs a new voice file in `public/assets/audio/voice2/`. For events, open `/tour?trailer` and click once: it plays full screen, loops, and shows a QR code to the sign-up form. |
 | Version 2 preview page and its sign-up form | `public/v2.html`. The Google Form link is `FORM_URL` near the bottom (paste the form's link; leave it empty to show "opens soon"). The new robot art it shows is in `public/v2-art/` (copy it to `public/art/` to use it in the game). |
 
 ## If an update breaks something
