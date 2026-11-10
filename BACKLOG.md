@@ -32,6 +32,7 @@ Last updated: November 10, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-40 | Facebook page linked from the site (facebook.com/circuitrebels1), next to the LinkedIn link in the same two places with the same rules | Pushed to main Nov 10, 2026 (no class running) | 3e83990 |
 | F-39 | LinkedIn page linked from the site: a "Follow on LinkedIn" link in the home page's Circuit Rebels panel (hidden on phones so the Join box stays near the top) and under the sign-up form on the tour's last slide (hidden in trailer mode) | Pushed to main Nov 10, 2026 (no class running) | 3ebd930 |
 | F-29 | Circuit Rebels tour (/tour): 14-scene story with 37 voiced lines (OMNI, Rivet, Sparrow, Torque, Volt), original music, world sounds, moving backgrounds, chase finale, auto-play, the Recruit card, trailer mode with a QR code to the form (/tour?trailer); the home page panel opens it | Pushed to main Nov 7, 2026 (no class running); checked on bot-arena-g5ew.onrender.com (153 browser checks) | 7c88954 |
 | F-28b | Educator interest form embedded on /v2 and the tour | Pushed to main Nov 7, 2026 | 216c4ad |
