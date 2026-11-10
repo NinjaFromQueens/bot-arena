@@ -25,6 +25,7 @@
   @media (max-width: 720px) { .cr-qr { display: none; } }
   .cr-li { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 14px; color: var(--fg); text-decoration: none; }
   .cr-li i { font-style: normal; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; background: #0a66c2; color: #fff; font-family: Arial, sans-serif; font-size: 13px; }
+  .cr-li i.fb { background: #1877f2; font-size: 15px; }
   .cr-li:hover span, .cr-li:focus-visible span { text-decoration: underline; }
   @media (max-width: 720px) { .cr-li { display: none; } } /* keeps the phone banner slim, so the Join box stays near the top */
   @media (max-width: 720px) { .cr-promo img, .cr-promo p { display: none; } .cr-body { padding: 12px 14px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; } .cr-badge { grid-column: 1 / -1; } .cr-promo h2 { font-size: 18px; } .cr-cta .btn { padding: 9px 14px; } } /* a slim banner on phones so the Join box stays near the top */ /* on a phone you tap the button; you can't scan your own screen */
@@ -76,6 +77,7 @@
           <div class="cr-qr" data-tip="Scan with a phone to watch the Circuit Rebels trailer."><canvas id="crqr" width="1" height="1" aria-label="QR code to the Circuit Rebels trailer"></canvas><span>Scan to watch the trailer</span></div>
           <a class="btn" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Watch the trailer</a>
           <a class="cr-li" href="https://www.linkedin.com/company/circuit-rebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on LinkedIn for news about the launch. Opens in a new tab."><i aria-hidden="true">in</i><span>Follow on LinkedIn</span></a>
+          <a class="cr-li" href="https://www.facebook.com/circuitrebels1" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Facebook for news about the launch. Opens in a new tab."><i class="fb" aria-hidden="true">f</i><span>Follow on Facebook</span></a>
         </div>
       </div>
     </aside>
