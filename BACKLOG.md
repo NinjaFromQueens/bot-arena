@@ -7,9 +7,7 @@ Last updated: November 15, 2026
 ## 🔴 Active Bugs
 | # | Issue | Status | First seen |
 |---|---|---|---|
-| B-02 | Robot Racer: the road isn't drawn on steep descents. On Neon Peaks there is no road on screen for about 30% of the lap, including the run into the Valley hairpin; on Garage Circuit's Downhill a band of sky color sits under the kart. To see it: `/race`, Neon Peaks, 8:1, drive to "Descent". The Race Day board uses the same drawing code. Fix: R-01 in [docs/racer-plan.md](docs/racer-plan.md). | Fixed locally Nov 15 (R-01), checked on every descent and the Race Day board; waiting for deploy | Nov 15, 2026 |
-| B-03 | Robot Racer on phones: the hill profile is drawn across the kart, the map sits under the steering buttons, and section names are hidden. Buttons and panels cover about 40% of the view. To see it: `/race` at 375×667 or 667×375 with touch on, start a race. Fix: R-02. | Fixed locally Nov 15 (R-02): pads under the track when upright, map and hills clear of the pads when sideways, a Full screen button; checked at 375x667 and 667x375. Full screen still to try on a real phone; waiting for deploy | Nov 15, 2026 |
-| B-04 | Robot Racer lap report: the tip "Sliding onto the grass costs more time than slowing down" shows on laps where sliding was faster. Example: Neon Peaks, 8:1 Slick, gas held all lap: 74.28 s with 2.8 s on the grass, against 76.11 s for the careful computer driver. Fix: R-03. | Fixed locally Nov 15 (R-03): the tip only shows when the careful computer lap beat the student; tested both ways. Waiting for deploy | Nov 15, 2026 |
+| — | No active bugs | — | — |
 
 ---
 
@@ -65,6 +63,7 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| B-02, B-03, B-04 | Racer fixes: the road on steep descents, the phone layout (pads under the track when upright, a Full screen button), an honest brake tip, and "more gearing / less gearing" wording (R-01, R-02, R-03, R-07) | Pushed to `main` Nov 15, 2026; checked on circuitrebels.org (Neon Peaks descent, fresh browser) | 8f41246 |
 | DEC-1 | Decisions for every plan (Racer, games, math and physics, Speed Run, story media), all as recommended, recorded in the private plans | Nov 15, 2026 (no deploy) | — |
 | B-01 | Audit fixes: replay of the final cut short by game updates; Race Day laps limited to one try per second; garage picks throttled; race page no longer drives 36 laps on load (track par) | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 0a38d0c |
 | F-25a | Extras: night headlights, "close behind" warning, simple graphics, smoke when badly hurt, gold lights for the final, top-3 podium | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
