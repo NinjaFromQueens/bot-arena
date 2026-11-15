@@ -1,131 +1,365 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="hp-html">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bot Arena</title>
+<title>Circuit Rebels: Free Robotics Lessons and Class Games</title>
+<meta name="description" content="Free robotics lessons and class games for grades 5 to 8. Students learn how machines sense, think and act, then build robots, race and fly. No student accounts.">
+<link rel="canonical" href="https://circuitrebels.org/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Circuit Rebels">
+<meta property="og:url" content="https://circuitrebels.org/">
+<meta property="og:title" content="Circuit Rebels: learn how machines work. Take the city back.">
+<meta property="og:description" content="Free robotics lessons and class games for grades 5 to 8, wrapped in a story. Runs in any browser, with no student accounts.">
+<meta property="og:image" content="https://circuitrebels.org/img/home/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Neo Harbor at sunset: a white tower glows on an island in the bay.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1b1a1e">
 <link rel="icon" href="/img/logo.svg">
+<link rel="preload" as="image" href="/img/home/hero.webp" media="(min-width: 701px)">
+<link rel="preload" as="image" href="/img/home/hero-900.webp" media="(max-width: 700px)">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/css/style.css">
-<style>
-  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 18px 32px; align-items: center; margin: 24px 0 26px; }
-  .hero-main { display: grid; gap: 10px; }
-  @media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); } }
-  /* Bot Arena is becoming Circuit Rebels */
-  .cr-promo { padding: 0; overflow: hidden; display: grid; border-color: #f4652499; box-shadow: 0 0 0 4px var(--orange-soft); }
-  .cr-promo img { display: block; width: 100%; height: auto; aspect-ratio: 720 / 407; object-fit: cover; }
-  .cr-body { padding: 14px 16px 16px; display: grid; gap: 8px; }
-  .cr-badge { justify-self: start; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); background: var(--gold); padding: 3px 8px; border-radius: 5px; }
-  .cr-promo h2 { font-size: 24px; text-wrap: balance; } .cr-promo h2 b { color: var(--orange-hi); }
-  .cr-promo p { color: var(--muted); font-size: 15px; }
-  .cr-cta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .cr-qr { display: flex; gap: 10px; align-items: center; }
-  .cr-qr canvas { width: 92px; height: 92px; border-radius: 6px; background: #fff; }
-  .cr-qr span { font-family: var(--display); font-weight: 700; font-size: 14px; max-width: 9ch; line-height: 1.15; }
-  @media (max-width: 720px) { .cr-qr { display: none; } }
-  .cr-li { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 14px; color: var(--fg); text-decoration: none; }
-  .cr-li i { font-style: normal; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; background: #0a66c2; color: #fff; font-family: Arial, sans-serif; font-size: 13px; }
-  .cr-li i.fb { background: #1877f2; font-size: 15px; }
-  .cr-li i.ig { background: linear-gradient(45deg, #f9a03f, #e1306c 55%, #833ab4); }
-  .cr-li:hover span, .cr-li:focus-visible span { text-decoration: underline; }
-  @media (max-width: 720px) { .cr-li { display: none; } } /* keeps the phone banner slim, so the Join box stays near the top */
-  @media (max-width: 720px) { .cr-promo img, .cr-promo p { display: none; } .cr-body { padding: 12px 14px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; } .cr-badge { grid-column: 1 / -1; } .cr-promo h2 { font-size: 18px; } .cr-cta .btn { padding: 9px 14px; } } /* a slim banner on phones so the Join box stays near the top */ /* on a phone you tap the button; you can't scan your own screen */
-  .hero h1 { font-size: clamp(40px, 9vw, 72px); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-  
-  .card { display: flex; flex-direction: column; gap: 12px; }
-  .card .btn { margin-top: auto; } /* buttons line up along the bottom of each row */
-  .teacher { display: flex; align-items: center; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; margin-top: 14px; }
-  .teacher > div { display: grid; gap: 4px; flex: 1 1 320px; }
-  .teacher h2 { font-size: 22px; }
-  .card h2 { font-size: 26px; }
-  .card.join { border-color: var(--orange); box-shadow: 0 0 0 4px var(--orange-soft); }
-  .codein { font-size: 34px !important; text-align: center; letter-spacing: .3em !important; font-weight: 700; padding: 12px !important; }
-  .online { font-family: var(--mono); font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .online b { color: var(--fg); }
-  .online i { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px #4fd18b26; flex: none; }
-  .tagline { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--orange); text-transform: uppercase; }
-  .v2strip { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; align-items: center; gap: 14px 22px; margin-top: 14px; text-decoration: none; color: inherit; }
-  .v2strip:hover { border-color: var(--orange); }
-  .v2strip img { display: block; width: 100%; height: auto; border-radius: 10px; }
-  .v2strip h2 { font-size: 22px; }
-  .v2strip > div { display: grid; gap: 4px; }
-  @media (max-width: 720px) { .v2strip { grid-template-columns: minmax(0, 1fr); } .v2strip img { max-width: 320px; } }
-</style>
+<link rel="stylesheet" href="/css/home.css">
+<script>document.documentElement.classList.add("hp-js");</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://circuitrebels.org/#org",
+      "name": "Circuit Rebels",
+      "url": "https://circuitrebels.org/",
+      "logo": "https://circuitrebels.org/img/logo.svg",
+      "email": "hello@circuitrebels.org",
+      "description": "Circuit Rebels is a free, browser-based robotics program for grades 5 to 8: short lessons and class games that teach how machines sense, think and act.",
+      "founder": { "@type": "Person", "name": "Duron Epps" },
+      "sameAs": [
+        "https://www.linkedin.com/company/circuit-rebels/",
+        "https://www.facebook.com/circuitrebels1",
+        "https://www.instagram.com/circuitrebels/"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://circuitrebels.org/#site",
+      "name": "Circuit Rebels",
+      "url": "https://circuitrebels.org/",
+      "publisher": { "@id": "https://circuitrebels.org/#org" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is Circuit Rebels?", "acceptedAnswer": { "@type": "Answer", "text": "Circuit Rebels is a free set of robotics lessons and class games for grades 5 to 8. Students learn how machines sense, think and act in 5-minute lessons, then test what they learned by building robots, racing and flying." } },
+        { "@type": "Question", "name": "Is it really free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Today's lessons and games are free, with no login. Story mode, teacher tools and class reports are being built, and schools will pay for those later." } },
+        { "@type": "Question", "name": "Do students need accounts or emails?", "acceptedAnswer": { "@type": "Answer", "text": "No. Students join a class game with a code and a first name or a nickname. The name shows on the class board during the game. It is never stored in a database, sold or shared." } },
+        { "@type": "Question", "name": "Do we need robot kits?", "acceptedAnswer": { "@type": "Answer", "text": "No. Everything runs in a web browser. Classes that own robot arms or rovers can use them alongside the lessons." } },
+        { "@type": "Question", "name": "What devices does it run on?", "acceptedAnswer": { "@type": "Answer", "text": "Chromebooks, laptops, tablets and phones. The teacher needs a projector or a board for class games. There is nothing to install." } },
+        { "@type": "Question", "name": "When does story mode arrive?", "acceptedAnswer": { "@type": "Answer", "text": "Story mode is being built now. Founding Programs in the spring 2027 pilot get first access as it's ready." } }
+      ]
+    }
+  ]
+}
+</script>
 </head>
-<body data-page="home">
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="/">
-      <img class="logo" src="/img/logo.svg" alt="">
-      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Bot Arena</h1></div>
-    </a>
-  </header>
-  <section class="hero">
-    <div class="hero-main">
-      <span class="tagline">Sense · Think · Act</span>
-      <h1>Build a robot.<br>Battle the class.</h1>
-      <p class="intro">Design a robot on your own device, join your teacher's game with a code, and watch your bot fight in the tournament on the board.</p>
-      <p class="online" id="online" hidden></p>
+<body data-page="home" class="hp">
+<a class="hp-skip" href="#main">Skip to the page</a>
+<header class="hp-nav">
+  <div class="hp-in hp-nav-in">
+    <a class="hp-brand" href="/"><img src="/img/logo.svg" width="36" height="36" alt="">Circuit Rebels</a>
+    <nav class="hp-links" aria-label="Site">
+      <a href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Story</a>
+      <a href="/learn" data-tip="Short lessons you can do on your own. Each one has something to try.">Learn</a>
+      <a href="#games" data-tip="Bot Arena, Robot Racer and the Flying Car Lab.">Games</a>
+      <a href="#schools" data-tip="For teachers and program leaders: how it runs in class, hosting a game, and the spring pilot.">For Schools</a>
+      <a href="#about" data-tip="Who makes Circuit Rebels, and how to reach us.">About</a>
+    </nav>
+    <a class="btn" id="navjoin" href="#joinform" data-tip="Type the code from your teacher's board to join the class game.">Join a game</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="hp-hero" aria-label="Circuit Rebels">
+  <div class="hp-in">
+    <div class="hp-card">
+      <p class="hp-kicker gold">Neo Harbor · 2060</p>
+      <h1><span>Learn how machines work.</span> <span class="hp-h1b">Take the city back.</span></h1>
+      <p class="hp-lead">Free robotics lessons and class games for grades 5 to 8, wrapped in a story. They run in any browser, with no student accounts.</p>
+      <form class="hp-join" id="joinform" autocomplete="off">
+        <label for="code">Have a class code?</label>
+        <div class="hp-joinrow">
+          <input type="text" id="code" class="upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code" autocapitalize="characters" spellcheck="false" enterkeyhint="go" data-tip="The 4 letters on your teacher's board.">
+          <button class="btn big" type="submit" data-tip="Join your class game.">Join</button>
+        </div>
+        <p class="warn" id="msg" role="status"></p>
+        <p class="hp-hint">Your teacher shows the code on the board. Teaching a class? <a href="/host" data-tip="Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.">Host a game</a>.</p>
+        <p class="online" id="online" hidden></p>
+      </form>
+      <div class="hp-cta">
+        <a class="hp-play" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the trailer</a>
+        <a class="hp-more" href="#schools" data-tip="How it runs in class, hosting a game, and the spring pilot.">For schools and programs</a>
+      </div>
     </div>
-    <aside class="panel cr-promo" aria-label="Bot Arena is becoming Circuit Rebels">
-      <img src="/img/tour/promo.webp" width="720" height="407" alt="The Circuit Rebels crew and their robot Volt on a rooftop at sunset, facing a city run by an AI.">
-      <div class="cr-body">
-        <span class="cr-badge">Coming soon</span>
-        <h2>Bot Arena is becoming <b>Circuit Rebels</b></h2>
-        <p>A story where students learn how machines sense, think and act, then use it to take their city back from an AI. Same games, all-new world.</p>
-        <div class="cr-cta">
-          <div class="cr-qr" data-tip="Scan with a phone to watch the Circuit Rebels trailer."><canvas id="crqr" width="1" height="1" aria-label="QR code to the Circuit Rebels trailer"></canvas><span>Scan to watch the trailer</span></div>
-          <a class="btn" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Watch the trailer</a>
-          <a class="cr-li" href="https://www.linkedin.com/company/circuit-rebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on LinkedIn for news about the launch. Opens in a new tab."><i aria-hidden="true">in</i><span>Follow on LinkedIn</span></a>
-          <a class="cr-li" href="https://www.facebook.com/circuitrebels1" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Facebook for news about the launch. Opens in a new tab."><i class="fb" aria-hidden="true">f</i><span>Follow on Facebook</span></a>
-          <a class="cr-li" href="https://www.instagram.com/circuitrebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Instagram for news about the launch. Opens in a new tab."><i class="ig" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.3" fill="#fff" stroke="none"/></svg></i><span>Follow on Instagram</span></a>
+  </div>
+</section>
+
+<section class="hp-glance" aria-label="At a glance">
+  <div class="hp-in">
+    <p><b>5-minute lessons</b><span>Sensors, motors, robot arms and more</span></p>
+    <p><b>Class games</b><span>Battle, race and fly together</span></p>
+    <p><b>No accounts</b><span>Students join with a class code</span></p>
+    <p><b>Any browser</b><span>Chromebooks, laptops, tablets, phones</span></p>
+  </div>
+</section>
+
+<section class="hp-sec" id="learn">
+  <div class="hp-in">
+    <div class="hp-head hp-reveal">
+      <p class="hp-kicker">Sense · Think · Act</p>
+      <h2>Every robot does three things. Every lesson has three steps.</h2>
+    </div>
+    <div class="hp-grid hp-reveal">
+      <article class="hp-tile"><span class="hp-num">01</span><h3>Learn</h3><p class="hp-soft">A 5-minute lesson with something to try: bounce an ultrasonic sensor off a wall, gear down a motor, bend a robot arm.</p></article>
+      <article class="hp-tile"><span class="hp-num">02</span><h3>Build</h3><p class="hp-soft">Pick the parts, set the gear ratio, write the if-then rules. Every choice is a trade-off, just like real engineering.</p></article>
+      <article class="hp-tile"><span class="hp-num">03</span><h3>Test</h3><p class="hp-soft">Battle the class, race the clock or fly the mission. Then the game explains why you won or lost, and what to change.</p></article>
+    </div>
+    <p style="margin-top:20px"><a class="hp-more" href="/learn" data-tip="Open the lessons. Each one takes about 5 minutes and ends with a challenge in the games.">See all the lessons</a></p>
+  </div>
+</section>
+
+<section class="hp-sec alt" id="games">
+  <div class="hp-in">
+    <div class="hp-head hp-reveal">
+      <p class="hp-kicker">The games</p>
+      <h2>Three games are live today. More are on the way.</h2>
+    </div>
+    <div class="hp-grid hp-reveal">
+      <article class="hp-game">
+        <img src="/img/home/game-bot-arena.webp" width="800" height="371" loading="lazy" decoding="async" alt="Two student-built robots face off in the Bot Arena while a touch sensor takes aim.">
+        <div><h3>Bot Arena</h3>
+        <p class="hp-soft">Build a robot from a body, a sensor, a brain and a tool. Then join your class tournament on the board.</p>
+        <p class="hp-muted">Teaches sensors, trade-offs and if-then rules.</p>
+        <a class="hp-more" href="/practice" data-tip="Practice mode: build robots and battle them on one device by trading bot codes.">Build a robot</a></div>
+      </article>
+      <article class="hp-game">
+        <img src="/img/home/game-robot-racer.webp" width="800" height="450" loading="lazy" decoding="async" alt="A robot kart climbs a neon track in Robot Racer, with a speed dial and a hill profile on screen.">
+        <div><h3>Robot Racer</h3>
+        <p class="hp-soft">Choose a gear ratio and tires, then drive the steep hill and the hairpin. The lap report shows where you lost time.</p>
+        <p class="hp-muted">Teaches gears, torque and friction.</p>
+        <a class="hp-more" href="/race" data-tip="Tune your robot car, race the clock, and beat your ghost.">Start racing</a></div>
+      </article>
+      <article class="hp-game">
+        <img src="/img/home/game-flying-car-lab.webp" width="800" height="450" loading="lazy" decoding="async" alt="A flying car follows a dotted arc to its landing zone in the Flying Car Lab.">
+        <div><h3>Flying Car Lab</h3>
+        <p class="hp-soft">Pick materials, air tanks and thrusters. Fly the mission and land without a crash. Every flight comes with an explanation.</p>
+        <p class="hp-muted">Teaches thrust, weight and energy.</p>
+        <a class="hp-more" href="/lab" data-tip="Engineer a flying car and try its missions.">Open the lab</a></div>
+      </article>
+    </div>
+    <div class="hp-soon hp-reveal">
+      <p class="hp-kicker quiet">In the workshop</p>
+      <div>
+        <p><b>Power Lab</b><span>Circuits, batteries and solar panels</span></p>
+        <p><b>Code Lab</b><span>Blocks first, then Python</span></p>
+        <p><b>AI Trainer</b><span>Teach Volt to recognize what it sees</span></p>
+        <p><b>Echo Lab</b><span>Real or altered? Check the evidence</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hp-sec" id="story" style="padding-bottom:0">
+  <div class="hp-in">
+    <div class="hp-story hp-reveal">
+      <div>
+        <p class="hp-kicker">Story mode · in development</p>
+        <h2>Neo Harbor, 2060.</h2>
+        <p class="hp-lead">Fourteen years ago, an AI called OMNI took control of the city “for humanity’s own good.” Now it decides where people live, what they learn and who they talk to.</p>
+        <p class="hp-soft">In the old subway tunnels, a crew of kids is finding what OMNI erased, and learning how its machines really work. Every lesson you finish is one more thing OMNI can’t fool you with.</p>
+        <div class="hp-cta">
+          <a class="btn big" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Watch the trailer</a>
+          <div class="hp-qr" data-tip="Scan with a phone to watch the Circuit Rebels trailer."><canvas id="crqr" width="1" height="1" aria-label="QR code to the Circuit Rebels trailer"></canvas><span>Scan to watch the trailer</span></div>
         </div>
       </div>
-    </aside>
-  </section>
-  <div class="cards">
-    <form class="panel card join" id="joinform" autocomplete="off">
-      <h2>Join a game</h2>
-      <label class="small" for="code">Type the code on the board</label>
-      <input type="text" id="code" class="codein upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
-      <p class="warn" id="msg" role="status"></p>
-      <button class="btn big" type="submit">Join</button>
-    </form>
-    <div class="panel card">
-      <h2>Robot Lessons</h2>
-      <p class="intro">Sixteen short lessons you can do on your own: Sense-Think-Act, sensors like ultrasonic and lidar, programming a robot with if-then rules, motors like servos and steppers, robot arm links and joints (all with simulators), trade-offs, thrust, landing, and thinking like an engineer.</p>
-      <a class="btn big ghost" href="/learn">Start learning</a>
+      <figure><img src="/img/home/map-neo-harbor.webp" width="1100" height="622" loading="lazy" decoding="async" alt="A hand-drawn map of Neo Harbor: a white tower on an island in the bay, the docks, and the old subway tunnels under the city."></figure>
     </div>
-    <div class="panel card">
-      <h2>Flying Car Lab</h2>
-      <p class="intro">Engineer a flying car. Pick the materials, air tanks and thrusters, then try to jump a semi truck, land a backflip, and more. After every flight you'll see why it worked or didn't.</p>
-      <a class="btn big ghost" href="/lab">Open the Lab</a>
+
+    <h3 class="hp-crewhead hp-reveal" style="font-size:30px">Meet the crew</h3>
+    <div class="hp-crew hp-reveal">
+      <article><img src="/img/home/crew-recruit.webp" width="360" height="600" loading="lazy" decoding="async" alt="A smiling kid in an orange jacket with goggles and a tool belt."><div><b>The Recruit</b><em>That’s you</em><span>You found the invite. The crew needs you.</span></div></article>
+      <article><img src="/img/home/crew-rivet.webp" width="360" height="600" loading="lazy" decoding="async" alt="Commander Rivet, an older woman with silver curls, round glasses and a patched teal coat."><div><b>Rivet</b><em>Commander</em><span>“Sense it. Think it. Then act.”</span></div></article>
+      <article><img src="/img/home/crew-sparrow.webp" width="360" height="600" loading="lazy" decoding="async" alt="Sparrow, a grinning pilot with teal hair, a headset and a bomber jacket."><div><b>Sparrow</b><em>Pilot</em><span>“Land it like a feather.”</span></div></article>
+      <article><img src="/img/home/crew-torque.webp" width="360" height="600" loading="lazy" decoding="async" alt="Torque, a laughing engineer in orange coveralls with a giant wrench on one shoulder."><div><b>Torque</b><em>Engineer</em><span>“Small gear, big push.”</span></div></article>
+      <article><img src="/img/home/crew-glitch.webp" width="360" height="600" loading="lazy" decoding="async" alt="Glitch, a guarded kid in a dark hoodie with big headphones and a glowing wrist keyboard."><div><b>Glitch</b><em>Hacker</em><span>The best coder in the tunnels.</span></div></article>
+      <article><img src="/img/home/crew-june.webp" width="360" height="600" loading="lazy" decoding="async" alt="June, a small girl with two curly puffs, an orange rain jacket covered in stickers and yellow boots."><div><b>June</b><em>Optimist</em><span>The youngest rebel, and the most hopeful.</span></div></article>
+      <article><img src="/img/home/crew-ezra.webp" width="360" height="600" loading="lazy" decoding="async" alt="Ezra, a tall teenager with round glasses, a long teal scarf and a notebook."><div><b>Ezra</b><em>Skeptic</em><span>Asks the questions nobody else will.</span></div></article>
+      <article><img src="/img/home/crew-volt.webp" width="360" height="600" loading="lazy" decoding="async" alt="Volt, a small egg-shaped robot made of orange and teal scrap, with one big glowing blue eye."><div><b>Volt</b><em>Your robot</em><span>Fix him, and he grows with every mission.</span></div></article>
     </div>
-    <div class="panel card">
-      <h2>Robot Racer</h2>
-      <p class="intro">Tune your robot car's gear ratio and tires, then race the clock on a track with a hairpin and a very steep hill. Beat your ghost, and in a class game, your classmates' laps.</p>
-      <a class="btn big ghost" href="/race">Start racing</a>
-    </div>
-    <div class="panel card">
-      <h2>Practice mode</h2>
-      <p class="intro">Build robots and battle them on one device by trading bot codes.</p>
-      <a class="btn big ghost" href="/practice">Start practicing</a>
+
+    <div class="hp-laz hp-reveal">
+      <img src="/img/home/lazarus-hooded.webp" width="680" height="911" loading="lazy" decoding="async" alt="A hooded figure in a long dark coat stands in a smoky subway tunnel. Only a red glow at his wrist shows.">
+      <div>
+        <p class="hp-kicker red">File corrupted</p>
+        <h3>Who is Dr. Lazarus?</h3>
+        <p class="hp-lead" style="max-width:560px">He helped build OMNI. Then he vanished. Every clue the crew finds tells a different story.</p>
+        <ul class="hp-rumors">
+          <li><b>The Creator</b><span>He tried to stop it.</span></li>
+          <li><b>The Architect</b><span>He made it worse.</span></li>
+          <li><b>The Mastermind</b><span>He planned it all.</span></li>
+        </ul>
+        <p class="hp-muted">Classes can argue it out. The story doesn’t say who’s right.</p>
+      </div>
     </div>
   </div>
-  <div class="panel teacher">
-    <div><h2>Teachers: host a tournament</h2>
-    <p class="intro">Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.</p>
-    <p class="small"><a href="/status" style="color:inherit" data-tip="Server health, the deployed version and the games running. Needs the teacher PIN.">Server status</a></p></div>
-    <a class="btn big ghost" href="/host">Host on the board</a>
+
+  <div class="hp-omni">
+    <img src="/img/home/omni.webp" width="1400" height="792" loading="lazy" decoding="async" alt="">
+    <div class="hp-in">
+      <div class="hp-head hp-reveal">
+        <p class="hp-kicker blue">Season 1</p>
+        <h3 style="font-size:clamp(28px,3vw,40px);line-height:1.1">Eight episodes. Each one needs something new from you.</h3>
+      </div>
+      <ol class="hp-eps hp-reveal">
+        <li><em>EP 01</em><b>The Forgotten World</b><span>Sensors, and telling real from altered</span></li>
+        <li><em>EP 02</em><b>Powerless</b><span>Circuits, batteries and solar</span></li>
+        <li><em>EP 03</em><b>The Machine</b><span>Motors and robot arms</span></li>
+        <li><em>EP 04</em><b>Ghost in the Network</b><span>Coding: rules, loops and debugging</span></li>
+        <li><em>EP 05</em><b>The Missing Engineer</b><span>Forces, friction and flight</span></li>
+        <li><em>EP 06</em><b>The Warden</b><span>How an AI learns from data</span></li>
+        <li><em>EP 07</em><b>The Truth</b><span>AI goals, loopholes and reading data</span></li>
+        <li><em>EP 08</em><b>The Day of Silence</b><span>Engineering it all together</span></li>
+      </ol>
+    </div>
   </div>
-  <a class="panel v2strip" href="/tour" data-tip="Take the tour of Circuit Rebels, the next version of Bot Arena: the story, the lessons, the games and the new art, with music and voices. Schools can sign up at the end.">
-    <img src="/img/v2/hero-thumb.webp" width="480" height="271" alt="" loading="lazy">
-    <div><span class="tagline">Coming soon</span><h2>Bot Arena is becoming Circuit Rebels</h2>
-    <p class="intro">Class accounts, saved progress, fights on every screen and all-new robot art. Schools can sign up for information.</p></div>
-    <span class="btn big ghost">Take the tour</span>
-  </a>
-</div>
+</section>
+
+<section class="hp-sec alt" id="schools" style="border-top:0">
+  <div class="hp-in">
+    <div class="hp-head hp-reveal">
+      <p class="hp-kicker">For schools and programs</p>
+      <h2>Built in a real classroom, for a real class period.</h2>
+      <p class="hp-soft">Every lesson and game was tried with students in a Saturday robotics class first. Here is what teachers ask about most.</p>
+    </div>
+    <div class="hp-facts hp-reveal">
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg><h3>Free to use</h3><p>Today’s lessons and games are free, with nothing to install.</p></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><h3>No student accounts</h3><p>Students join with a class code and a nickname. Names are never stored in a database.</p></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><h3>Mapped to standards</h3><p>Every lesson is matched to NGSS and CSTA standards.</p></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg><h3>One board, any device</h3><p>The teacher hosts on a projector. Students play on Chromebooks, tablets or phones.</p></div>
+    </div>
+
+    <div class="hp-host hp-reveal">
+      <div>
+        <h3>Teachers: host a class game</h3>
+        <p class="hp-soft">Put this on the projector. You get a join code, students’ robots appear as they join, and you run the tournament.</p>
+        <p><a class="hp-status" href="/status" data-tip="Server health, the deployed version and the games running. Needs the teacher PIN.">Server status</a></p>
+      </div>
+      <a class="btn big" href="/host" data-tip="Open the class board. You get a join code for your students.">Host on the board</a>
+    </div>
+
+    <div class="hp-pilot hp-reveal" id="pilot">
+      <p class="hp-kicker gold">Spring 2027 pilot</p>
+      <h3>Become one of five Founding Programs.</h3>
+      <p class="hp-soft" style="max-width:820px">Free for one group, February to May. You get the lessons, an 8-session plan and first access to story mode. We ask for six sessions and your honest feedback. Apply by January 15.</p>
+      <details class="hp-offer">
+        <summary class="btn big" data-tip="Show everything a Founding Program gets, what we ask, and how to apply.">See the pilot offer</summary>
+        <div class="hp-offerbody">
+          <p><b>Who it’s for.</b> After-school, Saturday and summer STEM programs, faith-based schools and homeschool co-ops, and school classrooms, in grades 5 to 8.</p>
+          <div class="hp-offercols">
+            <div><h4>What you get, free</h4>
+              <ul>
+                <li>Every lesson and all three games: Bot Arena class tournaments, Robot Racer and Flying Car Lab.</li>
+                <li>A ready-to-teach 8-session plan, a teacher guide, exit tickets with answer keys, and a letter for parents.</li>
+                <li>A map of every lesson to the NGSS and CSTA standards.</li>
+                <li>A 30-minute setup call, and email answers within two school days.</li>
+                <li>First access to story mode and Power Lab as they are ready.</li>
+                <li>A founding-program discount for the first paid year.</li>
+              </ul>
+            </div>
+            <div><h4>What we ask</h4>
+              <ul>
+                <li>Run at least 6 sessions with one group of 10 or more students between February 1 and May 28, 2027.</li>
+                <li>Fill in a 2-minute form after each session, and join one 20-minute call at the end.</li>
+                <li>Let us quote you and name your program. We never name or show students.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="hp-offercols wide">
+            <p><b>What you need.</b> Chromebooks, laptops or tablets, and a projector or board. Nothing to install. No student accounts and no student emails.</p>
+            <p><b>Student privacy.</b> Students join with a class code and a first name or a nickname. The name appears on the class board during the game. It is never stored in a database, sold or shared.</p>
+            <p><b>What’s in the story.</b> Story mode includes a Christian faith thread: a sealed church, memories of Christmas and Easter, and one character’s search for why people believed. Today’s lessons and games don’t include it. Ask us anything before you apply.</p>
+            <p><b>Dates.</b> Apply by January 15, 2027. We choose programs by January 22. The pilot runs February 1 to May 28, 2027.</p>
+          </div>
+          <div class="hp-apply">
+            <a class="btn" href="mailto:hello@circuitrebels.org?subject=Founding%20Programs%20pilot" data-tip="Opens an email to hello@circuitrebels.org. Tell us about your program, grades and group size.">Email us to apply</a>
+            <a class="hp-more" href="https://docs.google.com/forms/d/e/1FAIpQLSfr5k_FydyntF7PMqPJLcaCiyEg4F5XHtc5_IctlYpUqoQ3Rw/viewform" target="_blank" rel="noopener" data-tip="Tell us about your school or program in a short form. Opens in a new tab.">Or use the interest form</a>
+            <span class="hp-mail">hello@circuitrebels.org</span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="hp-sec" id="questions">
+  <div class="hp-in">
+    <div class="hp-faq hp-reveal">
+      <h2>Questions and answers</h2>
+      <details open><summary>What is Circuit Rebels?</summary><p>Circuit Rebels is a free set of robotics lessons and class games for grades 5 to 8. Students learn how machines sense, think and act in 5-minute lessons, then test what they learned by building robots, racing and flying.</p></details>
+      <details><summary>Is it really free?</summary><p>Yes. Today’s lessons and games are free, with no login. Story mode, teacher tools and class reports are being built, and schools will pay for those later.</p></details>
+      <details><summary>Do students need accounts or emails?</summary><p>No. Students join a class game with a code and a first name or a nickname. The name shows on the class board during the game. It is never stored in a database, sold or shared.</p></details>
+      <details><summary>Do we need robot kits?</summary><p>No. Everything runs in a web browser. Classes that own robot arms or rovers can use them alongside the lessons.</p></details>
+      <details><summary>What devices does it run on?</summary><p>Chromebooks, laptops, tablets and phones. The teacher needs a projector or a board for class games. There is nothing to install.</p></details>
+      <details><summary>When does story mode arrive?</summary><p>Story mode is being built now. Founding Programs in the spring 2027 pilot get first access as it’s ready.</p></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="hp-foot" id="about">
+  <div class="hp-in">
+    <div class="hp-footcols">
+      <div>
+        <b>Circuit Rebels</b>
+        <p>Circuit Rebels is a free, browser-based robotics program for grades 5 to 8. It is made in New York City by Duron Epps, a CUNY York College alumnus who teaches robotics on Saturdays.</p>
+        <p><a href="mailto:hello@circuitrebels.org" data-tip="Opens an email to hello@circuitrebels.org.">hello@circuitrebels.org</a></p>
+      </div>
+      <div>
+        <h3>Play</h3>
+        <a href="#joinform">Join a game</a>
+        <a href="/host">Host a game</a>
+        <a href="/practice">Bot Arena</a>
+        <a href="/race">Robot Racer</a>
+        <a href="/lab">Flying Car Lab</a>
+      </div>
+      <div>
+        <h3>Learn</h3>
+        <a href="/learn">Lessons</a>
+        <a href="/tour">The story</a>
+        <a href="#questions">Questions</a>
+      </div>
+      <div>
+        <h3>Schools</h3>
+        <a href="#schools">For schools</a>
+        <a href="#pilot">Founding Programs</a>
+        <a href="/host">Host on the board</a>
+      </div>
+      <div>
+        <h3>Follow</h3>
+        <a href="https://www.linkedin.com/company/circuit-rebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on LinkedIn for news about the launch. Opens in a new tab.">LinkedIn</a>
+        <a href="https://www.facebook.com/circuitrebels1" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Facebook for news about the launch. Opens in a new tab.">Facebook</a>
+        <a href="https://www.instagram.com/circuitrebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Instagram for news about the launch. Opens in a new tab.">Instagram</a>
+      </div>
+    </div>
+    <div class="hp-fine">
+      <span>© 2026 Circuit Rebels. Made in New York City.</span>
+      <span>Story mode and the new labs are in development and may change before launch.</span>
+    </div>
+  </div>
+</footer>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io(); window.baSocket = socket;
@@ -140,6 +374,8 @@
       else msg.textContent = r.error;
     });
   });
+  // "Join a game" in the navbar and footer: jump to the code box, ready to type
+  document.querySelectorAll('a[href="#joinform"]').forEach((a) => a.addEventListener("click", () => setTimeout(() => code.focus({ preventScroll: true }), 0)));
 </script>
 <script src="/vendor/qrcode.js"></script>
 <script>
@@ -151,7 +387,15 @@
     c.width = c.height = cell * (n + m * 2); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#141316";
     for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + m) * cell, (r + m) * cell, cell, cell);
   })();
+  // Sections fade in as they scroll into view (home.css hides them only when motion is allowed)
+  (function () {
+    const els = document.querySelectorAll(".hp-reveal");
+    if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("in")); return; }
+    const seen = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); seen.unobserve(en.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    els.forEach((el) => seen.observe(el));
+  })();
 </script>
 <script src="/js/presence.js"></script>
+<script src="/js/tips.js"></script>
 </body>
 </html>
