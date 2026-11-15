@@ -5,3 +5,8 @@ node_modules/
 # story art sources and the full-size MP4 clips (the site ships the small WebM copies)
 art-work/
 public/assets/**/*.mp4
+
+# private plans: story spoilers and business plans stay off the public repo (backed up by OneDrive)
+docs/
+.claude/
+.ignore
