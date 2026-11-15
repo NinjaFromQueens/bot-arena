@@ -1,13 +1,15 @@
 # Bot Arena — Backlog
 
-Last updated: November 7, 2026
+Last updated: November 15, 2026
 
 ---
 
 ## 🔴 Active Bugs
 | # | Issue | Status | First seen |
 |---|---|---|---|
-| — | No active bugs | — | — |
+| B-02 | Robot Racer: the road isn't drawn on steep descents. On Neon Peaks there is no road on screen for about 30% of the lap, including the run into the Valley hairpin; on Garage Circuit's Downhill a band of sky color sits under the kart. To see it: `/race`, Neon Peaks, 8:1, drive to "Descent". The Race Day board uses the same drawing code. Fix: R-01 in [docs/racer-plan.md](docs/racer-plan.md). | Open | Nov 15, 2026 |
+| B-03 | Robot Racer on phones: the hill profile is drawn across the kart, the map sits under the steering buttons, and section names are hidden. Buttons and panels cover about 40% of the view. To see it: `/race` at 375×667 or 667×375 with touch on, start a race. Fix: R-02. | Open | Nov 15, 2026 |
+| B-04 | Robot Racer lap report: the tip "Sliding onto the grass costs more time than slowing down" shows on laps where sliding was faster. Example: Neon Peaks, 8:1 Slick, gas held all lap: 74.28 s with 2.8 s on the grass, against 76.11 s for the careful computer driver. Fix: R-03. | Open | Nov 15, 2026 |
 
 ---
 
@@ -21,15 +23,49 @@ Last updated: November 7, 2026
 ## 📋 Planned
 | # | Feature | Priority | Notes |
 |---|---|---|---|
-| F-02 | AI art for backgrounds and fighters (Higgsfield) | Low | Parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. F-12 is done: generated pictures go in `public/art/` with a manifest. |
-| F-25 | More game ideas (still to build) | Low | Racer: turning sprites and body roll, curbs, a lap replay with trackside cameras, multi-lap Race Day, new tracks (ice rink, city streets, mountain pass), rain that lowers grip, a track builder, unlockable stickers for the paint shop. Battles: paint patterns and faces for robots, a fighting-game TV look, an arena per round, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, big-text mode. (Skid marks were tried and dropped: with the low camera they sit behind your own kart.) |
+| F-02 | AI art for backgrounds and fighters (Higgsfield) | Medium | **Nov 15:** Higgsfield is now in the toolbox (images, video, 3D models, music, sound effects, voice). About 187 credits on the Plus plan that day. The art each game needs is listed in `docs/games-plan.md` and `docs/racer-plan.md`; the batches are in `docs/schedule.md` (look-test art over winter break). Older note: parked by the teacher. Higgsfield's free plan can't run GPT Image 2.5 ("Requires basic plan or higher"); 1.05 credits left, nothing spent. With a Basic plan: GPT Image 2.5 costs 0.25 (low), 0.5 (medium) or 1.5 (high) per image and can output transparent backgrounds. Plan: robot parts sheets, about 3–5 credits at low quality for all parts. F-12 is done: generated pictures go in `public/art/` with a manifest. |
+| F-44 | Game standard: the rules every game and lab follows | High | Written: [docs/game-standard.md](docs/game-standard.md). The game card, rules for the lesson connection (L1–L14), look (A1–A10), sound, engineering and classroom, each with a check, plus templates and checklists. `.claude/CLAUDE.md` points to it. Adopted Nov 15. |
+| F-45 | Plan for every game and lab | High | Plan only: [docs/games-plan.md](docs/games-plan.md). Every game scored against the standard, the lesson-to-game map for all lessons, a plan per game, the new games from the bible, the parts to build once, the Phase 1–3 order. Decisions made Nov 15. |
+| F-46 | Speed Run: a class math race on the board (first set: Thrust) | High | Plan only: [docs/speed-run-plan.md](docs/speed-run-plan.md). Students solve real Flying Car Lab problems on their devices, fastest right answers win, and the board then launches the answer. Round-by-round and speed-run modes, a solo version in the Lab, a tier per student, kind scoring. Items S-01 to S-08. |
+| F-47 | Math track and more physics lessons | High | Plan only: [docs/math-physics-plan.md](docs/math-physics-plan.md). Math lessons M1–M12 (units, ratios, rates, graphs, slopes, chance, formulas, grids, estimating, data, budgets, energy) and physics P8–P14, each tied to a game moment and a Speed Run set, with a draft standards list for F-33. |
+| F-48 | Story media production: video, voices, music and sound for every episode | High | Plan only: [docs/story-media-plan.md](docs/story-media-plan.md). Four layers per scene (text and portrait, voice, moving stills, video only for hero moments); the tour's voices kept, Glitch, June and Ezra to cast, one character voiced by the teacher's own voice clone; Higgsfield prices from Nov 15; about 110–200 credits per episode; production steps with sign-offs; scene files and a story player. Scheduled as the MED, ST and EP tasks in `docs/schedule.md`. |
+| F-49 | Daily helper: the `/today` briefing | High | Built Nov 15, local only (not part of the site). The `today` skill reads `docs/schedule.md`, BACKLOG.md, `docs/worklog.md` and git; it names each session's task, model, done-when and first step; it logs the day at wrap-up and parks off-plan ideas. A startup hook (`.claude/settings.local.json`, kept out of git) loads the status. Works from the next session. |
+| F-43 | Robot Racer plan: lessons meet the game, the story's look, a modern 3D racer | High | Plan only so far: [docs/racer-plan.md](docs/racer-plan.md). Steps are tracked in the Racer section below. Decisions made Nov 15. |
+| F-25 | More game ideas (still to build) | Low | Racer ideas moved into F-43 (docs/racer-plan.md). Battles: paint patterns and faces for robots, a fighting-game TV look, an arena per round, live fight on students' phones, class vs boss, 2v2. Both: one "My Robot" for both games, big-text mode. |
 | F-11 | Database for saved progress | Low | Only when needed: class rosters, teacher progress dashboard, season leaderboards. Render's free plan has no persistent storage. |
+
+---
+
+## 📅 Schedule
+
+The plans and the schedule live in `docs/`, which is kept private (out of git, backed up by OneDrive) because it holds story spoilers and business plans. The links below work on this computer only.
+
+[docs/schedule.md](docs/schedule.md) gives week-by-week dates for every plan (Racer, all games, Speed Run, math and physics, story media) and the Claude model to use for each task. It assumes about 10 hours a week. Start each session with "good morning" (or `/today`) and the helper picks the task; say "wrap up" at the end and it updates the schedule and [docs/worklog.md](docs/worklog.md).
+
+## 🏁 Robot Racer plan (F-43)
+
+The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review, how the lesson meets the game, the art direction (match the story's hand-drawn style, no more 16-bit look), how it's built, the work items (R-01 onward) and nine decisions. This list tracks it.
+
+**Phase 1 (now to winter break)**
+- [x] Decisions (made Nov 15, as recommended)
+- [ ] Step 1: fix what students see now: R-01 road on descents (B-02), R-02 phone layout (B-03), R-03 brake tip (B-04), R-06 branding, R-07 gear wording
+- [ ] Step 2: lesson 7 meets the Racer: missions as data (R-31), the mission screen (R-32, R-16, R-17, R-18), Torque drives and steering help (R-33), the lesson 7 missions (R-34), the gear picture and hills in degrees (R-35)
+- [ ] Step 3: the teacher's view of predictions (R-19), after decision 4
+- [ ] Step 4: the look test in 3D on a school Chromebook (R-36), the gate for Phase 2
+
+**Phase 2 (January to March)**
+- [ ] Step 5: real track loops as Neo Harbor places and the retune, with one lap and medal reset (R-08, R-37, R-38, R-09 to R-14, R-23)
+- [ ] Step 6: the 3D race page (R-39 to R-43)
+- [ ] Step 7: art for the panoramas, textures, kart sheet, Torque faces and HUD frame (R-44)
+- [ ] Step 8: Race Day on the board in 3D (R-45)
+- [ ] Step 9: Episode 5: test benches for P2–P4 (R-46), the force meter (R-25), race a Warden racer (R-28), Redline (R-47)
 
 ---
 
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| DEC-1 | Decisions for every plan (Racer, games, math and physics, Speed Run, story media), all as recommended, recorded in the private plans | Nov 15, 2026 (no deploy) | — |
 | B-01 | Audit fixes: replay of the final cut short by game updates; Race Day laps limited to one try per second; garage picks throttled; race page no longer drives 36 laps on load (track par) | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 0a38d0c |
 | F-25a | Extras: night headlights, "close behind" warning, simple graphics, smoke when badly hurt, gold lights for the final, top-3 podium | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
 | F-24 | Racer medals on every track | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 7142610 |
