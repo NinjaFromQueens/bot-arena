@@ -1,6 +1,6 @@
 # Bot Arena — Backlog
 
-Last updated: November 10, 2026
+Last updated: November 15, 2026
 
 ---
 
@@ -32,6 +32,7 @@ Last updated: November 10, 2026
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-42 | New Circuit Rebels home page (teacher approved the mockup Nov 14): navbar with a Join a game button, the code box in the first screen, the story (Neo Harbor, the crew, the hooded Dr. Lazarus, eight episodes; spoiler-free art only), the three live games, For schools with Host on the board and the Founding Programs pilot offer, questions and answers, footer. For search: title, description, circuitrebels.org as the main address, link-preview picture, organization and FAQ labels, robots.txt and sitemap.xml. Styles in public/css/home.css; games and offline backups untouched. Still to do from the website plan: titles and descriptions on the other pages, favicon.ico, Story page, For Schools pages, one page per lesson | Pushed to main Nov 15, 2026 (no class running) | ea76df3 |
 | F-41 | Instagram page linked from the site (instagram.com/circuitrebels), next to the LinkedIn and Facebook links in the same two places with the same rules | Pushed to main Nov 10, 2026 (no class running) | e28a03f |
 | F-40 | Facebook page linked from the site (facebook.com/circuitrebels1), next to the LinkedIn link in the same two places with the same rules | Pushed to main Nov 10, 2026 (no class running) | 3e83990 |
 | F-39 | LinkedIn page linked from the site: a "Follow on LinkedIn" link in the home page's Circuit Rebels panel (hidden on phones so the Join box stays near the top) and under the sign-up form on the tour's last slide (hidden in trailer mode) | Pushed to main Nov 10, 2026 (no class running) | 3ebd930 |
