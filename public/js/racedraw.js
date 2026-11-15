@@ -4,7 +4,7 @@
 (function () {
   const E = window.Engine, R = window.Race;
   const { clamp, rr, RM } = E;
-  const SEG = R.SEG, DRAW = 160, DEPTH = 1 / Math.tan((96 / 2) * Math.PI / 180), BEND = 0.65, CAM_H = 1.7, CAM_BACK = 4.4;
+  const SEG = R.SEG, DRAW = 160, DEPTH = 1 / Math.tan((96 / 2) * Math.PI / 180), BEND = 0.65, CAM_H = 1.7, CAM_BACK = 4.4, CAM_CLEAR = 0.6;
 
   // ---------------- themes ----------------
   const THEMES = {
@@ -126,8 +126,13 @@
      (a shorter view, no far scenery, stars or windows) for slower computers. */
   function world(ctx, w, h, track, cam, cars, o) {
     const th = THEMES[track.theme], half = w / 2, horizon = h * 0.43, N = track.segs.length, L = track.LENGTH;
-    const camZ = cam.z - CAM_BACK, camX = cam.x * 0.7, camY = roadY(track, cam.z) + CAM_H;
+    // The camera rides CAM_H above the car's road, but it sits CAM_BACK behind the car: on a steep descent the road under
+    // the camera is higher than that (1.76 m on a 40% slope), which put the camera inside the road and the road vanished.
+    // So it also stays CAM_CLEAR above the road under itself.
+    const camZ = cam.z - CAM_BACK, camX = cam.x * 0.7, carY = roadY(track, cam.z);
+    const camY = Math.max(carY + CAM_H, roadY(track, camZ) + CAM_CLEAR);
     sky(ctx, w, h, horizon, th, o.t, o.bgX || 0, o.low);
+    ctx.fillStyle = mix(th.grass[0], th.haze, 0.85); ctx.fillRect(0, horizon, w, h - horizon); // far ground, seen past a crest or down a descent
     const drawN = o.low ? 90 : DRAW, lamp = th.stars; // headlights at night
     const cz = ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz % SEG) / SEG;
     let x = 0, dx = -track.segs[base].k * SEG * SEG * BEND * pct, maxy = h;
@@ -186,7 +191,7 @@
       }
     }
     const s0 = DEPTH / CAM_BACK;
-    return { x: half + (cam.x - camX) * s0 * half, y: horizon + CAM_H * s0 * half, size: 1.5 * s0 * half, horizon };
+    return { x: half + (cam.x - camX) * s0 * half, y: horizon + (camY - carY) * s0 * half, size: 1.5 * s0 * half, horizon };
   }
   function nameTag(ctx, x, y, name, color, k) {
     if (k < 0.18) return;

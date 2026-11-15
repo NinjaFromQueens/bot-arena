@@ -222,7 +222,7 @@
       const atTop = straight.vMax >= st.top * 0.95;
       out.push({ tone: st.top >= bestTop * 0.95 ? "good" : st.top < bestTop * 0.6 ? "bad" : "info", title: `${K.straight}: top ${kmh(straight.vMax)} km/h`,
         text: (atTop ? `That's the top speed with a ${gear}:1 gear: the motor was at its max rpm, so it couldn't push any faster.` : `Your car can reach ${kmh(st.top)} km/h here. Stay on the gas the whole straight.`) +
-          (atTop && st.top < bestTop * 0.95 ? " A lower gear (fewer motor turns for each wheel turn) has a higher top speed." : "") });
+          (atTop && st.top < bestTop * 0.95 ? " Less gearing (fewer motor turns for each wheel turn) gives a higher top speed." : "") });
     }
     if (hill.length) {
       const vMin = Math.min(...hill.map((x) => x.vMin)), weak = st.hill < bestHill * 0.7;
@@ -235,8 +235,10 @@
     const at = autoTimes(track), mine = at[setup.gear][setup.tire];
     const lower = setup.gear > 0 ? at[setup.gear - 1][setup.tire] : Infinity, higher = setup.gear < GEARS.length - 1 ? at[setup.gear + 1][setup.tire] : Infinity;
     const tireBest = at[setup.gear].indexOf(Math.min(...at[setup.gear]));
-    const tip = r.off > 2 ? "Brake before the corners. Sliding onto the grass costs more time than slowing down." :
-      lower < mine - 0.3 && lower <= higher ? `Try a lower gear (${GEARS[setup.gear - 1]}:1) for more top speed on the straights.` :
+    // the brake tip only when it's true: the careful computer lap with this setup beat this lap (sliding can be faster)
+    const slidFaster = r.finished && r.time <= mine;
+    const tip = r.off > 2 && !slidFaster ? "Brake before the corners. Sliding onto the grass costs more time than slowing down." :
+      lower < mine - 0.3 && lower <= higher ? `Try less gearing (${GEARS[setup.gear - 1]}:1) for more top speed on the straights.` :
       higher < mine - 0.3 ? `Try more gearing (${GEARS[setup.gear + 1]}:1) to climb the ${K.hill} faster. Your top speed will drop a little.` :
       at[setup.gear][tireBest] < mine - 0.3 ? `Try ${TIRES[tireBest].n} tires: ${tireBest > setup.tire ? "they hold the corners at higher speeds" : "they roll more easily on the straights"}.` :
       "Your setup fits this track. Now find time with smoother driving: get back on the gas earlier out of every corner.";

@@ -43,17 +43,28 @@ const four = { gear: 0, tire: 1 }, e4 = R.explain(four, R.lap(four, R.autoLap(fo
 const hill4 = e4.items.find((i) => /Big Hill/.test(i.title));
 assert(hill4.tone === "bad" && /torque/.test(hill4.text), "4:1 on Garage Circuit: the hill finding blames torque");
 const twelve = { gear: 3, tire: 1 }, e12 = R.explain(twelve, R.lap(twelve, R.autoLap(twelve)));
-assert(/top speed/.test(e12.items[0].text) && /lower gear/.test(e12.tip), "12:1: the straight is limited by top speed, tip says lower gear: " + e12.tip);
+assert(/top speed/.test(e12.items[0].text) && /less gearing/.test(e12.tip), "12:1: the straight is limited by top speed, tip says less gearing: " + e12.tip);
 const peaks = R.TRACKS[2], stall = R.lap(four, R.autoLap(four, undefined, peaks), peaks), es = R.explain(four, stall, peaks);
 assert(!stall.finished && /stalled/.test(es.items.find((i) => /First climb/.test(i.title)).title) && /more gearing/i.test(es.tip), "4:1 on Neon Peaks: stalls, and the tip says more gearing: " + es.tip);
 const six = { gear: 1, tire: 1 }, e6p = R.explain(six, R.lap(six, R.autoLap(six, undefined, peaks), peaks), peaks);
-assert(!/lower gear/.test(e6p.tip), "6:1 on Neon Peaks: never suggest the gear that stalls: " + e6p.tip);
+assert(!/less gearing/.test(e6p.tip), "6:1 on Neon Peaks: never suggest the gear that stalls: " + e6p.tip);
 const speed6 = R.explain(six, R.lap(six, R.autoLap(six, undefined, R.TRACKS[1]), R.TRACKS[1]), R.TRACKS[1]);
-assert(/lower gear/.test(speed6.tip), "6:1 on Desert Speedway: the tip says a lower gear: " + speed6.tip);
+assert(/less gearing/.test(speed6.tip), "6:1 on Desert Speedway: the tip says less gearing: " + speed6.tip);
 // a wild driver who never brakes slides off, and the report says so
 let wild = ""; { const car = R.newCar(); while (car.z < R.TRACK.LENGTH && car.t < R.MAX_STEPS) { const i = { steer: 0, gas: 1, brake: 0 }; wild += R.encode(i); R.step(car, four, i); } }
 const rw = R.lap(four, wild), ew = R.explain(four, rw);
 assert(rw.off > 2 && ew.items.some((i) => /Off the road/.test(i.title)) && /Brake/.test(ew.tip), "never braking: off the road, tip says brake");
+// the brake tip is only given when it's true. Holding the gas all lap on Neon Peaks slides off the road but still beats
+// the careful computer driver, so it must not say that sliding cost time
+const slick8 = { gear: 2, tire: 0 }; let held = "";
+{ const car = R.newCar(); while (car.z < peaks.LENGTH && car.t < R.MAX_STEPS) { const i = R.autopilot(car, slick8, 0.92, peaks); i.gas = 1; i.brake = 0; held += R.encode(i); R.step(car, slick8, i, peaks); } }
+const rh = R.lap(slick8, held, peaks), eh = R.explain(slick8, rh, peaks);
+assert(rh.finished && rh.off > 2 && rh.time < R.autoTimes(peaks)[2][0] && !/Brake before the corners/.test(eh.tip), `sliding was faster (${rh.time} s), so no brake tip: ${eh.tip}`);
+// ...but a lap that loses time on the grass gets it: ten seconds of steering onto the grass first, then the computer driver
+const six1 = { gear: 1, tire: 1 }; let grass = "";
+{ const car = R.newCar(); while (car.z < R.TRACK.LENGTH && car.t < R.MAX_STEPS) { const i = car.t < 600 ? { steer: 1, gas: 1, brake: 0 } : R.autopilot(car, six1); grass += R.encode(i); R.step(car, six1, i); } }
+const rg = R.lap(six1, grass), eg = R.explain(six1, rg);
+assert(rg.finished && rg.off > 2 && rg.time > R.autoTimes(R.TRACK)[1][1] && /Brake before the corners/.test(eg.tip), `lost time on the grass (${rg.time} s, off ${rg.off.toFixed(1)} s), so the brake tip shows: ${eg.tip}`);
 // the hill profile's climb speeds agree with the garage numbers (4:1 stalls on Neon Peaks' climbs, 8:1 doesn't)
 assert(Math.abs(R.climbSpeed({ gear: 1, tire: 1 }, 0.3) - R.setupStats({ gear: 1, tire: 1 }).hill) < 1e-9, "climbSpeed matches the garage's hill speed");
 assert(R.climbSpeed(four, peaks.steep) < 0.3 && R.climbSpeed({ gear: 2, tire: 1 }, peaks.steep) > 1, "4:1 stalls on a 40% climb, 8:1 climbs it");
