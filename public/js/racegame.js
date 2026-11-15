@@ -110,7 +110,7 @@
     $("d-tire").textContent = R.TIRES[setup.tire].d + ".";
     const rows = [
       ["Top speed", st.top, top("top"), kmh(st.top) + " km/h", "var(--blue)", "The fastest the car goes on flat ground: where the motor reaches its top rpm."],
-      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${Math.round(track.steep * 100)}% ${K.hill}. Low gears run out of torque on steep hills.`],
+      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${Math.round(track.steep * 100)}% ${K.hill}. With less gearing, the motor runs out of torque on steep hills.`],
       ["Push", st.push, top("push"), st.push + " N", "var(--orange)", "How hard the wheels push when starting from a stop (the motor's torque times the gear ratio, up to what the tires can grip)."],
       [K.corner, st.corner, top("corner"), kmh(st.corner) + " km/h", "var(--purple)", `The fastest the tires can hold the ${K.corner}. Any faster and the car slides onto the grass.`],
     ];
@@ -306,8 +306,30 @@
     b.addEventListener("pointerdown", set(true));
     ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => b.addEventListener(ev, set(false)));
   });
-  $("touch").hidden = !matchMedia("(pointer: coarse)").matches;
-  $("road").addEventListener("touchstart", () => ($("touch").hidden = false), { passive: true });
+  // Touch pads sit under the track in portrait (CSS) and on its bottom corners in landscape. When they cover the track,
+  // `pads` says where, so the HUD can move the map and the hill profile out of their way.
+  let pads = null;
+  function measurePads() {
+    const t = $("touch"), c = $("road");
+    if (t.hidden || getComputedStyle(t).position !== "absolute") { pads = null; return; }
+    const cr = c.getBoundingClientRect(), [a, b] = t.querySelectorAll(".pad"), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    const top = Math.min(ra.top, rb.top) - cr.top;
+    pads = top >= cr.height ? null : { left: ra.right - cr.left, right: rb.left - cr.left, top };
+  }
+  function showTouch(on) { $("touch").hidden = !on; document.body.classList.toggle("touchmode", on); measurePads(); }
+  showTouch(matchMedia("(pointer: coarse)").matches);
+  $("road").addEventListener("touchstart", () => { if ($("touch").hidden) showTouch(true); }, { passive: true });
+  addEventListener("resize", measurePads);
+  addEventListener("orientationchange", () => setTimeout(measurePads, 250));
+  document.addEventListener("fullscreenchange", () => setTimeout(measurePads, 100));
+  // full screen: the track (and its touch pads) fill the screen; phones turn sideways where the browser allows it
+  $("fullscreen").hidden = !document.fullscreenEnabled;
+  $("fullscreen").onclick = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else { await document.querySelector(".stagebox").requestFullscreen(); try { await screen.orientation.lock("landscape"); } catch {} }
+    } catch {}
+  };
   // the motor's sound: a chiptune note whose pitch follows the motor's rpm while you race (with Sound on), so you can
   // hear a gear hit its top speed on a straight, or bog down on a hill
   const motor = { ac: null, osc: null, gain: null };
@@ -408,14 +430,17 @@
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
     // the track map, with everyone on it
-    const ms = Math.round(Math.min(w, h) * 0.24);
-    D.minimap(ctx, 12, h - ms - 12, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
-    const ph = Math.max(34, Math.round(h * 0.11)), pxl = 12 + ms + 10, pw = Math.min(w - pxl - 12, w * 0.5);
-    if (pw > 120) hills(ctx, pxl, h - ph - ($("touch").hidden ? 12 : 92), pw, ph, fs, rv, gh);
+    const ms = Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
+    D.minimap(ctx, 12, mapY, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
+    // the hill profile: next to the map, or centered between the touch pads
+    const ph = Math.max(34, Math.round(h * 0.11)), hy = h - ph - 12;
+    const pw = pads ? Math.min(pads.right - pads.left - 20, w * 0.5) : Math.min(w - (12 + ms + 10) - 12, w * 0.5);
+    const hx = pads ? (pads.left + pads.right) / 2 - pw / 2 : 12 + ms + 10;
+    if (pw > 120) hills(ctx, hx, hy, pw, ph, fs, rv, gh);
     // someone close behind you (karts behind you aren't drawn, they'd fill the screen)
     const behind = state === "race" ? rv.filter((r) => !r.done && car.z - r.z > 0.5 && car.z - r.z < 20).sort((a, b) => b.z - a.z)[0] : null;
     if (behind) {
-      const bw2 = fs * 9, by2 = h - Math.max(34, Math.round(h * 0.11)) - ($("touch").hidden ? 12 : 92) - fs * 1.6;
+      const bw2 = fs * 9, by2 = hy - fs * 1.6;
       ctx.fillStyle = "rgba(20,19,22,.72)"; rr(ctx, w / 2 - bw2 / 2, by2, bw2, fs * 1.3, 8); ctx.fill();
       ctx.fillStyle = behind.color; ctx.fillRect(w / 2 - bw2 / 2, by2, 5, fs * 1.3);
       ctx.font = `700 ${Math.round(fs * 0.55)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff";

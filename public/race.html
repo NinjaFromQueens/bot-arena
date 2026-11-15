@@ -27,6 +27,14 @@
   .touch button { width: 64px; height: 64px; border-radius: 16px; border: 2px solid #ffffff55; background: #14131699; color: #fff; font-family: var(--display); font-weight: 700; font-size: 15px; touch-action: none; user-select: none; -webkit-user-select: none; }
   .touch button.on { background: var(--orange); color: var(--ink); border-color: var(--orange); }
   .touch .gas { width: 84px; }
+  /* phones held upright: the pads go under the track instead of covering it */
+  @media (orientation: portrait) {
+    .touch { position: static; padding: 10px 12px; background: var(--panel-hi); border-top: 1px solid var(--line); }
+  }
+  body.touchmode .keys { display: none; }
+  /* full screen: the track fills the screen, letterboxed to 16:9 */
+  .stagebox:fullscreen { background: #000; display: grid; place-items: center; align-content: center; }
+  .stagebox:fullscreen #road { width: min(100vw, calc(100vh * 16 / 9)); height: auto; }
 
   .garage { display: grid; gap: 14px; }
   .garage h2 { margin-bottom: 6px; }
@@ -142,6 +150,7 @@
         <div class="ctrl">
           <button class="btn big" id="go" type="button" data-tip="Line up on the start line and race one lap. Shortcut: Enter.">Start race</button>
           <button class="btn ghost" id="quit" type="button" disabled data-tip="Stop this lap and go back to the garage.">Stop</button>
+          <button class="btn ghost" id="fullscreen" type="button" hidden data-tip="Fill the screen with the race. On a phone, turn it sideways for the biggest view. Press Esc or swipe back to leave full screen.">Full screen</button>
           <span class="spacer"></span>
           <label class="toggle" data-tip="Draws less scenery and a shorter view, for slower computers. Driving and lap times are exactly the same."><input type="checkbox" id="lowgfx"> Simple graphics</label>
           <label class="toggle" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
@@ -156,7 +165,7 @@
         <h2>Garage</h2>
         <h3><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
         <div class="tracks" id="o-track"></div>
-        <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. A low gear (4:1) is fast but weak; a high gear (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
+        <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. Less gearing (4:1) is fast but weak; more gearing (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
         <div class="opts" id="o-gear"></div>
         <p class="pdesc" id="d-gear"></p>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="Grippy tires hold the corners at higher speeds, but the soft rubber takes more push to roll.">Tires</span></h3>
