@@ -1,0 +1,79 @@
+{
+  "id": "motorpick",
+  "title": "Pick the right motor",
+  "about": "DC, servo, stepper or brushless: match each job to the best motor.",
+  "track": "robotics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Every motor is good at a different job.</p>",
+        "<table class=\"rtab\"><thead><tr><th>Motor</th><th>Best at</th><th>Used in</th></tr></thead><tbody>",
+        "<tr><td><b>DC gearmotor</b><small>DC motor + gearbox</small></td><td>spinning nonstop, simple speed control</td><td>robot car wheels, toys</td></tr>",
+        "<tr><td><b>Servo</b><small>motor + sensor + chip</small></td><td>moving to an exact angle and holding it</td><td>robot arm joints, steering, grippers</td></tr>",
+        "<tr><td><b>Stepper</b><small>coils switched in order</small></td><td>exact steps without a sensor</td><td>3D printers, CNC machines</td></tr>",
+        "<tr><td><b>Brushless</b><small>needs a speed controller</small></td><td>very fast, powerful and efficient</td><td>drones, e-bikes, many electric cars</td></tr>",
+        "</tbody></table>",
+        "<p><b>Brushless</b> motors have no brushes rubbing inside. A small computer called an <b>ESC</b> (electronic speed controller) switches the coils instead, so they last longer and waste less energy.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "motormatch"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Real robots use a team of motors</h3>",
+        "<ul><li><b>Robot vacuum:</b> DC gearmotors drive its wheels, and another motor spins its brushes.</li>",
+        "<li><b>Our robot arm:</b> servos at the joints, so each one moves to an exact angle.</li>",
+        "<li><b>3D printer:</b> steppers move the nozzle, and small fans cool the plastic.</li></ul>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A drone needs motors that spin its propellers super fast without wasting battery. Which kind?",
+      "options": [
+        "Servo",
+        "Stepper",
+        "Brushless",
+        "No motor"
+      ],
+      "answer": 2,
+      "explain": "Brushless motors are fast, powerful and efficient. That's why almost every drone uses them."
+    },
+    {
+      "type": "quiz",
+      "q": "In Bot Arena, what kind of motor would move each joint of a robot's Legs?",
+      "options": [
+        "Servos",
+        "One big fan motor",
+        "A brushless drone motor",
+        "No motor at all"
+      ],
+      "answer": 0,
+      "explain": "Walking robots move each leg joint to an exact angle, which is a servo's job."
+    },
+    {
+      "type": "quiz",
+      "q": "Which motor would you pick to drive a robot car's wheels?",
+      "options": [
+        "A DC gearmotor",
+        "A stepper with no controller",
+        "A servo stuck at 90°",
+        "A brushless motor with no speed controller"
+      ],
+      "answer": 0,
+      "explain": "A DC gearmotor spins nonstop with plenty of torque, which is just what wheels need."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

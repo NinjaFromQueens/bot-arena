@@ -1,0 +1,91 @@
+{
+  "id": "servo",
+  "title": "Servo motors",
+  "about": "Motors that move to an exact angle, like the joints of a robot arm.",
+  "track": "robotics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A servo moves to an angle you choose, then holds it there.</p>",
+        "<svg class=\"part\" viewBox=\"0 0 360 160\" role=\"img\" aria-label=\"Inside a servo: a small motor, gears, a position sensor and a control chip, with three wires coming out.\">",
+        "<rect x=\"20\" y=\"40\" width=\"250\" height=\"96\" rx=\"12\" fill=\"#2468b3\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<rect x=\"110\" y=\"16\" width=\"70\" height=\"24\" rx=\"6\" fill=\"#2468b3\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<rect x=\"128\" y=\"6\" width=\"90\" height=\"14\" rx=\"7\" fill=\"#f4f1ea\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<g fill=\"#173f6b\" stroke=\"#141316\" stroke-width=\"2\"><rect x=\"32\" y=\"52\" width=\"104\" height=\"36\" rx=\"6\"/><rect x=\"146\" y=\"52\" width=\"112\" height=\"36\" rx=\"6\"/><rect x=\"32\" y=\"94\" width=\"104\" height=\"32\" rx=\"6\"/><rect x=\"146\" y=\"94\" width=\"112\" height=\"32\" rx=\"6\"/></g>",
+        "<g font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#f4f1ea\" text-anchor=\"middle\"><text x=\"84\" y=\"75\">motor</text><text x=\"202\" y=\"75\">gears</text><text x=\"84\" y=\"115\">sensor</text><text x=\"202\" y=\"115\">chip</text></g>",
+        "<g stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"><path d=\"M270 100 C300 100 310 110 340 112\" stroke=\"#ff5d5d\"/><path d=\"M270 108 C300 108 310 118 340 122\" stroke=\"#141316\"/><path d=\"M270 116 C300 116 310 126 340 132\" stroke=\"#ffd23f\"/></g>",
+        "<text x=\"300\" y=\"152\" font-family=\"JetBrains Mono, monospace\" font-size=\"12\" fill=\"#aaa6b0\" text-anchor=\"middle\">3 wires</text>",
+        "</svg>",
+        "<p>Inside the little box: a small DC motor, gears to make it strong, a <b>position sensor</b> that measures the angle, and a <b>control chip</b>.</p>",
+        "<p>That makes a servo a tiny robot of its own. The sensor <b>Senses</b> the angle, the chip <b>Thinks</b> about how far off it is, and the motor <b>Acts</b> to fix it. The joints of our robot arm are servos.</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Talking to a servo</h3>",
+        "<p>The robot's computer sends the servo a short pulse of electricity every <b>20 milliseconds</b> (50 times a second). How long each pulse lasts tells the servo where to point:</p>",
+        "<ul><li><b>1.0 ms</b> pulse: one end (0°)</li><li><b>1.5 ms</b> pulse: the middle (90°)</li><li><b>2.0 ms</b> pulse: the other end (180°)</li></ul>",
+        "<p class=\"small\">These are typical numbers, and each servo model is a little different. Changing the length of a pulse like this is called <b>PWM</b>, pulse width modulation.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "servosim"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>It checks itself</h3>",
+        "<p>A servo never stops checking. If something pushes the arm, the sensor notices the angle changed, and the motor pushes back until it's on target again. Checking and correcting like this is called <b>feedback</b>, or a <b>closed loop</b>.</p>",
+        "<p>Some servos are built to spin all the way around instead. On those <b>continuous rotation</b> servos, the pulse sets the speed and direction instead of the angle.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A servo gets a 1.5 ms pulse. Where does it point?",
+      "options": [
+        "One end (0°)",
+        "The middle (90°)",
+        "The other end (180°)",
+        "It spins forever"
+      ],
+      "answer": 1,
+      "explain": "1.5 ms is halfway between 1.0 ms and 2.0 ms, so the servo points to the middle."
+    },
+    {
+      "type": "quiz",
+      "q": "Which part inside a servo lets it know its own angle?",
+      "options": [
+        "The gears",
+        "The position sensor",
+        "The wires",
+        "The plastic case"
+      ],
+      "answer": 1,
+      "explain": "The position sensor measures the angle, so the chip knows how far the motor still has to turn."
+    },
+    {
+      "type": "quiz",
+      "q": "You push a servo's arm while it's holding 90°. What happens?",
+      "options": [
+        "It stays wherever you push it",
+        "It pushes back to 90°",
+        "It turns off",
+        "It jumps to 180°"
+      ],
+      "answer": 1,
+      "explain": "That's feedback: the sensor sees the angle changed, and the motor fixes it."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "landing",
+  "title": "Higher isn't always better",
+  "about": "Why flying too high makes a crash landing, and the math behind it.",
+  "track": "physics",
+  "episode": 5,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">The higher something falls, the faster it hits the ground.</p>",
+        "<p>Speed when it lands ≈ <b>√(2 × 9.8 × height)</b>.</p>",
+        "<p>It isn't simple doubling. Falling from <b>4 times</b> as high makes it hit only <b>2 times</b> as fast. But that's still a lot harder.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "falling"
+    },
+    {
+      "type": "quiz",
+      "q": "To clear a 4 m semi truck you need about 5 m of height. Your car flew to 13 m and crashed when it landed. What's the best fix?",
+      "options": [
+        "Add more nozzles",
+        "Add more air tanks",
+        "Use less thrust so it flies lower",
+        "Go faster up the ramp"
+      ],
+      "answer": 2,
+      "explain": "You only needed 5 m. Flying lower means hitting the ground slower. Engineers use just enough power, not the most."
+    },
+    {
+      "type": "quiz",
+      "q": "If you drop something from 4 times as high, it hits the ground about...",
+      "options": [
+        "the same speed",
+        "2 times as fast",
+        "4 times as fast",
+        "16 times as fast"
+      ],
+      "answer": 1,
+      "explain": "Speed grows with the square root of height. √4 = 2."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Try the Semi Jump in the Lab",
+    "href": "/lab"
+  }
+}

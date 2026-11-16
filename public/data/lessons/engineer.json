@@ -1,0 +1,67 @@
+{
+  "id": "engineer",
+  "title": "Think like an engineer",
+  "about": "Predict, test, explain, improve. And why you change one thing at a time.",
+  "track": "engineering",
+  "episode": 8,
+  "core": false,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Engineers don't guess. They follow a cycle.</p>",
+        "<ol style=\"margin:0;padding-left:22px;display:grid;gap:6px;font-size:18px\"><li><b>Predict:</b> \"If I change this, I think that will happen, because...\"</li>",
+        "<li><b>Test:</b> try it.</li><li><b>Explain:</b> why did it happen? (The flight report helps.)</li><li><b>Improve:</b> change something and test again.</li></ol>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>The fair test rule</h3>",
+        "<p>Change only <b>one thing</b> at a time. If you change two things and the result changes, you can't tell which one caused it.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "Maya changed her car's body to carbon fiber AND added 4 nozzles. It flew higher. Which change made it fly higher?",
+      "options": [
+        "The carbon fiber",
+        "The nozzles",
+        "We can't tell, because she changed two things"
+      ],
+      "answer": 2,
+      "explain": "Both changes could raise the height. To know for sure, change one at a time."
+    },
+    {
+      "type": "quiz",
+      "q": "Leo's car crashed. What should he do first?",
+      "options": [
+        "Change everything",
+        "Read the flight report to find out why",
+        "Give up",
+        "Pick random parts"
+      ],
+      "answer": 1,
+      "explain": "The report tells you what went wrong, so your next change has a reason."
+    },
+    {
+      "type": "quiz",
+      "q": "Which is the best prediction?",
+      "options": [
+        "It will be cool.",
+        "If I add 2 lift nozzles, the car will fly higher, because thrust goes up.",
+        "I don't know.",
+        "My car will win."
+      ],
+      "answer": 1,
+      "explain": "A good prediction says what will change, and why."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Use the cycle in the Flying Car Lab",
+    "href": "/lab"
+  }
+}

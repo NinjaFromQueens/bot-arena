@@ -1,0 +1,83 @@
+{
+  "id": "stepper",
+  "title": "Stepper motors",
+  "about": "Motors that move in tiny exact steps, like the ones in 3D printers.",
+  "track": "robotics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A stepper motor turns in tiny, exact steps.</p>",
+        "<p>Around the middle are coils of wire. The controller turns them on one after another, and each switch pulls the magnet in the middle around by one step.</p>",
+        "<p>Most steppers take <b>200 steps</b> to go all the way around. That's <b>1.8°</b> per step. Need a quarter turn? Send 50 steps.</p>",
+        "<p>3D printers, laser cutters and CNC machines use steppers to move to exact spots.</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Counting without looking</h3>",
+        "<p>A stepper has no sensor. The controller counts the steps it sends and assumes the motor followed. That's called an <b>open loop</b>.</p>",
+        "<p>If the load is too heavy or the steps come too fast, the motor can't keep up and <b>skips steps</b>. The controller still thinks it's in the right place, but it isn't.</p>",
+        "<p>When it's stopped, a stepper holds its position strongly. That's called <b>holding torque</b>.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "stepsim"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>How a 3D printer stays on track</h3>",
+        "<p>Before every print, a 3D printer <b>homes</b>: it moves each motor until a part taps a small switch at the edge. That switch is a touch sensor, and it tells the printer exactly where zero is. Then it counts steps from there.</p>",
+        "<p>If a print suddenly looks shifted halfway up, the motors probably skipped steps.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A stepper takes 200 steps per turn. How many steps make a quarter turn?",
+      "options": [
+        "25",
+        "50",
+        "100",
+        "200"
+      ],
+      "answer": 1,
+      "explain": "A quarter of 200 is 50, and 50 × 1.8° = 90°."
+    },
+    {
+      "type": "quiz",
+      "q": "Why can a stepper end up in the wrong place without knowing?",
+      "options": [
+        "It has no sensor, so skipped steps go unnoticed",
+        "Its wires are too short",
+        "It can only turn left",
+        "It runs out of steps"
+      ],
+      "answer": 0,
+      "explain": "The controller only counts the steps it sent. If the motor skips some, nothing tells it."
+    },
+    {
+      "type": "quiz",
+      "q": "Which machine is famous for using stepper motors?",
+      "options": [
+        "A ceiling fan",
+        "A 3D printer",
+        "A drone",
+        "A blender"
+      ],
+      "answer": 1,
+      "explain": "3D printers move the nozzle to exact spots by counting steps."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

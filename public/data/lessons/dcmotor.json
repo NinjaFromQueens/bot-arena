@@ -1,0 +1,92 @@
+{
+  "id": "dcmotor",
+  "title": "DC motors and gears",
+  "about": "Why robots need gearboxes: trading speed for strength.",
+  "track": "physics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A DC motor spins whenever electricity flows through it.</p>",
+        "<svg class=\"part\" viewBox=\"0 0 360 150\" role=\"img\" aria-label=\"A small hobby DC motor: a silver can with a metal shaft sticking out of one end and a red and a black wire on the other end.\">",
+        "<path d=\"M24 62 C12 62 8 70 6 86\" fill=\"none\" stroke-width=\"4\" stroke-linecap=\"round\" stroke=\"#ff5d5d\"/>",
+        "<path d=\"M24 90 C12 90 8 98 6 114\" fill=\"none\" stroke-width=\"4\" stroke-linecap=\"round\" stroke=\"#6d6a75\"/>",
+        "<rect x=\"24\" y=\"44\" width=\"200\" height=\"64\" rx=\"14\" fill=\"#cfd2d8\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<rect x=\"40\" y=\"52\" width=\"150\" height=\"10\" rx=\"5\" fill=\"#eef0f3\"/>",
+        "<rect x=\"224\" y=\"62\" width=\"22\" height=\"28\" rx=\"4\" fill=\"#8f8b98\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<rect x=\"246\" y=\"72\" width=\"70\" height=\"8\" rx=\"3\" fill=\"#8f8b98\" stroke=\"#141316\" stroke-width=\"2\"/>",
+        "<g font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#f4f1ea\"><text x=\"246\" y=\"112\">shaft spins</text><text x=\"4\" y=\"138\">+ and − wires</text><text x=\"54\" y=\"30\">coil and magnets inside</text></g>",
+        "</svg>",
+        "<p>Inside, a coil of wire becomes a magnet when current flows through it. Magnets around the coil push and pull it, so it spins. Little metal brushes keep switching the current so it keeps turning.</p>",
+        "<ul><li><b>More volts:</b> it spins faster.</li><li><b>Swap the two wires:</b> it spins the other way.</li></ul>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Fast but weak</h3>",
+        "<p>A small motor spins thousands of times a minute (<b>rpm</b> means turns per minute). But its <b>torque</b>, its twisting strength, is tiny. Hook it straight to a wheel and a robot can't even climb a small ramp.</p>",
+        "<p>A <b>gearbox</b> fixes that. A small gear on the motor turns a bigger gear on the wheel. With a <b>20:1</b> gearbox, the motor turns 20 times for every 1 turn of the wheel, so the wheel:</p>",
+        "<ul><li>turns <b>20 times slower</b></li><li>pushes about <b>20 times harder</b> (a little less, because gears rub)</li></ul>",
+        "<p class=\"small\">Big ratios like 50:1 use several pairs of gears in a row.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "dcsim"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>When a motor stalls</h3>",
+        "<p>If the load is too heavy, the motor stops turning. That's called a <b>stall</b>. A stalled motor pulls the most electricity it can, and all that energy turns into heat. Leave it stalled and it can burn out.</p>",
+        "<p>So engineers pick the gear ratio carefully: enough torque that it never stalls, but not so much gearing that the robot crawls.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A motor spins at 6,000 rpm. It drives a wheel through a 20:1 gearbox. About how fast does the wheel turn?",
+      "options": [
+        "120,000 rpm",
+        "6,000 rpm",
+        "300 rpm",
+        "20 rpm"
+      ],
+      "answer": 2,
+      "explain": "The motor turns 20 times for each turn of the wheel: 6,000 ÷ 20 = 300 rpm."
+    },
+    {
+      "type": "quiz",
+      "q": "Your robot stalls halfway up a steep ramp. What's the best fix?",
+      "options": [
+        "Use more gearing, like 50:1 instead of 5:1",
+        "Use less gearing, like 1:1",
+        "Make the robot heavier",
+        "Paint it a faster color"
+      ],
+      "answer": 0,
+      "explain": "More gearing gives the wheels more torque, so the robot can climb. It goes slower, but it gets there."
+    },
+    {
+      "type": "quiz",
+      "q": "What does a gearbox trade?",
+      "options": [
+        "Speed for strength (torque)",
+        "Weight for color",
+        "Batteries for wires",
+        "Nothing. It just makes noise."
+      ],
+      "answer": 0,
+      "explain": "The wheel turns slower but pushes harder. That's the trade-off."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

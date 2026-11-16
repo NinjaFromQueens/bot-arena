@@ -1623,7 +1623,6 @@ canvas { display: block; width: 100%; max-width: 100%; }
 })();
 
 </script>
-
 <script>
   // one connection for presence and the class challenge; opened from the board (?present) it's the game's host
   if (window.io && location.protocol !== "file:") { window.baSocket = io(); if (/[?&]present\b/.test(location.search)) document.body.dataset.page = "host"; }

@@ -1,0 +1,82 @@
+{
+  "id": "showdown",
+  "title": "Sensor showdown",
+  "about": "Ultrasonic vs. lidar vs. infrared: find each sensor's blind spot.",
+  "track": "robotics",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Every sensor has a blind spot. Engineers pick the right one for the job.</p>",
+        "<table class=\"rtab\"><thead><tr><th>Sensor</th><th>Range</th><th>Gets fooled by</th></tr></thead><tbody>",
+        "<tr><td><b>Ultrasonic</b><small>sound</small></td><td>up to about 4 m, wide cone</td><td>soft things, tilted walls</td></tr>",
+        "<tr><td><b>Lidar</b><small>laser light</small></td><td>12 m or more, one exact spot</td><td>clear glass, mirrors</td></tr>",
+        "<tr><td><b>Infrared</b><small>invisible light</small></td><td>short: often under 1 m</td><td>black things, clear glass, bright sunlight</td></tr>",
+        "<tr><td><b>Camera</b><small>pictures</small></td><td>as far as it can see</td><td>darkness. One camera can't easily tell how far away things are.</td></tr>",
+        "<tr><td><b>Touch</b><small>a button</small></td><td>none: only when it bumps</td><td>nothing, but it only knows after it hits</td></tr>",
+        "</tbody></table>",
+        "<p class=\"small\">Ranges are for common, low-cost sensors like the ones in school robot kits.</p>",
+        "<p><b>Infrared</b> sensors shine invisible light (the same kind a TV remote uses) and measure the light that bounces back.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "showdown"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Sensor fusion: use a team</h3>",
+        "<p>Real robots use <b>more than one kind of sensor</b>, so when one gets fooled, another catches it. That's called <b>sensor fusion</b>.</p>",
+        "<ul><li><b>Robot vacuums:</b> lidar to map, bump sensors for anything it missed, and infrared cliff sensors underneath so it doesn't fall down the stairs.</li>",
+        "<li><b>Self-driving cars:</b> cameras to read signs and traffic lights, radar to see through rain, and lidar to measure exact shapes.</li></ul>",
+        "<p>In Bot Arena your robot gets one sensor, so pick the one that fits your plan!</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A robot vacuum keeps bumping into a glass door. Its lidar says the way is clear. Which sensor would notice the door?",
+      "options": [
+        "A stronger laser",
+        "Ultrasonic, because sound bounces off glass",
+        "Infrared",
+        "A camera"
+      ],
+      "answer": 1,
+      "explain": "Light goes right through clear glass, but sound bounces off it. An ultrasonic sensor hears the door."
+    },
+    {
+      "type": "quiz",
+      "q": "Some robot vacuums won't drive onto a black rug. Why?",
+      "options": [
+        "Black rugs are too heavy",
+        "Their infrared cliff sensors get almost no light back, so the rug looks like a drop-off",
+        "The rug soaks up the lidar",
+        "The rug is too far away"
+      ],
+      "answer": 1,
+      "explain": "Cliff sensors shine infrared light at the floor. Black soaks it up, so the vacuum thinks it's at the top of the stairs."
+    },
+    {
+      "type": "quiz",
+      "q": "What is sensor fusion?",
+      "options": [
+        "Melting two sensors together",
+        "Using different sensors together so one catches what another misses",
+        "Using the most expensive sensor",
+        "Turning sensors off to save power"
+      ],
+      "answer": 1,
+      "explain": "No sensor is perfect. A team of different sensors covers each other's blind spots."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Pick the best sensor for your robot",
+    "href": "/practice"
+  }
+}

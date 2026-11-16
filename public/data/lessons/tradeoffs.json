@@ -1,0 +1,52 @@
+{
+  "id": "tradeoffs",
+  "title": "Weight and trade-offs",
+  "about": "Why engineers can't have everything, and how a weight limit forces choices.",
+  "track": "engineering",
+  "episode": 3,
+  "core": false,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Engineers can't have everything. Every choice gives something and costs something.</p>",
+        "<p>That's called a <b>trade-off</b>. In Bot Arena, every part has a weight, and the motors can only carry <b>75 kg</b>.</p>",
+        "<p>Heavy parts like Treads and the Hammer are strong. But you can't put every strong part on one robot.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "budget"
+    },
+    {
+      "type": "quiz",
+      "q": "Treads (40 kg) + Camera (10 kg) + Hammer (30 kg) = 80 kg. That's too heavy. Which change does NOT fix it?",
+      "options": [
+        "Swap the Camera for Touch (2 kg)",
+        "Swap the Hammer for a Spinner (20 kg)",
+        "Swap the Aggressive brain for the Smart brain",
+        "Swap the Treads for Legs (30 kg)"
+      ],
+      "answer": 2,
+      "explain": "Brains weigh 0 kg, so swapping brains doesn't change the weight. All the other swaps get under 75 kg."
+    },
+    {
+      "type": "quiz",
+      "q": "What is a trade-off?",
+      "options": [
+        "A part that is always the best",
+        "Getting more of one thing by giving up some of another",
+        "Trading robots with a friend"
+      ],
+      "answer": 1,
+      "explain": "Like Treads: more armor, but slower and heavier. Every part in the game is a trade-off."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot under 75 kg",
+    "href": "/practice"
+  }
+}

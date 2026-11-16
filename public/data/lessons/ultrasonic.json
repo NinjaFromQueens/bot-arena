@@ -1,0 +1,91 @@
+{
+  "id": "ultrasonic",
+  "title": "Ultrasonic: seeing with sound",
+  "about": "How a robot measures distance with echoes, and what can fool it.",
+  "track": "robotics",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">An ultrasonic sensor finds things the way a bat does: it chirps, then listens for the echo.</p>",
+        "<svg class=\"part\" viewBox=\"0 0 360 170\" role=\"img\" aria-label=\"An ultrasonic sensor: a small blue board with two round silver cans. The left one is a speaker, the right one is a microphone.\">",
+        "<rect x=\"30\" y=\"52\" width=\"300\" height=\"88\" rx=\"10\" fill=\"#2468b3\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<g stroke=\"#141316\" stroke-width=\"3\" fill=\"#cfd2d8\"><circle cx=\"110\" cy=\"96\" r=\"34\"/><circle cx=\"250\" cy=\"96\" r=\"34\"/></g>",
+        "<g fill=\"#6f727a\"><circle cx=\"110\" cy=\"96\" r=\"23\"/><circle cx=\"250\" cy=\"96\" r=\"23\"/></g>",
+        "<g fill=\"#141316\"><rect x=\"159\" y=\"140\" width=\"6\" height=\"20\"/><rect x=\"171\" y=\"140\" width=\"6\" height=\"20\"/><rect x=\"183\" y=\"140\" width=\"6\" height=\"20\"/><rect x=\"195\" y=\"140\" width=\"6\" height=\"20\"/></g>",
+        "<g font-family=\"JetBrains Mono, monospace\" text-anchor=\"middle\"><text x=\"110\" y=\"22\" fill=\"#f4f1ea\" font-size=\"15\" font-weight=\"700\">SPEAKER</text><text x=\"110\" y=\"40\" fill=\"#aaa6b0\" font-size=\"12\">sends the chirp</text>",
+        "<text x=\"250\" y=\"22\" fill=\"#f4f1ea\" font-size=\"15\" font-weight=\"700\">MICROPHONE</text><text x=\"250\" y=\"40\" fill=\"#aaa6b0\" font-size=\"12\">hears the echo</text></g>",
+        "</svg>",
+        "<p>The chirp vibrates <b>40,000 times per second</b>. People can only hear up to about 20,000, so it's too high for us. That's why it's called <b>ultra</b>sonic: beyond sound.</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Time the echo</h3>",
+        "<p>The sensor starts a timer when it chirps and stops it when the echo comes back. Sound travels about <b>343 meters per second</b>, and it goes there <i>and</i> back, so:</p>",
+        "<p class=\"formula\">distance = 343 × time ÷ 2</p>",
+        "<p>The times are tiny, so we use <b>milliseconds (ms)</b>, thousandths of a second. An echo after 10 ms means 343 × 0.010 ÷ 2 ≈ <b>1.7 m</b>.</p>",
+        "<p>The chirp spreads out in a <b>cone</b>, like a flashlight beam. The sensor reports the closest thing inside the cone.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "sonar"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Why some things fool it</h3>",
+        "<ul><li><b>Soft things</b> like pillows, couches, and curtains soak up sound instead of bouncing it back.</li>",
+        "<li><b>Tilted walls</b> can bounce the sound off to the side, like a ball hitting a wall at an angle. Then the echo never reaches the microphone.</li>",
+        "<li><b>Far things:</b> sound gets weaker as it spreads out. A typical classroom sensor can't hear echoes from more than about <b>4 m</b> away.</li></ul>",
+        "<p>Every time, the robot hears nothing and thinks the path is clear. That's how robots crash!</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "The echo comes back after 6 ms (0.006 seconds). About how far away is the wall?",
+      "options": [
+        "0.5 m",
+        "1.0 m",
+        "2.1 m",
+        "3.4 m"
+      ],
+      "answer": 1,
+      "explain": "343 × 0.006 = 2.06 m there and back. Divide by 2: about 1.0 m."
+    },
+    {
+      "type": "quiz",
+      "q": "Why did the tilted wall fool the sensor?",
+      "options": [
+        "Tilted walls are always too far away",
+        "The echo bounced off to the side and never came back",
+        "The wall soaked up the sound",
+        "Sound can't hit walls"
+      ],
+      "answer": 1,
+      "explain": "Sound bounces like a ball. Off a tilted wall it goes sideways, so the microphone never hears it."
+    },
+    {
+      "type": "quiz",
+      "q": "In Bot Arena, what does the Ultrasonic sensor help your robot do best?",
+      "options": [
+        "Aim perfectly",
+        "Dodge attacks",
+        "Carry more weight"
+      ],
+      "answer": 1,
+      "explain": "It measures distance, so your robot dodges better. Its aim is okay, but the Camera aims best."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Give your robot an Ultrasonic sensor",
+    "href": "/practice"
+  }
+}
