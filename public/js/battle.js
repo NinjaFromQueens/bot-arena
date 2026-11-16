@@ -208,7 +208,7 @@
         ctx.restore();
       }
       ctx.font = `700 ${Math.round(h * 0.04)}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = /\bFINAL\b/.test(this.banner || "") ? "rgba(255,210,63,.4)" : "rgba(255,255,255,.18)";
-      if (this.state !== "champ") ctx.fillText(this.banner || "FALL ROBOTICS ACADEMY  ·  BOT ARENA", w / 2, h * 0.135);
+      if (this.state !== "champ") ctx.fillText(this.banner || "CIRCUIT REBELS  ·  BOT ARENA", w / 2, h * 0.135);
       if (this.state !== "champ") {
         ctx.strokeStyle = "rgba(244,101,36,.4)"; ctx.lineWidth = 2; ctx.setLineDash([10, 8]);
         ctx.beginPath(); ctx.moveTo(w / 2, fy); ctx.lineTo(w / 2, h); ctx.stroke(); ctx.setLineDash([]);

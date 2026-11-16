@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Offline backup of Bot Arena. Built by scripts/build-offline.js -->
-<title>Robot Racer</title>
+<!-- Offline backup of a Circuit Rebels page. Built by scripts/build-offline.js -->
+<title>Robot Racer · Circuit Rebels</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Bot Arena — shared styles. Workshop "garage" on a blueprint floor; Fall Robotics orange. */
+/* Circuit Rebels — shared styles. Workshop "garage" on a blueprint floor; orange accent. */
 :root {
   color-scheme: dark;
   --bg: #1b1a1e;
@@ -291,9 +291,9 @@ canvas { display: block; width: 100%; max-width: 100%; }
 <body data-page="race">
 <div class="wrap">
   <header class="top">
-    <a class="brand" href="bot-arena-offline.html">
+    <a class="brand" href="bot-arena-offline.html" data-tip="Go to the Circuit Rebels home page.">
       <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NiA0NiI+CiAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMTIiIGZpbGw9IiNmNDY1MjQiLz4KICA8cmVjdCB4PSIxMSIgeT0iMTUiIHdpZHRoPSIyNCIgaGVpZ2h0PSIxOCIgcng9IjUiIGZpbGw9IiMxNDEzMTYiLz4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI0IiByPSIzLjUiIGZpbGw9IiMzOGE3ZjAiLz4KICA8cmVjdCB4PSIyMS41IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSI4IiByeD0iMS41IiBmaWxsPSIjMTQxMzE2Ii8+PGNpcmNsZSBjeD0iMjMiIGN5PSI3IiByPSIzIiBmaWxsPSIjZmZmIi8+CiAgPHJlY3QgeD0iMTUiIHk9IjM1IiB3aWR0aD0iMTYiIGhlaWdodD0iMyIgcng9IjEuNSIgZmlsbD0iIzE0MTMxNiIvPgo8L3N2Zz4K" alt="">
-      <div><small>Fall Robotics Academy</small><h1 style="font-size:28px">Robot Racer</h1></div>
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Robot Racer</h1></div>
     </a>
     <div class="headright">
       <a class="btn ghost" href="robot-lessons-offline.html" style="padding:8px 14px" data-tip="Robot Lessons: motors, gears, sensors and more.">Lessons</a>
@@ -1434,7 +1434,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start
     out[2].push({ k: "gantry" });
-    out[Math.floor(N * 0.5)].push({ k: "board", x: -(W + 2.5), text: "FALL ROBOTICS ACADEMY" });
+    out[Math.floor(N * 0.5)].push({ k: "board", x: -(W + 2.5), text: "CIRCUIT REBELS" });
     out[Math.floor(N * 0.75)].push({ k: "board", x: W + 2.5, text: "ROBOT RACER" });
     return (sceneryCache[track.id] = out);
   }
