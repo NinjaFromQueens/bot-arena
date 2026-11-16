@@ -43,11 +43,12 @@
         if (i % 9 === 5) out[i].push({ k: "pine", x: side() * (W + 3 + rnd() * 10), s: 0.9 + rnd() * 0.8 });
       }
     });
+    const at = (k) => segIdx(track, k); // signs placed before a section don't wrap round to the end of an open strip
     track.SECTIONS.forEach((sec, si) => {
       const first = track.segs.findIndex((s) => s.sec === si), prev = track.SECTIONS[si - 1];
-      if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[(first - j * 2 + N) % N].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
-      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[(first - 10 + N) % N].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
-      if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[(first + j) % N].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
+      if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[at(first - j * 2)].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
+      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
+      if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[at(first + j)].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start
     out[2].push({ k: "gantry" });
@@ -118,7 +119,12 @@
   }
 
   // ---------------- the road and everything on it ----------------
-  function roadY(track, z) { const N = track.segs.length, L = track.LENGTH, zz = ((z % L) + L) % L, i = Math.floor(zz / SEG), f = zz / SEG - i; return track.segs[i].y + (track.segs[(i + 1) % N].y - track.segs[i].y) * f; }
+  // a segment by its place along the road: a loop wraps round, an open strip (a test bench) stays flat past both ends
+  function segIdx(track, k) { const N = track.segs.length; return track.open ? Math.max(0, Math.min(N - 1, k)) : ((k % N) + N) % N; }
+  function roadY(track, z) {
+    const L = track.LENGTH, zz = track.open ? Math.max(0, Math.min(L - 1e-6, z)) : ((z % L) + L) % L, i = Math.floor(zz / SEG), f = zz / SEG - i;
+    return track.segs[i].y + (track.segs[segIdx(track, i + 1)].y - track.segs[i].y) * f;
+  }
   function quad(ctx, c, x1, y1, x2, y2, x3, y3, x4, y4) { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill(); }
   /* Draw the world from behind cam (a car: { z, x }). cars: [{ z, x, color, name, ghost, me, brake, steer, v }] (me is drawn
      separately by the caller as the big kart in front). o: { t, bgX, lights: 0-5 red lights on, or "go" }. Returns where the
@@ -134,17 +140,17 @@
     sky(ctx, w, h, horizon, th, o.t, o.bgX || 0, o.low);
     ctx.fillStyle = mix(th.grass[0], th.haze, 0.85); ctx.fillRect(0, horizon, w, h - horizon); // far ground, seen past a crest or down a descent
     const drawN = o.low ? 90 : DRAW, lamp = th.stars; // headlights at night
-    const cz = ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz % SEG) / SEG;
-    let x = 0, dx = -track.segs[base].k * SEG * SEG * BEND * pct, maxy = h;
+    const open = !!track.open, cz = open ? camZ : ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz - base * SEG) / SEG;
+    let x = 0, dx = -track.segs[segIdx(track, base)].k * SEG * SEG * BEND * pct, maxy = h;
     const proj = new Array(DRAW);
     const P = (px, py, z) => { const ppm = (DEPTH / z) * half; return { sx: half + (px - camX) * ppm, sy: horizon + (camY - py) * ppm, ppm }; };
     for (let n = 0; n < drawN; n++) {
-      const i = (base + n) % N, s = track.segs[i], z1 = (n - pct) * SEG, z2 = z1 + SEG;
-      const p1 = z1 > 0.3 ? P(x, s.y, z1) : null, p2 = P(x + dx, track.segs[(i + 1) % N].y, z2);
-      proj[n] = p1 && { i, ...p1, clip: maxy };
+      const seq = base + n, i = segIdx(track, seq), s = track.segs[i], z1 = (n - pct) * SEG, z2 = z1 + SEG;
+      const p1 = z1 > 0.3 ? P(x, s.y, z1) : null, p2 = P(x + dx, track.segs[segIdx(track, seq + 1)].y, z2);
+      proj[n] = p1 && { i, seq, ...p1, clip: maxy };
       x += dx; dx += s.k * SEG * SEG * BEND;
       if (!p1 || p2.sy >= p1.sy || p2.sy >= maxy) continue;
-      const alt = Math.floor(i / 3) % 2, f = Math.pow(n / DRAW, 1.6) * 0.85; // haze grows with distance
+      const alt = (((Math.floor((open ? seq : i) / 3) % 2) + 2) % 2), f = Math.pow(n / DRAW, 1.6) * 0.85; // haze grows with distance
       ctx.fillStyle = mix(th.grass[alt], th.haze, f); ctx.fillRect(0, p2.sy, w, p1.sy - p2.sy + 1);
       if (th.neon && alt) { ctx.fillStyle = mix("#3a1f6a", th.haze, f); ctx.fillRect(0, p2.sy, w, Math.max(1, (p1.sy - p2.sy) * 0.18)); } // the glowing ground grid
       const r1 = R.ROAD * p1.ppm, r2 = R.ROAD * p2.ppm, u1 = 0.55 * p1.ppm, u2 = 0.55 * p2.ppm;
@@ -159,7 +165,7 @@
         ctx.globalCompositeOperation = "source-over";
       }
       if (alt) { const l1 = 0.1 * p1.ppm, l2 = 0.1 * p2.ppm, c = mix(th.line, th.haze, f); [-1.33, 1.33].forEach((lx) => quad(ctx, c, p1.sx + lx * p1.ppm - l1, p1.sy, p1.sx + lx * p1.ppm + l1, p1.sy, p2.sx + lx * p2.ppm + l2, p2.sy, p2.sx + lx * p2.ppm - l2, p2.sy)); }
-      if (i === 0 || i === N - 1) { // checkered start/finish line
+      if (open ? seq === 0 || seq === N - 1 : i === 0 || i === N - 1) { // checkered start/finish line (two lines on an open strip)
         for (let k = 0; k < 10; k++) for (let ri = 0; ri < 2; ri++) {
           const a = -1 + k / 5, b = -1 + (k + 1) / 5, ya = p1.sy + (p2.sy - p1.sy) * (ri / 2), yb = p1.sy + (p2.sy - p1.sy) * ((ri + 1) / 2);
           const xa = p1.sx + (p2.sx - p1.sx) * (ri / 2), xb = p1.sx + (p2.sx - p1.sx) * ((ri + 1) / 2), ra = r1 + (r2 - r1) * (ri / 2), rb = r1 + (r2 - r1) * ((ri + 1) / 2);
@@ -174,13 +180,13 @@
     }
     // scenery and other cars, far to near
     const sc = scenery(track), others = cars.filter((c) => !c.me).map((c) => {
-      let d = c.z - camZ; if (d < -L / 2) d += L; if (d > L / 2) d -= L; // the shortest way round the loop
+      let d = c.z - camZ; if (!open) { if (d < -L / 2) d += L; if (d > L / 2) d -= L; } // the shortest way round the loop
       const n = Math.floor(d / SEG + pct); return { c, d, n, f: d / SEG + pct - n };
     }).filter((g) => g.d > CAM_BACK - 0.8 && g.n < drawN - 2).sort((a, b) => b.d - a.d); // a car behind the camera car would fill the screen
     let gi = 0;
     for (let n = drawN - 2; n >= 1; n--) {
       const pr = proj[n]; if (!pr) continue;
-      if (!o.low || n < 55) for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
+      if ((!o.low || n < 55) && (!open || (pr.seq >= 0 && pr.seq < N))) for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
       while (gi < others.length && others[gi].n >= n) {
         const g = others[gi++], a = proj[g.n], b = proj[g.n + 1]; if (!a || !b) continue;
         const sx = a.sx + (b.sx - a.sx) * g.f, sy = a.sy + (b.sy - a.sy) * g.f, ppm = a.ppm + (b.ppm - a.ppm) * g.f;

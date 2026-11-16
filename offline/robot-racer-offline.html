@@ -238,6 +238,31 @@ canvas { display: block; width: 100%; max-width: 100%; }
   .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
   .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
   .repctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  /* missions (/race?mission=<id>): free-play parts are hidden, the brief sits on top, the cards go in the report */
+  body.mission .intro, body.mission #trackh, body.mission #o-track, body.mission #gstats, body.mission #bestline,
+  body.mission #paintp, body.mission #classp, body.mission #gpbox, body.mission #ghostt { display: none; }
+  .mission { margin-bottom: 14px; display: grid; gap: 8px; }
+  .mhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .mhead .btn { padding: 8px 14px; }
+  .mbrief { font-size: 17px; margin: 0; }
+  .mbrief b { color: var(--orange-hi); font-family: var(--display); }
+  .msteps { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); }
+  .pcard { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--orange); background: var(--orange-soft); }
+  .pkick { font-family: var(--display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--orange-hi); }
+  .pq { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 0; }
+  .popts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+  .popt { min-height: 48px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
+  .popt[aria-checked="true"] { border-color: var(--orange); background: var(--panel-hi); box-shadow: inset 0 0 0 1px var(--orange); }
+  .popt:disabled { cursor: default; opacity: .85; }
+  .pstatus { margin: 0; font-size: 14px; color: var(--muted); }
+  .verdict { padding: 10px 14px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--line); font-size: 16px; }
+  .verdict.good { border-color: var(--good); } .verdict.bad { border-color: var(--bad); }
+  .verdict b { font-family: var(--display); }
+  .changeline { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--bg); border-left: 4px solid var(--blue); font-size: 15px; }
+  .xgraph { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 6px; }
+  .xgraph canvas { display: block; width: 100%; height: 170px; }
+  .xcap { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .tipbox .btn { margin-top: 8px; padding: 6px 14px; }
 
   .board { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
   .board li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 7px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
@@ -301,6 +326,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
+  <section class="panel mission" id="missionp" aria-live="polite" hidden></section>
   <p class="intro" style="margin-bottom:12px">Pick a <b>track</b>, a <b>gear ratio</b> and <b>tires</b> for your robot car, then race one lap against the clock. Each track has its own straights, corners and hills, so no setup is best everywhere. After each lap, the report shows where your setup helped and where it held you back.</p>
   <section class="panel gpbox" id="gpbox" aria-live="polite" hidden style="margin-bottom:14px"></section>
 
@@ -320,7 +346,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
           <button class="btn ghost" id="fullscreen" type="button" hidden data-tip="Fill the screen with the race. On a phone, turn it sideways for the biggest view. Press Esc or swipe back to leave full screen.">Full screen</button>
           <span class="spacer"></span>
           <label class="toggle" data-tip="Draws less scenery and a shorter view, for slower computers. Driving and lap times are exactly the same."><input type="checkbox" id="lowgfx"> Simple graphics</label>
-          <label class="toggle" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
+          <label class="toggle" id="ghostt" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
           <span class="keys">Arrows or WASD · ↑ gas · ↓ brake · ← → steer</span>
         </div>
       </div>
@@ -330,7 +356,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     <div class="garage">
       <div class="panel">
         <h2>Garage</h2>
-        <h3><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
+        <h3 id="trackh"><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
         <div class="tracks" id="o-track"></div>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. Less gearing (4:1) is fast but weak; more gearing (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
         <div class="opts" id="o-gear"></div>
@@ -1218,9 +1244,10 @@ canvas { display: block; width: 100%; max-width: 100%; }
   const trackOf = (t) => (typeof t === "object" && t ? t : TRACKS[t] || TRACK);
   // Test benches: short point-to-point strips that each hold one idea, for missions. They're not in TRACKS, so the
   // track picker, class boards and Race Day never list them; missions name them by id. New strips go at the end.
+  // open: the road doesn't loop (racedraw keeps it flat past both ends instead of joining the end to the start).
   const STRIPS = [
-    { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
-      keys: { straight: "Run-up", hill: "Hill", corner: "Top" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
+    { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", open: true, about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
+      keys: { straight: "Run-up", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
   ].map(makeTrack);
   const stripOf = (id) => STRIPS.find((s) => s.id === id);
 
@@ -1387,26 +1414,41 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // What Racer missions (public/data/missions, read by missions.js) can ask about and aim for. Every answer comes from
   // driving the strip here with the computer driver, never from the mission file, so a retune can't make one wrong.
   const autoRuns = {};
-  function driven(strip, setup) {
+  function driven(strip, setup) { // the computer driver's run: { r, inputs }
+    setup = clampSetup(setup);
     const k = `${strip.id}:${setup.gear}:${setup.tire}`;
-    return (autoRuns[k] = autoRuns[k] || lap(setup, autoLap(setup, undefined, strip), strip));
+    if (!autoRuns[k]) { const inputs = autoLap(setup, undefined, strip); autoRuns[k] = { r: lap(setup, inputs, strip), inputs }; }
+    return autoRuns[k];
   }
   const hillMin = (strip, r) => Math.min(...strip.SECTIONS.map((s, i) => (s.slope > 0 ? r.sec[i].vMin : Infinity)));
+  // speed along a run, for the explain card's graph: [z, v] every few steps, ending a second after the car stops for good
+  function trace(setup, inputs, track, every = 4) {
+    setup = clampSetup(setup); track = trackOf(track);
+    const car = newCar(), out = [[0, 0]];
+    let still = 0;
+    for (let i = 0; i < inputs.length && car.z < track.LENGTH && still < 60; i++) {
+      step(car, setup, decode(inputs[i]) || { steer: 0, gas: 0, brake: 0 }, track);
+      still = car.v === 0 && car.z > 0 ? still + 1 : 0;
+      if (car.t % every === 0) out.push([car.z, car.v]);
+    }
+    return out;
+  }
+  const degOf = (slope) => `${(Math.atan(slope) * 180 / Math.PI).toFixed(1)}°`;
   const MISSION = {
     setting: stripOf,
     clamp: clampSetup,
     // the student's own inputs when they drove it, otherwise the computer drives (Cadets: "Torque drives")
     run(mission, setup, run) {
       const strip = stripOf(mission.setting);
-      return run && typeof run.inputs === "string" ? lap(setup, run.inputs, strip) : driven(strip, clampSetup(setup));
+      return run && typeof run.inputs === "string" ? lap(setup, run.inputs, strip) : driven(strip, setup).r;
     },
     predict: {
       reachTop: {
         options: () => [{ value: "top", label: "It makes it to the top", pic: "car-top" }, { value: "stuck", label: "It gets stuck on the hill", pic: "car-stuck" }],
-        answer: (mission, setup) => (driven(stripOf(mission.setting), setup).finished ? "top" : "stuck"),
+        answer: (mission, setup) => (driven(stripOf(mission.setting), setup).r.finished ? "top" : "stuck"),
         // too close to call: a car that only just makes it (nearly stops on the hill), or one that only just can't
         close(mission, setup) {
-          const strip = stripOf(mission.setting), r = driven(strip, setup);
+          const strip = stripOf(mission.setting), r = driven(strip, setup).r;
           return r.finished ? hillMin(strip, r) < 0.5 : climbSpeed(setup, strip.steep) > 0.2;
         },
       },
@@ -1414,9 +1456,48 @@ canvas { display: block; width: 100%; max-width: 100%; }
     goal: {
       reachEnd: { met: (mission, r) => !!r.finished },
     },
+    // the explain card for a hill strip: findings from this run's real numbers, one tip whose change the computer driver
+    // has checked is better (it reaches the top, or gets there faster), and the speed along the hill for the graph
+    explain(mission, setup, run) {
+      setup = clampSetup(setup);
+      const strip = stripOf(mission.setting), own = run && typeof run.inputs === "string", inputs = own ? run.inputs : driven(strip, setup).inputs;
+      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep);
+      const hi = strip.SECTIONS.findIndex((s) => s.slope > 0), hillStart = strip.SECTIONS.slice(0, hi).reduce((a, s) => a + s.len, 0);
+      const can = driven(strip, setup).r.finished, gears = (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b);
+      const others = gears.map((gi) => ({ gi, r: driven(strip, { ...setup, gear: gi }).r }));
+      const items = [];
+      let headline, tip;
+      if (r.finished) {
+        headline = { tone: "good", text: `Made it to the top in ${r.time.toFixed(1)} s.` };
+        items.push({ tone: "good", title: `Slowest on the hill: ${Math.round(hillMin(strip, r) * 3.6)} km/h`, terms: ["gear-ratio", "torque"],
+          text: `With ${g}:1 gears the motor turns ${g} times for every turn of the wheels. That trades speed for torque (twisting strength): enough push to keep climbing a ${deg} hill.` });
+        const fastest = others.filter((o) => o.r.finished).sort((a, b) => a.r.time - b.r.time)[0];
+        if (setup.gear === gears[gears.length - 1] && fastest && fastest.gi !== setup.gear)
+          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${Math.round(setupStats(setup, strip).top * 3.6)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
+        tip = fastest && fastest.gi !== setup.gear && fastest.r.time < r.time - 0.3
+          ? { text: `Try ${GEARS[fastest.gi]}:1. It still climbs this hill, and ${fastest.gi < setup.gear ? "its higher top speed gets you there faster" : "it pushes harder up the slope"}.`, change: { gear: fastest.gi } }
+          : { text: "That's the fastest gear up this hill. Change one thing and predict again: can you explain what each gear does?" };
+      } else {
+        const stopAt = Math.max(0, Math.round(tr[tr.length - 1][0] - hillStart));
+        if (can) {
+          headline = { tone: "bad", text: "Stopped on the hill." };
+          items.push({ tone: "bad", title: "This gear can climb it", terms: ["gear-ratio"], text: `Your car can climb this hill with ${g}:1 (the computer driver made it), but this run stopped ${stopAt} m up. Keep the gas pressed all the way to the top.` });
+          tip = { text: "Run it again and hold the gas until you reach the top." };
+        } else {
+          headline = { tone: "bad", text: `It got stuck ${stopAt} m up the hill.` };
+          items.push({ tone: "bad", title: "Stalled on the hill", terms: ["torque", "stall"],
+            text: `With ${g}:1 gears the motor couldn't push hard enough. Its torque (twisting strength) at the wheels was less than gravity pulling the car back down the ${deg} hill, so it slowed until it stopped: a stall.` });
+          const up = others.find((o) => o.gi > setup.gear && o.r.finished);
+          tip = up ? { text: `Try more gearing (${GEARS[up.gi]}:1). The wheels turn slower, but they push harder.`, change: { gear: up.gi } } : { text: "No allowed gear climbs this hill." };
+        }
+      }
+      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, i) => [i * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
+        speed: tr, slow: 3, stop: r.finished ? null : tr[tr.length - 1][0] };
+      return { headline, items, tip, graph, result: r };
+    },
   };
 
-  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, STRIPS, stripOf, MISSION, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
+  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, STRIPS, stripOf, MISSION, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, trace, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
 });
 
 </script>
@@ -1466,11 +1547,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
         if (i % 9 === 5) out[i].push({ k: "pine", x: side() * (W + 3 + rnd() * 10), s: 0.9 + rnd() * 0.8 });
       }
     });
+    const at = (k) => segIdx(track, k); // signs placed before a section don't wrap round to the end of an open strip
     track.SECTIONS.forEach((sec, si) => {
       const first = track.segs.findIndex((s) => s.sec === si), prev = track.SECTIONS[si - 1];
-      if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[(first - j * 2 + N) % N].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
-      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[(first - 10 + N) % N].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
-      if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[(first + j) % N].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
+      if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[at(first - j * 2)].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
+      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
+      if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[at(first + j)].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start
     out[2].push({ k: "gantry" });
@@ -1541,7 +1623,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
 
   // ---------------- the road and everything on it ----------------
-  function roadY(track, z) { const N = track.segs.length, L = track.LENGTH, zz = ((z % L) + L) % L, i = Math.floor(zz / SEG), f = zz / SEG - i; return track.segs[i].y + (track.segs[(i + 1) % N].y - track.segs[i].y) * f; }
+  // a segment by its place along the road: a loop wraps round, an open strip (a test bench) stays flat past both ends
+  function segIdx(track, k) { const N = track.segs.length; return track.open ? Math.max(0, Math.min(N - 1, k)) : ((k % N) + N) % N; }
+  function roadY(track, z) {
+    const L = track.LENGTH, zz = track.open ? Math.max(0, Math.min(L - 1e-6, z)) : ((z % L) + L) % L, i = Math.floor(zz / SEG), f = zz / SEG - i;
+    return track.segs[i].y + (track.segs[segIdx(track, i + 1)].y - track.segs[i].y) * f;
+  }
   function quad(ctx, c, x1, y1, x2, y2, x3, y3, x4, y4) { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill(); }
   /* Draw the world from behind cam (a car: { z, x }). cars: [{ z, x, color, name, ghost, me, brake, steer, v }] (me is drawn
      separately by the caller as the big kart in front). o: { t, bgX, lights: 0-5 red lights on, or "go" }. Returns where the
@@ -1557,17 +1644,17 @@ canvas { display: block; width: 100%; max-width: 100%; }
     sky(ctx, w, h, horizon, th, o.t, o.bgX || 0, o.low);
     ctx.fillStyle = mix(th.grass[0], th.haze, 0.85); ctx.fillRect(0, horizon, w, h - horizon); // far ground, seen past a crest or down a descent
     const drawN = o.low ? 90 : DRAW, lamp = th.stars; // headlights at night
-    const cz = ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz % SEG) / SEG;
-    let x = 0, dx = -track.segs[base].k * SEG * SEG * BEND * pct, maxy = h;
+    const open = !!track.open, cz = open ? camZ : ((camZ % L) + L) % L, base = Math.floor(cz / SEG), pct = (cz - base * SEG) / SEG;
+    let x = 0, dx = -track.segs[segIdx(track, base)].k * SEG * SEG * BEND * pct, maxy = h;
     const proj = new Array(DRAW);
     const P = (px, py, z) => { const ppm = (DEPTH / z) * half; return { sx: half + (px - camX) * ppm, sy: horizon + (camY - py) * ppm, ppm }; };
     for (let n = 0; n < drawN; n++) {
-      const i = (base + n) % N, s = track.segs[i], z1 = (n - pct) * SEG, z2 = z1 + SEG;
-      const p1 = z1 > 0.3 ? P(x, s.y, z1) : null, p2 = P(x + dx, track.segs[(i + 1) % N].y, z2);
-      proj[n] = p1 && { i, ...p1, clip: maxy };
+      const seq = base + n, i = segIdx(track, seq), s = track.segs[i], z1 = (n - pct) * SEG, z2 = z1 + SEG;
+      const p1 = z1 > 0.3 ? P(x, s.y, z1) : null, p2 = P(x + dx, track.segs[segIdx(track, seq + 1)].y, z2);
+      proj[n] = p1 && { i, seq, ...p1, clip: maxy };
       x += dx; dx += s.k * SEG * SEG * BEND;
       if (!p1 || p2.sy >= p1.sy || p2.sy >= maxy) continue;
-      const alt = Math.floor(i / 3) % 2, f = Math.pow(n / DRAW, 1.6) * 0.85; // haze grows with distance
+      const alt = (((Math.floor((open ? seq : i) / 3) % 2) + 2) % 2), f = Math.pow(n / DRAW, 1.6) * 0.85; // haze grows with distance
       ctx.fillStyle = mix(th.grass[alt], th.haze, f); ctx.fillRect(0, p2.sy, w, p1.sy - p2.sy + 1);
       if (th.neon && alt) { ctx.fillStyle = mix("#3a1f6a", th.haze, f); ctx.fillRect(0, p2.sy, w, Math.max(1, (p1.sy - p2.sy) * 0.18)); } // the glowing ground grid
       const r1 = R.ROAD * p1.ppm, r2 = R.ROAD * p2.ppm, u1 = 0.55 * p1.ppm, u2 = 0.55 * p2.ppm;
@@ -1582,7 +1669,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
         ctx.globalCompositeOperation = "source-over";
       }
       if (alt) { const l1 = 0.1 * p1.ppm, l2 = 0.1 * p2.ppm, c = mix(th.line, th.haze, f); [-1.33, 1.33].forEach((lx) => quad(ctx, c, p1.sx + lx * p1.ppm - l1, p1.sy, p1.sx + lx * p1.ppm + l1, p1.sy, p2.sx + lx * p2.ppm + l2, p2.sy, p2.sx + lx * p2.ppm - l2, p2.sy)); }
-      if (i === 0 || i === N - 1) { // checkered start/finish line
+      if (open ? seq === 0 || seq === N - 1 : i === 0 || i === N - 1) { // checkered start/finish line (two lines on an open strip)
         for (let k = 0; k < 10; k++) for (let ri = 0; ri < 2; ri++) {
           const a = -1 + k / 5, b = -1 + (k + 1) / 5, ya = p1.sy + (p2.sy - p1.sy) * (ri / 2), yb = p1.sy + (p2.sy - p1.sy) * ((ri + 1) / 2);
           const xa = p1.sx + (p2.sx - p1.sx) * (ri / 2), xb = p1.sx + (p2.sx - p1.sx) * ((ri + 1) / 2), ra = r1 + (r2 - r1) * (ri / 2), rb = r1 + (r2 - r1) * ((ri + 1) / 2);
@@ -1597,13 +1684,13 @@ canvas { display: block; width: 100%; max-width: 100%; }
     }
     // scenery and other cars, far to near
     const sc = scenery(track), others = cars.filter((c) => !c.me).map((c) => {
-      let d = c.z - camZ; if (d < -L / 2) d += L; if (d > L / 2) d -= L; // the shortest way round the loop
+      let d = c.z - camZ; if (!open) { if (d < -L / 2) d += L; if (d > L / 2) d -= L; } // the shortest way round the loop
       const n = Math.floor(d / SEG + pct); return { c, d, n, f: d / SEG + pct - n };
     }).filter((g) => g.d > CAM_BACK - 0.8 && g.n < drawN - 2).sort((a, b) => b.d - a.d); // a car behind the camera car would fill the screen
     let gi = 0;
     for (let n = drawN - 2; n >= 1; n--) {
       const pr = proj[n]; if (!pr) continue;
-      if (!o.low || n < 55) for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
+      if ((!o.low || n < 55) && (!open || (pr.seq >= 0 && pr.seq < N))) for (const sp of sc[pr.i]) sprite(ctx, sp, pr, w, th, o);
       while (gi < others.length && others[gi].n >= n) {
         const g = others[gi++], a = proj[g.n], b = proj[g.n + 1]; if (!a || !b) continue;
         const sx = a.sx + (b.sx - a.sx) * g.f, sy = a.sy + (b.sy - a.sy) * g.f, ppm = a.ppm + (b.ppm - a.ppm) * g.f;
@@ -1925,6 +2012,196 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
 </script>
 <script>
+/* Reading levels (tiers): Cadet (grades 1–3), Recruit (4–8), Operative (9–12). Shared by the browser, the server and
+ * the tests. Text in lessons, missions and problem sets is either one value for every tier or
+ * { cadet, recruit, operative }; a tier that isn't written yet falls back to the Recruit text. */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Tier = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const LEVELS = ["cadet", "recruit", "operative"];
+  const isTiered = (v) => v != null && typeof v === "object" && !Array.isArray(v) && LEVELS.some((t) => t in v);
+  function text(v, tier) {
+    if (!isTiered(v)) return v;
+    return v[tier] != null ? v[tier] : v.recruit;
+  }
+  // this device's reading level; the class setting and the level chip come with the first Cadet or Operative text
+  function current() {
+    try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
+  }
+  return { LEVELS, isTiered, text, current };
+});
+
+</script>
+<script>
+/*
+ * The mission engine, shared by the browser, the server and the tests. Mission files (public/data/missions/<id>.json)
+ * say what a student may change, what they predict and what counts as done; they never hold an answer. Each game's
+ * model (race.js today) has a MISSION object that works out the right answer and checks the goal by running its own
+ * physics, so a retune can't make a mission wrong. test/missions.test.js runs every mission with every allowed choice.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Missions = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const games = {};
+  const register = (game, model) => { games[game] = model; };
+  const model = (m) => games[m.game];
+
+  // the choices for a run: the mission's start, with each allowed value the student picked (anything else is ignored)
+  function choice(m, c) {
+    const out = Object.assign({}, m.start);
+    for (const k in m.allow) { const v = c == null ? NaN : Number(c[k]); if (m.allow[k].includes(v)) out[k] = v; }
+    return model(m).clamp(out);
+  }
+  // what the prediction is about: the student's choice, or a fixed setup the mission names
+  const about = (m, c) => (m.predict.with && m.predict.with !== "choice" ? model(m).clamp(m.predict.with) : choice(m, c));
+  const kind = (m) => model(m).predict[m.predict.kind];
+
+  // problems with a mission file, as sentences (an empty list means it's fine)
+  function check(m, lessons) {
+    const p = [], g = m && games[m.game];
+    if (!m || typeof m.id !== "string" || !/^[a-z][a-z0-9-]*$/.test(m.id)) p.push("the id must be lowercase words with dashes");
+    if (!g) return p.concat(`there's no game called ${m && m.game}`);
+    if (lessons && !lessons.includes(m.lesson)) p.push(`there's no lesson called ${m.lesson}`);
+    if (!g.setting(m.setting)) p.push(`the ${m.game} model has no setting called ${m.setting}`);
+    if (!m.allow || typeof m.allow !== "object" || !Object.keys(m.allow).length) p.push("allow needs at least one choice");
+    else for (const k in m.allow) {
+      if (!Array.isArray(m.allow[k]) || !m.allow[k].length) p.push(`allow.${k} needs a list of values`);
+      else if (!m.start || !m.allow[k].includes(m.start[k])) p.push(`start.${k} must be one of the allowed values`);
+    }
+    if (!m.predict || !g.predict[m.predict.kind]) p.push(`the ${m.game} model has no prediction called ${m.predict && m.predict.kind}`);
+    if (!m.goal || !g.goal[m.goal.kind]) p.push(`the ${m.game} model has no goal called ${m.goal && m.goal.kind}`);
+    if (!m.tiers || !m.tiers.recruit || !m.tiers.recruit.brief || !m.tiers.recruit.question) p.push("it needs Recruit text: a brief and a question");
+    if ("answer" in m || (m.predict && "answer" in m.predict)) p.push("a mission never stores its answer: the model works it out");
+    return p;
+  }
+
+  const options = (m, tier) => kind(m).options(m, tier);
+  const answer = (m, c) => kind(m).answer(m, about(m, c));
+  // the answer is too close to the line between two options to ask about (a small retune could flip it)
+  const close = (m, c) => !!(kind(m).close && kind(m).close(m, about(m, c)));
+  // run it (with the student's inputs when they drove), and whether it met the goal
+  function result(m, c, run) {
+    const r = model(m).run(m, choice(m, c), run);
+    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r) };
+  }
+  // mission text for a reading level, falling back to the Recruit text
+  const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
+  // which allowed choices changed between two tries (the one-change tracker)
+  function changes(m, before, after) {
+    const a = choice(m, before), b = choice(m, after), keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
+    return { n: keys.length, keys };
+  }
+  // every combination of the allowed choices
+  const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
+
+  return { register, check, choice, options, answer, close, result, text, changes, allChoices };
+});
+
+</script>
+<script>
+/*
+ * Cards for the learning loop (predict, test, explain, improve), for any game page (window.Cards, browser only).
+ * predict: one question before each run; the answer locks when the run starts, so it shows what the student really
+ * thought. explain: what happened and why, from the run's real numbers, with one tip and a "Try it" button that makes
+ * that one change, a graph, and glossary words that show their meaning. Text is always set with textContent.
+ */
+(function () {
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  // o: { question, options: [{ value, label }], onPick(value) } -> { value, lock() }
+  function predict(box, o) {
+    box.innerHTML = "";
+    const card = el("div", "pcard"), row = el("div", "popts"), status = el("p", "pstatus", "Pick what you think will happen. It locks when you press Run.");
+    card.append(el("span", "pkick", "Predict first"), el("p", "pq", o.question), row, status);
+    row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", o.question);
+    let value = null, locked = false;
+    const btns = o.options.map((op) => {
+      const b = el("button", "popt", op.label); b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
+      b.setAttribute("data-tip", `Your prediction: ${op.label}. You can change it until you press Run.`);
+      b.onclick = () => {
+        if (locked) return;
+        value = op.value; btns.forEach((x, i) => x.setAttribute("aria-checked", String(o.options[i].value === value)));
+        status.textContent = "Good. Now run the test.";
+        if (o.onPick) o.onPick(value);
+      };
+      row.appendChild(b); return b;
+    });
+    box.appendChild(card);
+    return { get value() { return value; }, lock() { locked = true; btns.forEach((b) => (b.disabled = true)); status.textContent = "Locked in. Let's see!"; } };
+  }
+
+  // text with the first use of each glossary term underlined, showing its meaning (glossary: id -> { term, forms, def })
+  function termText(node, text, terms, glossary) {
+    const hits = [];
+    for (const id of terms || []) {
+      const g = glossary && glossary[id]; if (!g) continue;
+      for (const f of [g.term, ...(g.forms || [])]) {
+        const m = new RegExp(`(?<![A-Za-z])${f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![A-Za-z])`, "i").exec(text);
+        if (m && !hits.some((h) => m.index < h.end && h.start < m.index + m[0].length)) { hits.push({ start: m.index, end: m.index + m[0].length, def: g.def }); break; }
+      }
+    }
+    hits.sort((a, b) => a.start - b.start);
+    let at = 0;
+    for (const h of hits) {
+      node.append(text.slice(at, h.start));
+      const s = el("span", "hastip", text.slice(h.start, h.end)); s.tabIndex = 0; s.setAttribute("data-tip", h.def); node.append(s);
+      at = h.end;
+    }
+    node.append(text.slice(at));
+  }
+
+  // speed along the run over the road's height: where it slowed, and where it stopped
+  function graph(canvas, g) {
+    const ctx = canvas.getContext("2d"), dpr = window.devicePixelRatio || 1, W = canvas.clientWidth || 600, H = canvas.clientHeight || 170;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const L = 44, Rp = 12, T = 14, B = 30, pw = W - L - Rp, ph = H - T - B, kmh = (v) => v * 3.6;
+    const ys = g.profile.map((p) => p[1]), y0 = Math.min(...ys), y1 = Math.max(...ys), vMax = Math.max(20, Math.ceil(kmh(Math.max(...g.speed.map((p) => p[1]))) / 10) * 10);
+    const X = (z) => L + (Math.min(g.length, Math.max(0, z)) / g.length) * pw, YH = (y) => T + ph - ((y - y0) / Math.max(1, y1 - y0)) * ph * 0.6, YV = (v) => T + ph - (kmh(v) / vMax) * ph;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(X(0), T + ph); g.profile.forEach(([z, y]) => ctx.lineTo(X(z), YH(y))); ctx.lineTo(X(g.length), T + ph); ctx.closePath(); ctx.fill(); // the hill
+    ctx.font = "600 11px 'JetBrains Mono', monospace"; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (let v = 0; v <= vMax; v += vMax / 2) { ctx.fillText(String(v), L - 6, YV(v / 3.6)); ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(L, YV(v / 3.6)); ctx.lineTo(L + pw, YV(v / 3.6)); ctx.stroke(); }
+    if (g.slow) { ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(255,210,63,.7)"; ctx.beginPath(); ctx.moveTo(L, YV(g.slow)); ctx.lineTo(L + pw, YV(g.slow)); ctx.stroke(); ctx.setLineDash([]); ctx.textAlign = "right"; ctx.fillStyle = "#ffd23f"; ctx.fillText("slow climb", L + pw - 4, YV(g.slow) + 10); }
+    ctx.lineWidth = 2.5; ctx.strokeStyle = "#f46524"; ctx.beginPath(); g.speed.forEach(([z, v], i) => (i ? ctx.lineTo(X(z), YV(v)) : ctx.moveTo(X(z), YV(v)))); ctx.stroke(); ctx.lineWidth = 1; // the speed
+    if (g.stop != null) { ctx.fillStyle = "#ff5d5d"; ctx.beginPath(); ctx.arc(X(g.stop), YV(0), 5, 0, 7); ctx.fill(); ctx.textAlign = X(g.stop) > L + pw - 70 ? "right" : "left"; ctx.fillText("stopped here", X(g.stop) + (ctx.textAlign === "left" ? 8 : -8), YV(0) - 10); }
+    ctx.textAlign = "center"; ctx.fillStyle = "#aaa6b0"; ctx.textBaseline = "alphabetic";
+    ctx.fillText(`distance along the test (m), 0 to ${Math.round(g.length)}`, L + pw / 2, H - 6);
+    ctx.save(); ctx.translate(12, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("km/h", 0, 0); ctx.restore();
+  }
+
+  // d: { headline, items: [{ tone, title, text, terms }], tip: { text, change }, graph }; o: { glossary, onTry(change), before: [nodes] }
+  function explain(box, d, o = {}) {
+    const frag = document.createDocumentFragment();
+    (o.before || []).forEach((n) => frag.appendChild(n));
+    if (d.headline) frag.appendChild(el("div", "headline" + (d.headline.tone === "good" ? " good" : ""), d.headline.text));
+    if (d.graph && d.graph.kind === "speedDistance") {
+      const wrap = el("div", "xgraph"), cv = el("canvas"); cv.setAttribute("role", "img");
+      cv.setAttribute("aria-label", "A graph of the car's speed along the test, drawn over the shape of the hill." + (d.graph.stop != null ? " The line drops to zero where the car stopped." : ""));
+      wrap.append(cv, el("p", "xcap", "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb.")); frag.appendChild(wrap);
+      if (window.ResizeObserver) new ResizeObserver(() => graph(cv, d.graph)).observe(cv); // redrawn at its new size when a phone turns
+      else requestAnimationFrame(() => graph(cv, d.graph));
+    }
+    d.items.forEach((it, i) => {
+      const f = el("div", "finding " + it.tone); f.style.animationDelay = i * 0.06 + "s";
+      f.append(el("span", "ic", it.tone === "good" ? "✓" : it.tone === "bad" ? "✗" : "i"));
+      const body = el("div"), p = el("p"); body.append(el("h4", null, it.title), p); termText(p, it.text, it.terms, o.glossary); f.appendChild(body);
+      frag.appendChild(f);
+    });
+    if (d.tip) {
+      const t = el("div", "tipbox"); t.append(el("b", null, "Try this next"), el("span", null, d.tip.text));
+      if (d.tip.change && o.onTry) { const b = el("button", "btn ghost", "Try it"); b.type = "button"; b.setAttribute("data-tip", "Make this one change in the garage, then predict again."); b.onclick = () => o.onTry(d.tip.change); t.appendChild(b); }
+      frag.appendChild(t);
+    }
+    box.appendChild(frag);
+  }
+
+  window.Cards = { predict, explain, graph, termText };
+})();
+
+</script>
+<script>
 /* Robot Racer page: pick a track and a setup, race a lap, read the report; ghost cars and the class leaderboard;
    and Race Day, when the board runs a Grand Prix and the whole class drives at once.
    The physics is race.js (shared with the server). A lap runs in fixed 1/60 s steps and records one letter per step,
@@ -1957,6 +2234,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
   try { const s = JSON.parse(localStorage.getItem("ba-session")); if (s && s.code && s.playerId && s.token) who = { code: s.code, playerId: s.playerId, token: s.token }; } catch {}
   const cls = { on: !!(socket && who), boards: R.TRACKS.map(() => []), gp: null, offset: 0, live: { prev: null, cur: null }, racers: new Map() };
   const inGp = () => !!(cls.gp && cls.gp.phase !== "done");
+  // A mission (/race?mission=<id>) runs on a test-bench strip with only the choices it allows. The student predicts
+  // before every run; the right answer, the goal and the explanation come from race.js (MISSION, through missions.js).
+  const missionId = new URLSearchParams(location.search).get("mission");
+  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, tries: [], still: 0, gloss: {} };
+  if (mis.on) { cls.on = false; document.body.classList.add("mission"); } // no class leaderboard or Race Day during a mission
 
   // ---------------- the race ----------------
   let state = "garage"; // garage | countdown | race | done
@@ -1976,15 +2258,20 @@ canvas { display: block; width: 100%; max-width: 100%; }
   let low = ls.get("race-low", false); // simple graphics for slower computers
   $("lowgfx").checked = low;
   $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); };
-  function start() { // a solo time trial
+  function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
+    if (mis.on) {
+      if (!mis.m || state !== "garage" || !mis.card || mis.card.value == null) return; // predict first, on a fresh try
+      mis.card.lock(); mis.cur = { choice: { ...setup }, predicted: mis.card.value }; mis.still = 0;
+    }
     reset(); cd = 3.4;
-    ghost = $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
-    state = "countdown"; $("report").innerHTML = ""; renderAll(); Sound.play("beep");
+    ghost = !mis.on && $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
+    state = "countdown"; if (!mis.on) $("report").innerHTML = ""; renderAll(); Sound.play("beep");
     try { $("road").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" }); } catch {}
   }
   function stop() { state = "garage"; reset(); renderAll(); }
   function finish() {
+    if (mis.on) return missionDone();
     state = "done"; doneT = 0;
     const r = R.lap(setup, inputs, track); // the recorded lap, driven again: the same numbers the server gets
     lastLap = { setup: { ...setup }, inputs, time: r.time, track: track.id };
@@ -1996,8 +2283,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
     showReport(r, isBest);
     renderAll();
   }
-  $("go").onclick = start;
-  $("quit").onclick = () => { Sound.play("click"); stop(); };
+  $("go").onclick = () => (mis.on && state === "done" ? nextTry() : start());
+  $("quit").onclick = () => { Sound.play("click"); if (mis.on) nextTry(); else stop(); }; // a stopped mission run needs a fresh prediction
 
   // ---------------- garage ----------------
   function renderTracks() {
@@ -2018,19 +2305,23 @@ canvas { display: block; width: 100%; max-width: 100%; }
     const locked = state === "countdown" || state === "race" || (inGp() && cls.gp.phase !== "garage");
     const all = R.GEARS.map((_, g) => R.TIRES.map((_, t) => R.setupStats({ gear: g, tire: t }, track))), flat = all.flat();
     const top = (k) => Math.max(...flat.map((s) => s[k]));
+    // on a mission only the allowed choices can change, and nothing hints at the answer before the student predicts
+    const fixed = (key, i) => mis.on && !!mis.m && !mis.m.allow[key]?.includes(i);
     const opts = (el, list, key, label, sub, tip) => {
       $(el).innerHTML = "";
       list.forEach((item, i) => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.disabled = locked;
+        const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.disabled = locked || fixed(key, i) || (mis.on && state === "done");
         b.setAttribute("aria-pressed", setup[key] === i); b.innerHTML = "<b></b><span></span>";
-        b.firstChild.textContent = label(item, i); b.lastChild.textContent = sub(item, i); b.setAttribute("data-tip", tip(item, i));
-        b.onclick = () => { setup[key] = i; ls.set("race-setup", setup); Sound.play("click"); if (inGp()) socket.emit("player:gpSetup", setup); renderGarage(); };
+        b.firstChild.textContent = label(item, i); b.lastChild.textContent = sub(item, i);
+        b.setAttribute("data-tip", fixed(key, i) ? "Not part of this test. Torque keeps everything else the same, so only one thing changes." : tip(item, i));
+        b.onclick = () => { setup[key] = i; if (!mis.on) ls.set("race-setup", setup); Sound.play("click"); if (inGp()) socket.emit("player:gpSetup", setup); renderGarage(); };
         $(el).appendChild(b);
       });
     };
     const K = track.keys;
-    opts("o-gear", R.GEARS, "gear", (g) => `${g}:1`, (g, i) => (all[i][setup.tire].hill < 0.3 ? "stalls here" : `${kmh(all[i][setup.tire].top)} km/h`),
-      (g, i) => `${g}:1 gear: the motor turns ${g} times per wheel turn. Top speed ${kmh(all[i][setup.tire].top)} km/h; ${all[i][setup.tire].hill < 0.3 ? `too weak to climb the ${K.hill}` : `climbs the ${K.hill} at ${kmh(all[i][setup.tire].hill)} km/h`}.`);
+    opts("o-gear", R.GEARS, "gear", (g) => `${g}:1`, (g, i) => (!mis.on && all[i][setup.tire].hill < 0.3 ? "stalls here" : `${kmh(all[i][setup.tire].top)} km/h`),
+      (g, i) => mis.on ? `${g}:1 gear: the motor turns ${g} times for every turn of the wheels. Top speed on flat ground: ${kmh(all[i][setup.tire].top)} km/h.`
+        : `${g}:1 gear: the motor turns ${g} times per wheel turn. Top speed ${kmh(all[i][setup.tire].top)} km/h; ${all[i][setup.tire].hill < 0.3 ? `too weak to climb the ${K.hill}` : `climbs the ${K.hill} at ${kmh(all[i][setup.tire].hill)} km/h`}.`);
     opts("o-tire", R.TIRES, "tire", (t) => t.n, (t) => `grip ${t.mu}`, (t) => `${t.n} tires: ${t.d}.`);
     const g = R.GEARS[setup.gear], st = all[setup.gear][setup.tire];
     $("d-gear").textContent = `${g}:1 means the motor turns ${g} times for every turn of the wheels. ${setup.gear === 0 ? "The fastest on straights, but the weakest on hills." : setup.gear === R.GEARS.length - 1 ? "The strongest push, but a low top speed." : "A balance of speed and pushing force."}`;
@@ -2041,6 +2332,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       ["Push", st.push, top("push"), st.push + " N", "var(--orange)", "How hard the wheels push when starting from a stop (the motor's torque times the gear ratio, up to what the tires can grip)."],
       [K.corner, st.corner, top("corner"), kmh(st.corner) + " km/h", "var(--purple)", `The fastest the tires can hold the ${K.corner}. Any faster and the car slides onto the grass.`],
     ];
+    if (mis.on) return; // a mission's report explains the numbers after the run instead
     $("gstats").innerHTML = rows.map(([l, v, mx, txt, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${txt}</span>`).join("");
     const b = bests[track.id];
     const md = b && R.medalOf(b.time, track);
@@ -2048,11 +2340,95 @@ canvas { display: block; width: 100%; max-width: 100%; }
       `<br><span class="hastip" tabindex="0" data-tip="Gold means you matched the computer driver's best lap on this track, with its best setup. Silver is within 10% of it, bronze within 25%.">${medalTimes(track)}</span>`;
   }
   function renderAll() {
-    renderTracks(); renderGarage(); renderGp();
+    if (!mis.on) renderTracks();
+    renderGarage(); renderGp();
     const gp = inGp();
     $("go").hidden = gp; $("quit").hidden = gp;
     $("go").disabled = state === "countdown" || state === "race"; $("go").textContent = state === "done" ? "Race again" : "Start race";
+    if (mis.on) {
+      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && (!mis.card || mis.card.value == null));
+      $("go").textContent = state === "done" ? "Next try" : "Run the test";
+      $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : "Run the test with this gear. Predict first: the button wakes up when you do.");
+    }
     $("quit").disabled = !(state === "countdown" || state === "race");
+  }
+
+  // ---------------- missions ----------------
+  const lessonHref = (id) => `/learn#lesson-${encodeURIComponent(id)}`;
+  function missionLoad() {
+    const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + " " + r.status))));
+    Promise.all([get(`/data/missions/${encodeURIComponent(missionId)}.json`), get("/data/glossary.json").catch(() => [])]).then(([m, gl]) => {
+      Missions.register("racer", R.MISSION);
+      if (m.game !== "racer" || Missions.check(m).length) throw new Error("not a Racer mission");
+      mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start);
+      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, Tier.current()) : g.def };
+      renderMission(); nextTry();
+    }).catch(() => {
+      $("missionp").hidden = false;
+      $("missionp").innerHTML = '<h2>That mission didn\'t load</h2><p>Check your connection and refresh the page, or <a href="robot-racer-offline.html">race in free play</a>.</p>';
+    });
+  }
+  function renderMission() {
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", box = $("missionp");
+    box.hidden = false; box.innerHTML = "";
+    const head = document.createElement("div"); head.className = "mhead";
+    const h = document.createElement("h2"); h.textContent = `Mission: ${track.n}`;
+    const back = document.createElement("a"); back.className = "btn ghost"; back.href = lessonHref(m.lesson); back.textContent = "Back to the lesson";
+    back.setAttribute("data-tip", "Open the lesson this mission tests. You can come back here any time.");
+    head.append(h, back);
+    const brief = document.createElement("p"); brief.className = "mbrief"; const who = document.createElement("b"); who.textContent = "Torque: ";
+    brief.append(who, Missions.text(m, "brief", tier));
+    const steps = document.createElement("ol"); steps.className = "msteps";
+    ["Pick a gear", "Predict", "Run the test", "Find out why"].forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
+    box.append(head, brief, steps);
+  }
+  // a new try: back to the garage with a fresh prediction card (the choices stay as they were)
+  function nextTry() {
+    state = "garage"; reset();
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit";
+    $("report").innerHTML = "";
+    mis.card = Cards.predict($("report"), { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
+    renderAll();
+  }
+  function missionDone() {
+    state = "done"; doneT = 0;
+    const m = mis.m, run = { inputs }, res = Missions.result(m, setup, run), answer = Missions.answer(m, setup);
+    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, time: res.result.finished ? res.result.time : null };
+    const prev = mis.prev; mis.tries.push(t); mis.prev = t;
+    const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
+    p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+    lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
+    Sound.play(t.goal ? "win" : "miss");
+    if (!RM && t.goal) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
+    showMissionReport(t, prev);
+    renderAll();
+  }
+  function showMissionReport(t, prev) {
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", rep = $("report"), opts = Missions.options(m, tier);
+    const label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+    const e = R.MISSION.explain(m, setup, { inputs });
+    const verdict = document.createElement("div"); verdict.className = "verdict " + (t.right ? "good" : "bad");
+    const vb = document.createElement("b"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+    verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    const before = [verdict];
+    if (prev) { // the one-change tracker: what changed since the last try, and what that did
+      const ch = Missions.changes(m, prev.choice, t.choice), line = document.createElement("p"); line.className = "changeline";
+      const fmt = (k, c) => (k === "gear" ? `${R.GEARS[c.gear]}:1` : k === "tire" ? `${R.TIRES[c.tire].n} tires` : String(c[k]));
+      const out = prev.goal === t.goal ? (t.goal && prev.time != null && t.time != null ? ` It reached the top ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "faster" : "slower"}.` : t.goal ? "" : " It still got stuck.")
+        : t.goal ? " This time it made it to the top!" : " This time it got stuck.";
+      line.textContent = ch.n === 0 ? "Same setup as last time, so the car does the same thing. Change one thing to find out more."
+        : ch.n === 1 ? `You changed only the ${ch.keys[0]}, from ${fmt(ch.keys[0], prev.choice)} to ${fmt(ch.keys[0], t.choice)}.${out} One change, so you know it was the ${ch.keys[0]}.`
+        : `You changed ${ch.n} things (${ch.keys.join(" and ")}), so you can't tell which one made the difference. Try changing one at a time.`;
+      before.push(line);
+    }
+    rep.innerHTML = "";
+    Cards.explain(rep, e, { glossary: mis.gloss, before, onTry: (change) => { Object.assign(setup, Missions.choice(m, { ...setup, ...change })); Sound.play("click"); nextTry(); } });
+    const ctl = document.createElement("div"); ctl.className = "repctl";
+    const again = document.createElement("button"); again.type = "button"; again.className = "btn"; again.textContent = "Next try";
+    again.setAttribute("data-tip", "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    const lesson = document.createElement("a"); lesson.className = "btn ghost"; lesson.href = lessonHref(m.lesson); lesson.textContent = "Back to the lesson";
+    lesson.setAttribute("data-tip", "Open the lesson this mission tests.");
+    ctl.append(again, lesson); rep.appendChild(ctl);
   }
 
   // ---------------- the lap report ----------------
@@ -2313,6 +2689,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   const SPAN = Math.max(...R.TRACKS.map((tr) => { const ys = tr.segs.map((q) => q.y); return Math.max(...ys) - Math.min(...ys); }));
   const climbCache = {};
   function climbColors() {
+    if (mis.on) return (climbCache[track.id + ":plain"] = climbCache[track.id + ":plain"] || track.segs.map(() => 0)); // no hints before the prediction
     const key = `${track.id}:${setup.gear}:${setup.tire}`;
     return (climbCache[key] = climbCache[key] || track.segs.map((q) => { if (q.slope < 0.03) return 0; const v = R.climbSpeed(setup, q.slope); return v < 0.3 ? 2 : v < 3 ? 1 : 0; }));
   }
@@ -2332,12 +2709,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
   function hud(ctx, w, h, t, dt, rv, gh, rem) {
     const fs = Math.max(12, Math.round(h * 0.04)), panel = (x, y, ww, hh) => { ctx.fillStyle = "rgba(20,19,22,.62)"; rr(ctx, x, y, ww, hh, 10); ctx.fill(); };
-    const time = state === "race" ? inputs.length * R.DT : state === "done" && lastLap && lastLap.time ? lastLap.time : 0, b = bests[track.id];
+    const time = state === "race" || (state === "done" && lastLap && lastLap.mission && lastLap.time == null) ? inputs.length * R.DT : state === "done" && lastLap && lastLap.time ? lastLap.time : 0, b = bests[track.id];
     panel(12, 12, fs * 7.6, fs * 2.9);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
     ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText(inGp() ? `RACE ${cls.gp.i + 1} · ${track.n.toUpperCase()}` : track.n.toUpperCase(), 22, 12 + fs * 0.85);
     ctx.font = `700 ${Math.round(fs * 1.2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#fff"; ctx.fillText(fmtTime(time), 22, 12 + fs * 2.05);
-    ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.fillText(b ? "BEST " + fmtTime(b.time) : "NO BEST YET", 22, 12 + fs * 2.65);
+    ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.fillText(mis.on ? `TRY ${mis.tries.length + (state === "done" ? 0 : 1)}` : b ? "BEST " + fmtTime(b.time) : "NO BEST YET", 22, 12 + fs * 2.65);
     // the motor's rpm on a dial: the red line is its top speed, where it can't push any harder
     const rpmF = clamp(car.rpm / R.MOTOR.rpm, 0, 1.2), bw = fs * 8.6, bx = w - 12 - bw, MAXR = R.MOTOR.rpm * 1.2;
     panel(bx, 12, bw, fs * 3.6);
@@ -2357,11 +2734,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
     // the track map, with everyone on it
-    const ms = Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
-    D.minimap(ctx, 12, mapY, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
+    // (a straight test strip has no map worth drawing, so its hill profile gets the space)
+    const ms = track.open ? -10 : Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
+    if (!track.open) D.minimap(ctx, 12, mapY, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
     // the hill profile: next to the map, or centered between the touch pads
     const ph = Math.max(34, Math.round(h * 0.11)), hy = h - ph - 12;
-    const pw = pads ? Math.min(pads.right - pads.left - 20, w * 0.5) : Math.min(w - (12 + ms + 10) - 12, w * 0.5);
+    const pw = pads ? Math.min(pads.right - pads.left - 20, w * 0.5) : Math.min(w - (12 + ms + 10) - 12, w * (track.open ? 0.6 : 0.5));
     const hx = pads ? (pads.left + pads.right) / 2 - pw / 2 : 12 + ms + 10;
     if (pw > 120) hills(ctx, hx, hy, pw, ph, fs, rv, gh);
     // someone close behind you (karts behind you aren't drawn, they'd fill the screen)
@@ -2390,11 +2768,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
     if (toast.t > 0) { toast.t -= dt; bigText(ctx, toast.text, w / 2, h * 0.27, h * 0.06, "#ffd23f", 1, clamp(toast.t, 0, 1)); }
     if (state === "race" && Math.abs(car.x) > R.ROAD && car.v > 1) bigText(ctx, "ON THE GRASS!", w / 2, h * 0.36, h * 0.045, "#ff8a50");
     stall = state === "race" && keys.gas && car.v < 0.3 && track.segAt(car.z).slope > 0.15 ? stall + dt : 0;
-    if (stall > 1.2) { bigText(ctx, "STALLED!", w / 2, h * 0.34, h * 0.08, "#ff5d5d"); ctx.font = `600 ${Math.round(fs * 0.6)}px "Barlow Semi Condensed", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(inGp() ? "Not enough pushing force for this hill. Next race, try more gearing." : "Not enough pushing force for this hill. Stop, and try more gearing (8:1 or 12:1).", w / 2, h * 0.42); }
+    if (stall > 1.2) { bigText(ctx, "STALLED!", w / 2, h * 0.34, h * 0.08, "#ff5d5d"); ctx.font = `600 ${Math.round(fs * 0.6)}px "Barlow Semi Condensed", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(mis.on ? "Not enough pushing force for this hill." : inGp() ? "Not enough pushing force for this hill. Next race, try more gearing." : "Not enough pushing force for this hill. Stop, and try more gearing (8:1 or 12:1).", w / 2, h * 0.42); }
     if (state === "countdown") { const n = Math.ceil(rem); bigText(ctx, rem > 3 ? "GET READY" : n > 0 ? String(n) : "GO!", w / 2, h * 0.32, h * (rem > 3 ? 0.08 : 0.16), n > 0 ? "#f4f1ea" : "#4fd18b", 1 + (rem % 1) * 0.2); }
-    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
+    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? "PICK A GEAR AND PREDICT, THEN RUN THE TEST" : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
     if (state === "done" && lastLap && lastLap.place) bigText(ctx, lastLap.place, w / 2, h * 0.41, h * 0.06, "#ffd23f", Math.min(1, 0.6 + doneT * 2));
-    if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
+    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.mission.goal ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.mission.goal ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
+    else if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
     ctx.textAlign = "left";
   }
 
@@ -2412,6 +2791,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
       while (acc >= R.DT && n++ < 8) {
         const i = input(); inputs += R.encode(i); R.step(car, setup, i, track); acc -= R.DT;
         if (car.z >= track.LENGTH) { finish(); break; }
+        // a mission run ends 2 s after the car stops for good (stuck on the hill, or the gas let go), or after a minute
+        if (mis.on) { mis.still = car.v === 0 && inputs.length > 30 ? mis.still + R.DT : 0; if (mis.still >= 2 || inputs.length >= 60 / R.DT) { missionDone(); break; } }
         if (inputs.length >= cap) { state = "done"; doneT = 0; lastLap = { dnf: inGp(), time: null, track: track.id }; showReport(R.lap(setup, inputs, track), false); renderAll(); break; }
       }
     } else if (state === "done") {
@@ -2422,7 +2803,9 @@ canvas { display: block; width: 100%; max-width: 100%; }
     requestAnimationFrame(loop);
   })(last);
   renderAll(); renderBoard(); renderPaint();
-  window.__race = { get state() { return state; }, get car() { return car; }, get lastPlace() { return lastLap && lastLap.place; }, get inputs() { return inputs; }, get track() { return track; }, start, keys, setSetup(s) { setup = R.clampSetup(s); renderGarage(); }, setTrack(id) { track = R.trackOf(id); stop(); renderBoard(); } };
+  if (mis.on) missionLoad();
+  window.__race = { get state() { return state; }, get car() { return car; }, get lastPlace() { return lastLap && lastLap.place; }, get inputs() { return inputs; }, get track() { return track; }, start, keys,
+    get mission() { return mis.on ? { loaded: !!mis.m, tries: mis.tries, predicted: mis.card && mis.card.value, setup: { ...setup } } : null; }, setSetup(s) { setup = R.clampSetup(s); renderGarage(); }, setTrack(id) { track = R.trackOf(id); stop(); renderBoard(); } };
 })();
 
 </script>

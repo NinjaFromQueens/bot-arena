@@ -87,9 +87,10 @@
   const trackOf = (t) => (typeof t === "object" && t ? t : TRACKS[t] || TRACK);
   // Test benches: short point-to-point strips that each hold one idea, for missions. They're not in TRACKS, so the
   // track picker, class boards and Race Day never list them; missions name them by id. New strips go at the end.
+  // open: the road doesn't loop (racedraw keeps it flat past both ends instead of joining the end to the start).
   const STRIPS = [
-    { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
-      keys: { straight: "Run-up", hill: "Hill", corner: "Top" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
+    { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", open: true, about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
+      keys: { straight: "Run-up", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
   ].map(makeTrack);
   const stripOf = (id) => STRIPS.find((s) => s.id === id);
 
@@ -256,26 +257,41 @@
   // What Racer missions (public/data/missions, read by missions.js) can ask about and aim for. Every answer comes from
   // driving the strip here with the computer driver, never from the mission file, so a retune can't make one wrong.
   const autoRuns = {};
-  function driven(strip, setup) {
+  function driven(strip, setup) { // the computer driver's run: { r, inputs }
+    setup = clampSetup(setup);
     const k = `${strip.id}:${setup.gear}:${setup.tire}`;
-    return (autoRuns[k] = autoRuns[k] || lap(setup, autoLap(setup, undefined, strip), strip));
+    if (!autoRuns[k]) { const inputs = autoLap(setup, undefined, strip); autoRuns[k] = { r: lap(setup, inputs, strip), inputs }; }
+    return autoRuns[k];
   }
   const hillMin = (strip, r) => Math.min(...strip.SECTIONS.map((s, i) => (s.slope > 0 ? r.sec[i].vMin : Infinity)));
+  // speed along a run, for the explain card's graph: [z, v] every few steps, ending a second after the car stops for good
+  function trace(setup, inputs, track, every = 4) {
+    setup = clampSetup(setup); track = trackOf(track);
+    const car = newCar(), out = [[0, 0]];
+    let still = 0;
+    for (let i = 0; i < inputs.length && car.z < track.LENGTH && still < 60; i++) {
+      step(car, setup, decode(inputs[i]) || { steer: 0, gas: 0, brake: 0 }, track);
+      still = car.v === 0 && car.z > 0 ? still + 1 : 0;
+      if (car.t % every === 0) out.push([car.z, car.v]);
+    }
+    return out;
+  }
+  const degOf = (slope) => `${(Math.atan(slope) * 180 / Math.PI).toFixed(1)}°`;
   const MISSION = {
     setting: stripOf,
     clamp: clampSetup,
     // the student's own inputs when they drove it, otherwise the computer drives (Cadets: "Torque drives")
     run(mission, setup, run) {
       const strip = stripOf(mission.setting);
-      return run && typeof run.inputs === "string" ? lap(setup, run.inputs, strip) : driven(strip, clampSetup(setup));
+      return run && typeof run.inputs === "string" ? lap(setup, run.inputs, strip) : driven(strip, setup).r;
     },
     predict: {
       reachTop: {
         options: () => [{ value: "top", label: "It makes it to the top", pic: "car-top" }, { value: "stuck", label: "It gets stuck on the hill", pic: "car-stuck" }],
-        answer: (mission, setup) => (driven(stripOf(mission.setting), setup).finished ? "top" : "stuck"),
+        answer: (mission, setup) => (driven(stripOf(mission.setting), setup).r.finished ? "top" : "stuck"),
         // too close to call: a car that only just makes it (nearly stops on the hill), or one that only just can't
         close(mission, setup) {
-          const strip = stripOf(mission.setting), r = driven(strip, setup);
+          const strip = stripOf(mission.setting), r = driven(strip, setup).r;
           return r.finished ? hillMin(strip, r) < 0.5 : climbSpeed(setup, strip.steep) > 0.2;
         },
       },
@@ -283,7 +299,46 @@
     goal: {
       reachEnd: { met: (mission, r) => !!r.finished },
     },
+    // the explain card for a hill strip: findings from this run's real numbers, one tip whose change the computer driver
+    // has checked is better (it reaches the top, or gets there faster), and the speed along the hill for the graph
+    explain(mission, setup, run) {
+      setup = clampSetup(setup);
+      const strip = stripOf(mission.setting), own = run && typeof run.inputs === "string", inputs = own ? run.inputs : driven(strip, setup).inputs;
+      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep);
+      const hi = strip.SECTIONS.findIndex((s) => s.slope > 0), hillStart = strip.SECTIONS.slice(0, hi).reduce((a, s) => a + s.len, 0);
+      const can = driven(strip, setup).r.finished, gears = (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b);
+      const others = gears.map((gi) => ({ gi, r: driven(strip, { ...setup, gear: gi }).r }));
+      const items = [];
+      let headline, tip;
+      if (r.finished) {
+        headline = { tone: "good", text: `Made it to the top in ${r.time.toFixed(1)} s.` };
+        items.push({ tone: "good", title: `Slowest on the hill: ${Math.round(hillMin(strip, r) * 3.6)} km/h`, terms: ["gear-ratio", "torque"],
+          text: `With ${g}:1 gears the motor turns ${g} times for every turn of the wheels. That trades speed for torque (twisting strength): enough push to keep climbing a ${deg} hill.` });
+        const fastest = others.filter((o) => o.r.finished).sort((a, b) => a.r.time - b.r.time)[0];
+        if (setup.gear === gears[gears.length - 1] && fastest && fastest.gi !== setup.gear)
+          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${Math.round(setupStats(setup, strip).top * 3.6)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
+        tip = fastest && fastest.gi !== setup.gear && fastest.r.time < r.time - 0.3
+          ? { text: `Try ${GEARS[fastest.gi]}:1. It still climbs this hill, and ${fastest.gi < setup.gear ? "its higher top speed gets you there faster" : "it pushes harder up the slope"}.`, change: { gear: fastest.gi } }
+          : { text: "That's the fastest gear up this hill. Change one thing and predict again: can you explain what each gear does?" };
+      } else {
+        const stopAt = Math.max(0, Math.round(tr[tr.length - 1][0] - hillStart));
+        if (can) {
+          headline = { tone: "bad", text: "Stopped on the hill." };
+          items.push({ tone: "bad", title: "This gear can climb it", terms: ["gear-ratio"], text: `Your car can climb this hill with ${g}:1 (the computer driver made it), but this run stopped ${stopAt} m up. Keep the gas pressed all the way to the top.` });
+          tip = { text: "Run it again and hold the gas until you reach the top." };
+        } else {
+          headline = { tone: "bad", text: `It got stuck ${stopAt} m up the hill.` };
+          items.push({ tone: "bad", title: "Stalled on the hill", terms: ["torque", "stall"],
+            text: `With ${g}:1 gears the motor couldn't push hard enough. Its torque (twisting strength) at the wheels was less than gravity pulling the car back down the ${deg} hill, so it slowed until it stopped: a stall.` });
+          const up = others.find((o) => o.gi > setup.gear && o.r.finished);
+          tip = up ? { text: `Try more gearing (${GEARS[up.gi]}:1). The wheels turn slower, but they push harder.`, change: { gear: up.gi } } : { text: "No allowed gear climbs this hill." };
+        }
+      }
+      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, i) => [i * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
+        speed: tr, slow: 3, stop: r.finished ? null : tr[tr.length - 1][0] };
+      return { headline, items, tip, graph, result: r };
+    },
   };
 
-  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, STRIPS, stripOf, MISSION, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
+  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, STRIPS, stripOf, MISSION, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, trace, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
 });

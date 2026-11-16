@@ -35,5 +35,5 @@ function bundle(page, links, data) {
 fs.writeFileSync(path.join(out, "bot-arena-offline.html"), bundle("practice.html", { "/lab": "flying-car-lab-offline.html", "/": "bot-arena-offline.html" }));
 fs.writeFileSync(path.join(out, "flying-car-lab-offline.html"), bundle("lab.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html" }));
 fs.writeFileSync(path.join(out, "robot-lessons-offline.html"), bundle("learn.html", { "/": "bot-arena-offline.html", "/practice": "bot-arena-offline.html", "/practice#challenges": "bot-arena-offline.html#challenges", "/lab": "flying-car-lab-offline.html", "/race": "robot-racer-offline.html" }, { LESSON_DATA: lessons, GLOSSARY_DATA: glossary }));
-fs.writeFileSync(path.join(out, "robot-racer-offline.html"), bundle("race.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html", "/practice": "bot-arena-offline.html" }));
+fs.writeFileSync(path.join(out, "robot-racer-offline.html"), bundle("race.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html", "/practice": "bot-arena-offline.html", "/race": "robot-racer-offline.html" }));
 console.log("Built offline/bot-arena-offline.html, flying-car-lab-offline.html, robot-lessons-offline.html, robot-racer-offline.html");
