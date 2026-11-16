@@ -32,6 +32,7 @@ for (const id of index) {
     assert(missions.includes(mid), `${at}: there's no mission called ${mid}`);
     assert.strictEqual(JSON.parse(fs.readFileSync(path.join(__dirname, `../public/data/missions/${mid}.json`), "utf8")).lesson, id, `${at}: mission ${mid} belongs to another lesson`);
   }
+  if (L.next.mission) assert.strictEqual(L.next.game, JSON.parse(fs.readFileSync(path.join(__dirname, `../public/data/missions/${L.next.mission}.json`), "utf8")).game, `${at}: next.game must be the mission's game, so the button opens the right page`);
   assert(!L.next.mission || L.missions[0] === L.next.mission, `${at}: the last button opens the first of its missions`);
   for (const tier of Tier.LEVELS) {
     const T = (v) => Tier.text(v, tier), where = `${at} (${tier})`;

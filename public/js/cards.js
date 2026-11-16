@@ -7,16 +7,17 @@
 (function () {
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
-  // o: { question, options: [{ value, label }], onPick(value) } -> { value, lock() }
+  // o: { question, options: [{ value, label }], onPick(value), go: the run button's name, kicker } -> { value, lock(), say(text) }
   function predict(box, o) {
     box.innerHTML = "";
-    const card = el("div", "pcard"), row = el("div", "popts"), status = el("p", "pstatus", "Pick what you think will happen. It locks when you press Run.");
-    card.append(el("span", "pkick", "Predict first"), el("p", "pq", o.question), row, status);
+    const go = o.go || "Run";
+    const card = el("div", "pcard"), row = el("div", "popts"), status = el("p", "pstatus", `Pick what you think will happen. It locks when you press ${go}.`);
+    card.append(el("span", "pkick", o.kicker || "Predict first"), el("p", "pq", o.question), row, status);
     row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", o.question);
     let value = null, locked = false;
     const btns = o.options.map((op) => {
       const b = el("button", "popt", op.label); b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
-      b.setAttribute("data-tip", `Your prediction: ${op.label}. You can change it until you press Run.`);
+      b.setAttribute("data-tip", `Your prediction: ${op.label}. You can change it until you press ${go}.`);
       b.onclick = () => {
         if (locked) return;
         value = op.value; btns.forEach((x, i) => x.setAttribute("aria-checked", String(o.options[i].value === value)));
@@ -26,7 +27,7 @@
       row.appendChild(b); return b;
     });
     box.appendChild(card);
-    return { get value() { return value; }, lock() { locked = true; btns.forEach((b) => (b.disabled = true)); status.textContent = "Locked in. Let's see!"; } };
+    return { get value() { return value; }, lock() { locked = true; btns.forEach((b) => (b.disabled = true)); status.textContent = "Locked in. Let's see!"; }, say(text) { status.textContent = text; }, card };
   }
 
   // text with the first use of each glossary term underlined, showing its meaning (glossary: id -> { term, forms, def })

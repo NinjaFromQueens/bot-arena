@@ -15,8 +15,9 @@
   // reading level or { cadet, recruit, operative } (Tier.text falls back to recruit).
   let LESSONS = [];
   const tier = Tier.current(), T = (v) => Tier.text(v, tier);
-  // a lesson's last button opens its first mission (the offline copy links to the offline Racer instead)
-  const missionHref = (game, id) => `${(window.OFFLINE_PAGES && window.OFFLINE_PAGES[game]) || "/" + game}?mission=${encodeURIComponent(id)}`;
+  // a lesson's last button opens its first mission (the offline copy links to the offline Racer or Lab instead)
+  const PAGE = { racer: "race", lab: "lab" }; // a mission's game -> the page that plays it
+  const missionHref = (game, id) => { const page = PAGE[game] || "race"; return `${(window.OFFLINE_PAGES && window.OFFLINE_PAGES[page]) || "/" + page}?mission=${encodeURIComponent(id)}`; };
   function fromData(d) {
     return {
       id: d.id, n: T(d.title), about: T(d.about),
@@ -25,7 +26,7 @@
         if (s.type === "quiz") return { type: "quiz", q: T(s.q), options: T(s.options), answer: T(s.answer), explain: T(s.explain) };
         return { type: s.type, kind: s.kind };
       }),
-      next: { label: T(d.next.label), href: d.next.mission ? missionHref("race", d.next.mission) : d.next.href },
+      next: { label: T(d.next.label), href: d.next.mission ? missionHref(d.next.game, d.next.mission) : d.next.href },
     };
   }
   async function loadLessons() {

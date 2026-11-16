@@ -91,6 +91,7 @@
   ],
   "next": {
     "label": "Help Torque test the gears",
-    "mission": "gear-hill"
+    "mission": "gear-hill",
+    "game": "racer"
   }
 }
