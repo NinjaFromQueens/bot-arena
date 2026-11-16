@@ -595,6 +595,7 @@
       const t = { choice: pending.choice, predicted: pending.predicted, answer, right: pending.predicted === answer, goal: g.complete, outcome: r.outcome, landX: r.landX };
       const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
       p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+      Missions.send(m, t.predicted, t.choice); // in a class game, the teacher's board gets the numbers
       const out = [], v = document.createElement("div"), vb = document.createElement("b");
       v.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
       v.append(vb, " You predicted “" + label(t.predicted) + "”. " + (answer === "yes" ? "It completed the mission." : "It didn't complete the mission."));

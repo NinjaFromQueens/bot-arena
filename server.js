@@ -1,4 +1,5 @@
 // Circuit Rebels server: serves the web pages and runs live classroom tournaments over Socket.IO.
+const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const crypto = require("crypto");
@@ -7,6 +8,9 @@ const { Server } = require("socket.io");
 const Engine = require("./public/js/engine.js");
 const Flight = require("./public/js/flight.js");
 const Race = require("./public/js/race.js");
+const Challenges = require("./public/js/challenges.js");
+const Missions = require("./public/js/missions.js");
+const Tier = require("./public/js/tiers.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -19,6 +23,10 @@ const io = new Server(server, { cors: { origin: false } });
 
 const pub = path.join(__dirname, "public");
 app.use(express.static(pub, { extensions: ["html"] }));
+// the mission files, read once (they only change with a deploy); the games' models work out every answer
+Missions.register("racer", Race.MISSION); Missions.register("lab", Flight.MISSION); Missions.register("challenge", Challenges.MISSION);
+const MISSION_FILES = new Map(JSON.parse(fs.readFileSync(path.join(pub, "data/missions/index.json"), "utf8"))
+  .map((id) => [id, JSON.parse(fs.readFileSync(path.join(pub, `data/missions/${id}.json`), "utf8"))]).filter(([, m]) => !Missions.check(m).length));
 app.get("/art/manifest.json", (_req, res) => res.json({ parts: {} })); // no art pack installed (public/art/): every part is drawn in code
 app.get("/vendor/qrcode.js", (_req, res) => res.sendFile(path.join(__dirname, "node_modules/qrcode-generator/qrcode.js")));
 app.get("/healthz", (_req, res) => res.json({ ok: true, rooms: rooms.size }));
@@ -213,6 +221,23 @@ function labUpdate(room) {
 function broadcast(room) { room.lastActive = Date.now(); io.to(room.code).emit("room:state", publicState(room)); }
 // Some events only matter to the board (reactions, class status), so they skip the students' devices.
 function toHosts(room, ev, data) { for (const id of room.hosts) io.to(id).emit(ev, data); }
+
+// ---------------- missions: the teacher's data (shared-parts-spec section 9) ----------------
+// Ids and numbers only, kept in memory, sent to the board only. room.missions: player id -> mission id ->
+// { first, tries, one, several, goal, last }. Rows for students no longer in the game are left out.
+function missionData(room) {
+  const rows = [], sums = new Map(), order = [...MISSION_FILES.keys()];
+  for (const [pid, per] of room.missions || []) {
+    if (!room.players.has(pid)) continue;
+    for (const [mid, r] of per) {
+      rows.push([pid, mid, r.first, r.tries, r.one, r.several, r.goal]);
+      if (!sums.has(mid)) sums.set(mid, [mid, MISSION_FILES.get(mid).title, 0, 0, 0, 0]);
+      const s = sums.get(mid); s[2]++; s[3] += r.first; s[4] += r.goal; if (r.one && !r.several) s[5]++;
+    }
+  }
+  return { rows, summary: [...sums.values()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])) }; // summary: [id, title, students, first right, goal met, one at a time]
+}
+const missionUpdate = (room) => toHosts(room, "room:missions", missionData(room));
 function botWithBuilder(p) { return { ...p.bot, builder: p.builder }; }
 
 // Settle matches that can't be played: a removed player forfeits.
@@ -334,7 +359,7 @@ io.on("connection", (socket) => {
   socket.on("host:create", (_d, cb) => {
     const code = newCode();
     const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now(), hosts: new Set([socket.id]),
-      settings: { maxw: Engine.MAXW, bo3: 0 }, // bo3: 0 off, 1 the final, 2 semifinals and final
+      settings: { maxw: Engine.MAXW, bo3: 0, tier: "" }, // bo3: 0 off, 1 the final, 2 semifinals and final; tier: "" = students choose
       live: { chat: true, slow: false, fights: true }, muted: new Set(), chatLog: [], announce: null, watching: null }; // chat, and fights on students' devices
     rooms.set(code, room);
     joined = { room, role: "host" };
@@ -350,7 +375,7 @@ io.on("connection", (socket) => {
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
     socket.emit("room:chatlog", room.chatLog);
-    broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room);
+    broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room); missionUpdate(room);
   });
 
   socket.on("room:check", (d, cb) => {
@@ -423,8 +448,9 @@ io.on("connection", (socket) => {
     io.to(p.socketId).emit("player:kicked");
     if (room.phase === "lobby") room.players.delete(p.id);
     else { p.out = true; if (!room.current) settleForfeits(room); }
+    if (room.missions) room.missions.delete(p.id);
     cb && cb({ ok: true });
-    broadcast(room);
+    broadcast(room); missionUpdate(room);
   });
 
   socket.on("host:start", (_d, cb) => {
@@ -512,7 +538,8 @@ io.on("connection", (socket) => {
   });
   socket.on("host:settings", (d, cb) => {
     const room = requireHost(cb); if (!room) return;
-    const s = room.settings, maxw = d && d.maxw, bo3 = d && d.bo3;
+    const s = room.settings, maxw = d && d.maxw, bo3 = d && d.bo3, tier = d && d.tier;
+    if (tier !== undefined) { if (!["", ...Tier.LEVELS].includes(tier)) return cb && cb({ ok: false }); s.tier = tier; } // the class's reading level, any time
     if (maxw !== undefined && maxw !== s.maxw) {
       if (!Engine.WEIGHT_CLASSES.some((w) => w.kg === maxw)) return cb && cb({ ok: false });
       if (room.phase !== "lobby") return cb && cb({ ok: false, error: "Pick the weight class before the tournament starts." });
@@ -683,6 +710,36 @@ io.on("connection", (socket) => {
     const racing = [...g.live.keys()].filter((id) => { const p = me.room.players.get(id); return p && !p.out; });
     if (racing.length && racing.every((id) => g.laps.has(id))) gpEndRace(me.room); // everyone's home
   });
+  // a student's mission run (Racer, Lab, Brain Challenges). Mission pages aren't the game page, so it carries the game
+  // pass. Nothing the device claims is trusted: the choices are clamped to the mission's list and the server works out
+  // whether the prediction was right, whether the goal was met, and how many things changed since the last try.
+  socket.on("player:mission", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false, gone: true, error: "Join your class's game first." }); // gone: the device drops the class's reading level
+    const m = MISSION_FILES.get(d.m);
+    if (!m) return cb && cb({ ok: false, error: "There's no mission with that name." });
+    const now = Date.now();
+    if (now - (me.p.lastMission || 0) < 1000) return cb && cb({ ok: false, wait: true, error: "Wait a moment before sending again." }); // wait: the page sends it again
+    me.p.lastMission = now;
+    const c = Missions.choice(m, d.c);
+    if (!Missions.options(m, "recruit").some((o) => o.value === d.p)) return cb && cb({ ok: false, error: "That prediction isn't one of the choices." });
+    let run;
+    if (m.game === "racer" && d.run && d.run.inputs != null) { // a run the student drove: driven again here
+      const inputs = d.run.inputs;
+      if (typeof inputs !== "string" || inputs.length > Race.MAX_STEPS || !/^[a-l]*$/.test(inputs)) return cb && cb({ ok: false, error: "That run can't be checked." });
+      run = { inputs };
+    }
+    const correct = d.p === Missions.answer(m, c), goal = Missions.result(m, c, run).goal;
+    const room = me.room, all = (room.missions = room.missions || new Map());
+    if (!all.has(me.p.id)) all.set(me.p.id, new Map());
+    const per = all.get(me.p.id);
+    let r = per.get(m.id);
+    if (!r) per.set(m.id, (r = { first: correct ? 1 : 0, tries: 0, one: 0, several: 0, goal: 0, last: null })); // the first try's prediction is the one that counts
+    else { const n = Missions.changes(m, r.last, c).n; if (n === 1) r.one++; else if (n > 1) r.several++; }
+    r.tries++; r.goal = r.goal || (goal ? 1 : 0); r.last = c;
+    cb && cb({ ok: true, correct, goal, tier: room.settings.tier || null });
+    missionUpdate(room);
+  });
   socket.on("lab:check", (d, cb) => {
     const me = labPlayer(d && d.who);
     if (!me) return cb && cb({ ok: false });
@@ -815,8 +872,9 @@ io.on("connection", (socket) => {
     const room = requireHost(cb); if (!room) return;
     room.phase = "lobby"; room.bracket = null; room.current = null; room.championId = null; room.awards = []; room.watching = null;
     for (const [id, p] of room.players) { if (p.out) room.players.delete(id); else { p.pts = 0; p.stats = null; } }
+    room.missions = null; // a new game starts with no mission data
     cb && cb({ ok: true });
-    broadcast(room);
+    broadcast(room); missionUpdate(room);
   });
 
   socket.on("disconnect", () => {

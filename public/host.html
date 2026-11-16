@@ -23,6 +23,19 @@
   .pcard .otag { position: absolute; left: 8px; top: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 2px 6px; border-radius: 6px; background: var(--bad); color: var(--ink); font-weight: 700; }
   .pcard.heavy canvas { opacity: .55; }
   .racebox { margin-top: 12px; } .racebox h3 { margin-bottom: 6px; }
+  .misbox { margin-top: 12px; display: grid; gap: 8px; }
+  .mishead { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mishead h3 { margin: 0; }
+  .misbox .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+  .misbox .toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
+  .mislist { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+  .mislist li { padding: 6px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); font-size: 15px; }
+  .mislist b { font-family: var(--display); }
+  .mistable { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .mistable table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .mistable th, .mistable td { text-align: left; padding: 5px 8px; border-top: 1px solid var(--line); white-space: nowrap; }
+  .mistable th { position: sticky; top: 0; background: var(--panel); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; border-top: 0; }
+  .mistable td.y { color: var(--good); } .mistable td.n { color: var(--bad); }
   .joinpanel h2 { margin: 0; font-size: 22px; }
   .lobbymain { display: grid; gap: 16px; min-width: 0; }
   .tourpanel { border: 1.5px solid #f4652466; }
@@ -206,6 +219,8 @@
             <select id="bo3" aria-label="Best of 3"><option value="0">Off</option><option value="1">Final</option><option value="2">Semifinals + final</option></select></label>
           <label class="switch" data-tip="How long students get to predict the winner before each fight."><span>Predict time</span>
             <select id="ptime2" aria-label="Prediction time"><option value="0">Off</option><option value="8">8 s</option><option value="12">12 s</option><option value="20">20 s</option></select></label>
+          <label class="switch" data-tip="How lessons and missions read on every student's device: Cadet (grades 1 to 3), Recruit (4 to 8) or Operative (9 to 12). Let students choose leaves it to each device."><span>Reading level</span>
+            <select id="tier" aria-label="Reading level"><option value="">Let students choose</option><option value="cadet">Cadet</option><option value="recruit">Recruit</option><option value="operative">Operative</option></select></label>
         </div>
         <div class="grid" id="players"></div>
         <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
@@ -235,6 +250,12 @@
           <a class="act" href="/raceday" data-tip="Race Day: a Robot Racer Grand Prix. The whole class races at once on their own devices while the board shows it like TV, with points, a podium and awards."><span class="ic" aria-hidden="true">🏁</span><b>Race Day</b><span class="ad">Robot Racer Grand Prix: the whole class races at once.</span></a>
           <a class="act" href="/lab?present" data-tip="Flying Car Lab class challenge: pick a mission, students submit designs from their devices, and you replay them on the board, ranked."><span class="ic" aria-hidden="true">🚀</span><b>Flying Car challenge</b><span class="ad">Students design a car for a mission. You replay them, ranked.</span></a>
           <a class="act" href="/learn?present" data-tip="Show a lesson on the board. Its quiz questions pop up on every student's device as a class poll. Come back here any time."><span class="ic" aria-hidden="true">📖</span><b>Present a lesson</b><span class="ad">Show a lesson here. Its quiz pops up on every device.</span></a>
+        </div>
+<div class="misbox" id="misp" hidden>
+          <div class="mishead"><h3><span class="hastip" tabindex="0" data-tip="Missions students ran in the Racer, the Flying Car Lab and Brain Challenges during this game. Only you see this. Numbers stay on the server until the game ends.">Class missions</span></h3>
+            <label class="toggle" data-tip="Shows each student's results. Turn it off before projecting."><input type="checkbox" class="misnames"> Show names</label></div>
+          <ul class="mislist"></ul>
+          <div class="mistable" hidden></div>
         </div>
         <div class="racebox" id="racep" hidden><h3 data-tip="The fastest lap on each track that students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
       </div>
@@ -287,6 +308,12 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
         <div class="log" id="log" aria-live="polite"></div>
       </div>
       <div class="side">
+<div class="panel misbox" id="misp2" hidden>
+          <div class="mishead"><h3><span class="hastip" tabindex="0" data-tip="Missions students ran in the Racer, the Flying Car Lab and Brain Challenges during this game. Only you see this. Numbers stay on the server until the game ends.">Class missions</span></h3>
+            <label class="toggle" data-tip="Shows each student's results. Turn it off before projecting."><input type="checkbox" class="misnames"> Show names</label></div>
+          <ul class="mislist"></ul>
+          <div class="mistable" hidden></div>
+        </div>
         <div class="panel racebox" id="racep2" hidden><h3 data-tip="The fastest lap on each track that students sent from Robot Racer (/race). The server drives every lap again to check the time.">Robot Racer: fastest laps</h3><ol class="leaders"></ol></div>
         <div class="panel">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
