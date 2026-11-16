@@ -11,9 +11,11 @@
     if (!isTiered(v)) return v;
     return v[tier] != null ? v[tier] : v.recruit;
   }
-  // this device's reading level; the class setting and the level chip come with the first Cadet or Operative text
+  // this device's reading level (the mission page has the switch)
   function current() {
     try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
   }
-  return { LEVELS, isTiered, text, current };
+  // this device's choice (the class setting will win over it once teachers can set one)
+  function set(t) { if (LEVELS.includes(t)) try { localStorage.setItem("cr-tier", JSON.stringify(t)); } catch {} }
+  return { LEVELS, isTiered, text, current, set };
 });
