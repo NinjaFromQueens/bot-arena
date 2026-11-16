@@ -1,0 +1,75 @@
+{
+  "id": "armtorque",
+  "title": "Arm strength: levers and torque",
+  "about": "Why a weight far out is harder to hold, and how servo strength is measured.",
+  "track": "physics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">The farther out a weight is, the harder a joint has to work.</p>",
+        "<p>Try it: hold a full water bottle close to your chest, then straight out at arm's length. Same bottle, but it feels much heavier far away.</p>",
+        "<p>That twisting effort is <b>torque</b>. It depends on the weight and on how far out it is <b>sideways</b> from the joint:</p>",
+        "<p class=\"formula\">torque = weight × sideways distance</p>",
+        "<p>Hobby servos print their strength in <b>kg·cm</b>. A <b>2 kg·cm</b> servo can hold 2 kg at 1 cm, 200 g at 10 cm, or just 100 g at 20 cm.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "torquesim"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Why the shoulder works hardest</h3>",
+        "<p>The shoulder holds up everything past it: both links, the elbow servo, the gripper and whatever it's carrying. The elbow only holds what's past the elbow.</p>",
+        "<p>So engineers put the strongest servo at the shoulder, keep links light (aluminum or carbon fiber), and pick things up close to the base when they can. Big machines like cranes add a <b>counterweight</b> on the other side.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A servo is rated 2 kg·cm. Ignoring the arm's own weight, how heavy a block can it hold 10 cm from the joint?",
+      "options": [
+        "20 g",
+        "200 g",
+        "2 kg",
+        "20 kg"
+      ],
+      "answer": 1,
+      "explain": "2 kg·cm ÷ 10 cm = 0.2 kg, which is 200 g."
+    },
+    {
+      "type": "quiz",
+      "q": "Your arm's servo can't hold a block straight out. Which change helps?",
+      "options": [
+        "Use a longer arm",
+        "Hold the block closer to the joint, or raise the arm so it's not as far out sideways",
+        "Use a heavier gripper",
+        "Point the camera at it"
+      ],
+      "answer": 1,
+      "explain": "Torque depends on the sideways distance. Closer or higher means less torque."
+    },
+    {
+      "type": "quiz",
+      "q": "In a robot arm, which joint usually needs the strongest servo?",
+      "options": [
+        "The gripper",
+        "The wrist",
+        "The shoulder, closest to the base",
+        "They all need the same"
+      ],
+      "answer": 2,
+      "explain": "The shoulder holds up the whole arm plus the load, so it needs the most torque."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "id": "rules",
+  "title": "Think: if-then rules",
+  "about": "How a robot decides what to do, why the order of its rules matters, and your Bot Arena brain.",
+  "track": "programming",
+  "episode": 4,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A robot's brain can be a list of rules: <b>IF</b> something is true, <b>THEN</b> do something.</p>",
+        "<p>A robot vacuum might have rules like these:</p>",
+        "<ul><li><b>IF</b> the bumper is pressed <b>THEN</b> turn around</li><li><b>IF</b> the cliff sensor sees a drop <b>THEN</b> back up</li><li><b>IF</b> the battery is low <b>THEN</b> drive to the charger</li></ul>",
+        "<p>The <b>IF</b> part checks a sensor: that's <b>Sense</b>. Picking which rule to follow is <b>Think</b>. The <b>THEN</b> part runs the motors: that's <b>Act</b>.</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Order matters</h3>",
+        "<p>Our vacuum checks its rules from the top, every turn. The <b>first</b> rule that's true wins, and it skips the rest. Look what happens when the same two rules swap places:</p>",
+        "<div class=\"rulecmp\">",
+        "<div class=\"rlist ok\"><b>Turns at walls ✓</b><ol><li>IF a wall is ahead THEN turn right</li><li>IF always THEN drive forward</li></ol></div>",
+        "<div class=\"rlist no\"><b>Bumps forever ✗</b><ol><li>IF always THEN drive forward</li><li class=\"dead\">IF a wall is ahead THEN turn right</li></ol><p class=\"small\">\"IF always\" is true every turn, so rule 2 never gets a chance.</p></div>",
+        "</div>",
+        "<p>Put the special cases first and the \"always\" rule last.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "rulebot"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Program your Bot Arena robot</h3>",
+        "<p>Pick the <b>Custom</b> brain in Bot Arena and you write its rules, up to 3. Every turn it checks them from the top, just like the vacuum:</p>",
+        "<ul><li><b>IF</b> the enemy's shield is up <b>THEN</b> power attack</li><li><b>IF</b> my hit chance is below 40% <b>THEN</b> aim first</li><li><b>IF</b> my health is below 50 <b>THEN</b> shield</li></ul>",
+        "<p>If no rule fits, it attacks. The battle log shows which rule ran each turn, so you can watch your program work.</p>",
+        "<p>Ready to test your rules? The <b>Brain Challenges</b> in Practice Mode have five boss robots, and each one needs a different idea.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A vacuum's rules are: 1. IF stairs are ahead THEN turn right. 2. IF always THEN drive forward. Stairs are ahead. What does it do?",
+      "options": [
+        "Drives forward",
+        "Turns right",
+        "Both",
+        "Nothing"
+      ],
+      "answer": 1,
+      "explain": "Rule 1 is true, so it turns right and skips rule 2. Only one rule runs each turn."
+    },
+    {
+      "type": "quiz",
+      "q": "Which list of rules has a mistake?",
+      "options": [
+        "1. IF a wall is ahead THEN turn right. 2. IF always THEN drive forward.",
+        "1. IF always THEN drive forward. 2. IF a wall is ahead THEN turn right."
+      ],
+      "answer": 1,
+      "explain": "IF always is true every turn, so in the second list the wall rule never runs."
+    },
+    {
+      "type": "quiz",
+      "q": "Your Bot Arena rules are: 1. IF my hit chance is below 40% THEN aim first. 2. IF always THEN power attack. This turn your hit chance is 82%. What does your robot do?",
+      "options": [
+        "Aim first",
+        "Power attack",
+        "Shield",
+        "Nothing"
+      ],
+      "answer": 1,
+      "explain": "82% isn't below 40%, so rule 1 is skipped. Rule 2 is always true, so it power attacks."
+    },
+    {
+      "type": "quiz",
+      "q": "In a rule, which part is the robot's Sense step?",
+      "options": [
+        "The IF part",
+        "The THEN part",
+        "The rule's number"
+      ],
+      "answer": 0,
+      "explain": "The IF part checks what the robot senses. Picking the rule is Think, and the THEN part is Act."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Try the Brain Challenges",
+    "href": "/practice#challenges"
+  }
+}

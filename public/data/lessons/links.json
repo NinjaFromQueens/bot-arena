@@ -1,0 +1,94 @@
+{
+  "id": "links",
+  "title": "Links and joints",
+  "about": "How a robot arm is built, how far it can reach, and how it works out its angles.",
+  "track": "robotics",
+  "episode": 3,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A robot arm is a chain of links and joints.</p>",
+        "<svg class=\"part\" viewBox=\"0 0 360 190\" role=\"img\" aria-label=\"A two-link robot arm on a base. Labels point to the base, the shoulder joint, link 1, the elbow joint, link 2 and the gripper.\">",
+        "<rect x=\"34\" y=\"150\" width=\"72\" height=\"28\" rx=\"6\" fill=\"#55535c\" stroke=\"#141316\" stroke-width=\"3\"/>",
+        "<g stroke-linecap=\"round\"><line x1=\"70\" y1=\"150\" x2=\"182\" y2=\"72\" stroke=\"#141316\" stroke-width=\"20\"/><line x1=\"70\" y1=\"150\" x2=\"182\" y2=\"72\" stroke=\"#f46524\" stroke-width=\"13\"/>",
+        "<line x1=\"182\" y1=\"72\" x2=\"282\" y2=\"112\" stroke=\"#141316\" stroke-width=\"17\"/><line x1=\"182\" y1=\"72\" x2=\"282\" y2=\"112\" stroke=\"#ff8a50\" stroke-width=\"10\"/></g>",
+        "<g stroke=\"#141316\" stroke-width=\"3\" stroke-linecap=\"round\"><line x1=\"282\" y1=\"112\" x2=\"300\" y2=\"100\"/><line x1=\"282\" y1=\"112\" x2=\"296\" y2=\"124\"/></g>",
+        "<g fill=\"#2b2a30\" stroke=\"#141316\" stroke-width=\"3\"><circle cx=\"70\" cy=\"150\" r=\"11\"/><circle cx=\"182\" cy=\"72\" r=\"10\"/></g>",
+        "<g fill=\"#c9c5d1\"><circle cx=\"70\" cy=\"150\" r=\"4\"/><circle cx=\"182\" cy=\"72\" r=\"4\"/></g>",
+        "<g font-family=\"JetBrains Mono, monospace\" font-size=\"13\" fill=\"#f4f1ea\"><text x=\"112\" y=\"168\">shoulder</text><text x=\"40\" y=\"188\">base</text><text x=\"88\" y=\"100\">link 1</text><text x=\"160\" y=\"44\">elbow</text><text x=\"214\" y=\"80\">link 2</text><text x=\"296\" y=\"140\">gripper</text></g>",
+        "</svg>",
+        "<p><b>Links</b> are the stiff parts, like the bones in your arm. <b>Joints</b> are where links connect and move, like your shoulder and elbow.</p>",
+        "<ul><li><b>Turning joints</b> (engineers say <i>revolute</i>) rotate like a door hinge. A servo usually drives each one.</li>",
+        "<li><b>Sliding joints</b> (<i>prismatic</i>) move in a straight line, like a drawer.</li></ul>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Degrees of freedom</h3>",
+        "<p>Each joint that can move on its own adds one <b>degree of freedom</b>. Two joints let an arm reach spots on a flat surface. To reach any spot in 3D <i>and</i> point its gripper in any direction, an arm needs six.</p>",
+        "<p>Your own arm has about seven, so you can keep your hand flat on a table and still move your elbow.</p>",
+        "<p>The simulator next has two links: an 18 cm upper arm and a 14 cm forearm.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "armsim"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Working backwards</h3>",
+        "<p>In the simulator you picked joint angles and watched where the hand went. That's <b>forward kinematics</b>.</p>",
+        "<p>Robots usually need the opposite: \"The block is here. What angles do I need?\" That's <b>inverse kinematics</b>, and the robot's computer solves it with trigonometry.</p>",
+        "<p>Most spots can be reached two ways, elbow up or elbow down, like reaching for a cup with your elbow high or low.</p>",
+        "<p>And no arm reaches farther than its links laid end to end. Here that's 18 + 14 = <b>32 cm</b>.</p>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "A robot arm has an 18 cm link and a 14 cm link. What's the farthest its hand can reach from the shoulder?",
+      "options": [
+        "14 cm",
+        "18 cm",
+        "32 cm",
+        "252 cm"
+      ],
+      "answer": 2,
+      "explain": "Laid out straight, the links add up: 18 + 14 = 32 cm. Anything farther is out of reach."
+    },
+    {
+      "type": "quiz",
+      "q": "Which kind of joint moves in a straight line instead of turning?",
+      "options": [
+        "A turning (revolute) joint",
+        "A sliding (prismatic) joint",
+        "A link",
+        "A gripper"
+      ],
+      "answer": 1,
+      "explain": "A sliding joint moves in a line, like a drawer. A turning joint rotates, like a hinge."
+    },
+    {
+      "type": "quiz",
+      "q": "A robot knows where a block is and works out the joint angles to reach it. What's that called?",
+      "options": [
+        "Forward kinematics",
+        "Inverse kinematics",
+        "Degrees of freedom",
+        "Holding torque"
+      ],
+      "answer": 1,
+      "explain": "Working backwards from a target to the angles is inverse kinematics."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}

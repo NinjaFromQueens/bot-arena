@@ -1,0 +1,60 @@
+{
+  "id": "thrust",
+  "title": "Thrust vs. weight",
+  "about": "How a car can fly: Newton's 3rd Law and the thrust-to-weight ratio.",
+  "track": "physics",
+  "episode": 5,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">To fly, push air down hard enough that the air pushes you up.</p>",
+        "<p>That's <b>Newton's 3rd Law</b>: every push has an equal push back. Let go of a blown-up balloon and it shoots away as the air rushes out.</p>",
+        "<p>The flying car shown in October 2026 used <b>compressed-air thrusters</b>: tanks of squeezed air blasting out of nozzles.</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Thrust-to-weight</h3>",
+        "<p><b>Weight</b> is how hard gravity pulls: mass × 9.8. A 1,000 kg car weighs about 9.8 kN (kilonewtons).</p>",
+        "<p><b>Thrust-to-weight = thrust ÷ weight.</b></p>",
+        "<ul><li>Above 1.0: the thrusters can lift the car by themselves.</li><li>Below 1.0: they can only slow its fall.</li></ul>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "thrust"
+    },
+    {
+      "type": "quiz",
+      "q": "A car weighs 12 kN. Its nozzles push with 9 kN. Can the thrusters lift it by themselves?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "answer": 1,
+      "explain": "9 ÷ 12 = 0.75. That's below 1.0, so gravity wins."
+    },
+    {
+      "type": "quiz",
+      "q": "Which change raises thrust-to-weight?",
+      "options": [
+        "Add two passengers",
+        "Switch from a steel body to carbon fiber",
+        "Remove some nozzles",
+        "Add heavy armor"
+      ],
+      "answer": 1,
+      "explain": "Carbon fiber is much lighter than steel. Same thrust, less weight, so the ratio goes up."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Try Mission 1 in the Flying Car Lab",
+    "href": "/lab"
+  }
+}

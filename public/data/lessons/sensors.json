@@ -1,0 +1,63 @@
+{
+  "id": "sensors",
+  "title": "Robot senses",
+  "about": "Cameras, ultrasonic, touch and gyro sensors, and how they work.",
+  "track": "robotics",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Sensors are a robot's senses.</p>",
+        "<ul><li><b>Camera:</b> sees colors and shapes, like your eyes.</li>",
+        "<li><b>Ultrasonic:</b> measures distance with sound you can't hear, like a bat.</li>",
+        "<li><b>Touch:</b> feels when it bumps into something.</li>",
+        "<li><b>Gyro:</b> feels tilting and turning, like your inner ear.</li></ul>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>How an ultrasonic sensor measures distance</h3>",
+        "<p>It sends out a short beep and times how long the echo takes to come back. Sound travels about <b>343 meters per second</b>.</p>",
+        "<p>The sound goes there <i>and</i> back, so: <b>distance = 343 × time ÷ 2</b>.</p>",
+        "<p>Example: the echo comes back in 0.01 seconds. 343 × 0.01 ÷ 2 ≈ <b>1.7 meters</b> to the wall.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "match"
+    },
+    {
+      "type": "quiz",
+      "q": "An ultrasonic echo comes back in 0.02 seconds. About how far away is the wall?",
+      "options": [
+        "0.7 m",
+        "3.4 m",
+        "6.9 m",
+        "343 m"
+      ],
+      "answer": 1,
+      "explain": "343 × 0.02 = 6.86 meters there and back. Divide by 2: about 3.4 m."
+    },
+    {
+      "type": "quiz",
+      "q": "In Bot Arena, which sensor gives a robot the best aim?",
+      "options": [
+        "Camera",
+        "Ultrasonic",
+        "Touch"
+      ],
+      "answer": 0,
+      "explain": "The camera sees the target clearly. Ultrasonic helps you dodge, and Touch is light but aims poorly."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Pick a sensor for your robot",
+    "href": "/practice"
+  }
+}

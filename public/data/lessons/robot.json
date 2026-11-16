@@ -1,0 +1,62 @@
+{
+  "id": "robot",
+  "title": "What makes a robot?",
+  "about": "Sense, Think, Act: the three things every robot does.",
+  "track": "robotics",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">A robot is a machine that can <b>Sense</b>, <b>Think</b>, and <b>Act</b>, all on its own.</p>",
+        "<div class=\"stack3\"><div class=\"sta s\"><b>Sense</b><span>Notice the world with sensors, like a camera or a touch sensor.</span></div>",
+        "<div class=\"sta t\"><b>Think</b><span>A computer decides what to do, like a Raspberry Pi.</span></div>",
+        "<div class=\"sta a\"><b>Act</b><span>Do something: drive wheels, move an arm, fire thrusters.</span></div></div>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Example: a robot vacuum</h3>",
+        "<ul><li><b>Sense:</b> bump sensors feel walls, and cliff sensors notice stairs.</li>",
+        "<li><b>Think:</b> its computer decides where to go next.</li>",
+        "<li><b>Act:</b> wheels drive and brushes clean.</li></ul>",
+        "<p>If a machine is missing one of these, or a person has to make every decision, it isn't a robot.</p>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "robotornot"
+    },
+    {
+      "type": "quiz",
+      "q": "A robot's computer (like the Raspberry Pi on our robot arm) is which part?",
+      "options": [
+        "Sense",
+        "Think",
+        "Act"
+      ],
+      "answer": 1,
+      "explain": "The computer makes the decisions. That's the Think part."
+    },
+    {
+      "type": "quiz",
+      "q": "The robot arm's camera spots a red block. Which part is that?",
+      "options": [
+        "Sense",
+        "Think",
+        "Act"
+      ],
+      "answer": 0,
+      "explain": "Seeing the block is sensing. Then the computer thinks, and the servos act."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build your first robot",
+    "href": "/practice"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "id": "lidar",
+  "title": "Lidar: seeing with light",
+  "about": "How a spinning laser maps a room, like a robot vacuum or a self-driving car.",
+  "track": "robotics",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": [
+        "<p class=\"big\">Lidar works like ultrasonic, but it uses a laser instead of sound.</p>",
+        "<p><b>LIDAR</b> stands for <b>LI</b>ght <b>D</b>etection <b>A</b>nd <b>R</b>anging. Most lidars fire a tiny flash of invisible laser light and time how long the reflection takes to come back.</p>",
+        "<p>Light is about <b>870,000 times faster</b> than sound. It travels about <b>30 cm in one nanosecond (ns)</b>, a billionth of a second. So lidar needs a super fast timer.</p>",
+        "<p class=\"formula\">distance = speed of light × time ÷ 2</p>"
+      ]
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>Spin it to make a map</h3>",
+        "<p>A laser beam is thin, so it measures one exact spot. To see the whole room, many lidars <b>spin</b> and measure thousands of spots every second.</p>",
+        "<p>Each measurement is one dot. Put the dots together and you get a map called a <b>point cloud</b>.</p>",
+        "<ul><li><b>Robot vacuums:</b> on many of them, the round bump on top is a spinning lidar that maps your house.</li>",
+        "<li><b>Self-driving cars:</b> many use lidar to spot cars, bikes, and people all around them.</li>",
+        "<li><b>Some phones</b> have a tiny lidar that measures rooms and helps the camera focus in the dark.</li></ul>"
+      ]
+    },
+    {
+      "type": "interactive",
+      "kind": "lidar"
+    },
+    {
+      "type": "read",
+      "html": [
+        "<h3>What lidar can't see</h3>",
+        "<ul><li><b>Behind things.</b> The laser stops at the first thing it hits. That's why you had to drive around the mystery shape.</li>",
+        "<li><b>Clear glass.</b> The laser goes right through, so a glass door can look like an open doorway.</li>",
+        "<li><b>Mirrors</b> bounce the laser away, and <b>fog or heavy rain</b> scatters it.</li></ul>"
+      ]
+    },
+    {
+      "type": "quiz",
+      "q": "Light travels about 30 cm every nanosecond. A laser flash comes back after 20 nanoseconds. How far away is the object?",
+      "options": [
+        "0.3 m",
+        "3 m",
+        "6 m",
+        "20 m"
+      ],
+      "answer": 1,
+      "explain": "In 20 ns light goes 20 × 0.3 m = 6 m. That's there and back, so the object is 3 m away."
+    },
+    {
+      "type": "quiz",
+      "q": "Why does a robot vacuum's lidar spin?",
+      "options": [
+        "To keep the laser cool",
+        "To measure in every direction and build a map",
+        "To suck up more dust",
+        "To make a humming sound"
+      ],
+      "answer": 1,
+      "explain": "One laser beam measures one spot. Spinning sweeps it all the way around, thousands of times, to map the room."
+    },
+    {
+      "type": "quiz",
+      "q": "In the mystery room, why did you have to drive around the shape?",
+      "options": [
+        "The laser was too weak",
+        "Lidar only sees the sides its laser can reach",
+        "The shape kept moving"
+      ],
+      "answer": 1,
+      "explain": "The laser can't go through things, so the back of the shape stays hidden until you look from another side."
+    }
+  ],
+  "missions": [],
+  "next": {
+    "label": "Build a robot in practice mode",
+    "href": "/practice"
+  }
+}
