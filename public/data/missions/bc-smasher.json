@@ -1,0 +1,104 @@
+{
+  "id": "bc-smasher",
+  "title": "Big hitter",
+  "game": "challenge",
+  "lesson": "rules",
+  "episode": 4,
+  "core": true,
+  "setting": "smasher",
+  "allow": {
+    "n": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c1": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v1": [
+      0,
+      1,
+      2
+    ],
+    "a1": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c2": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v2": [
+      0,
+      1,
+      2
+    ],
+    "a2": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c3": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v3": [
+      0,
+      1,
+      2
+    ],
+    "a3": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "start": {
+    "n": 0,
+    "c1": 0,
+    "v1": 0,
+    "a1": 0,
+    "c2": 0,
+    "v2": 0,
+    "a2": 0,
+    "c3": 0,
+    "v3": 0,
+    "a3": 0
+  },
+  "predict": {
+    "kind": "winsOfTen",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "beat"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "SMASHER swings a giant hammer. It misses a lot, but one hit takes about a third of your health.",
+      "question": "How many of the 10 fights will your rules win?"
+    },
+    "cadet": {
+      "question": "How many fights will your robot win?"
+    },
+    "operative": {
+      "question": "How many of the 10 fights will your rules win? You need 6 to beat the challenge."
+    }
+  },
+  "reward": null,
+  "art": []
+}

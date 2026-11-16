@@ -299,6 +299,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .ch-dots button.w { background: #4fd18b26; border-color: var(--good); color: var(--good); }
 .ch-dots button.l { background: #ff5d5d1f; border-color: var(--bad); color: var(--bad); }
 .ch-dots button[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 2px; }
+.ch-verdict { display: grid; gap: 8px; }
+.ch-verdict:empty { display: none; }
+#ch-run.wait { filter: grayscale(.7) brightness(.8); }
 .ch-score { margin: 0; font-size: 17px; font-weight: 600; }
 .ch-lesson { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--good); background: #4fd18b14; display: grid; gap: 10px; justify-items: start; }
 .ch-lesson p { margin: 0; font-size: 16px; }
@@ -453,12 +456,14 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         <p class="ch-intro" id="ch-intro"></p>
         <h3>Your robot's rules</h3>
         <div class="rules" id="ch-rules"></div>
+        <div id="ch-predict" aria-live="polite"></div>
         <div class="ch-ctrl">
           <button class="btn big" id="ch-run" type="button" data-tip="Fight the boss 10 times with your rules. Win 6 to beat the challenge.">Run 10 fights</button>
           <button class="btn ghost" id="ch-hint" type="button" data-tip="Show a hint. Each tap shows one more.">Need a hint?</button>
         </div>
         <ol class="ch-hints" id="ch-hints"></ol>
         <div class="ch-results" id="ch-results" hidden>
+          <div class="ch-verdict" id="ch-verdict"></div>
           <div class="ch-dots" id="ch-dots" role="group" aria-label="Fight results. Tap one to watch it."></div>
           <p class="ch-score" id="ch-score" role="status"></p>
           <div class="ch-lesson" id="ch-lesson" hidden><p id="ch-lessontext"></p><button class="btn" id="ch-next" type="button" data-tip="Go to the next challenge.">Next challenge</button></div>
@@ -486,6 +491,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 
 </div>
 
+<script>
+window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight","lab-hop","lab-car","lab-semi","lab-flip","lab-five","lab-semiflip","lab-people","lab-budget","bc-bruiser","bc-turtle","bc-ghost","bc-smasher","bc-mega"],"missions":{"gear-hill":{"id":"gear-hill","title":"Gear on a hill","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-hill-22","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":0,"tire":1},"predict":{"kind":"reachTop","with":"choice"},"goal":{"kind":"reachEnd"},"tiers":{"recruit":{"brief":"I built a test hill as steep as the climbs at Neon Peaks. Your car starts with 4:1 gears. Pick a gear, predict, then drive it.","question":"Will your car make it to the top?","drive":"assist"},"cadet":{"brief":"I built a very steep hill. Pick a gear. Will the car get to the top?","question":"Will the car get to the top?","drive":"auto"},"operative":{"brief":"I built a 40 m test hill at 21.8°, as steep as the climbs at Neon Peaks. The car starts at 4:1. Choose a gear ratio, predict, then drive it.","question":"Will your car reach the top?","drive":"full"}},"reward":null,"art":[]},"gear-straight":{"id":"gear-straight","title":"Gear on a straight","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-flat-150","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":3,"tire":1},"predict":{"kind":"topGear"},"goal":{"kind":"bestGear"},"tiers":{"recruit":{"brief":"Now a flat straight, 150 m long. Before you drive, guess which gear will reach the highest top speed. Then test every gear and find out.","question":"Which gear will reach the highest top speed?","drive":"assist"},"cadet":{"brief":"Now a long flat road. Which gear goes fastest? Guess, then try them all.","question":"Which gear will go the fastest?","drive":"auto"},"operative":{"brief":"A 150 m flat straight. Predict which gear ratio gives the highest top speed, then test every ratio.","question":"Which gear ratio reaches the highest top speed?","drive":"full"}},"reward":null,"art":[]},"hill-straight":{"id":"hill-straight","title":"Hill, then straight","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-hill17-flat","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":3,"tire":1},"predict":{"kind":"firstHome"},"goal":{"kind":"bestGear"},"tiers":{"recruit":{"brief":"Here's the real test: a 40 m hill, then 120 m of flat road. One gear has to do both. Guess which gear gets to the end first, then test them all.","question":"Which gear will get to the end first?","drive":"assist"},"cadet":{"brief":"A hill, then a long flat road. Which gear gets there first? Guess, then try them all.","question":"Which gear will get there first?","drive":"auto"},"operative":{"brief":"40 m at 16.7°, then 120 m flat. Predict which gear ratio has the best total time, then test every ratio.","question":"Which gear ratio finishes first?","drive":"full"}},"reward":null,"art":[]},"lab-hop":{"id":"lab-hop","title":"First Flight","game":"lab","lesson":"thrust","episode":5,"core":true,"setting":"hop","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Use your thrusters to stay in the air for at least 2 seconds, then land safely.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-car":{"id":"lab-car","title":"Car Hop","game":"lab","lesson":"thrust","episode":5,"core":true,"setting":"car","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Jump over a parked car and land safely on the other side.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-semi":{"id":"lab-semi","title":"Semi Jump","game":"lab","lesson":"landing","episode":5,"core":true,"setting":"semi","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Clear a semi truck with its trailer. It's 4 meters tall and 20 meters long.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-flip":{"id":"lab-flip","title":"Backflip","game":"lab","lesson":"engineer","episode":8,"core":false,"setting":"flip","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Do a full backflip in the air and land on your wheels.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-five":{"id":"lab-five","title":"Five in a Row","game":"lab","lesson":"landing","episode":5,"core":true,"setting":"five","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Like the real demo: hop over five vehicles parked in a line, including a semi truck.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-semiflip":{"id":"lab-semiflip","title":"Semi Flip","game":"lab","lesson":"engineer","episode":8,"core":false,"setting":"semiflip","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Clear the semi truck AND do a backflip on the way over.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-people":{"id":"lab-people","title":"Passenger Safety","game":"lab","lesson":"landing","episode":5,"core":true,"setting":"people","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Carry 2 passengers over the semi truck. The landing must be gentle: under 6 g.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"lab-budget":{"id":"lab-budget","title":"Budget Engineer","game":"lab","lesson":"engineer","episode":8,"core":false,"setting":"budget","allow":{"material":[0,1,2,3],"tanks":[0,1,2,3,4,5,6,7,8],"lift":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"push":[0,1,2,3,4],"flip":[0,1,2,3,4],"computer":[0,1,2],"gear":[0,1,2],"people":[0,1,2],"speed":[20,25,30,35,40,45,50,55,60],"ramp":[0,1,2],"reserve":[0,15,30,45],"flipOn":[0,1]},"start":{"material":2,"tanks":3,"lift":6,"push":0,"flip":0,"computer":0,"gear":0,"people":1,"speed":50,"ramp":1,"reserve":0,"flipOn":0},"predict":{"kind":"willClear","with":"choice"},"goal":{"kind":"complete"},"tiers":{"recruit":{"brief":"Clear the semi truck while spending less than $150,000. Every dollar counts.","question":"Will this design complete the mission?"},"cadet":{"question":"Will your car do it?"},"operative":{"question":"Will this design complete the mission? Check its thrust-to-weight and air before you launch."}},"reward":null,"art":[]},"bc-bruiser":{"id":"bc-bruiser","title":"Power up","game":"challenge","lesson":"rules","episode":4,"core":true,"setting":"bruiser","allow":{"n":[0,1,2,3],"c1":[0,1,2,3,4],"v1":[0,1,2],"a1":[0,1,2,3],"c2":[0,1,2,3,4],"v2":[0,1,2],"a2":[0,1,2,3],"c3":[0,1,2,3,4],"v3":[0,1,2],"a3":[0,1,2,3]},"start":{"n":0,"c1":0,"v1":0,"a1":0,"c2":0,"v2":0,"a2":0,"c3":0,"v3":0,"a3":0},"predict":{"kind":"winsOfTen","with":"choice"},"goal":{"kind":"beat"},"tiers":{"recruit":{"brief":"BRUISER has thick armor, so your small hits barely hurt it. Your Camera and Gripper hit almost every time, though.","question":"How many of the 10 fights will your rules win?"},"cadet":{"question":"How many fights will your robot win?"},"operative":{"question":"How many of the 10 fights will your rules win? You need 6 to beat the challenge."}},"reward":null,"art":[]},"bc-turtle":{"id":"bc-turtle","title":"Shield breaker","game":"challenge","lesson":"rules","episode":4,"core":true,"setting":"turtle","allow":{"n":[0,1,2,3],"c1":[0,1,2,3,4],"v1":[0,1,2],"a1":[0,1,2,3],"c2":[0,1,2,3,4],"v2":[0,1,2],"a2":[0,1,2,3],"c3":[0,1,2,3,4],"v3":[0,1,2],"a3":[0,1,2,3]},"start":{"n":0,"c1":0,"v1":0,"a1":0,"c2":0,"v2":0,"a2":0,"c3":0,"v3":0,"a3":0},"predict":{"kind":"winsOfTen","with":"choice"},"goal":{"kind":"beat"},"tiers":{"recruit":{"brief":"TURTLE raises its shield every chance it gets. A shield cuts your next hit in half, and then TURTLE hits back harder.","question":"How many of the 10 fights will your rules win?"},"cadet":{"question":"How many fights will your robot win?"},"operative":{"question":"How many of the 10 fights will your rules win? You need 6 to beat the challenge."}},"reward":null,"art":[]},"bc-ghost":{"id":"bc-ghost","title":"Hard to hit","game":"challenge","lesson":"rules","episode":4,"core":true,"setting":"ghost","allow":{"n":[0,1,2,3],"c1":[0,1,2,3,4],"v1":[0,1,2],"a1":[0,1,2,3],"c2":[0,1,2,3,4],"v2":[0,1,2],"a2":[0,1,2,3],"c3":[0,1,2,3,4],"v3":[0,1,2],"a3":[0,1,2,3]},"start":{"n":0,"c1":0,"v1":0,"a1":0,"c2":0,"v2":0,"a2":0,"c3":0,"v3":0,"a3":0},"predict":{"kind":"winsOfTen","with":"choice"},"goal":{"kind":"beat"},"tiers":{"recruit":{"brief":"GHOST has Legs and an Ultrasonic sensor, so it dodges a lot. Your Hammer only hits about 1 swing in 4.","question":"How many of the 10 fights will your rules win?"},"cadet":{"question":"How many fights will your robot win?"},"operative":{"question":"How many of the 10 fights will your rules win? You need 6 to beat the challenge."}},"reward":null,"art":[]},"bc-smasher":{"id":"bc-smasher","title":"Big hitter","game":"challenge","lesson":"rules","episode":4,"core":true,"setting":"smasher","allow":{"n":[0,1,2,3],"c1":[0,1,2,3,4],"v1":[0,1,2],"a1":[0,1,2,3],"c2":[0,1,2,3,4],"v2":[0,1,2],"a2":[0,1,2,3],"c3":[0,1,2,3,4],"v3":[0,1,2],"a3":[0,1,2,3]},"start":{"n":0,"c1":0,"v1":0,"a1":0,"c2":0,"v2":0,"a2":0,"c3":0,"v3":0,"a3":0},"predict":{"kind":"winsOfTen","with":"choice"},"goal":{"kind":"beat"},"tiers":{"recruit":{"brief":"SMASHER swings a giant hammer. It misses a lot, but one hit takes about a third of your health.","question":"How many of the 10 fights will your rules win?"},"cadet":{"question":"How many fights will your robot win?"},"operative":{"question":"How many of the 10 fights will your rules win? You need 6 to beat the challenge."}},"reward":null,"art":[]},"bc-mega":{"id":"bc-mega","title":"Final boss","game":"challenge","lesson":"rules","episode":4,"core":true,"setting":"mega","allow":{"n":[0,1,2,3],"c1":[0,1,2,3,4],"v1":[0,1,2],"a1":[0,1,2,3],"c2":[0,1,2,3,4],"v2":[0,1,2],"a2":[0,1,2,3],"c3":[0,1,2,3,4],"v3":[0,1,2],"a3":[0,1,2,3]},"start":{"n":0,"c1":0,"v1":0,"a1":0,"c2":0,"v2":0,"a2":0,"c3":0,"v3":0,"a3":0},"predict":{"kind":"winsOfTen","with":"choice"},"goal":{"kind":"beat"},"tiers":{"recruit":{"brief":"MEGA is fast, raises a shield when it gets hurt, and flips robots over. Good news: your Wedge is too low to flip!","question":"How many of the 10 fights will your rules win?"},"cadet":{"question":"How many fights will your robot win?"},"operative":{"question":"How many of the 10 fights will your rules win? You need 6 to beat the challenge."}},"reward":null,"art":[]}}};
+</script>
 <script>
 /*
  * Bot Arena engine — shared by the server (Node) and the browser.
@@ -1900,7 +1908,39 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     const wins = fights.filter((f) => f.won).length;
     return { a, b, fights, wins, passed: wins >= NEED };
   }
-  return { FIGHTS, NEED, LIST, rulesOf, bots, run };
+  // ---------------- missions (public/data/missions, read by missions.js) ----------------
+  // A mission file bc-<id> names a challenge (its setting). A choice is the rules as flat numbers: n rules (0 to 3) and,
+  // for rule i, ci (the IF), vi (its number choice) and ai (the move). The answer to "how many of the 10 fights will
+  // these rules win?" comes from running the fights, so the file never holds one.
+  const SLOTS = E.RULES.max;
+  const ranges = { n: SLOTS + 1, c: E.RULES.IF.length, v: 3, a: E.RULES.DO.length };
+  const choiceOf = (rules) => {
+    const out = { n: Math.min(SLOTS, rules.length) };
+    for (let i = 1; i <= SLOTS; i++) { const r = rules[i - 1] || { c: 0, v: 0, a: 0 }; out["c" + i] = r.c; out["v" + i] = r.v; out["a" + i] = r.a; }
+    return out;
+  };
+  const rulesFromChoice = (c) => Array.from({ length: c.n }, (_, k) => ({ c: c["c" + (k + 1)], v: c["v" + (k + 1)], a: c["a" + (k + 1)] }));
+  const BANDS = [[0, 2, "0 to 2 wins"], [3, 5, "3 to 5 wins"], [6, 8, "6 to 8 wins"], [9, 10, "9 or 10 wins"]];
+  const band = (wins) => BANDS.findIndex(([lo, hi]) => wins >= lo && wins <= hi);
+  const runOf = (mission, c) => run(LIST.find((x) => x.id === mission.setting), rulesFromChoice(c));
+  const MISSION = {
+    setting: (id) => LIST.find((x) => x.id === id),
+    clamp: (c) => {
+      const f = (v, n) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(0, Math.min(n - 1, v)) : 0; };
+      const out = { n: f(c.n, ranges.n) };
+      for (let i = 1; i <= SLOTS; i++) { out["c" + i] = f(c["c" + i], ranges.c); out["v" + i] = f(c["v" + i], ranges.v); out["a" + i] = f(c["a" + i], ranges.a); }
+      return out;
+    },
+    run: (mission, c) => runOf(mission, c),
+    predict: {
+      winsOfTen: {
+        options: () => BANDS.map(([, , label], i) => ({ value: i, label })),
+        answer: (mission, c) => band(runOf(mission, c).wins),
+      },
+    },
+    goal: { beat: { met: (mission, r) => r.passed } },
+  };
+  return { FIGHTS, NEED, LIST, rulesOf, bots, run, MISSION, choiceOf, rulesFromChoice, BANDS };
 });
 
 </script>
@@ -1972,6 +2012,201 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   // only when the scrolling area holds the tipped element (the battle log scrolls on its own during fights)
   window.addEventListener("scroll", (e) => { if (cur && (e.target === document || (e.target.contains && e.target.contains(cur)))) hide(); }, true);
   window.addEventListener("resize", hide);
+})();
+
+</script>
+<script>
+/* Reading levels (tiers): Cadet (grades 1–3), Recruit (4–8), Operative (9–12). Shared by the browser, the server and
+ * the tests. Text in lessons, missions and problem sets is either one value for every tier or
+ * { cadet, recruit, operative }; a tier that isn't written yet falls back to the Recruit text. */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Tier = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const LEVELS = ["cadet", "recruit", "operative"];
+  const isTiered = (v) => v != null && typeof v === "object" && !Array.isArray(v) && LEVELS.some((t) => t in v);
+  function text(v, tier) {
+    if (!isTiered(v)) return v;
+    return v[tier] != null ? v[tier] : v.recruit;
+  }
+  // this device's reading level (the mission page has the switch)
+  function current() {
+    try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
+  }
+  // this device's choice (the class setting will win over it once teachers can set one)
+  function set(t) { if (LEVELS.includes(t)) try { localStorage.setItem("cr-tier", JSON.stringify(t)); } catch {} }
+  return { LEVELS, isTiered, text, current, set };
+});
+
+</script>
+<script>
+/*
+ * The mission engine, shared by the browser, the server and the tests. Mission files (public/data/missions/<id>.json)
+ * say what a student may change, what they predict and what counts as done; they never hold an answer. Each game's
+ * model (race.js today) has a MISSION object that works out the right answer and checks the goal by running its own
+ * physics, so a retune can't make a mission wrong. test/missions.test.js runs every mission with every allowed choice.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Missions = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const games = {};
+  const register = (game, model) => { games[game] = model; };
+  const model = (m) => games[m.game];
+
+  // the choices for a run: the mission's start, with each allowed value the student picked (anything else is ignored)
+  function choice(m, c) {
+    const out = Object.assign({}, m.start);
+    for (const k in m.allow) { const v = c == null ? NaN : Number(c[k]); if (m.allow[k].includes(v)) out[k] = v; }
+    return model(m).clamp(out);
+  }
+  // what the prediction is about: the student's choice, or a fixed setup the mission names
+  const about = (m, c) => (m.predict.with && m.predict.with !== "choice" ? model(m).clamp(m.predict.with) : choice(m, c));
+  const kind = (m) => model(m).predict[m.predict.kind];
+
+  // problems with a mission file, as sentences (an empty list means it's fine)
+  function check(m, lessons) {
+    const p = [], g = m && games[m.game];
+    if (!m || typeof m.id !== "string" || !/^[a-z][a-z0-9-]*$/.test(m.id)) p.push("the id must be lowercase words with dashes");
+    if (!g) return p.concat(`there's no game called ${m && m.game}`);
+    if (lessons && !lessons.includes(m.lesson)) p.push(`there's no lesson called ${m.lesson}`);
+    if (!g.setting(m.setting)) p.push(`the ${m.game} model has no setting called ${m.setting}`);
+    if (!m.allow || typeof m.allow !== "object" || !Object.keys(m.allow).length) p.push("allow needs at least one choice");
+    else for (const k in m.allow) {
+      if (!Array.isArray(m.allow[k]) || !m.allow[k].length) p.push(`allow.${k} needs a list of values`);
+      else if (!m.start || !m.allow[k].includes(m.start[k])) p.push(`start.${k} must be one of the allowed values`);
+    }
+    if (!m.predict || !g.predict[m.predict.kind]) p.push(`the ${m.game} model has no prediction called ${m.predict && m.predict.kind}`);
+    if (!m.goal || !g.goal[m.goal.kind]) p.push(`the ${m.game} model has no goal called ${m.goal && m.goal.kind}`);
+    if (!m.tiers || !m.tiers.recruit || !m.tiers.recruit.brief || !m.tiers.recruit.question) p.push("it needs Recruit text: a brief and a question");
+    if ("answer" in m || (m.predict && "answer" in m.predict)) p.push("a mission never stores its answer: the model works it out");
+    return p;
+  }
+
+  const options = (m, tier) => kind(m).options(m, tier);
+  const answer = (m, c) => kind(m).answer(m, about(m, c));
+  // the answer is too close to the line between two options to ask about (a small retune could flip it)
+  const close = (m, c) => !!(kind(m).close && kind(m).close(m, about(m, c)));
+  // run it (with the student's inputs when they drove), and whether it met the goal
+  function result(m, c, run) {
+    const ch = choice(m, c), r = model(m).run(m, ch, run);
+    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r, ch) };
+  }
+  // a question that compares every choice ("which gear wins?") is asked before the first run only
+  const once = (m) => !!kind(m).once;
+  // mission text for a reading level, falling back to the Recruit text
+  const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
+  // which allowed choices changed between two tries (the one-change tracker)
+  function changes(m, before, after) {
+    const a = choice(m, before), b = choice(m, after), keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
+    return { n: keys.length, keys };
+  }
+  // every combination of the allowed choices
+  const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
+
+  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices };
+});
+
+</script>
+<script>
+/*
+ * Cards for the learning loop (predict, test, explain, improve), for any game page (window.Cards, browser only).
+ * predict: one question before each run; the answer locks when the run starts, so it shows what the student really
+ * thought. explain: what happened and why, from the run's real numbers, with one tip and a "Try it" button that makes
+ * that one change, a graph, and glossary words that show their meaning. Text is always set with textContent.
+ */
+(function () {
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  // o: { question, options: [{ value, label }], onPick(value), go: the run button's name, kicker } -> { value, lock(), say(text) }
+  function predict(box, o) {
+    box.innerHTML = "";
+    const go = o.go || "Run";
+    const card = el("div", "pcard"), row = el("div", "popts"), status = el("p", "pstatus", `Pick what you think will happen. It locks when you press ${go}.`);
+    card.append(el("span", "pkick", o.kicker || "Predict first"), el("p", "pq", o.question), row, status);
+    row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", o.question);
+    let value = null, locked = false;
+    const btns = o.options.map((op) => {
+      const b = el("button", "popt", op.label); b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
+      b.setAttribute("data-tip", `Your prediction: ${op.label}. You can change it until you press ${go}.`);
+      b.onclick = () => {
+        if (locked) return;
+        value = op.value; btns.forEach((x, i) => x.setAttribute("aria-checked", String(o.options[i].value === value)));
+        status.textContent = "Good. Now run the test.";
+        if (o.onPick) o.onPick(value);
+      };
+      row.appendChild(b); return b;
+    });
+    box.appendChild(card);
+    return { get value() { return value; }, lock() { locked = true; btns.forEach((b) => (b.disabled = true)); status.textContent = "Locked in. Let's see!"; }, say(text) { status.textContent = text; }, card };
+  }
+
+  // text with the first use of each glossary term underlined, showing its meaning (glossary: id -> { term, forms, def })
+  function termText(node, text, terms, glossary) {
+    const hits = [];
+    for (const id of terms || []) {
+      const g = glossary && glossary[id]; if (!g) continue;
+      for (const f of [g.term, ...(g.forms || [])]) {
+        const m = new RegExp(`(?<![A-Za-z])${f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![A-Za-z])`, "i").exec(text);
+        if (m && !hits.some((h) => m.index < h.end && h.start < m.index + m[0].length)) { hits.push({ start: m.index, end: m.index + m[0].length, def: g.def }); break; }
+      }
+    }
+    hits.sort((a, b) => a.start - b.start);
+    let at = 0;
+    for (const h of hits) {
+      node.append(text.slice(at, h.start));
+      const s = el("span", "hastip", text.slice(h.start, h.end)); s.tabIndex = 0; s.setAttribute("data-tip", h.def); node.append(s);
+      at = h.end;
+    }
+    node.append(text.slice(at));
+  }
+
+  // speed along the run over the road's height: where it slowed, and where it stopped
+  function graph(canvas, g) {
+    const ctx = canvas.getContext("2d"), dpr = window.devicePixelRatio || 1, W = canvas.clientWidth || 600, H = canvas.clientHeight || 170;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const L = 44, Rp = 12, T = 14, B = 30, pw = W - L - Rp, ph = H - T - B, kmh = (v) => v * 3.6;
+    const ys = g.profile.map((p) => p[1]), y0 = Math.min(...ys), y1 = Math.max(...ys), vMax = Math.max(20, Math.ceil(kmh(Math.max(...g.speed.map((p) => p[1]))) / 10) * 10);
+    const X = (z) => L + (Math.min(g.length, Math.max(0, z)) / g.length) * pw, YH = (y) => T + ph - ((y - y0) / Math.max(1, y1 - y0)) * ph * 0.6, YV = (v) => T + ph - (kmh(v) / vMax) * ph;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(X(0), T + ph); g.profile.forEach(([z, y]) => ctx.lineTo(X(z), YH(y))); ctx.lineTo(X(g.length), T + ph); ctx.closePath(); ctx.fill(); // the hill
+    ctx.font = "600 11px 'JetBrains Mono', monospace"; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (let v = 0; v <= vMax; v += vMax / 2) { ctx.fillText(String(v), L - 6, YV(v / 3.6)); ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.beginPath(); ctx.moveTo(L, YV(v / 3.6)); ctx.lineTo(L + pw, YV(v / 3.6)); ctx.stroke(); }
+    if (g.slow) { ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(255,210,63,.7)"; ctx.beginPath(); ctx.moveTo(L, YV(g.slow)); ctx.lineTo(L + pw, YV(g.slow)); ctx.stroke(); ctx.setLineDash([]); ctx.textAlign = "right"; ctx.fillStyle = "#ffd23f"; ctx.fillText("slow climb", L + pw - 4, YV(g.slow) + 10); }
+    ctx.lineWidth = 2.5; ctx.strokeStyle = "#f46524"; ctx.beginPath(); g.speed.forEach(([z, v], i) => (i ? ctx.lineTo(X(z), YV(v)) : ctx.moveTo(X(z), YV(v)))); ctx.stroke(); ctx.lineWidth = 1; // the speed
+    if (g.stop != null) { ctx.fillStyle = "#ff5d5d"; ctx.beginPath(); ctx.arc(X(g.stop), YV(0), 5, 0, 7); ctx.fill(); ctx.textAlign = X(g.stop) > L + pw - 70 ? "right" : "left"; ctx.fillText("stopped here", X(g.stop) + (ctx.textAlign === "left" ? 8 : -8), YV(0) - 10); }
+    ctx.textAlign = "center"; ctx.fillStyle = "#aaa6b0"; ctx.textBaseline = "alphabetic";
+    ctx.fillText(`distance along the test (m), 0 to ${Math.round(g.length)}`, L + pw / 2, H - 6);
+    ctx.save(); ctx.translate(12, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("km/h", 0, 0); ctx.restore();
+  }
+
+  // d: { headline, items: [{ tone, title, text, terms }], tip: { text, change }, graph }; o: { glossary, onTry(change), before: [nodes] }
+  function explain(box, d, o = {}) {
+    const frag = document.createDocumentFragment();
+    (o.before || []).forEach((n) => frag.appendChild(n));
+    if (d.headline) frag.appendChild(el("div", "headline" + (d.headline.tone === "good" ? " good" : ""), d.headline.text));
+    if (d.graph && d.graph.kind === "speedDistance") {
+      const wrap = el("div", "xgraph"), cv = el("canvas"); cv.setAttribute("role", "img");
+      cv.setAttribute("aria-label", "A graph of the car's speed along the test, drawn over the shape of the hill." + (d.graph.stop != null ? " The line drops to zero where the car stopped." : ""));
+      wrap.append(cv, el("p", "xcap", d.graph.slow ? "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb." : "Orange: your speed. Gray: the height of the road.")); frag.appendChild(wrap);
+      if (window.ResizeObserver) new ResizeObserver(() => graph(cv, d.graph)).observe(cv); // redrawn at its new size when a phone turns
+      else requestAnimationFrame(() => graph(cv, d.graph));
+    }
+    d.items.forEach((it, i) => {
+      const f = el("div", "finding " + it.tone); f.style.animationDelay = i * 0.06 + "s";
+      f.append(el("span", "ic", it.tone === "good" ? "✓" : it.tone === "bad" ? "✗" : "i"));
+      const body = el("div"), p = el("p"); body.append(el("h4", null, it.title), p); termText(p, it.text, it.terms, o.glossary); f.appendChild(body);
+      frag.appendChild(f);
+    });
+    if (d.tip) {
+      const t = el("div", "tipbox"); t.append(el("b", null, "Try this next"), el("span", null, d.tip.text));
+      if (d.tip.change && o.onTry) { const b = el("button", "btn ghost", "Try it"); b.type = "button"; b.setAttribute("data-tip", "Make this one change in the garage, then predict again."); b.onclick = () => o.onTry(d.tip.change); t.appendChild(b); }
+      frag.appendChild(t);
+    }
+    box.appendChild(frag);
+  }
+
+  window.Cards = { predict, explain, graph, termText };
 })();
 
 </script>
@@ -2241,8 +2476,86 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     $("ch-log").innerHTML = '<p class="small" style="margin:0">Run the 10 fights, then tap any result to watch that fight here.</p>';
     $("ch-na").textContent = you.name; $("ch-nb").textContent = boss.name;
     chStage.setBots(you, boss, ch.n.toUpperCase());
+    $("ch-verdict").innerHTML = "";
     renderChPick();
+    loop.open(i);
   }
+  // ---------------- predict, test, explain, improve ----------------
+  // Each challenge has a mission file (public/data/missions/bc-<id>.json, read by missions.js). Before Run 10 fights the
+  // student predicts how many they'll win; the prediction locks on Run, and the results start with whether they were right
+  // and what their one change (a rule added, removed or edited) did. Challenges.MISSION runs the fights for the answer.
+  const loop = (() => {
+    const off = !window.Missions || !window.Cards;
+    const tier = () => (window.Tier ? Tier.current() : "recruit");
+    const files = {};
+    let m = null, card = null, prev = null, pending = null;
+    if (!off) Missions.register("challenge", CH.MISSION);
+    const fileOf = (id) => {
+      if (!files[id]) {
+        const data = window.MISSION_DATA; // the offline copy has the missions built in
+        files[id] = (data ? (data.missions[id] ? Promise.resolve(data.missions[id]) : Promise.reject(new Error(id)))
+          : fetch("/data/missions/" + id + ".json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(id)))))
+          .then((f) => { if (f.game !== "challenge" || Missions.check(f).length) throw new Error(id); return f; });
+      }
+      return files[id];
+    };
+    const waiting = () => !!card && card.value == null;
+    function gate() { const b = $("ch-run"), w = waiting(); b.classList.toggle("wait", w); b.setAttribute("aria-disabled", String(w)); }
+    function ask() {
+      const box = $("ch-predict"); box.innerHTML = ""; card = null; pending = null;
+      if (m) card = Cards.predict(box, { question: Missions.text(m, "question", tier()), options: Missions.options(m, tier()), go: "Run 10 fights", kicker: prev ? "Next try: predict first" : "Predict first", onPick: () => { gate(); } });
+      gate();
+    }
+    function open(i) {
+      m = null; prev = null; ask();
+      if (off) return;
+      fileOf("bc-" + CH.LIST[i].id).then((f) => { if (chI === i) { m = f; ask(); } }, () => {}); // no file: the challenge works without predictions
+    }
+    function go() {
+      if (waiting()) { card.say("Pick one first, then press Run 10 fights."); try { card.card.scrollIntoView({ behavior: E.RM ? "auto" : "smooth", block: "center" }); } catch {} return false; }
+      if (card && pending) { ask(); return go(); }
+      if (card) { pending = { predicted: card.value, rules: chRules[CH.LIST[chI].id].map((r) => ({ ...r })) }; card.lock(); }
+      return true;
+    }
+    // rules as short phrases, so a change can be named
+    const phrase = (r) => { const cond = E.RULES.IF[r.c]; return "IF " + cond.n + (cond.v ? " " + cond.v[r.v] + (cond.pct ? "%" : "") : "") + " THEN " + E.RULES.DO[r.a]; };
+    const same = (a, b) => a.c === b.c && a.v === b.v && a.a === b.a;
+    // what changed between two rule lists: { n, text }
+    function diff(a, b) {
+      const k = Math.max(a.length, b.length), ch = [];
+      for (let i = 0; i < k; i++) {
+        if (!a[i]) ch.push("added rule " + (i + 1) + " (" + phrase(b[i]) + ")");
+        else if (!b[i]) ch.push("removed rule " + (i + 1) + " (" + phrase(a[i]) + ")");
+        else if (!same(a[i], b[i])) ch.push("changed rule " + (i + 1) + " to " + phrase(b[i]));
+      }
+      return { n: ch.length, text: ch.join("; ") };
+    }
+    // fills #ch-verdict after a run, then a fresh question for the next try
+    function report(res) {
+      const box = $("ch-verdict"); box.innerHTML = "";
+      if (!pending || !m) return;
+      const opts = Missions.options(m, tier()), label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+      const answer = CH.BANDS.findIndex(([lo, hi]) => res.wins >= lo && res.wins <= hi);
+      const t = { predicted: pending.predicted, rules: pending.rules, right: pending.predicted === answer, wins: res.wins, passed: res.passed };
+      const prog = store.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
+      p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.passed; prog[m.id] = p; store.set("cr-missions", prog);
+      const v = document.createElement("div"), vb = document.createElement("b");
+      v.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+      v.append(vb, " You predicted “" + label(t.predicted) + "”. Your rules won " + res.wins + " of " + CH.FIGHTS + ".");
+      box.appendChild(v);
+      if (prev) {
+        const d = diff(prev.rules, t.rules), line = document.createElement("p"); line.className = "changeline";
+        const did = prev.wins === t.wins ? " It won " + t.wins + " again." : " Wins went from " + prev.wins + " to " + t.wins + ", " + (t.wins > prev.wins ? "so that helped." : "so that hurt.");
+        line.textContent = d.n === 0 ? "Same rules as last time, so the same fights happen. Change one thing to find out more."
+          : d.n === 1 ? "You " + d.text + "." + did + " One change, so you know it was that rule."
+          : "You made " + d.n + " changes (" + d.text + "), so you can't tell which one made the difference. Try changing one rule at a time.";
+        box.appendChild(line);
+      }
+      prev = t; ask();
+    }
+    return { open, go, report };
+  })();
+
   $("ch-hint").onclick = () => {
     const ch = CH.LIST[chI];
     if (chHint >= ch.hints.length) return;
@@ -2260,8 +2573,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   }
   $("ch-run").onclick = () => {
     const ch = CH.LIST[chI];
+    if (!loop.go()) return;
     chRes = CH.run(ch, chRules[ch.id]);
     if (!chRes) return;
+    loop.report(chRes);
     $("ch-dots").innerHTML = "";
     chRes.fights.forEach((f, k) => {
       const d = document.createElement("button"); d.type = "button"; d.className = f.won ? "w" : "l"; d.textContent = f.won ? "W" : "L";
@@ -2287,7 +2602,11 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   $("ch-next").onclick = () => { if (chI < CH.LIST.length - 1) { E.Sound.play("go"); openCh(chI + 1); } };
   $("ch-skip").onclick = () => chStage.skip();
   [["ch-sp1", 1], ["ch-sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { chStage.speed = v; $("ch-sp1").setAttribute("aria-pressed", v === 1); $("ch-sp2").setAttribute("aria-pressed", v === 2); }));
-  { const first = CH.LIST.findIndex((c, i) => chOpen(i) && !(chProg[c.id] || {}).done); openCh(first < 0 ? 0 : first); }
+  { // a mission link (?mission=bc-<id>) opens that challenge when it's unlocked; otherwise the first one still to beat
+    const asked = CH.LIST.findIndex((c, i) => new RegExp("[?&]mission=bc-" + c.id + "(&|$)").test(location.search) && chOpen(i));
+    const first = CH.LIST.findIndex((c, i) => chOpen(i) && !(chProg[c.id] || {}).done); openCh(asked >= 0 ? asked : first < 0 ? 0 : first); }
+
+  window.__ch = { setRules(r) { chRules[CH.LIST[chI].id] = r; rulesChanged(); }, get rules() { return chRules[CH.LIST[chI].id]; } }; // for the browser checks
 
   // ---------------- tabs + loop ----------------
   function show(bay) {
