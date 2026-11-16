@@ -1216,6 +1216,13 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
   const TRACKS = DEFS.map(makeTrack), TRACK = TRACKS[0];
   const trackOf = (t) => (typeof t === "object" && t ? t : TRACKS[t] || TRACK);
+  // Test benches: short point-to-point strips that each hold one idea, for missions. They're not in TRACKS, so the
+  // track picker, class boards and Race Day never list them; missions name them by id. New strips go at the end.
+  const STRIPS = [
+    { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
+      keys: { straight: "Run-up", hill: "Hill", corner: "Top" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
+  ].map(makeTrack);
+  const stripOf = (id) => STRIPS.find((s) => s.id === id);
 
   // ---------------- car ----------------
   function clampSetup(s) {
@@ -1376,7 +1383,40 @@ canvas { display: block; width: 100%; max-width: 100%; }
     return { items: out, tip, stats: st };
   }
 
-  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
+  // ---------------- missions ----------------
+  // What Racer missions (public/data/missions, read by missions.js) can ask about and aim for. Every answer comes from
+  // driving the strip here with the computer driver, never from the mission file, so a retune can't make one wrong.
+  const autoRuns = {};
+  function driven(strip, setup) {
+    const k = `${strip.id}:${setup.gear}:${setup.tire}`;
+    return (autoRuns[k] = autoRuns[k] || lap(setup, autoLap(setup, undefined, strip), strip));
+  }
+  const hillMin = (strip, r) => Math.min(...strip.SECTIONS.map((s, i) => (s.slope > 0 ? r.sec[i].vMin : Infinity)));
+  const MISSION = {
+    setting: stripOf,
+    clamp: clampSetup,
+    // the student's own inputs when they drove it, otherwise the computer drives (Cadets: "Torque drives")
+    run(mission, setup, run) {
+      const strip = stripOf(mission.setting);
+      return run && typeof run.inputs === "string" ? lap(setup, run.inputs, strip) : driven(strip, clampSetup(setup));
+    },
+    predict: {
+      reachTop: {
+        options: () => [{ value: "top", label: "It makes it to the top", pic: "car-top" }, { value: "stuck", label: "It gets stuck on the hill", pic: "car-stuck" }],
+        answer: (mission, setup) => (driven(stripOf(mission.setting), setup).finished ? "top" : "stuck"),
+        // too close to call: a car that only just makes it (nearly stops on the hill), or one that only just can't
+        close(mission, setup) {
+          const strip = stripOf(mission.setting), r = driven(strip, setup);
+          return r.finished ? hillMin(strip, r) < 0.5 : climbSpeed(setup, strip.steep) > 0.2;
+        },
+      },
+    },
+    goal: {
+      reachEnd: { met: (mission, r) => !!r.finished },
+    },
+  };
+
+  return { G, DT, SEG, CAR, MOTOR, GEARS, TIRES, TRACK, TRACKS, trackOf, STRIPS, stripOf, MISSION, ROAD, WALL, clampSetup, newCar, motorForce, step, encode, decode, lap, autopilot, autoLap, autoTimes, setupStats, explain, MAX_STEPS, climbSpeed, medals, medalOf, LOOK, cleanLook };
 });
 
 </script>
