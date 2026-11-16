@@ -499,6 +499,10 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 <script src="/js/missions.js"></script>
 <script src="/js/cards.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script>
+  // one connection for presence and the Brain Challenge results a class game's board gets
+  if (window.io && location.protocol !== "file:") window.baSocket = io();
+</script>
 <script src="/js/presence.js"></script>
 <script src="/js/practice.js"></script>
 </body>

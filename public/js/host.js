@@ -26,6 +26,7 @@
   E.WEIGHT_CLASSES.forEach((w) => { const o = document.createElement("option"); o.value = w.kg; o.textContent = `${w.n} (${w.kg} kg)`; $("wclass").appendChild(o); });
   $("wclass").onchange = () => socket.emit("host:settings", { maxw: +$("wclass").value }, (r) => { if (r && !r.ok && r.error) $("hostmsg").textContent = r.error; });
   $("bo3").onchange = () => socket.emit("host:settings", { bo3: +$("bo3").value });
+  $("tier").onchange = () => socket.emit("host:settings", { tier: $("tier").value });
 
   // ---------- battle stage ----------
   const stage = new BattleStage($("arena"), {
@@ -93,10 +94,11 @@
   socket.on("disconnect", () => { $("hostmsg").textContent = "Reconnecting to the server..."; });
   socket.on("room:state", (s) => {
     $("hostmsg").textContent = ""; state = s; $("rxon").checked = s.reactions;
-    if (s.settings) { $("wclass").value = String(s.settings.maxw); $("bo3").value = String(s.settings.bo3); }
+    if (s.settings) { $("wclass").value = String(s.settings.maxw); $("bo3").value = String(s.settings.bo3); $("tier").value = s.settings.tier || ""; }
     render();
   });
   socket.on("room:status", (s) => { status = s || {}; if (state) render(); });
+  socket.on("room:missions", (d) => { missions = d || null; if (state) renderMissions(); });
   socket.on("room:react", ({ e }) => {
     const layer = $("rxlayer"), emo = E.REACTIONS[e];
     if (!emo || layer.childElementCount > 24) return; // a full screen of emoji is enough
@@ -120,7 +122,7 @@
     if (!state) return;
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
-    renderRace();
+    renderRace(); renderMissions();
     if (state.phase === "lobby") renderLobby();
     else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); renderClass(); }
   }
@@ -157,6 +159,36 @@
       have.delete(p.id);
     });
     have.forEach((el) => el.remove());
+  }
+
+  // Class missions (R-19): totals per mission always; each student's row only behind "Show names", which starts off
+  // every time the board loads because the board is usually projected. The server worked out every number.
+  let missions = null, showNames = false;
+  document.querySelectorAll(".misnames").forEach((cb) => (cb.onchange = () => { showNames = cb.checked; renderMissions(); }));
+  function renderMissions() {
+    const d = missions, have = !!(d && d.summary.length);
+    ["misp", "misp2"].forEach((id) => {
+      const box = $(id); box.hidden = !have; if (!have) return;
+      box.querySelector(".misnames").checked = showNames;
+      const ul = box.querySelector(".mislist"); ul.innerHTML = "";
+      d.summary.forEach(([, title, n, right, goal, one]) => {
+        const li = document.createElement("li"), b = document.createElement("b"); b.textContent = title + ": ";
+        li.append(b, `${right} of ${n} predicted right on the first try · ${goal} met the goal · ${one} changed one thing at a time`); ul.appendChild(li);
+      });
+      const wrap = box.querySelector(".mistable"); wrap.hidden = !showNames; wrap.innerHTML = "";
+      if (!showNames) return;
+      const titles = Object.fromEntries(d.summary.map((s) => [s[0], s[1]])), name = (pid) => (byId(pid) || {}).builder || "?";
+      const t = document.createElement("table"), head = document.createElement("tr");
+      ["Student", "Mission", "First prediction", "Tries", "One at a time", "Goal"].forEach((x) => { const th = document.createElement("th"); th.textContent = x; head.appendChild(th); });
+      t.appendChild(head);
+      d.rows.slice().sort((a, b) => name(a[0]).localeCompare(name(b[0])) || d.summary.findIndex((s) => s[0] === a[1]) - d.summary.findIndex((s) => s[0] === b[1])).forEach(([pid, mid, first, tries, one, several, goal]) => {
+        const tr = document.createElement("tr");
+        [[name(pid)], [titles[mid]], [first ? "✓ right" : "✗ wrong", first ? "y" : "n"], [String(tries)], tries < 2 ? ["–"] : [one && !several ? "✓" : "✗", one && !several ? "y" : "n"], [goal ? "✓" : "✗", goal ? "y" : "n"]]
+          .forEach(([x, cls]) => { const td = document.createElement("td"); td.textContent = x; if (cls) td.className = cls; tr.appendChild(td); });
+        t.appendChild(tr);
+      });
+      wrap.appendChild(t);
+    });
   }
 
   // the fastest Robot Racer lap on each track from this game (checked by the server)

@@ -54,13 +54,32 @@
   const once = (m) => !!kind(m).once;
   // mission text for a reading level, falling back to the Recruit text
   const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
-  // which allowed choices changed between two tries (the one-change tracker)
+  // which allowed choices changed between two tries (the one-change tracker); a model can count its own way (a Brain
+  // Challenge rule is three numbers but one change)
   function changes(m, before, after) {
-    const a = choice(m, before), b = choice(m, after), keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
+    const a = choice(m, before), b = choice(m, after);
+    if (model(m).changes) return model(m).changes(a, b);
+    const keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
     return { n: keys.length, keys };
   }
   // every combination of the allowed choices
   const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
 
-  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices };
+  // Browser only: in a class game, tell the teacher's board about a run (shared-parts-spec section 9). Solo play sends
+  // nothing. The server works out right, goal and changes itself; the reply carries the class's reading level.
+  function send(m, p, c, run) {
+    if (typeof window === "undefined" || !window.baSocket) return;
+    let s = null; try { s = JSON.parse(localStorage.getItem("ba-session")); } catch {}
+    if (!s || !s.code || !s.playerId || !s.token) return;
+    const msg = { who: { code: s.code, playerId: s.playerId, token: s.token }, m: m.id, p, c };
+    if (run) msg.run = run;
+    // a student who goes from one mission to the next within a second gets "wait": send it again, so no run is lost
+    const emit = (n) => window.baSocket.emit("player:mission", msg, (r) => {
+      if (r && r.wait && n < 3) return setTimeout(() => emit(n + 1), 1100);
+      if (window.Tier && Tier.setClass && r && (r.ok || r.gone)) Tier.setClass(s.code, r.ok ? r.tier : null);
+    });
+    emit(0);
+  }
+
+  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices, send };
 });

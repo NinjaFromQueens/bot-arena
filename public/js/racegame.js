@@ -225,9 +225,12 @@
     // the reading level (this device: cr-tier) and, when the student drives, steering help
     const opts = document.createElement("div"); opts.className = "mopts";
     const lbl = document.createElement("span"); lbl.className = "small"; lbl.textContent = "Reading level:"; opts.appendChild(lbl);
+    const byClass = !!(window.Tier && Tier.classTier && Tier.classTier());
     LEVELS.forEach(([t, name, tip]) => {
-      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = name; b.setAttribute("aria-pressed", String(tierNow() === t)); b.setAttribute("data-tip", tip);
-      b.onclick = () => { if (state === "countdown" || state === "race" || tierNow() === t) return; Tier.set(t); mis.help = driveMode() === "assist"; Sound.play("click"); renderMission(); if (state === "garage") nextTry(); else renderAll(); };
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = name; b.setAttribute("aria-pressed", String(tierNow() === t));
+      b.setAttribute("data-tip", byClass ? "Your teacher picked the reading level for the class." : tip);
+      if (byClass) b.setAttribute("aria-disabled", "true");
+      b.onclick = () => { if (byClass || state === "countdown" || state === "race" || tierNow() === t) return; Tier.set(t); mis.help = driveMode() === "assist"; Sound.play("click"); renderMission(); if (state === "garage") nextTry(); else renderAll(); };
       opts.appendChild(b);
     });
     if (!auto) {
@@ -262,6 +265,7 @@
     const prev = mis.prev; mis.tries.push(t); mis.prev = t;
     const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
     p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+    Missions.send(m, t.predicted, t.choice, { inputs }); // in a class game, the teacher's board gets the numbers
     lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
     Sound.play(t.finished ? "win" : "miss");
     // no cheering for the winning gear before every gear has been tried: that would give the answer away

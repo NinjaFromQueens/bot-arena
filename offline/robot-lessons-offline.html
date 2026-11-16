@@ -1935,13 +1935,25 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     if (!isTiered(v)) return v;
     return v[tier] != null ? v[tier] : v.recruit;
   }
-  // this device's reading level (the mission page has the switch)
+  // the class's reading level when the teacher set one: the game page saves it with the game's code, and it counts only
+  // while this device's game pass is for that game (so an old game's setting never sticks)
+  function classTier() {
+    try {
+      const c = JSON.parse(localStorage.getItem("cr-class-tier")), s = JSON.parse(localStorage.getItem("ba-session"));
+      return c && s && c.code === s.code && LEVELS.includes(c.tier) ? c.tier : null;
+    } catch { return null; }
+  }
+  function setClass(code, tier) {
+    try { if (code && LEVELS.includes(tier)) localStorage.setItem("cr-class-tier", JSON.stringify({ code, tier })); else localStorage.removeItem("cr-class-tier"); } catch {}
+  }
+  // this device's reading level: the class's when the teacher set one, otherwise the device's own choice, otherwise Recruit
   function current() {
+    const c = classTier(); if (c) return c;
     try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
   }
-  // this device's choice (the class setting will win over it once teachers can set one)
+  // this device's own choice (the class setting wins over it)
   function set(t) { if (LEVELS.includes(t)) try { localStorage.setItem("cr-tier", JSON.stringify(t)); } catch {} }
-  return { LEVELS, isTiered, text, current, set };
+  return { LEVELS, isTiered, text, current, set, classTier, setClass };
 });
 
 </script>

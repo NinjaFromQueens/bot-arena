@@ -91,6 +91,12 @@
       },
     },
     goal: { beat: { met: (mission, r) => r.passed } },
+    // one change = one rule added, removed or edited (a rule is three numbers, but the student changed one thing)
+    changes: (a, b) => {
+      const x = rulesFromChoice(a), y = rulesFromChoice(b), keys = [];
+      for (let i = 0; i < Math.max(x.length, y.length); i++) if (!x[i] || !y[i] || x[i].c !== y[i].c || x[i].v !== y[i].v || x[i].a !== y[i].a) keys.push("rule " + (i + 1));
+      return { n: keys.length, keys };
+    },
   };
   return { FIGHTS, NEED, LIST, rulesOf, bots, run, MISSION, choiceOf, rulesFromChoice, BANDS };
 });

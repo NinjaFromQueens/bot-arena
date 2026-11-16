@@ -89,6 +89,7 @@
   .mopts { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
   .mopts .chip { font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
   .mopts .chip[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .mopts .chip[aria-disabled="true"] { cursor: default; opacity: .6; } .mopts .chip[aria-disabled="true"][aria-pressed="true"] { opacity: 1; }
   .mopts .toggle { margin-left: 8px; }
   /* R-18: the result on the track view, over the road; the explanation stays below */
   .rescard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: rgba(20,19,22,.9); border: 2px solid var(--line); display: grid; gap: 8px; text-align: center; box-shadow: 0 12px 34px rgba(0,0,0,.5); }

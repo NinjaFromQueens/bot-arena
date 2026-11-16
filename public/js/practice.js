@@ -291,6 +291,7 @@
       const t = { predicted: pending.predicted, rules: pending.rules, right: pending.predicted === answer, wins: res.wins, passed: res.passed };
       const prog = store.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
       p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.passed; prog[m.id] = p; store.set("cr-missions", prog);
+      Missions.send(m, t.predicted, CH.choiceOf(t.rules)); // in a class game, the teacher's board gets the numbers
       const v = document.createElement("div"), vb = document.createElement("b");
       v.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
       v.append(vb, " You predicted “" + label(t.predicted) + "”. Your rules won " + res.wins + " of " + CH.FIGHTS + ".");

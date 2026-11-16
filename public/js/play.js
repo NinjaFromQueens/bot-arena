@@ -79,7 +79,11 @@
     if (session) join(true); // reconnect after refresh or dropped wifi
   });
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
-  socket.on("room:state", (s) => { state = s; applyLimit(s.settings && s.settings.maxw); render(); });
+  socket.on("room:state", (s) => {
+    state = s; applyLimit(s.settings && s.settings.maxw);
+    if (window.Tier && session) Tier.setClass(session.code, s.settings && s.settings.tier); // lessons and missions on this device follow it
+    render();
+  });
   // this game's weight class: the builder's limit and every "75 kg" on the page follow it
   let limitShown = 0;
   function applyLimit(kg) {

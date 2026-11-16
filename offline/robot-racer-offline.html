@@ -273,6 +273,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   .mopts { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
   .mopts .chip { font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
   .mopts .chip[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .mopts .chip[aria-disabled="true"] { cursor: default; opacity: .6; } .mopts .chip[aria-disabled="true"][aria-pressed="true"] { opacity: 1; }
   .mopts .toggle { margin-left: 8px; }
   /* R-18: the result on the track view, over the road; the explanation stays below */
   .rescard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: rgba(20,19,22,.9); border: 2px solid var(--line); display: grid; gap: 8px; text-align: center; box-shadow: 0 12px 34px rgba(0,0,0,.5); }
@@ -2110,13 +2111,25 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     if (!isTiered(v)) return v;
     return v[tier] != null ? v[tier] : v.recruit;
   }
-  // this device's reading level (the mission page has the switch)
+  // the class's reading level when the teacher set one: the game page saves it with the game's code, and it counts only
+  // while this device's game pass is for that game (so an old game's setting never sticks)
+  function classTier() {
+    try {
+      const c = JSON.parse(localStorage.getItem("cr-class-tier")), s = JSON.parse(localStorage.getItem("ba-session"));
+      return c && s && c.code === s.code && LEVELS.includes(c.tier) ? c.tier : null;
+    } catch { return null; }
+  }
+  function setClass(code, tier) {
+    try { if (code && LEVELS.includes(tier)) localStorage.setItem("cr-class-tier", JSON.stringify({ code, tier })); else localStorage.removeItem("cr-class-tier"); } catch {}
+  }
+  // this device's reading level: the class's when the teacher set one, otherwise the device's own choice, otherwise Recruit
   function current() {
+    const c = classTier(); if (c) return c;
     try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
   }
-  // this device's choice (the class setting will win over it once teachers can set one)
+  // this device's own choice (the class setting wins over it)
   function set(t) { if (LEVELS.includes(t)) try { localStorage.setItem("cr-tier", JSON.stringify(t)); } catch {} }
-  return { LEVELS, isTiered, text, current, set };
+  return { LEVELS, isTiered, text, current, set, classTier, setClass };
 });
 
 </script>
@@ -2177,15 +2190,34 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   const once = (m) => !!kind(m).once;
   // mission text for a reading level, falling back to the Recruit text
   const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
-  // which allowed choices changed between two tries (the one-change tracker)
+  // which allowed choices changed between two tries (the one-change tracker); a model can count its own way (a Brain
+  // Challenge rule is three numbers but one change)
   function changes(m, before, after) {
-    const a = choice(m, before), b = choice(m, after), keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
+    const a = choice(m, before), b = choice(m, after);
+    if (model(m).changes) return model(m).changes(a, b);
+    const keys = Object.keys(m.allow).filter((k) => a[k] !== b[k]);
     return { n: keys.length, keys };
   }
   // every combination of the allowed choices
   const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
 
-  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices };
+  // Browser only: in a class game, tell the teacher's board about a run (shared-parts-spec section 9). Solo play sends
+  // nothing. The server works out right, goal and changes itself; the reply carries the class's reading level.
+  function send(m, p, c, run) {
+    if (typeof window === "undefined" || !window.baSocket) return;
+    let s = null; try { s = JSON.parse(localStorage.getItem("ba-session")); } catch {}
+    if (!s || !s.code || !s.playerId || !s.token) return;
+    const msg = { who: { code: s.code, playerId: s.playerId, token: s.token }, m: m.id, p, c };
+    if (run) msg.run = run;
+    // a student who goes from one mission to the next within a second gets "wait": send it again, so no run is lost
+    const emit = (n) => window.baSocket.emit("player:mission", msg, (r) => {
+      if (r && r.wait && n < 3) return setTimeout(() => emit(n + 1), 1100);
+      if (window.Tier && Tier.setClass && r && (r.ok || r.gone)) Tier.setClass(s.code, r.ok ? r.tier : null);
+    });
+    emit(0);
+  }
+
+  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices, send };
 });
 
 </script>
@@ -2519,9 +2551,12 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     // the reading level (this device: cr-tier) and, when the student drives, steering help
     const opts = document.createElement("div"); opts.className = "mopts";
     const lbl = document.createElement("span"); lbl.className = "small"; lbl.textContent = "Reading level:"; opts.appendChild(lbl);
+    const byClass = !!(window.Tier && Tier.classTier && Tier.classTier());
     LEVELS.forEach(([t, name, tip]) => {
-      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = name; b.setAttribute("aria-pressed", String(tierNow() === t)); b.setAttribute("data-tip", tip);
-      b.onclick = () => { if (state === "countdown" || state === "race" || tierNow() === t) return; Tier.set(t); mis.help = driveMode() === "assist"; Sound.play("click"); renderMission(); if (state === "garage") nextTry(); else renderAll(); };
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = name; b.setAttribute("aria-pressed", String(tierNow() === t));
+      b.setAttribute("data-tip", byClass ? "Your teacher picked the reading level for the class." : tip);
+      if (byClass) b.setAttribute("aria-disabled", "true");
+      b.onclick = () => { if (byClass || state === "countdown" || state === "race" || tierNow() === t) return; Tier.set(t); mis.help = driveMode() === "assist"; Sound.play("click"); renderMission(); if (state === "garage") nextTry(); else renderAll(); };
       opts.appendChild(b);
     });
     if (!auto) {
@@ -2556,6 +2591,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     const prev = mis.prev; mis.tries.push(t); mis.prev = t;
     const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
     p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+    Missions.send(m, t.predicted, t.choice, { inputs }); // in a class game, the teacher's board gets the numbers
     lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
     Sound.play(t.finished ? "win" : "miss");
     // no cheering for the winning gear before every gear has been tried: that would give the answer away
