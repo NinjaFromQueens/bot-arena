@@ -47,7 +47,7 @@
     track.SECTIONS.forEach((sec, si) => {
       const first = track.segs.findIndex((s) => s.sec === si), prev = track.SECTIONS[si - 1];
       if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[at(first - j * 2)].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
-      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
+      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${(Math.atan(sec.slope) * 180 / Math.PI).toFixed(1)}°` }); // degrees, the unit lesson 7 uses
       if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[at(first + j)].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start

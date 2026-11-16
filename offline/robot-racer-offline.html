@@ -212,6 +212,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
   .opt span { font-size: 12px; color: var(--muted); }
   .opt[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
   .opt:disabled { opacity: .5; cursor: not-allowed; }
+  #gearpic { display: block; width: 100%; height: 84px; margin-top: 10px; }
+  #gearcap { margin-top: 2px; }
   .pdesc { margin: 8px 0 0; font-size: 14px; line-height: 1.35; color: var(--muted); }
   .gstats { display: grid; grid-template-columns: 6.6em minmax(0, 1fr) 5.4em; gap: 7px 10px; align-items: center; font-size: 14px; margin-top: 12px; }
   .gstats .bar { height: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
@@ -366,6 +368,8 @@ canvas { display: block; width: 100%; max-width: 100%; }
         <div class="tracks" id="o-track"></div>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. Less gearing (4:1) is fast but weak; more gearing (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
         <div class="opts" id="o-gear"></div>
+        <canvas id="gearpic" role="img" aria-label="The gearbox: the motor's small gear turns the wheel's big gear."></canvas>
+        <p class="pdesc" id="gearcap">Like in the DC motors lesson, the motor's small gear turns the wheel's big gear. Volt's car has a bigger motor than the lesson's robot, but the rule is the same.</p>
         <p class="pdesc" id="d-gear"></p>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="Grippy tires hold the corners at higher speeds, but the soft rubber takes more push to roll.">Tires</span></h3>
         <div class="opts three" id="o-tire"></div>
@@ -764,6 +768,24 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     return `rgb(${f(r)},${f(g)},${f(b)})`;
   }
   const ease = { out: (t) => 1 - Math.pow(1 - t, 3), back: (t) => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
+  // The gearbox picture, drawn the same in lesson 7 and the Racer: the motor's small gear (left) drives the wheel's big
+  // gear (right, radius R, center wx,wy). The wheel gear stays the same size and the motor gear shrinks as the ratio
+  // grows; turning the wheel gear by `turn` turns the motor gear `ratio` times as far, the other way. o: { stalled }.
+  function gearPair(ctx, wx, wy, R, ratio, turn, o = {}) {
+    const r = Math.max(R / ratio, R * 0.07), mx = wx - R - r - 2; // the floor keeps a 50:1 motor gear visible
+    const gear = (x, rad, a, fill) => {
+      const n = Math.max(6, Math.round(rad / 3.2));
+      ctx.save(); ctx.translate(x, wy); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = "#141316"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < n; i++) { ctx.save(); ctx.rotate((i / n) * Math.PI * 2); ctx.fillRect(-rad * 0.09 - 1.5, -rad - 4, rad * 0.18 + 3, 6); ctx.restore(); }
+      ctx.beginPath(); ctx.arc(0, 0, rad, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(0, 0, Math.max(2, rad * 0.18), 0, 7); ctx.fill();
+      ctx.strokeStyle = "rgba(20,19,22,.5)"; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(rad * 0.75, 0); ctx.stroke(); // a mark so you can see it turn
+      ctx.restore();
+    };
+    gear(wx, R, -turn, "#8f8b98");
+    gear(mx, r, turn * ratio, o.stalled ? "#ff5d5d" : "#cfd2d8");
+    return { motorX: mx, motorR: r, left: mx - r - 4 };
+  }
   function bigText(ctx, lbl, x, y, size, color, scale = 1, alpha = 1) {
     ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha;
     ctx.font = `700 ${Math.round(size)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1161,7 +1183,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   })();
 
   return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
-    fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
+    fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
 </script>
@@ -1598,7 +1620,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     track.SECTIONS.forEach((sec, si) => {
       const first = track.segs.findIndex((s) => s.sec === si), prev = track.SECTIONS[si - 1];
       if (sec.k && Math.abs(sec.k) >= 1 / 20 && !(prev && prev.n === sec.n)) for (let j = 1; j <= 4; j++) out[at(first - j * 2)].push({ k: "chevron", x: (sec.k > 0 ? -1 : 1) * (R.ROAD + 1.3), dir: sec.k > 0 ? 1 : -1 });
-      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${Math.round(sec.slope * 100)}%` });
+      if (sec.slope >= 0.2 && !(prev && prev.slope >= 0.2)) out[at(first - 10)].push({ k: "sign", x: R.ROAD + 1.6, text: `${sec.n.toUpperCase()} ${(Math.atan(sec.slope) * 180 / Math.PI).toFixed(1)}°` }); // degrees, the unit lesson 7 uses
       if (sec.n === track.keys.corner && !(prev && prev.n === sec.n)) for (let j = 0; j < sec.len / SEG; j += 2) out[at(first + j)].push({ k: "cone", x: (sec.k > 0 ? 1 : -1) * (R.ROAD + 0.4) });
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start
@@ -2378,9 +2400,10 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     const g = R.GEARS[setup.gear], st = all[setup.gear][setup.tire];
     $("d-gear").textContent = `${g}:1 means the motor turns ${g} times for every turn of the wheels. ${setup.gear === 0 ? "The fastest on straights, but the weakest on hills." : setup.gear === R.GEARS.length - 1 ? "The strongest push, but a low top speed." : "A balance of speed and pushing force."}`;
     $("d-tire").textContent = R.TIRES[setup.tire].d + ".";
+    drawGearPic();
     const rows = [
       ["Top speed", st.top, top("top"), kmh(st.top) + " km/h", "var(--blue)", "The fastest the car goes on flat ground: where the motor reaches its top rpm."],
-      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${Math.round(track.steep * 100)}% ${K.hill}. With less gearing, the motor runs out of torque on steep hills.`],
+      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${hillDeg(track)} ${K.hill}. With less gearing, the motor runs out of torque on steep hills.`],
       ["Push", st.push, top("push"), st.push + " N", "var(--orange)", "How hard the wheels push when starting from a stop (the motor's torque times the gear ratio, up to what the tires can grip)."],
       [K.corner, st.corner, top("corner"), kmh(st.corner) + " km/h", "var(--purple)", `The fastest the tires can hold the ${K.corner}. Any faster and the car slides onto the grass.`],
     ];
@@ -2390,6 +2413,20 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     const md = b && R.medalOf(b.time, track);
     $("bestline").innerHTML = (b ? `Your best on ${track.n}: <b>${fmtTime(b.time)}</b> (${nameOf(b.setup)})${md ? ` ${MEDAL[md]}` : ""}` : `No laps on ${track.n} yet. Your best lap becomes your ghost car.`) +
       `<br><span class="hastip" tabindex="0" data-tip="Gold means you matched the computer driver's best lap on this track, with its best setup. Silver is within 10% of it, bronze within 25%.">${medalTimes(track)}</span>`;
+  }
+  // hills in degrees, the unit lesson 7 uses; Operatives also see the percent grade
+  const hillDeg = (tr) => `${(Math.atan(tr.steep) * 180 / Math.PI).toFixed(1)}°${window.Tier && Tier.current() === "operative" ? ` (a ${Math.round(tr.steep * 100)}% grade)` : ""}`;
+  // the garage's gearbox picture: the same drawing as lesson 7's simulator (Engine.gearPair)
+  function drawGearPic() {
+    const c = $("gearpic"); if (!c.offsetParent) return;
+    const { ctx, w, h } = E.fit(c), g = R.GEARS[setup.gear], Rg = h * 0.4, wx = w / 2 + Rg * 0.9, wy = h * 0.45;
+    ctx.clearRect(0, 0, w, h);
+    const gp = E.gearPair(ctx, wx, wy, Rg, g, 0.4);
+    ctx.font = `600 ${Math.max(10, Math.round(h * 0.14))}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "center";
+    ctx.fillText("wheel", wx, h - 3); ctx.textAlign = "right"; ctx.fillText("motor", gp.left - 4, wy + h * 0.05); // beside its gear: it can be tiny
+    ctx.font = `700 ${Math.round(h * 0.26)}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#ffd23f"; ctx.textAlign = "left";
+    ctx.fillText(`${g}:1`, wx + Rg + 14, wy + h * 0.09);
+    c.setAttribute("aria-label", `The gearbox at ${g}:1: the motor's small gear turns ${g} times for every turn of the wheel's big gear.`);
   }
   function renderAll() {
     if (!mis.on) renderTracks();
@@ -2729,6 +2766,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   showTouch(matchMedia("(pointer: coarse)").matches);
   $("road").addEventListener("touchstart", () => { if ($("touch").hidden) showTouch(true); }, { passive: true });
   addEventListener("resize", measurePads);
+  addEventListener("resize", drawGearPic); // the garage picture is drawn at its size, so redraw it when that changes
   addEventListener("orientationchange", () => setTimeout(measurePads, 250));
   document.addEventListener("fullscreenchange", () => setTimeout(measurePads, 100));
   // full screen: the track (and its touch pads) fill the screen; phones turn sideways where the browser allows it
@@ -2839,6 +2877,9 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     ctx.font = `600 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("km/h", w - 22, 12 + fs * 2.05);
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
+    // the gearbox turning at the real ratio (slowed down to watch): the motor gear turns once per wheel turn times the ratio
+    { const gy = 12 + fs * 3.6 + 6, gh = fs * 2.2; panel(bx, gy, bw, gh); E.gearPair(ctx, bx + fs * 3.2, gy + gh / 2, fs * 0.75, R.GEARS[setup.gear], (car.z / R.CAR.wheelR) * 0.12);
+      ctx.textAlign = "right"; ctx.font = `600 ${Math.round(fs * 0.48)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("MOTOR → WHEEL", w - 22, gy + gh / 2 + fs * 0.18); }
     // the track map, with everyone on it
     // (a straight test strip has no map worth drawing, so its hill profile gets the space)
     const ms = track.open ? -10 : Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners

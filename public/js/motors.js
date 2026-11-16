@@ -19,7 +19,8 @@
   // ---------------- DC motor + gearbox ----------------
   const DC = { volts: 6, freeRpm: 8000, stallTorque: 0.012 }; // a small hobby motor, measured at 6 V (torque in N·m)
   const CART = { kg: 1.2, wheelR: 0.03, motors: 2, crr: 0.05 }; // the robot in the simulator: two driven wheels, 3 cm radius
-  const GEARS = [1, 5, 20, 50], RAMPS = [0, 10, 25], VOLTS = [3, 6]; // small hobby motors are made for about 3–6 V
+  // the ramps are the Racer's hill angles (Garage Circuit's Big Hill, Neon Peaks' climbs), so lesson 7 and the game share numbers
+  const GEARS = [1, 5, 20, 50], RAMPS = [0, 16.7, 21.8], VOLTS = [3, 6]; // small hobby motors are made for about 3–6 V
   const EFF = 0.8; // a gearbox loses some power to friction
 
   // How the robot does on a ramp with this gear ratio and battery. Torques are per wheel.

@@ -705,6 +705,24 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     return `rgb(${f(r)},${f(g)},${f(b)})`;
   }
   const ease = { out: (t) => 1 - Math.pow(1 - t, 3), back: (t) => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
+  // The gearbox picture, drawn the same in lesson 7 and the Racer: the motor's small gear (left) drives the wheel's big
+  // gear (right, radius R, center wx,wy). The wheel gear stays the same size and the motor gear shrinks as the ratio
+  // grows; turning the wheel gear by `turn` turns the motor gear `ratio` times as far, the other way. o: { stalled }.
+  function gearPair(ctx, wx, wy, R, ratio, turn, o = {}) {
+    const r = Math.max(R / ratio, R * 0.07), mx = wx - R - r - 2; // the floor keeps a 50:1 motor gear visible
+    const gear = (x, rad, a, fill) => {
+      const n = Math.max(6, Math.round(rad / 3.2));
+      ctx.save(); ctx.translate(x, wy); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = "#141316"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < n; i++) { ctx.save(); ctx.rotate((i / n) * Math.PI * 2); ctx.fillRect(-rad * 0.09 - 1.5, -rad - 4, rad * 0.18 + 3, 6); ctx.restore(); }
+      ctx.beginPath(); ctx.arc(0, 0, rad, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(0, 0, Math.max(2, rad * 0.18), 0, 7); ctx.fill();
+      ctx.strokeStyle = "rgba(20,19,22,.5)"; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(rad * 0.75, 0); ctx.stroke(); // a mark so you can see it turn
+      ctx.restore();
+    };
+    gear(wx, R, -turn, "#8f8b98");
+    gear(mx, r, turn * ratio, o.stalled ? "#ff5d5d" : "#cfd2d8");
+    return { motorX: mx, motorR: r, left: mx - r - 4 };
+  }
   function bigText(ctx, lbl, x, y, size, color, scale = 1, alpha = 1) {
     ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale); ctx.globalAlpha = alpha;
     ctx.font = `700 ${Math.round(size)}px "Chakra Petch", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1102,7 +1120,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   })();
 
   return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
-    fit, rr, shade, ease, bigText, FX, drawBot, portrait, Sound, RM };
+    fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
 </script>
@@ -1600,7 +1618,8 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   // ---------------- DC motor + gearbox ----------------
   const DC = { volts: 6, freeRpm: 8000, stallTorque: 0.012 }; // a small hobby motor, measured at 6 V (torque in N·m)
   const CART = { kg: 1.2, wheelR: 0.03, motors: 2, crr: 0.05 }; // the robot in the simulator: two driven wheels, 3 cm radius
-  const GEARS = [1, 5, 20, 50], RAMPS = [0, 10, 25], VOLTS = [3, 6]; // small hobby motors are made for about 3–6 V
+  // the ramps are the Racer's hill angles (Garage Circuit's Big Hill, Neon Peaks' climbs), so lesson 7 and the game share numbers
+  const GEARS = [1, 5, 20, 50], RAMPS = [0, 16.7, 21.8], VOLTS = [3, 6]; // small hobby motors are made for about 3–6 V
   const EFF = 0.8; // a gearbox loses some power to friction
 
   // How the robot does on a ramp with this gear ratio and battery. Torques are per wheel.
@@ -2518,8 +2537,10 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
 
     dcsim(card) {
       const MO = window.Motors, key = cur.step, LEN = 2; // the ramp is 2 m long
-      const TASKS = [["stall", "Make the motor stall"], ["climb", "Climb the 25° ramp"], ["best", "Find the fastest gear for the 10° ramp"]];
-      const RAMP_TIP = ["A flat track.", "A gentle 10° slope.", "A steep 25° slope."];
+      // the ramps are the Racer's hill angles, so the numbers here are the ones students meet again in the game
+      const [, MID, STEEP] = MO.RAMPS;
+      const TASKS = [["stall", "Make the motor stall"], ["climb", `Climb the ${STEEP}° ramp`], ["best", `Find the fastest gear for the ${MID}° ramp`]];
+      const RAMP_TIP = ["A flat track.", `A ${MID}° slope: as steep as the Big Hill on Garage Circuit in Robot Racer.`, `A ${STEEP}° slope: as steep as the climbs at Neon Peaks in Robot Racer.`];
       const GEAR_TIP = ["No gearbox: the motor turns the wheels directly.", "The motor turns 5 times for every wheel turn.", "The motor turns 20 times for every wheel turn.", "The motor turns 50 times for every wheel turn."];
       const st = { ramp: 2, gear: 0, volt: 1, run: null, done: {}, last: 0, puff: 0 };
       const fx = new E.FX();
@@ -2560,8 +2581,8 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
       const finish = (run) => {
         run.fin = true; const { res, g, r, v } = run;
         if (res.stalled) st.done.stall = true;
-        if (!res.stalled && r === 25) st.done.climb = true;
-        const best = !res.stalled && r === 10 && g === MO.bestGear(10, v);
+        if (!res.stalled && r === STEEP) st.done.climb = true;
+        const best = !res.stalled && r === MID && g === MO.bestGear(MID, v);
         if (best) st.done.best = true;
         tasks();
         const all = TASKS.every(([k]) => st.done[k]);
@@ -2571,15 +2592,6 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
           : `<b>Made it!</b> ${res.speed.toFixed(2)} m/s, so the 2 m ${r ? "ramp" : "track"} took ${run.secs.toFixed(1)} seconds. The motor spun ${fmt0(res.motorRpm)} rpm${g === 1 ? ", and with no gearbox the wheels spun just as fast" : `, and the ${g}:1 gearbox turned that into ${fmt0(res.wheelRpm)} rpm at the wheels`}.${best ? " That's the fastest gear for this ramp!" : ""}`;
         setFb(card, !res.stalled || all, msg + (all ? "<br><b>All 3 experiments done!</b> Gears trade speed for torque." : ""));
         E.Sound.play(res.stalled ? "miss" : "beep");
-      };
-      const gear = (ctx, x, y, r, a, fill) => { // a simple gear: a disc with square teeth
-        const n = Math.max(8, Math.round(r / 3.2));
-        ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = "#141316"; ctx.lineWidth = 1.5;
-        for (let i = 0; i < n; i++) { ctx.save(); ctx.rotate((i / n) * Math.PI * 2); ctx.fillRect(-r * 0.09 - 1.5, -r - 4, r * 0.18 + 3, 6); ctx.restore(); }
-        ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(0, 0, Math.max(2, r * 0.18), 0, 7); ctx.fill();
-        ctx.strokeStyle = "rgba(20,19,22,.5)"; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(r * 0.75, 0); ctx.stroke(); // a mark so you can see it turn
-        ctx.restore();
       };
       const draw = (now) => {
         const dt = Math.min(0.05, (now - (st.last || now)) / 1000); st.last = now;
@@ -2615,15 +2627,14 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
         });
         ctx.restore();
         fx.update(dt); fx.draw(ctx);
-        // gear diagram: the motor's small gear drives the wheel's big gear
-        const pr = Math.max(h * 0.045, 11), R = pr * Math.min(g, 3.5), px = w * 0.04 + pr + 4, py = h * 0.3, gx = px + pr + R + 2;
+        // gear diagram (the same picture as the Racer's garage): the motor's small gear drives the wheel's big gear
+        const R = Math.max(h * 0.09, 20), mr = Math.max(R / g, R * 0.07), py = h * 0.3, gx = w * 0.04 + 2 * mr + R + 6;
         const jitter = stalled && !(run && run.fin) ? Math.sin(now / 16) * 0.08 : 0;
-        gear(ctx, gx, py, R, -roll + jitter * 0.2, "#8f8b98");
-        gear(ctx, px, py, pr, roll * (R / pr) + jitter, stalled ? "#ff5d5d" : "#cfd2d8");
+        const gp = E.gearPair(ctx, gx, py, R, g, roll + jitter / g, { stalled });
         ctx.font = `600 ${Math.max(10, fs - 2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "left";
-        ctx.fillText("motor gear → wheel gear", px - pr, py + Math.max(pr, R) + fs + 6); ctx.textAlign = "center";
+        ctx.fillText("motor gear → wheel gear", gp.left, py + R + fs + 6); ctx.textAlign = "center";
         ctx.font = `700 ${fs + 4}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#ffd23f";
-        ctx.fillText(g === 1 ? "1:1" : `${g}:1`, (px + gx) / 2, py - Math.max(pr, R) - 12);
+        ctx.fillText(g === 1 ? "1:1" : `${g}:1`, (gp.motorX + gx) / 2, py - R - 12);
         if (stalled && !(run && run.fin)) { ctx.fillStyle = "#ff5d5d"; ctx.fillText("STALLED!", x0 + cl / 2, gy - h * 0.3); }
         if (run && run.fin && !run.res.stalled) { ctx.fillStyle = "#4fd18b"; ctx.fillText(`${run.secs.toFixed(1)} s`, ex - w * 0.04, ey - h * 0.16); }
         ctx.textAlign = "left";
