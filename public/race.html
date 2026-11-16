@@ -98,6 +98,19 @@
   .xgraph canvas { display: block; width: 100%; height: 170px; }
   .xcap { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
   .tipbox .btn { margin-top: 8px; padding: 6px 14px; }
+  .mopts { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+  .mopts .chip { font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .mopts .chip[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .mopts .toggle { margin-left: 8px; }
+  /* R-18: the result on the track view, over the road; the explanation stays below */
+  .rescard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: rgba(20,19,22,.9); border: 2px solid var(--line); display: grid; gap: 8px; text-align: center; box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+  .rescard.good { border-color: var(--good); } .rescard.bad { border-color: var(--orange-hi); }
+  .rescard .rtitle { font-family: var(--display); font-size: 26px; }
+  .rescard.good .rtitle { color: var(--good); } .rescard.bad .rtitle { color: var(--orange-hi); }
+  .rescard p { margin: 0; font-size: 16px; }
+  .rescard .rrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .rescard .btn { padding: 8px 16px; }
+  @media (max-width: 560px) { .rescard { padding: 10px 12px; gap: 6px; } .rescard .rtitle { font-size: 20px; } .rescard p { font-size: 14px; } }
   .mtimes { width: 100%; border-collapse: collapse; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 15px; }
   .mtimes caption { text-align: left; font-family: var(--display); font-weight: 700; padding: 0 0 6px; }
   .mtimes th, .mtimes td { text-align: left; padding: 7px 12px; border-top: 1px solid var(--line); }
@@ -176,6 +189,7 @@
       <div class="panel stagecard">
         <div class="stagebox">
           <canvas id="road" aria-label="The race track, seen from behind your robot car"></canvas>
+          <div class="rescard" id="rescard" aria-live="polite" hidden></div>
           <div class="touch" id="touch" hidden>
             <div class="pad"><button type="button" data-k="left" aria-label="Steer left">◀</button><button type="button" data-k="right" aria-label="Steer right">▶</button></div>
             <div class="pad"><button type="button" data-k="brake" aria-label="Brake">BRAKE</button><button type="button" class="gas" data-k="gas" aria-label="Gas">GAS</button></div>

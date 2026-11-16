@@ -265,6 +265,19 @@ canvas { display: block; width: 100%; max-width: 100%; }
   .xgraph canvas { display: block; width: 100%; height: 170px; }
   .xcap { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
   .tipbox .btn { margin-top: 8px; padding: 6px 14px; }
+  .mopts { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+  .mopts .chip { font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .mopts .chip[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); }
+  .mopts .toggle { margin-left: 8px; }
+  /* R-18: the result on the track view, over the road; the explanation stays below */
+  .rescard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: rgba(20,19,22,.9); border: 2px solid var(--line); display: grid; gap: 8px; text-align: center; box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+  .rescard.good { border-color: var(--good); } .rescard.bad { border-color: var(--orange-hi); }
+  .rescard .rtitle { font-family: var(--display); font-size: 26px; }
+  .rescard.good .rtitle { color: var(--good); } .rescard.bad .rtitle { color: var(--orange-hi); }
+  .rescard p { margin: 0; font-size: 16px; }
+  .rescard .rrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .rescard .btn { padding: 8px 16px; }
+  @media (max-width: 560px) { .rescard { padding: 10px 12px; gap: 6px; } .rescard .rtitle { font-size: 20px; } .rescard p { font-size: 14px; } }
   .mtimes { width: 100%; border-collapse: collapse; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 15px; }
   .mtimes caption { text-align: left; font-family: var(--display); font-weight: 700; padding: 0 0 6px; }
   .mtimes th, .mtimes td { text-align: left; padding: 7px 12px; border-top: 1px solid var(--line); }
@@ -343,6 +356,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
       <div class="panel stagecard">
         <div class="stagebox">
           <canvas id="road" aria-label="The race track, seen from behind your robot car"></canvas>
+          <div class="rescard" id="rescard" aria-live="polite" hidden></div>
           <div class="touch" id="touch" hidden>
             <div class="pad"><button type="button" data-k="left" aria-label="Steer left">◀</button><button type="button" data-k="right" aria-label="Steer right">▶</button></div>
             <div class="pad"><button type="button" data-k="brake" aria-label="Brake">BRAKE</button><button type="button" class="gas" data-k="gas" aria-label="Gas">GAS</button></div>
@@ -2094,11 +2108,13 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     if (!isTiered(v)) return v;
     return v[tier] != null ? v[tier] : v.recruit;
   }
-  // this device's reading level; the class setting and the level chip come with the first Cadet or Operative text
+  // this device's reading level (the mission page has the switch)
   function current() {
     try { const t = JSON.parse(localStorage.getItem("cr-tier")); return LEVELS.includes(t) ? t : "recruit"; } catch { return "recruit"; }
   }
-  return { LEVELS, isTiered, text, current };
+  // this device's choice (the class setting will win over it once teachers can set one)
+  function set(t) { if (LEVELS.includes(t)) try { localStorage.setItem("cr-tier", JSON.stringify(t)); } catch {} }
+  return { LEVELS, isTiered, text, current, set };
 });
 
 </script>
@@ -2319,6 +2335,15 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   const fx = new FX();
   const keys = { left: false, right: false, gas: false, brake: false };
   const input = () => ({ steer: (keys.right ? 1 : 0) - (keys.left ? 1 : 0), gas: keys.gas ? 1 : 0, brake: keys.brake ? 1 : 0 });
+  let lastIn = { steer: 0, gas: 0, brake: 0 }; // what the last step really used (the keys, or Torque driving)
+  // one step's input: on a Cadet mission the computer driver drives ("Torque drives"), and with steering help on it steers
+  // while the student works the gas and brake. Applied inside the fixed steps, so a Cadet's run is the computer's run.
+  function stepInput() {
+    if (mis.on && mis.m && driveMode() === "auto") return R.autopilot(car, setup, undefined, track);
+    const i = input();
+    if (mis.on && mis.help) i.steer = R.autopilot(car, setup, undefined, track).steer;
+    return i;
+  }
   function makeGhost(src) { // a ghost is a lap driven again: its position at every step
     if (!src || !src.inputs) return null;
     const su = R.clampSetup(src.setup), c = R.newCar(), pos = [];
@@ -2338,7 +2363,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
       if (mis.first == null) mis.first = pred;
       mis.cur = { choice: { ...setup }, predicted: pred }; mis.still = 0;
     }
-    reset(); cd = 3.4;
+    reset(); cd = 3.4; hideResultCard();
     ghost = !mis.on && $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
     state = "countdown"; if (!mis.on) $("report").innerHTML = ""; renderAll(); Sound.play("beep");
     try { $("road").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" }); } catch {}
@@ -2355,6 +2380,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     if (!RM && (isBest || inGp())) fx.burst(view.w / 2, view.h * 0.32, 50, { colors: E.COLORS, kind: "confetti", speed: 320, g: 300, life: 1.8, size: 6, angle: -Math.PI / 2, spread: 2.6 });
     if (inGp()) socket.emit("player:gpLap", { setup, inputs }, (res) => { sent = true; lastLap.gp = res; renderGp(); });
     showReport(r, isBest);
+    if (!inGp()) showResultCard({ good: r.finished, title: r.finished ? `Finish! ${fmtTime(r.time)}` : "Didn't finish", line: isBest ? "A new best lap!" : bests[track.id] ? `Your best: ${fmtTime(bests[track.id].time)}` : "", next: "Race again", onNext: start, why: "See the lap report" });
     renderAll();
   }
   $("go").onclick = () => (mis.on && state === "done" ? nextTry() : start());
@@ -2436,8 +2462,9 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     $("go").disabled = state === "countdown" || state === "race"; $("go").textContent = state === "done" ? "Race again" : "Start race";
     if (mis.on) {
       $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && needPrediction());
-      $("go").textContent = state === "done" ? "Next try" : "Run the test";
-      $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : "Run the test with this gear. Predict first: the button wakes up when you do.");
+      const auto = !!mis.m && driveMode() === "auto";
+      $("go").textContent = state === "done" ? "Next try" : auto ? "Watch Torque drive" : "Run the test";
+      $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : auto ? "Torque drives the car with your gear. Predict first, then watch what happens." : "Run the test with this gear. Predict first: the button wakes up when you do.");
     }
     $("quit").disabled = !(state === "countdown" || state === "race");
   }
@@ -2451,6 +2478,9 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   const untested = () => Missions.allChoices(mis.m).filter((c) => !mis.tries.some((t) => choiceKey(t.choice) === choiceKey(c)));
   const gearName = (c) => `${R.GEARS[c.gear]}:1`;
   // a "which gear wins?" question is asked before the first run only; every other kind before every run
+  // how this reading level drives a mission: "auto" (Cadets: Torque drives), "assist" (steering help) or "full"
+  const driveMode = () => Missions.text(mis.m, "drive", tierNow()) || "full";
+  const LEVELS = [["cadet", "Cadet", "Grades 1 to 3: Torque drives, and you choose and predict."], ["recruit", "Recruit", "Grades 4 to 8: you drive, with steering help you can switch off."], ["operative", "Operative", "Grades 9 to 12: full control and all the numbers."]];
   const needPrediction = () => !(Missions.once(mis.m) && mis.first != null) && (!mis.card || mis.card.value == null);
   function missionLoad() {
     const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + " " + r.status))));
@@ -2461,7 +2491,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     Promise.all([mission(missionId), index, glossary]).then(([m, ids, gl]) => {
       Missions.register("racer", R.MISSION);
       if (m.game !== "racer" || Missions.check(m).length) throw new Error("not a Racer mission");
-      mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start);
+      mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start); mis.help = driveMode() === "assist";
       for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, tierNow()) : g.def };
       renderMission(); nextTry();
       const nid = ids[ids.indexOf(m.id) + 1]; // the lesson's next mission, offered once this one is done
@@ -2481,13 +2511,26 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     head.append(h, back);
     const brief = document.createElement("p"); brief.className = "mbrief"; const who = document.createElement("b"); who.textContent = "Torque: ";
     brief.append(who, Missions.text(m, "brief", tierNow()));
-    const steps = document.createElement("ol"); steps.className = "msteps";
-    (Missions.once(m) ? ["Predict", "Test every gear", "Compare the times", "Find out why"] : ["Pick a gear", "Predict", "Run the test", "Find out why"]).forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
-    box.append(head, brief, steps);
+    const steps = document.createElement("ol"), auto = driveMode() === "auto"; steps.className = "msteps";
+    (Missions.once(m) ? ["Predict", auto ? "Watch every gear" : "Test every gear", "Compare the times", "Find out why"] : ["Pick a gear", "Predict", auto ? "Watch Torque drive" : "Run the test", "Find out why"]).forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
+    // the reading level (this device: cr-tier) and, when the student drives, steering help
+    const opts = document.createElement("div"); opts.className = "mopts";
+    const lbl = document.createElement("span"); lbl.className = "small"; lbl.textContent = "Reading level:"; opts.appendChild(lbl);
+    LEVELS.forEach(([t, name, tip]) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = name; b.setAttribute("aria-pressed", String(tierNow() === t)); b.setAttribute("data-tip", tip);
+      b.onclick = () => { if (state === "countdown" || state === "race" || tierNow() === t) return; Tier.set(t); mis.help = driveMode() === "assist"; Sound.play("click"); renderMission(); if (state === "garage") nextTry(); else renderAll(); };
+      opts.appendChild(b);
+    });
+    if (!auto) {
+      const help = document.createElement("label"); help.className = "toggle"; help.setAttribute("data-tip", "Steering help keeps the car on the road, so you only work the gas and brake. Switch it off to steer yourself.");
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!mis.help; cb.onchange = () => { mis.help = cb.checked; };
+      help.append(cb, " Steering help"); opts.appendChild(help);
+    }
+    box.append(head, brief, steps, opts);
   }
   // a new try: back to the garage (the choices stay as they were), with a fresh prediction card when one is needed
   function nextTry() {
-    state = "garage"; reset();
+    state = "garage"; reset(); hideResultCard();
     const m = mis.m, tier = tierNow(), box = $("report");
     box.innerHTML = "";
     if (Missions.once(m) && mis.first != null) {
@@ -2515,8 +2558,25 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     // no cheering for the winning gear before every gear has been tried: that would give the answer away
     if (!RM && t.goal && (!Missions.once(m) || !untested().length)) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
     showMissionReport(t, prev);
+    const once = Missions.once(m), left = untested();
+    showResultCard({ good: t.finished, title: t.finished ? `Made it! ${t.time.toFixed(1)} s` : "Stuck!",
+      line: once && left.length ? `Gears still to try: ${left.map(gearName).join(", ")}` : t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.",
+      next: "Next try", onNext: nextTry, why: "See why" });
     renderAll();
   }
+  // R-18: the result on the track view, so nobody has to scroll to find out what happened
+  let cardShown = false;
+  function showResultCard(o) {
+    const c = $("rescard"); c.innerHTML = ""; c.className = "rescard " + (o.good ? "good" : "bad");
+    const h = document.createElement("b"); h.className = "rtitle"; h.textContent = o.title; c.appendChild(h);
+    if (o.line) { const p = document.createElement("p"); p.textContent = o.line; c.appendChild(p); }
+    const row = document.createElement("div"); row.className = "rrow";
+    const why = document.createElement("button"); why.type = "button"; why.className = "btn ghost"; why.textContent = o.why + " ↓";
+    why.setAttribute("data-tip", "Jump to the explanation under the track."); why.onclick = () => $("report").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+    const nx = document.createElement("button"); nx.type = "button"; nx.className = "btn"; nx.textContent = o.next; nx.setAttribute("data-tip", "Go again right away."); nx.onclick = o.onNext;
+    row.append(why, nx); c.appendChild(row); c.hidden = false; cardShown = true;
+  }
+  function hideResultCard() { $("rescard").hidden = true; cardShown = false; }
   // each gear's best result so far; the winner is marked once every gear has been tried
   function timesTable() {
     const m = mis.m, topQ = m.predict.kind === "topGear", done = !untested().length, ans = Missions.answer(m, setup);
@@ -2817,7 +2877,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     const rv = rivals(now), gh = ghostCar(), cars = gh ? [...rv, gh] : rv;
     const rem = countdownLeft(), lights = state === "countdown" ? lightsFor(rem) : state === "race" && inputs.length < 60 ? "go" : 0;
     const pos = D.world(ctx, w, h, track, car, cars, { t, bgX, lights, low });
-    const inp = state === "race" ? input() : { steer: 0, brake: 0, gas: 0 }, seg = track.segAt(car.z), T = R.TIRES[setup.tire];
+    const inp = state === "race" ? lastIn : { steer: 0, brake: 0, gas: 0 }, seg = track.segAt(car.z), T = R.TIRES[setup.tire];
     const off = Math.abs(car.x) > R.ROAD && car.v > 1, slide = (car.v * car.v * Math.abs(seg.k)) / (T.mu * R.G) > 1;
     if (!RM && !low && off && Math.random() < 0.5) fx.burst(pos.x + (Math.random() - 0.5) * pos.size, pos.y, 1, { colors: track.theme === "desert" ? ["#c9925a", "#e0b07a"] : ["#7a5a3a", "#a1825e"], kind: "dust", speed: 60, g: -20, life: 0.8, size: 6, angle: -Math.PI / 2, spread: 1.2 });
     if (!RM && !low && slide && state === "race" && Math.random() < 0.6) fx.burst(pos.x + (Math.random() < 0.5 ? -1 : 1) * pos.size * 0.4, pos.y - 4, 1, { colors: ["#d9d5de", "#aaa6b0"], kind: "smoke", speed: 30, g: -40, life: 0.7, size: 8, drag: 0.95, angle: -Math.PI / 2, spread: 1 });
@@ -2878,7 +2938,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
     // the gearbox turning at the real ratio (slowed down to watch): the motor gear turns once per wheel turn times the ratio
-    { const gy = 12 + fs * 3.6 + 6, gh = fs * 2.2; panel(bx, gy, bw, gh); E.gearPair(ctx, bx + fs * 3.2, gy + gh / 2, fs * 0.75, R.GEARS[setup.gear], (car.z / R.CAR.wheelR) * 0.12);
+    { const gy = 12 + fs * 3.6 + 6, gh = fs * 2.2; panel(bx, gy, bw, gh); E.gearPair(ctx, bx + fs * 2.3, gy + gh / 2, fs * 0.72, R.GEARS[setup.gear], (car.z / R.CAR.wheelR) * 0.12);
       ctx.textAlign = "right"; ctx.font = `600 ${Math.round(fs * 0.48)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("MOTOR → WHEEL", w - 22, gy + gh / 2 + fs * 0.18); }
     // the track map, with everyone on it
     // (a straight test strip has no map worth drawing, so its hill profile gets the space)
@@ -2914,13 +2974,13 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     if (state === "race" && sec !== secShown) { const nm = track.SECTIONS[sec].n; if (secShown < 0 || track.SECTIONS[secShown].n !== nm) toast = { text: nm.toUpperCase(), t: 2 }; secShown = sec; }
     if (toast.t > 0) { toast.t -= dt; bigText(ctx, toast.text, w / 2, h * 0.27, h * 0.06, "#ffd23f", 1, clamp(toast.t, 0, 1)); }
     if (state === "race" && Math.abs(car.x) > R.ROAD && car.v > 1) bigText(ctx, "ON THE GRASS!", w / 2, h * 0.36, h * 0.045, "#ff8a50");
-    stall = state === "race" && keys.gas && car.v < 0.3 && track.segAt(car.z).slope > 0.15 ? stall + dt : 0;
+    stall = state === "race" && lastIn.gas && car.v < 0.3 && track.segAt(car.z).slope > 0.15 ? stall + dt : 0;
     if (stall > 1.2) { bigText(ctx, "STALLED!", w / 2, h * 0.34, h * 0.08, "#ff5d5d"); ctx.font = `600 ${Math.round(fs * 0.6)}px "Barlow Semi Condensed", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(mis.on ? "Not enough pushing force for this hill." : inGp() ? "Not enough pushing force for this hill. Next race, try more gearing." : "Not enough pushing force for this hill. Stop, and try more gearing (8:1 or 12:1).", w / 2, h * 0.42); }
     if (state === "countdown") { const n = Math.ceil(rem); bigText(ctx, rem > 3 ? "GET READY" : n > 0 ? String(n) : "GO!", w / 2, h * 0.32, h * (rem > 3 ? 0.08 : 0.16), n > 0 ? "#f4f1ea" : "#4fd18b", 1 + (rem % 1) * 0.2); }
-    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? "PICK A GEAR AND PREDICT, THEN RUN THE TEST" : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
+    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? (mis.m && driveMode() === "auto" ? "PICK A GEAR AND PREDICT, THEN WATCH TORQUE DRIVE" : "PICK A GEAR AND PREDICT, THEN RUN THE TEST") : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
     if (state === "done" && lastLap && lastLap.place) bigText(ctx, lastLap.place, w / 2, h * 0.41, h * 0.06, "#ffd23f", Math.min(1, 0.6 + doneT * 2));
-    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.time != null ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.time != null ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
-    else if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
+    if (cardShown) { /* the result card on the track says it */ } else if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.time != null ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.time != null ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
+    else if (state === "done" && lastLap && !cardShown) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
     ctx.textAlign = "left";
   }
 
@@ -2936,7 +2996,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
       acc += dt; let n = 0;
       const cap = inGp() ? cls.gp.limit / R.DT : R.MAX_STEPS;
       while (acc >= R.DT && n++ < 8) {
-        const i = input(); inputs += R.encode(i); R.step(car, setup, i, track); acc -= R.DT;
+        const i = stepInput(); lastIn = i; inputs += R.encode(i); R.step(car, setup, i, track); acc -= R.DT;
         if (car.z >= track.LENGTH) { finish(); break; }
         // a mission run ends 2 s after the car stops for good (stuck on the hill, or the gas let go), or after a minute
         if (mis.on) { mis.still = car.v === 0 && inputs.length > 30 ? mis.still + R.DT : 0; if (mis.still >= 2 || inputs.length >= 60 / R.DT) { missionDone(); break; } }
