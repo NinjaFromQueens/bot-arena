@@ -9,6 +9,7 @@ Missions.register("racer", Race.MISSION);
 const pub = path.join(__dirname, "../public/data");
 const index = JSON.parse(fs.readFileSync(path.join(pub, "missions/index.json"), "utf8"));
 const lessons = JSON.parse(fs.readFileSync(path.join(pub, "lessons/index.json"), "utf8"));
+const glossary = Object.fromEntries(JSON.parse(fs.readFileSync(path.join(pub, "glossary.json"), "utf8")).map((g) => [g.id, g]));
 const files = fs.readdirSync(path.join(pub, "missions")).filter((f) => f.endsWith(".json") && f !== "index.json").map((f) => f.slice(0, -5));
 assert.deepStrictEqual([...files].sort(), [...index].sort(), "missions/index.json must list every mission file exactly once");
 assert.strictEqual(new Set(index).size, index.length, "mission ids must be unique");
@@ -29,6 +30,17 @@ for (const id of index) {
     assert(!Missions.close(m, c), `${at}: the answer is too close to call, so a small retune could flip it. Change the setting or the allowed choices`);
     if (m.predict.kind === "reachTop" && m.goal.kind === "reachEnd") assert.strictEqual(ans === "top", run.goal, `${at}: the answer must match the computer driver's run`);
     if (run.goal) met++;
+    // the explain card: findings and a tip, and a tip's change really is better (it reaches the goal, or gets there faster)
+    const model = { racer: Race.MISSION }[m.game], e = model.explain(m, Missions.choice(m, c));
+    assert(e.headline && e.headline.text && e.items.length && e.tip && e.tip.text, `${at}: the explain card needs a headline, findings and a tip`);
+    assert.strictEqual(e.headline.tone === "good", run.goal, `${at}: the headline must match the run`);
+    assert(e.graph && e.graph.speed.length > 2 && e.graph.profile.length > 2 && (e.graph.stop == null) === run.goal, `${at}: the graph needs the speed, the hill, and a stop mark only when it stopped`);
+    for (const it of e.items) for (const t of it.terms || []) assert(glossary[t], `${at}: the finding "${it.title}" names a term the glossary doesn't have: ${t}`);
+    if (e.tip.change) {
+      const next = Missions.result(m, { ...Missions.choice(m, c), ...e.tip.change });
+      assert(Missions.changes(m, c, { ...Missions.choice(m, c), ...e.tip.change }).n === 1, `${at}: a tip changes exactly one thing`);
+      assert((next.goal && !run.goal) || (next.goal && run.goal && next.result.time < run.result.time), `${at}: the tip "${e.tip.text}" doesn't make the run better`);
+    }
   }
   assert(met > 0, `mission ${id}: no allowed choice meets the goal`);
   assert(met < all.length, `mission ${id}: every allowed choice meets the goal, so there's nothing to find out`);

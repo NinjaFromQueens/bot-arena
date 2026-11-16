@@ -71,6 +71,31 @@
   .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
   .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
   .repctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  /* missions (/race?mission=<id>): free-play parts are hidden, the brief sits on top, the cards go in the report */
+  body.mission .intro, body.mission #trackh, body.mission #o-track, body.mission #gstats, body.mission #bestline,
+  body.mission #paintp, body.mission #classp, body.mission #gpbox, body.mission #ghostt { display: none; }
+  .mission { margin-bottom: 14px; display: grid; gap: 8px; }
+  .mhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .mhead .btn { padding: 8px 14px; }
+  .mbrief { font-size: 17px; margin: 0; }
+  .mbrief b { color: var(--orange-hi); font-family: var(--display); }
+  .msteps { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); }
+  .pcard { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1.5px solid var(--orange); background: var(--orange-soft); }
+  .pkick { font-family: var(--display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--orange-hi); }
+  .pq { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 0; }
+  .popts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+  .popt { min-height: 48px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
+  .popt[aria-checked="true"] { border-color: var(--orange); background: var(--panel-hi); box-shadow: inset 0 0 0 1px var(--orange); }
+  .popt:disabled { cursor: default; opacity: .85; }
+  .pstatus { margin: 0; font-size: 14px; color: var(--muted); }
+  .verdict { padding: 10px 14px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--line); font-size: 16px; }
+  .verdict.good { border-color: var(--good); } .verdict.bad { border-color: var(--bad); }
+  .verdict b { font-family: var(--display); }
+  .changeline { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--bg); border-left: 4px solid var(--blue); font-size: 15px; }
+  .xgraph { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 6px; }
+  .xgraph canvas { display: block; width: 100%; height: 170px; }
+  .xcap { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .tipbox .btn { margin-top: 8px; padding: 6px 14px; }
 
   .board { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
   .board li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 7px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
@@ -134,6 +159,7 @@
       <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off.">Sound: off</button>
     </div>
   </header>
+  <section class="panel mission" id="missionp" aria-live="polite" hidden></section>
   <p class="intro" style="margin-bottom:12px">Pick a <b>track</b>, a <b>gear ratio</b> and <b>tires</b> for your robot car, then race one lap against the clock. Each track has its own straights, corners and hills, so no setup is best everywhere. After each lap, the report shows where your setup helped and where it held you back.</p>
   <section class="panel gpbox" id="gpbox" aria-live="polite" hidden style="margin-bottom:14px"></section>
 
@@ -153,7 +179,7 @@
           <button class="btn ghost" id="fullscreen" type="button" hidden data-tip="Fill the screen with the race. On a phone, turn it sideways for the biggest view. Press Esc or swipe back to leave full screen.">Full screen</button>
           <span class="spacer"></span>
           <label class="toggle" data-tip="Draws less scenery and a shorter view, for slower computers. Driving and lap times are exactly the same."><input type="checkbox" id="lowgfx"> Simple graphics</label>
-          <label class="toggle" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
+          <label class="toggle" id="ghostt" data-tip="Race against a see-through car that drives your best lap (or a classmate's, from the class leaderboard)."><input type="checkbox" id="ghost" checked> Ghost car</label>
           <span class="keys">Arrows or WASD · ↑ gas · ↓ brake · ← → steer</span>
         </div>
       </div>
@@ -163,7 +189,7 @@
     <div class="garage">
       <div class="panel">
         <h2>Garage</h2>
-        <h3><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
+        <h3 id="trackh"><span class="hastip" tabindex="0" data-tip="Each track rewards a different setup. In Race Day, your teacher picks the track.">Track</span></h3>
         <div class="tracks" id="o-track"></div>
         <h3 style="margin-top:14px"><span class="hastip" tabindex="0" data-tip="How many times the motor turns for one turn of the wheels. Less gearing (4:1) is fast but weak; more gearing (12:1) is slow but pushes hard. It's the same trade-off as the DC motors lesson.">Gear ratio</span></h3>
         <div class="opts" id="o-gear"></div>
@@ -211,6 +237,9 @@
   if (window.io && location.protocol !== "file:") window.baSocket = io();
 </script>
 <script src="/js/presence.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/missions.js"></script>
+<script src="/js/cards.js"></script>
 <script src="/js/racegame.js"></script>
 </body>
 </html>

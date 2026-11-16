@@ -5,23 +5,41 @@
   "episode": 3,
   "core": true,
   "setting": "strip-hill-22",
-  "allow": { "gear": [0, 1, 2, 3], "tire": [1] },
-  "start": { "gear": 0, "tire": 1 },
-  "predict": { "kind": "reachTop", "with": "choice" },
-  "goal": { "kind": "reachEnd" },
+  "allow": {
+    "gear": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "tire": [
+      1
+    ]
+  },
+  "start": {
+    "gear": 0,
+    "tire": 1
+  },
+  "predict": {
+    "kind": "reachTop",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "reachEnd"
+  },
   "tiers": {
     "recruit": {
-      "brief": "Torque built a test hill as steep as the climbs at Neon Peaks. Your car starts with 4:1 gears. Pick a gear, predict, then drive it.",
+      "brief": "I built a test hill as steep as the climbs at Neon Peaks. Your car starts with 4:1 gears. Pick a gear, predict, then drive it.",
       "question": "Will your car make it to the top?",
       "drive": "assist"
     },
     "cadet": {
-      "brief": "Torque built a very steep hill. Pick a gear. Will the car get to the top?",
+      "brief": "I built a very steep hill. Pick a gear. Will the car get to the top?",
       "question": "Will the car get to the top?",
       "drive": "auto"
     },
     "operative": {
-      "brief": "A 40 m test hill at 21.8°, as steep as Neon Peaks' climbs. The car starts at 4:1. Choose a gear ratio, predict, then drive it.",
+      "brief": "I built a 40 m test hill at 21.8°, as steep as the climbs at Neon Peaks. The car starts at 4:1. Choose a gear ratio, predict, then drive it.",
       "question": "Will your car reach the top?",
       "drive": "full"
     }

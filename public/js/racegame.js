@@ -30,6 +30,11 @@
   try { const s = JSON.parse(localStorage.getItem("ba-session")); if (s && s.code && s.playerId && s.token) who = { code: s.code, playerId: s.playerId, token: s.token }; } catch {}
   const cls = { on: !!(socket && who), boards: R.TRACKS.map(() => []), gp: null, offset: 0, live: { prev: null, cur: null }, racers: new Map() };
   const inGp = () => !!(cls.gp && cls.gp.phase !== "done");
+  // A mission (/race?mission=<id>) runs on a test-bench strip with only the choices it allows. The student predicts
+  // before every run; the right answer, the goal and the explanation come from race.js (MISSION, through missions.js).
+  const missionId = new URLSearchParams(location.search).get("mission");
+  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, tries: [], still: 0, gloss: {} };
+  if (mis.on) { cls.on = false; document.body.classList.add("mission"); } // no class leaderboard or Race Day during a mission
 
   // ---------------- the race ----------------
   let state = "garage"; // garage | countdown | race | done
@@ -49,15 +54,20 @@
   let low = ls.get("race-low", false); // simple graphics for slower computers
   $("lowgfx").checked = low;
   $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); };
-  function start() { // a solo time trial
+  function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
+    if (mis.on) {
+      if (!mis.m || state !== "garage" || !mis.card || mis.card.value == null) return; // predict first, on a fresh try
+      mis.card.lock(); mis.cur = { choice: { ...setup }, predicted: mis.card.value }; mis.still = 0;
+    }
     reset(); cd = 3.4;
-    ghost = $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
-    state = "countdown"; $("report").innerHTML = ""; renderAll(); Sound.play("beep");
+    ghost = !mis.on && $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
+    state = "countdown"; if (!mis.on) $("report").innerHTML = ""; renderAll(); Sound.play("beep");
     try { $("road").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "nearest" }); } catch {}
   }
   function stop() { state = "garage"; reset(); renderAll(); }
   function finish() {
+    if (mis.on) return missionDone();
     state = "done"; doneT = 0;
     const r = R.lap(setup, inputs, track); // the recorded lap, driven again: the same numbers the server gets
     lastLap = { setup: { ...setup }, inputs, time: r.time, track: track.id };
@@ -69,8 +79,8 @@
     showReport(r, isBest);
     renderAll();
   }
-  $("go").onclick = start;
-  $("quit").onclick = () => { Sound.play("click"); stop(); };
+  $("go").onclick = () => (mis.on && state === "done" ? nextTry() : start());
+  $("quit").onclick = () => { Sound.play("click"); if (mis.on) nextTry(); else stop(); }; // a stopped mission run needs a fresh prediction
 
   // ---------------- garage ----------------
   function renderTracks() {
@@ -91,19 +101,23 @@
     const locked = state === "countdown" || state === "race" || (inGp() && cls.gp.phase !== "garage");
     const all = R.GEARS.map((_, g) => R.TIRES.map((_, t) => R.setupStats({ gear: g, tire: t }, track))), flat = all.flat();
     const top = (k) => Math.max(...flat.map((s) => s[k]));
+    // on a mission only the allowed choices can change, and nothing hints at the answer before the student predicts
+    const fixed = (key, i) => mis.on && !!mis.m && !mis.m.allow[key]?.includes(i);
     const opts = (el, list, key, label, sub, tip) => {
       $(el).innerHTML = "";
       list.forEach((item, i) => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.disabled = locked;
+        const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.disabled = locked || fixed(key, i) || (mis.on && state === "done");
         b.setAttribute("aria-pressed", setup[key] === i); b.innerHTML = "<b></b><span></span>";
-        b.firstChild.textContent = label(item, i); b.lastChild.textContent = sub(item, i); b.setAttribute("data-tip", tip(item, i));
-        b.onclick = () => { setup[key] = i; ls.set("race-setup", setup); Sound.play("click"); if (inGp()) socket.emit("player:gpSetup", setup); renderGarage(); };
+        b.firstChild.textContent = label(item, i); b.lastChild.textContent = sub(item, i);
+        b.setAttribute("data-tip", fixed(key, i) ? "Not part of this test. Torque keeps everything else the same, so only one thing changes." : tip(item, i));
+        b.onclick = () => { setup[key] = i; if (!mis.on) ls.set("race-setup", setup); Sound.play("click"); if (inGp()) socket.emit("player:gpSetup", setup); renderGarage(); };
         $(el).appendChild(b);
       });
     };
     const K = track.keys;
-    opts("o-gear", R.GEARS, "gear", (g) => `${g}:1`, (g, i) => (all[i][setup.tire].hill < 0.3 ? "stalls here" : `${kmh(all[i][setup.tire].top)} km/h`),
-      (g, i) => `${g}:1 gear: the motor turns ${g} times per wheel turn. Top speed ${kmh(all[i][setup.tire].top)} km/h; ${all[i][setup.tire].hill < 0.3 ? `too weak to climb the ${K.hill}` : `climbs the ${K.hill} at ${kmh(all[i][setup.tire].hill)} km/h`}.`);
+    opts("o-gear", R.GEARS, "gear", (g) => `${g}:1`, (g, i) => (!mis.on && all[i][setup.tire].hill < 0.3 ? "stalls here" : `${kmh(all[i][setup.tire].top)} km/h`),
+      (g, i) => mis.on ? `${g}:1 gear: the motor turns ${g} times for every turn of the wheels. Top speed on flat ground: ${kmh(all[i][setup.tire].top)} km/h.`
+        : `${g}:1 gear: the motor turns ${g} times per wheel turn. Top speed ${kmh(all[i][setup.tire].top)} km/h; ${all[i][setup.tire].hill < 0.3 ? `too weak to climb the ${K.hill}` : `climbs the ${K.hill} at ${kmh(all[i][setup.tire].hill)} km/h`}.`);
     opts("o-tire", R.TIRES, "tire", (t) => t.n, (t) => `grip ${t.mu}`, (t) => `${t.n} tires: ${t.d}.`);
     const g = R.GEARS[setup.gear], st = all[setup.gear][setup.tire];
     $("d-gear").textContent = `${g}:1 means the motor turns ${g} times for every turn of the wheels. ${setup.gear === 0 ? "The fastest on straights, but the weakest on hills." : setup.gear === R.GEARS.length - 1 ? "The strongest push, but a low top speed." : "A balance of speed and pushing force."}`;
@@ -114,6 +128,7 @@
       ["Push", st.push, top("push"), st.push + " N", "var(--orange)", "How hard the wheels push when starting from a stop (the motor's torque times the gear ratio, up to what the tires can grip)."],
       [K.corner, st.corner, top("corner"), kmh(st.corner) + " km/h", "var(--purple)", `The fastest the tires can hold the ${K.corner}. Any faster and the car slides onto the grass.`],
     ];
+    if (mis.on) return; // a mission's report explains the numbers after the run instead
     $("gstats").innerHTML = rows.map(([l, v, mx, txt, c, tip]) => `<span class="hastip" tabindex="0" data-tip="${tip}">${l}</span><div class="bar"><i style="width:${clamp((v / mx) * 100, 4, 100)}%;background:${c}"></i></div><span class="n">${txt}</span>`).join("");
     const b = bests[track.id];
     const md = b && R.medalOf(b.time, track);
@@ -121,11 +136,95 @@
       `<br><span class="hastip" tabindex="0" data-tip="Gold means you matched the computer driver's best lap on this track, with its best setup. Silver is within 10% of it, bronze within 25%.">${medalTimes(track)}</span>`;
   }
   function renderAll() {
-    renderTracks(); renderGarage(); renderGp();
+    if (!mis.on) renderTracks();
+    renderGarage(); renderGp();
     const gp = inGp();
     $("go").hidden = gp; $("quit").hidden = gp;
     $("go").disabled = state === "countdown" || state === "race"; $("go").textContent = state === "done" ? "Race again" : "Start race";
+    if (mis.on) {
+      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && (!mis.card || mis.card.value == null));
+      $("go").textContent = state === "done" ? "Next try" : "Run the test";
+      $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : "Run the test with this gear. Predict first: the button wakes up when you do.");
+    }
     $("quit").disabled = !(state === "countdown" || state === "race");
+  }
+
+  // ---------------- missions ----------------
+  const lessonHref = (id) => `/learn#lesson-${encodeURIComponent(id)}`;
+  function missionLoad() {
+    const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + " " + r.status))));
+    Promise.all([get(`/data/missions/${encodeURIComponent(missionId)}.json`), get("/data/glossary.json").catch(() => [])]).then(([m, gl]) => {
+      Missions.register("racer", R.MISSION);
+      if (m.game !== "racer" || Missions.check(m).length) throw new Error("not a Racer mission");
+      mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start);
+      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, Tier.current()) : g.def };
+      renderMission(); nextTry();
+    }).catch(() => {
+      $("missionp").hidden = false;
+      $("missionp").innerHTML = '<h2>That mission didn\'t load</h2><p>Check your connection and refresh the page, or <a href="/race">race in free play</a>.</p>';
+    });
+  }
+  function renderMission() {
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", box = $("missionp");
+    box.hidden = false; box.innerHTML = "";
+    const head = document.createElement("div"); head.className = "mhead";
+    const h = document.createElement("h2"); h.textContent = `Mission: ${track.n}`;
+    const back = document.createElement("a"); back.className = "btn ghost"; back.href = lessonHref(m.lesson); back.textContent = "Back to the lesson";
+    back.setAttribute("data-tip", "Open the lesson this mission tests. You can come back here any time.");
+    head.append(h, back);
+    const brief = document.createElement("p"); brief.className = "mbrief"; const who = document.createElement("b"); who.textContent = "Torque: ";
+    brief.append(who, Missions.text(m, "brief", tier));
+    const steps = document.createElement("ol"); steps.className = "msteps";
+    ["Pick a gear", "Predict", "Run the test", "Find out why"].forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
+    box.append(head, brief, steps);
+  }
+  // a new try: back to the garage with a fresh prediction card (the choices stay as they were)
+  function nextTry() {
+    state = "garage"; reset();
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit";
+    $("report").innerHTML = "";
+    mis.card = Cards.predict($("report"), { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
+    renderAll();
+  }
+  function missionDone() {
+    state = "done"; doneT = 0;
+    const m = mis.m, run = { inputs }, res = Missions.result(m, setup, run), answer = Missions.answer(m, setup);
+    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, time: res.result.finished ? res.result.time : null };
+    const prev = mis.prev; mis.tries.push(t); mis.prev = t;
+    const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
+    p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+    lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
+    Sound.play(t.goal ? "win" : "miss");
+    if (!RM && t.goal) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
+    showMissionReport(t, prev);
+    renderAll();
+  }
+  function showMissionReport(t, prev) {
+    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", rep = $("report"), opts = Missions.options(m, tier);
+    const label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+    const e = R.MISSION.explain(m, setup, { inputs });
+    const verdict = document.createElement("div"); verdict.className = "verdict " + (t.right ? "good" : "bad");
+    const vb = document.createElement("b"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+    verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    const before = [verdict];
+    if (prev) { // the one-change tracker: what changed since the last try, and what that did
+      const ch = Missions.changes(m, prev.choice, t.choice), line = document.createElement("p"); line.className = "changeline";
+      const fmt = (k, c) => (k === "gear" ? `${R.GEARS[c.gear]}:1` : k === "tire" ? `${R.TIRES[c.tire].n} tires` : String(c[k]));
+      const out = prev.goal === t.goal ? (t.goal && prev.time != null && t.time != null ? ` It reached the top ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "faster" : "slower"}.` : t.goal ? "" : " It still got stuck.")
+        : t.goal ? " This time it made it to the top!" : " This time it got stuck.";
+      line.textContent = ch.n === 0 ? "Same setup as last time, so the car does the same thing. Change one thing to find out more."
+        : ch.n === 1 ? `You changed only the ${ch.keys[0]}, from ${fmt(ch.keys[0], prev.choice)} to ${fmt(ch.keys[0], t.choice)}.${out} One change, so you know it was the ${ch.keys[0]}.`
+        : `You changed ${ch.n} things (${ch.keys.join(" and ")}), so you can't tell which one made the difference. Try changing one at a time.`;
+      before.push(line);
+    }
+    rep.innerHTML = "";
+    Cards.explain(rep, e, { glossary: mis.gloss, before, onTry: (change) => { Object.assign(setup, Missions.choice(m, { ...setup, ...change })); Sound.play("click"); nextTry(); } });
+    const ctl = document.createElement("div"); ctl.className = "repctl";
+    const again = document.createElement("button"); again.type = "button"; again.className = "btn"; again.textContent = "Next try";
+    again.setAttribute("data-tip", "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    const lesson = document.createElement("a"); lesson.className = "btn ghost"; lesson.href = lessonHref(m.lesson); lesson.textContent = "Back to the lesson";
+    lesson.setAttribute("data-tip", "Open the lesson this mission tests.");
+    ctl.append(again, lesson); rep.appendChild(ctl);
   }
 
   // ---------------- the lap report ----------------
@@ -386,6 +485,7 @@
   const SPAN = Math.max(...R.TRACKS.map((tr) => { const ys = tr.segs.map((q) => q.y); return Math.max(...ys) - Math.min(...ys); }));
   const climbCache = {};
   function climbColors() {
+    if (mis.on) return (climbCache[track.id + ":plain"] = climbCache[track.id + ":plain"] || track.segs.map(() => 0)); // no hints before the prediction
     const key = `${track.id}:${setup.gear}:${setup.tire}`;
     return (climbCache[key] = climbCache[key] || track.segs.map((q) => { if (q.slope < 0.03) return 0; const v = R.climbSpeed(setup, q.slope); return v < 0.3 ? 2 : v < 3 ? 1 : 0; }));
   }
@@ -405,12 +505,12 @@
   }
   function hud(ctx, w, h, t, dt, rv, gh, rem) {
     const fs = Math.max(12, Math.round(h * 0.04)), panel = (x, y, ww, hh) => { ctx.fillStyle = "rgba(20,19,22,.62)"; rr(ctx, x, y, ww, hh, 10); ctx.fill(); };
-    const time = state === "race" ? inputs.length * R.DT : state === "done" && lastLap && lastLap.time ? lastLap.time : 0, b = bests[track.id];
+    const time = state === "race" || (state === "done" && lastLap && lastLap.mission && lastLap.time == null) ? inputs.length * R.DT : state === "done" && lastLap && lastLap.time ? lastLap.time : 0, b = bests[track.id];
     panel(12, 12, fs * 7.6, fs * 2.9);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
     ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText(inGp() ? `RACE ${cls.gp.i + 1} · ${track.n.toUpperCase()}` : track.n.toUpperCase(), 22, 12 + fs * 0.85);
     ctx.font = `700 ${Math.round(fs * 1.2)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#fff"; ctx.fillText(fmtTime(time), 22, 12 + fs * 2.05);
-    ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.fillText(b ? "BEST " + fmtTime(b.time) : "NO BEST YET", 22, 12 + fs * 2.65);
+    ctx.font = `600 ${Math.round(fs * 0.55)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#ffd23f"; ctx.fillText(mis.on ? `TRY ${mis.tries.length + (state === "done" ? 0 : 1)}` : b ? "BEST " + fmtTime(b.time) : "NO BEST YET", 22, 12 + fs * 2.65);
     // the motor's rpm on a dial: the red line is its top speed, where it can't push any harder
     const rpmF = clamp(car.rpm / R.MOTOR.rpm, 0, 1.2), bw = fs * 8.6, bx = w - 12 - bw, MAXR = R.MOTOR.rpm * 1.2;
     panel(bx, 12, bw, fs * 3.6);
@@ -430,11 +530,12 @@
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
     // the track map, with everyone on it
-    const ms = Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
-    D.minimap(ctx, 12, mapY, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
+    // (a straight test strip has no map worth drawing, so its hill profile gets the space)
+    const ms = track.open ? -10 : Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
+    if (!track.open) D.minimap(ctx, 12, mapY, ms, track, [...rv.map((r) => ({ z: r.z, color: r.color })), ...(gh ? [{ z: gh.z, color: "#9fd8ff" }] : []), { z: car.z, color: D.LOOKS.PAINT[look.c1], me: true }]);
     // the hill profile: next to the map, or centered between the touch pads
     const ph = Math.max(34, Math.round(h * 0.11)), hy = h - ph - 12;
-    const pw = pads ? Math.min(pads.right - pads.left - 20, w * 0.5) : Math.min(w - (12 + ms + 10) - 12, w * 0.5);
+    const pw = pads ? Math.min(pads.right - pads.left - 20, w * 0.5) : Math.min(w - (12 + ms + 10) - 12, w * (track.open ? 0.6 : 0.5));
     const hx = pads ? (pads.left + pads.right) / 2 - pw / 2 : 12 + ms + 10;
     if (pw > 120) hills(ctx, hx, hy, pw, ph, fs, rv, gh);
     // someone close behind you (karts behind you aren't drawn, they'd fill the screen)
@@ -463,11 +564,12 @@
     if (toast.t > 0) { toast.t -= dt; bigText(ctx, toast.text, w / 2, h * 0.27, h * 0.06, "#ffd23f", 1, clamp(toast.t, 0, 1)); }
     if (state === "race" && Math.abs(car.x) > R.ROAD && car.v > 1) bigText(ctx, "ON THE GRASS!", w / 2, h * 0.36, h * 0.045, "#ff8a50");
     stall = state === "race" && keys.gas && car.v < 0.3 && track.segAt(car.z).slope > 0.15 ? stall + dt : 0;
-    if (stall > 1.2) { bigText(ctx, "STALLED!", w / 2, h * 0.34, h * 0.08, "#ff5d5d"); ctx.font = `600 ${Math.round(fs * 0.6)}px "Barlow Semi Condensed", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(inGp() ? "Not enough pushing force for this hill. Next race, try more gearing." : "Not enough pushing force for this hill. Stop, and try more gearing (8:1 or 12:1).", w / 2, h * 0.42); }
+    if (stall > 1.2) { bigText(ctx, "STALLED!", w / 2, h * 0.34, h * 0.08, "#ff5d5d"); ctx.font = `600 ${Math.round(fs * 0.6)}px "Barlow Semi Condensed", Arial, sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(mis.on ? "Not enough pushing force for this hill." : inGp() ? "Not enough pushing force for this hill. Next race, try more gearing." : "Not enough pushing force for this hill. Stop, and try more gearing (8:1 or 12:1).", w / 2, h * 0.42); }
     if (state === "countdown") { const n = Math.ceil(rem); bigText(ctx, rem > 3 ? "GET READY" : n > 0 ? String(n) : "GO!", w / 2, h * 0.32, h * (rem > 3 ? 0.08 : 0.16), n > 0 ? "#f4f1ea" : "#4fd18b", 1 + (rem % 1) * 0.2); }
-    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
+    if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? "PICK A GEAR AND PREDICT, THEN RUN THE TEST" : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
     if (state === "done" && lastLap && lastLap.place) bigText(ctx, lastLap.place, w / 2, h * 0.41, h * 0.06, "#ffd23f", Math.min(1, 0.6 + doneT * 2));
-    if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
+    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.mission.goal ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.mission.goal ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
+    else if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
     ctx.textAlign = "left";
   }
 
@@ -485,6 +587,8 @@
       while (acc >= R.DT && n++ < 8) {
         const i = input(); inputs += R.encode(i); R.step(car, setup, i, track); acc -= R.DT;
         if (car.z >= track.LENGTH) { finish(); break; }
+        // a mission run ends 2 s after the car stops for good (stuck on the hill, or the gas let go), or after a minute
+        if (mis.on) { mis.still = car.v === 0 && inputs.length > 30 ? mis.still + R.DT : 0; if (mis.still >= 2 || inputs.length >= 60 / R.DT) { missionDone(); break; } }
         if (inputs.length >= cap) { state = "done"; doneT = 0; lastLap = { dnf: inGp(), time: null, track: track.id }; showReport(R.lap(setup, inputs, track), false); renderAll(); break; }
       }
     } else if (state === "done") {
@@ -495,5 +599,7 @@
     requestAnimationFrame(loop);
   })(last);
   renderAll(); renderBoard(); renderPaint();
-  window.__race = { get state() { return state; }, get car() { return car; }, get lastPlace() { return lastLap && lastLap.place; }, get inputs() { return inputs; }, get track() { return track; }, start, keys, setSetup(s) { setup = R.clampSetup(s); renderGarage(); }, setTrack(id) { track = R.trackOf(id); stop(); renderBoard(); } };
+  if (mis.on) missionLoad();
+  window.__race = { get state() { return state; }, get car() { return car; }, get lastPlace() { return lastLap && lastLap.place; }, get inputs() { return inputs; }, get track() { return track; }, start, keys,
+    get mission() { return mis.on ? { loaded: !!mis.m, tries: mis.tries, predicted: mis.card && mis.card.value, setup: { ...setup } } : null; }, setSetup(s) { setup = R.clampSetup(s); renderGarage(); }, setTrack(id) { track = R.trackOf(id); stop(); renderBoard(); } };
 })();
