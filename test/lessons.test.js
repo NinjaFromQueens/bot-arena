@@ -6,6 +6,7 @@ const dir = path.join(__dirname, "../public/data/lessons");
 const read = (f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
 
 const index = read("index.json");
+const missions = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/missions/index.json"), "utf8"));
 const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json") && f !== "index.json").map((f) => f.slice(0, -5));
 assert.deepStrictEqual([...files].sort(), [...index].sort(), "index.json must list every lesson file exactly once");
 assert.strictEqual(new Set(index).size, index.length, "lesson ids must be unique");
@@ -27,6 +28,11 @@ for (const id of index) {
   assert(Array.isArray(L.steps) && L.steps.length, `${at}: needs steps`);
   assert(L.next && (L.next.href || L.next.mission), `${at}: the last card needs a link (href, or a mission once missions exist)`);
   assert(!L.next.href || L.next.href.startsWith("/"), `${at}: next.href must be a site path`);
+  for (const mid of L.missions.concat(L.next.mission ? [L.next.mission] : [])) {
+    assert(missions.includes(mid), `${at}: there's no mission called ${mid}`);
+    assert.strictEqual(JSON.parse(fs.readFileSync(path.join(__dirname, `../public/data/missions/${mid}.json`), "utf8")).lesson, id, `${at}: mission ${mid} belongs to another lesson`);
+  }
+  assert(!L.next.mission || L.missions[0] === L.next.mission, `${at}: the last button opens the first of its missions`);
   for (const tier of Tier.LEVELS) {
     const T = (v) => Tier.text(v, tier), where = `${at} (${tier})`;
     assert(filled(T(L.title)) && filled(T(L.about)) && filled(T(L.next.label)), `${where}: title, about and next.label can't be empty`);

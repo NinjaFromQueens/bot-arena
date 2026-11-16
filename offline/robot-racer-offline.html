@@ -263,6 +263,12 @@ canvas { display: block; width: 100%; max-width: 100%; }
   .xgraph canvas { display: block; width: 100%; height: 170px; }
   .xcap { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
   .tipbox .btn { margin-top: 8px; padding: 6px 14px; }
+  .mtimes { width: 100%; border-collapse: collapse; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 15px; }
+  .mtimes caption { text-align: left; font-family: var(--display); font-weight: 700; padding: 0 0 6px; }
+  .mtimes th, .mtimes td { text-align: left; padding: 7px 12px; border-top: 1px solid var(--line); }
+  .mtimes th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; border-top: 0; }
+  .mtimes td { font-family: var(--mono); }
+  .mtimes tr.win td { color: var(--good); font-weight: 700; }
 
   .board { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
   .board li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 7px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
@@ -394,6 +400,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
     </div>
   </div>
 </div>
+<script>
+window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight"],"missions":{"gear-hill":{"id":"gear-hill","title":"Gear on a hill","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-hill-22","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":0,"tire":1},"predict":{"kind":"reachTop","with":"choice"},"goal":{"kind":"reachEnd"},"tiers":{"recruit":{"brief":"I built a test hill as steep as the climbs at Neon Peaks. Your car starts with 4:1 gears. Pick a gear, predict, then drive it.","question":"Will your car make it to the top?","drive":"assist"},"cadet":{"brief":"I built a very steep hill. Pick a gear. Will the car get to the top?","question":"Will the car get to the top?","drive":"auto"},"operative":{"brief":"I built a 40 m test hill at 21.8°, as steep as the climbs at Neon Peaks. The car starts at 4:1. Choose a gear ratio, predict, then drive it.","question":"Will your car reach the top?","drive":"full"}},"reward":null,"art":[]},"gear-straight":{"id":"gear-straight","title":"Gear on a straight","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-flat-150","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":3,"tire":1},"predict":{"kind":"topGear"},"goal":{"kind":"bestGear"},"tiers":{"recruit":{"brief":"Now a flat straight, 150 m long. Before you drive, guess which gear will reach the highest top speed. Then test every gear and find out.","question":"Which gear will reach the highest top speed?","drive":"assist"},"cadet":{"brief":"Now a long flat road. Which gear goes fastest? Guess, then try them all.","question":"Which gear will go the fastest?","drive":"auto"},"operative":{"brief":"A 150 m flat straight. Predict which gear ratio gives the highest top speed, then test every ratio.","question":"Which gear ratio reaches the highest top speed?","drive":"full"}},"reward":null,"art":[]},"hill-straight":{"id":"hill-straight","title":"Hill, then straight","game":"racer","lesson":"dcmotor","episode":3,"core":true,"setting":"strip-hill17-flat","allow":{"gear":[0,1,2,3],"tire":[1]},"start":{"gear":3,"tire":1},"predict":{"kind":"firstHome"},"goal":{"kind":"bestGear"},"tiers":{"recruit":{"brief":"Here's the real test: a 40 m hill, then 120 m of flat road. One gear has to do both. Guess which gear gets to the end first, then test them all.","question":"Which gear will get to the end first?","drive":"assist"},"cadet":{"brief":"A hill, then a long flat road. Which gear gets there first? Guess, then try them all.","question":"Which gear will get there first?","drive":"auto"},"operative":{"brief":"40 m at 16.7°, then 120 m flat. Predict which gear ratio has the best total time, then test every ratio.","question":"Which gear ratio finishes first?","drive":"full"}},"reward":null,"art":[]}}};
+window.GLOSSARY_DATA = [{"id":"robot","term":"robot","forms":["robots"],"lesson":"robot","def":"A machine that can sense, think and act, all on its own."},{"id":"sense","term":"sense","forms":["senses"],"lesson":"robot","def":"Notice the world with sensors, like a camera or a touch sensor. The first of a robot's three jobs."},{"id":"think","term":"think","forms":["thinks"],"lesson":"robot","def":"Decide what to do. A robot's computer and its rules do the thinking."},{"id":"act","term":"act","forms":["acts"],"lesson":"robot","def":"Do something: drive wheels, move an arm, fire thrusters. Motors do most of the acting."},{"id":"sensor","term":"sensor","forms":["sensors"],"lesson":"sensors","def":"A robot's senses: parts that notice the world, like cameras, touch sensors and ultrasonic sensors."},{"id":"camera","term":"camera","forms":["cameras"],"lesson":"sensors","def":"A sensor that sees colors and shapes, like your eyes. It can't see in the dark."},{"id":"touch-sensor","term":"touch sensor","forms":["touch","touch sensors","bump sensor","bump sensors"],"lesson":"sensors","def":"A sensor that feels when the robot bumps into something."},{"id":"gyro","term":"gyro","forms":["gyros"],"lesson":"sensors","def":"A sensor that feels tilting and turning, like your inner ear."},{"id":"ultrasonic","term":"ultrasonic sensor","forms":["ultrasonic","ultrasonic sensors"],"lesson":"ultrasonic","def":"A sensor that measures distance with sound: it chirps, then times how long the echo takes to come back."},{"id":"echo","term":"echo","forms":["echoes"],"lesson":"ultrasonic","def":"Sound that bounces back off something. An ultrasonic sensor times the echo to work out the distance."},{"id":"cone","term":"cone","forms":["sensor cone"],"lesson":"ultrasonic","def":"How an ultrasonic sensor's chirp spreads out, like a flashlight beam. It reports the closest thing anywhere inside the cone."},{"id":"lidar","term":"lidar","forms":["lidars"],"lesson":"lidar","def":"A sensor that measures distance with flashes of laser light. Many lidars spin to measure the whole room."},{"id":"point-cloud","term":"point cloud","forms":["point clouds"],"lesson":"lidar","def":"The map a spinning lidar makes: thousands of measured dots put together."},{"id":"infrared","term":"infrared sensor","forms":["infrared","infrared sensors"],"lesson":"showdown","def":"A sensor that shines invisible light, like a TV remote, and measures what bounces back. It only works up close, and black things and clear glass fool it."},{"id":"sensor-fusion","term":"sensor fusion","forms":[],"lesson":"showdown","def":"Using more than one kind of sensor, so when one gets fooled, another catches it."},{"id":"rule","term":"if-then rule","forms":["if-then rules","rule","rules"],"lesson":"rules","def":"An instruction a robot follows: IF something is true, THEN do something. It checks its rules from the top, and the first true one wins."},{"id":"dc-motor","term":"DC motor","forms":["DC motors"],"lesson":"dcmotor","def":"A motor that spins whenever electricity flows through it. Fast, but weak without a gearbox."},{"id":"rpm","term":"rpm","forms":[],"lesson":"dcmotor","def":"Turns per minute: how fast something spins."},{"id":"torque","term":"torque","forms":[],"lesson":"dcmotor","def":"Twisting strength: how hard something turns or twists. For an arm, torque = weight × sideways distance."},{"id":"gearbox","term":"gearbox","forms":["gearboxes"],"lesson":"dcmotor","def":"Gears that trade a motor's speed for strength (torque): the wheel turns slower but pushes harder."},{"id":"gear-ratio","term":"gear ratio","forms":["gear ratios","ratios"],"lesson":"dcmotor","def":"How many times the motor turns for each turn of the wheel. With 20:1, the wheel turns 20 times slower and pushes about 20 times harder."},{"id":"gearing","term":"more gearing","forms":["less gearing"],"lesson":"dcmotor","def":"More gearing (a bigger ratio, like 12:1) is slower but pushes harder. Less gearing (like 4:1) is faster but weaker.","avoid":["low gear","high gear","lower gear","higher gear"]},{"id":"stall","term":"stall","forms":["stalls","stalled"],"lesson":"dcmotor","def":"When the load is too heavy, the motor stops turning even though the power is on."},{"id":"servo","term":"servo","forms":["servos","servo motor","servo motors"],"lesson":"servo","def":"A motor that moves to an angle you choose, then holds it there. A position sensor inside checks the angle."},{"id":"position-sensor","term":"position sensor","forms":[],"lesson":"servo","def":"The part inside a servo that measures which way it's pointing."},{"id":"pwm","term":"PWM","forms":["pulse width modulation"],"lesson":"servo","def":"Pulse width modulation: telling a servo where to point by how long each pulse lasts. Typically 1.0 ms is one end, 1.5 ms the middle and 2.0 ms the other end."},{"id":"feedback","term":"feedback","forms":[],"lesson":"servo","def":"Checking the result and correcting it. A servo measures its angle and keeps pushing until it's right."},{"id":"closed-loop","term":"closed loop","forms":[],"lesson":"servo","def":"Control that uses feedback: it acts, checks, and corrects."},{"id":"stepper","term":"stepper motor","forms":["stepper","steppers","stepper motors"],"lesson":"stepper","def":"A motor that turns in tiny, exact steps, usually 200 to go all the way around (1.8° per step)."},{"id":"open-loop","term":"open loop","forms":[],"lesson":"stepper","def":"Control without feedback: it does the steps but never checks where it ended up."},{"id":"skipped-steps","term":"skips steps","forms":["skipped steps","skip steps"],"lesson":"stepper","def":"When the load is too heavy or the steps come too fast, a stepper misses some, and nothing tells it."},{"id":"holding-torque","term":"holding torque","forms":[],"lesson":"stepper","def":"How strongly a stopped stepper holds its position."},{"id":"homing","term":"homing","forms":["homes"],"lesson":"stepper","def":"Moving each motor until a part taps a switch at the edge, so the machine knows exactly where it is. 3D printers do it before every print."},{"id":"gearmotor","term":"DC gearmotor","forms":["DC gearmotors","gearmotor","gearmotors"],"lesson":"motorpick","def":"A DC motor with a gearbox. Good at spinning nonstop, like a robot car's wheels."},{"id":"brushless","term":"brushless motor","forms":["brushless","brushless motors"],"lesson":"motorpick","def":"A very fast, powerful and efficient motor with no brushes rubbing inside. It needs a speed controller (ESC)."},{"id":"esc","term":"ESC","forms":["electronic speed controller"],"lesson":"motorpick","def":"Electronic speed controller: a small computer that switches a brushless motor's coils."},{"id":"link","term":"link","forms":["links"],"lesson":"links","def":"A stiff part of a robot arm, like the bones in your arm."},{"id":"joint","term":"joint","forms":["joints","turning joints","sliding joints"],"lesson":"links","def":"Where links connect and move, like your shoulder and elbow. Turning joints rotate like a hinge; sliding joints move in a straight line."},{"id":"degree-of-freedom","term":"degree of freedom","forms":["degrees of freedom"],"lesson":"links","def":"Each joint that can move on its own adds one. Two let an arm reach spots on a flat surface; six let it reach and point anywhere."},{"id":"forward-kinematics","term":"forward kinematics","forms":[],"lesson":"links","def":"Working out where the hand ends up from the joint angles you picked."},{"id":"inverse-kinematics","term":"inverse kinematics","forms":[],"lesson":"links","def":"Working backwards: finding the joint angles that put the hand on a spot. The robot's computer solves it with trigonometry."},{"id":"kg-cm","term":"kg·cm","forms":[],"lesson":"armtorque","def":"The unit hobby servos use for their strength (torque). A 2 kg·cm servo can hold 2 kg at 1 cm, or 200 g at 10 cm."},{"id":"counterweight","term":"counterweight","forms":["counterweights"],"lesson":"armtorque","def":"A weight on the other side of a joint that balances the load, like the one on a crane."},{"id":"trade-off","term":"trade-off","forms":["trade-offs"],"lesson":"tradeoffs","def":"A choice that gives something and costs something, because engineers can't have everything."},{"id":"mass","term":"mass","forms":[],"lesson":"thrust","def":"How much stuff something is made of, measured in kilograms (kg). In everyday talk, and in Bot Arena, we call this weight."},{"id":"weight","term":"weight","forms":[],"lesson":"thrust","def":"How hard gravity pulls on something: mass × 9.8, measured in newtons. In everyday talk, and in Bot Arena, we say kilograms."},{"id":"gravity","term":"gravity","forms":[],"lesson":"thrust","def":"The pull of the Earth that makes things fall and gives them weight."},{"id":"newton","term":"newton","forms":["newtons"],"lesson":null,"planned":"P1","def":"The unit for forces like thrust and weight. On Earth, 1 kg weighs about 9.8 newtons (N)."},{"id":"newtons-third-law","term":"Newton's 3rd law","forms":["Newton's third law"],"lesson":"thrust","def":"Every push has an equal push back. Thrusters push air down, so the air pushes the car up."},{"id":"thrust","term":"thrust","forms":["thrusters"],"lesson":"thrust","def":"The push from an engine or thruster. Blasting air down out of nozzles pushes the car up."},{"id":"thrust-to-weight","term":"thrust-to-weight","forms":["thrust ÷ weight"],"lesson":"thrust","def":"Thrust ÷ weight. Above 1.0, the thrusters can lift the car by themselves."},{"id":"lift","term":"lift","forms":[],"lesson":"thrust","def":"In the Flying Car Lab, the total upward push from all your lift nozzles."},{"id":"landing-speed","term":"landing speed","forms":["speed when it lands"],"lesson":"landing","def":"How fast something is going when it hits the ground: about √(2 × 9.8 × height). It grows with the square root of the height."},{"id":"predict","term":"predict","forms":["prediction"],"lesson":"engineer","def":"Say what you think will happen, and why, before you test."},{"id":"test","term":"test","forms":["fair test"],"lesson":"engineer","def":"Try it and see what really happens. A fair test changes only one thing at a time."},{"id":"explain","term":"explain","forms":[],"lesson":"engineer","def":"Say why it happened, using what you saw and measured."},{"id":"improve","term":"improve","forms":[],"lesson":"engineer","def":"Change one thing and test again."},{"id":"grip","term":"grip","forms":[],"lesson":null,"planned":"P2","def":"How well tires hold the road. Tires with more grip can take corners faster without sliding, but they roll a little less easily on the straights."},{"id":"slope","term":"slope","forms":["steepness"],"lesson":null,"planned":"P3","def":"How steep a hill is, measured in degrees. Steeper hills need more torque to climb."},{"id":"burn-time","term":"burn time","forms":[],"lesson":null,"planned":"P9","def":"How long the thrusters can fire before the air runs out."}];
+window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer-offline.html"};
+</script>
 <script>
 /*
  * Bot Arena engine — shared by the server (Node) and the browser.
@@ -1245,6 +1256,10 @@ canvas { display: block; width: 100%; max-width: 100%; }
   const STRIPS = [
     { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", open: true, about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
       keys: { straight: "Run-up", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
+    { id: "strip-flat-150", n: "Torque's straight", theme: "dusk", open: true, about: "150 m of flat, straight road: long enough to reach top speed.",
+      keys: { straight: "Straight", hill: "", corner: "" }, sections: [{ n: "Straight", len: 150 }] },
+    { id: "strip-hill17-flat", n: "Hill, then straight", theme: "dusk", open: true, about: "40 m up a 16.7° hill, then 120 m of flat road.",
+      keys: { straight: "Straight", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.3 }, { n: "Straight", len: 120 }] },
   ].map(makeTrack);
   const stripOf = (id) => STRIPS.find((s) => s.id === id);
 
@@ -1431,6 +1446,15 @@ canvas { display: block; width: 100%; max-width: 100%; }
     return out;
   }
   const degOf = (slope) => `${(Math.atan(slope) * 180 / Math.PI).toFixed(1)}°`;
+  // the allowed gears' computer-driver runs on a strip, for answers and tips: [{ gi, r, top }] (top: its fastest moment)
+  const gearRuns = (mission, setup) => (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b).map((gi) => {
+    const r = driven(stripOf(mission.setting), { ...setup, gear: gi }).r;
+    return { gi, r, time: r.finished ? r.time : Infinity, top: Math.max(...r.sec.map((s) => s.vMax)) };
+  });
+  const best = (runs, key, sign) => runs.slice().sort((a, b) => sign * (a[key] - b[key]))[0];
+  // too close to call when the runner-up is within 3% of the winner (a retune could swap them)
+  const near = (runs, key, sign) => { const s = runs.slice().sort((a, b) => sign * (a[key] - b[key])); return s.length > 1 && Math.abs(s[1][key] - s[0][key]) < 0.03 * Math.abs(s[0][key]); };
+  const gearOptions = (mission) => (mission.allow.gear || []).map((gi) => ({ value: gi, label: `${GEARS[gi]}:1` }));
   const MISSION = {
     setting: stripOf,
     clamp: clampSetup,
@@ -1449,47 +1473,70 @@ canvas { display: block; width: 100%; max-width: 100%; }
           return r.finished ? hillMin(strip, r) < 0.5 : climbSpeed(setup, strip.steep) > 0.2;
         },
       },
+      // which allowed gear reaches the highest speed (asked once: it compares every gear, not the one picked)
+      topGear: {
+        once: true,
+        options: gearOptions,
+        answer: (mission, setup) => best(gearRuns(mission, setup), "top", -1).gi,
+        close: (mission, setup) => near(gearRuns(mission, setup), "top", -1),
+      },
+      // which allowed gear gets to the end first (asked once)
+      firstHome: {
+        once: true,
+        options: gearOptions,
+        answer: (mission, setup) => best(gearRuns(mission, setup), "time", 1).gi,
+        close: (mission, setup) => near(gearRuns(mission, setup).filter((o) => o.time < Infinity), "time", 1),
+      },
     },
     goal: {
       reachEnd: { met: (mission, r) => !!r.finished },
+      // finish with the fastest allowed gear (the one the computer driver gets to the end soonest)
+      bestGear: { met: (mission, r, setup) => !!r.finished && setup.gear === best(gearRuns(mission, setup), "time", 1).gi },
     },
-    // the explain card for a hill strip: findings from this run's real numbers, one tip whose change the computer driver
-    // has checked is better (it reaches the top, or gets there faster), and the speed along the hill for the graph
+    // The explain card: findings from this run's real numbers (the hill, the straight), one tip that moves one gear step
+    // the computer driver shows is better (it reaches the end, or gets there sooner), and the speed along the road.
     explain(mission, setup, run) {
       setup = clampSetup(setup);
       const strip = stripOf(mission.setting), own = run && typeof run.inputs === "string", inputs = own ? run.inputs : driven(strip, setup).inputs;
-      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep);
-      const hi = strip.SECTIONS.findIndex((s) => s.slope > 0), hillStart = strip.SECTIONS.slice(0, hi).reduce((a, s) => a + s.len, 0);
-      const can = driven(strip, setup).r.finished, gears = (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b);
-      const others = gears.map((gi) => ({ gi, r: driven(strip, { ...setup, gear: gi }).r }));
+      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep), st = setupStats(setup, strip);
+      const S = strip.SECTIONS, hi = S.findIndex((s) => s.slope > 0), fi = S.findIndex((s) => !s.slope && s.len >= 60);
+      const hillStart = hi < 0 ? 0 : S.slice(0, hi).reduce((a, s) => a + s.len, 0), place = fi < 0 && hi >= 0 ? "the top" : "the end";
+      const runs = gearRuns(mission, setup), can = driven(strip, setup).r.finished, kmh = (v) => Math.round(v * 3.6);
       const items = [];
-      let headline, tip;
+      let headline;
       if (r.finished) {
-        headline = { tone: "good", text: `Made it to the top in ${r.time.toFixed(1)} s.` };
-        items.push({ tone: "good", title: `Slowest on the hill: ${Math.round(hillMin(strip, r) * 3.6)} km/h`, terms: ["gear-ratio", "torque"],
+        headline = { tone: "good", text: place === "the top" ? `Made it to the top in ${r.time.toFixed(1)} s.` : `Finished in ${r.time.toFixed(1)} s.` };
+        if (hi >= 0 && hillMin(strip, r) < 3) items.push({ tone: "bad", title: `Crawled up the hill: ${kmh(hillMin(strip, r))} km/h`, terms: ["gear-ratio", "torque"],
+          text: `With ${g}:1 gears the motor turns only ${g} times for every turn of the wheels, so there's little torque (twisting strength) at the wheels. It made it, but it crawled up the ${deg} hill.` });
+        else if (hi >= 0) items.push({ tone: "good", title: `Slowest on the hill: ${kmh(hillMin(strip, r))} km/h`, terms: ["gear-ratio", "torque"],
           text: `With ${g}:1 gears the motor turns ${g} times for every turn of the wheels. That trades speed for torque (twisting strength): enough push to keep climbing a ${deg} hill.` });
-        const fastest = others.filter((o) => o.r.finished).sort((a, b) => a.r.time - b.r.time)[0];
-        if (setup.gear === gears[gears.length - 1] && fastest && fastest.gi !== setup.gear)
-          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${Math.round(setupStats(setup, strip).top * 3.6)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
-        tip = fastest && fastest.gi !== setup.gear && fastest.r.time < r.time - 0.3
-          ? { text: `Try ${GEARS[fastest.gi]}:1. It still climbs this hill, and ${fastest.gi < setup.gear ? "its higher top speed gets you there faster" : "it pushes harder up the slope"}.`, change: { gear: fastest.gi } }
-          : { text: "That's the fastest gear up this hill. Change one thing and predict again: can you explain what each gear does?" };
+        if (fi >= 0) {
+          const v = r.sec[fi].vMax;
+          items.push({ tone: "info", title: `On the straight: ${kmh(v)} km/h`, terms: ["rpm", "gearing"], text: v >= st.top * 0.95
+            ? `That's the top speed with ${g}:1: the motor reached its top rpm, so it couldn't turn the wheels any faster. Less gearing gives a higher top speed; more gearing gives more push.`
+            : `It was still speeding up at the end. With ${g}:1 the car can reach ${kmh(st.top)} km/h on flat ground.` });
+        } else if (setup.gear === runs[runs.length - 1].gi && runs.some((o) => o.time < r.time - 0.3))
+          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${kmh(st.top)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
       } else {
         const stopAt = Math.max(0, Math.round(tr[tr.length - 1][0] - hillStart));
         if (can) {
-          headline = { tone: "bad", text: "Stopped on the hill." };
-          items.push({ tone: "bad", title: "This gear can climb it", terms: ["gear-ratio"], text: `Your car can climb this hill with ${g}:1 (the computer driver made it), but this run stopped ${stopAt} m up. Keep the gas pressed all the way to the top.` });
-          tip = { text: "Run it again and hold the gas until you reach the top." };
+          headline = { tone: "bad", text: hi >= 0 ? "Stopped on the hill." : "Stopped before the end." };
+          items.push({ tone: "bad", title: "This gear can do it", terms: ["gear-ratio"], text: `Your car can get to ${place} with ${g}:1 (the computer driver did), but this run stopped. Keep the gas pressed all the way.` });
         } else {
           headline = { tone: "bad", text: `It got stuck ${stopAt} m up the hill.` };
           items.push({ tone: "bad", title: "Stalled on the hill", terms: ["torque", "stall"],
             text: `With ${g}:1 gears the motor couldn't push hard enough. Its torque (twisting strength) at the wheels was less than gravity pulling the car back down the ${deg} hill, so it slowed until it stopped: a stall.` });
-          const up = others.find((o) => o.gi > setup.gear && o.r.finished);
-          tip = up ? { text: `Try more gearing (${GEARS[up.gi]}:1). The wheels turn slower, but they push harder.`, change: { gear: up.gi } } : { text: "No allowed gear climbs this hill." };
         }
       }
-      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, i) => [i * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
-        speed: tr, slow: 3, stop: r.finished ? null : tr[tr.length - 1][0] };
+      const mine = r.finished ? r.time : Infinity, i = runs.findIndex((o) => o.gi === setup.gear);
+      const step = [runs[i - 1], runs[i + 1]].filter((o) => o && o.time < mine - 0.3).sort((a, b) => a.time - b.time)[0];
+      let tip;
+      if (!r.finished && can) tip = { text: `Run it again and hold the gas until you reach ${place}.` };
+      else if (step && step.gi > setup.gear) tip = { change: { gear: step.gi }, text: !r.finished ? `Try more gearing (${GEARS[step.gi]}:1). The wheels turn slower, but they push harder.` : `Try more gearing (${GEARS[step.gi]}:1). It pushes harder up the hill, so it climbs faster.` };
+      else if (step) tip = { change: { gear: step.gi }, text: `Try less gearing (${GEARS[step.gi]}:1). Its higher top speed gets you there sooner.` };
+      else tip = { text: r.finished ? "That's the fastest gear for this test. Can you explain why it wins?" : "No allowed gear gets up this hill." };
+      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, k) => [k * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
+        speed: tr, slow: hi >= 0 ? 3 : null, stop: r.finished ? null : tr[tr.length - 1][0] };
       return { headline, items, tip, graph, result: r };
     },
   };
@@ -2080,9 +2127,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
   const close = (m, c) => !!(kind(m).close && kind(m).close(m, about(m, c)));
   // run it (with the student's inputs when they drove), and whether it met the goal
   function result(m, c, run) {
-    const r = model(m).run(m, choice(m, c), run);
-    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r) };
+    const ch = choice(m, c), r = model(m).run(m, ch, run);
+    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r, ch) };
   }
+  // a question that compares every choice ("which gear wins?") is asked before the first run only
+  const once = (m) => !!kind(m).once;
   // mission text for a reading level, falling back to the Recruit text
   const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
   // which allowed choices changed between two tries (the one-change tracker)
@@ -2093,7 +2142,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // every combination of the allowed choices
   const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
 
-  return { register, check, choice, options, answer, close, result, text, changes, allChoices };
+  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices };
 });
 
 </script>
@@ -2176,7 +2225,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     if (d.graph && d.graph.kind === "speedDistance") {
       const wrap = el("div", "xgraph"), cv = el("canvas"); cv.setAttribute("role", "img");
       cv.setAttribute("aria-label", "A graph of the car's speed along the test, drawn over the shape of the hill." + (d.graph.stop != null ? " The line drops to zero where the car stopped." : ""));
-      wrap.append(cv, el("p", "xcap", "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb.")); frag.appendChild(wrap);
+      wrap.append(cv, el("p", "xcap", d.graph.slow ? "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb." : "Orange: your speed. Gray: the height of the road.")); frag.appendChild(wrap);
       if (window.ResizeObserver) new ResizeObserver(() => graph(cv, d.graph)).observe(cv); // redrawn at its new size when a phone turns
       else requestAnimationFrame(() => graph(cv, d.graph));
     }
@@ -2234,7 +2283,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
   // A mission (/race?mission=<id>) runs on a test-bench strip with only the choices it allows. The student predicts
   // before every run; the right answer, the goal and the explanation come from race.js (MISSION, through missions.js).
   const missionId = new URLSearchParams(location.search).get("mission");
-  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, tries: [], still: 0, gloss: {} };
+  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, first: null, next: null, tries: [], still: 0, gloss: {} };
   if (mis.on) { cls.on = false; document.body.classList.add("mission"); } // no class leaderboard or Race Day during a mission
 
   // ---------------- the race ----------------
@@ -2258,8 +2307,11 @@ canvas { display: block; width: 100%; max-width: 100%; }
   function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
     if (mis.on) {
-      if (!mis.m || state !== "garage" || !mis.card || mis.card.value == null) return; // predict first, on a fresh try
-      mis.card.lock(); mis.cur = { choice: { ...setup }, predicted: mis.card.value }; mis.still = 0;
+      if (!mis.m || state !== "garage" || needPrediction()) return; // predict first, on a fresh try
+      const pred = mis.card ? mis.card.value : mis.first;
+      if (mis.card) mis.card.lock();
+      if (mis.first == null) mis.first = pred;
+      mis.cur = { choice: { ...setup }, predicted: pred }; mis.still = 0;
     }
     reset(); cd = 3.4;
     ghost = !mis.on && $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
@@ -2343,7 +2395,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     $("go").hidden = gp; $("quit").hidden = gp;
     $("go").disabled = state === "countdown" || state === "race"; $("go").textContent = state === "done" ? "Race again" : "Start race";
     if (mis.on) {
-      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && (!mis.card || mis.card.value == null));
+      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && needPrediction());
       $("go").textContent = state === "done" ? "Next try" : "Run the test";
       $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : "Run the test with this gear. Predict first: the button wakes up when you do.");
     }
@@ -2351,68 +2403,117 @@ canvas { display: block; width: 100%; max-width: 100%; }
   }
 
   // ---------------- missions ----------------
-  const lessonHref = (id) => `/learn#lesson-${encodeURIComponent(id)}`;
+  const page = (name) => (window.OFFLINE_PAGES && window.OFFLINE_PAGES[name]) || "/" + name; // the offline copies link to each other
+  const lessonHref = (id) => `${page("learn")}#lesson-${encodeURIComponent(id)}`;
+  const missionHref = (id) => `${page("race")}?mission=${encodeURIComponent(id)}`;
+  const tierNow = () => (window.Tier ? Tier.current() : "recruit");
+  const choiceKey = (c) => JSON.stringify(Missions.choice(mis.m, c));
+  const untested = () => Missions.allChoices(mis.m).filter((c) => !mis.tries.some((t) => choiceKey(t.choice) === choiceKey(c)));
+  const gearName = (c) => `${R.GEARS[c.gear]}:1`;
+  // a "which gear wins?" question is asked before the first run only; every other kind before every run
+  const needPrediction = () => !(Missions.once(mis.m) && mis.first != null) && (!mis.card || mis.card.value == null);
   function missionLoad() {
     const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + " " + r.status))));
-    Promise.all([get(`/data/missions/${encodeURIComponent(missionId)}.json`), get("/data/glossary.json").catch(() => [])]).then(([m, gl]) => {
+    const data = window.MISSION_DATA; // the offline copy has every mission built in
+    const mission = (id) => (data ? (data.missions[id] ? Promise.resolve(data.missions[id]) : Promise.reject(new Error(id))) : get(`/data/missions/${encodeURIComponent(id)}.json`));
+    const index = data ? Promise.resolve(data.index) : get("/data/missions/index.json").catch(() => []);
+    const glossary = window.GLOSSARY_DATA ? Promise.resolve(window.GLOSSARY_DATA) : get("/data/glossary.json").catch(() => []);
+    Promise.all([mission(missionId), index, glossary]).then(([m, ids, gl]) => {
       Missions.register("racer", R.MISSION);
       if (m.game !== "racer" || Missions.check(m).length) throw new Error("not a Racer mission");
       mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start);
-      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, Tier.current()) : g.def };
+      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, tierNow()) : g.def };
       renderMission(); nextTry();
+      const nid = ids[ids.indexOf(m.id) + 1]; // the lesson's next mission, offered once this one is done
+      if (nid) mission(nid).then((n) => { if (n.lesson === m.lesson) mis.next = n; }, () => {});
     }).catch(() => {
       $("missionp").hidden = false;
       $("missionp").innerHTML = '<h2>That mission didn\'t load</h2><p>Check your connection and refresh the page, or <a href="robot-racer-offline.html">race in free play</a>.</p>';
     });
   }
   function renderMission() {
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", box = $("missionp");
+    const m = mis.m, box = $("missionp");
     box.hidden = false; box.innerHTML = "";
     const head = document.createElement("div"); head.className = "mhead";
-    const h = document.createElement("h2"); h.textContent = `Mission: ${track.n}`;
+    const h = document.createElement("h2"); h.textContent = `Mission: ${m.title || track.n}`;
     const back = document.createElement("a"); back.className = "btn ghost"; back.href = lessonHref(m.lesson); back.textContent = "Back to the lesson";
     back.setAttribute("data-tip", "Open the lesson this mission tests. You can come back here any time.");
     head.append(h, back);
     const brief = document.createElement("p"); brief.className = "mbrief"; const who = document.createElement("b"); who.textContent = "Torque: ";
-    brief.append(who, Missions.text(m, "brief", tier));
+    brief.append(who, Missions.text(m, "brief", tierNow()));
     const steps = document.createElement("ol"); steps.className = "msteps";
-    ["Pick a gear", "Predict", "Run the test", "Find out why"].forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
+    (Missions.once(m) ? ["Predict", "Test every gear", "Compare the times", "Find out why"] : ["Pick a gear", "Predict", "Run the test", "Find out why"]).forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
     box.append(head, brief, steps);
   }
-  // a new try: back to the garage with a fresh prediction card (the choices stay as they were)
+  // a new try: back to the garage (the choices stay as they were), with a fresh prediction card when one is needed
   function nextTry() {
     state = "garage"; reset();
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit";
-    $("report").innerHTML = "";
-    mis.card = Cards.predict($("report"), { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
+    const m = mis.m, tier = tierNow(), box = $("report");
+    box.innerHTML = "";
+    if (Missions.once(m) && mis.first != null) {
+      mis.card = null;
+      const label = (Missions.options(m, tier).find((o) => o.value === mis.first) || {}).label, left = untested();
+      const note = document.createElement("div"); note.className = "pcard";
+      const k = document.createElement("span"); k.className = "pkick"; k.textContent = "Your prediction";
+      const q = document.createElement("p"); q.className = "pq"; q.textContent = `${Missions.text(m, "question", tier)} You said ${label}.`;
+      const s = document.createElement("p"); s.className = "pstatus";
+      s.textContent = left.length ? `Test every gear to find out. Still to try: ${left.map(gearName).join(", ")}.` : "You've tried every gear. Run any of them again, or go on to the next mission.";
+      note.append(k, q, s); box.appendChild(note);
+    } else mis.card = Cards.predict(box, { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
     renderAll();
   }
   function missionDone() {
     state = "done"; doneT = 0;
     const m = mis.m, run = { inputs }, res = Missions.result(m, setup, run), answer = Missions.answer(m, setup);
-    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, time: res.result.finished ? res.result.time : null };
+    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, finished: !!res.result.finished,
+      time: res.result.finished ? res.result.time : null, top: Math.max(...res.result.sec.map((s) => s.vMax)) };
     const prev = mis.prev; mis.tries.push(t); mis.prev = t;
     const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
     p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
     lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
-    Sound.play(t.goal ? "win" : "miss");
-    if (!RM && t.goal) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
+    Sound.play(t.finished ? "win" : "miss");
+    // no cheering for the winning gear before every gear has been tried: that would give the answer away
+    if (!RM && t.goal && (!Missions.once(m) || !untested().length)) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
     showMissionReport(t, prev);
     renderAll();
   }
+  // each gear's best result so far; the winner is marked once every gear has been tried
+  function timesTable() {
+    const m = mis.m, topQ = m.predict.kind === "topGear", done = !untested().length, ans = Missions.answer(m, setup);
+    const tbl = document.createElement("table"); tbl.className = "mtimes";
+    const cap = document.createElement("caption"); cap.textContent = "Your tests so far"; tbl.appendChild(cap);
+    const head = document.createElement("tr"); ["Gear", "Time to the end"].concat(topQ ? ["Top speed"] : []).forEach((x) => { const th = document.createElement("th"); th.textContent = x; head.appendChild(th); });
+    tbl.appendChild(head);
+    for (const c of Missions.allChoices(m)) {
+      const runs = mis.tries.filter((t) => choiceKey(t.choice) === choiceKey(c)), fin = runs.filter((t) => t.finished), row = document.createElement("tr");
+      const cells = [gearName(c) + (done && c.gear === ans ? " ★" : ""), !runs.length ? "not tried yet" : fin.length ? `${Math.min(...fin.map((t) => t.time)).toFixed(1)} s` : "stuck"];
+      if (topQ) cells.push(runs.length ? `${Math.round(Math.max(...runs.map((t) => t.top)) * 3.6)} km/h` : "–");
+      cells.forEach((x) => { const td = document.createElement("td"); td.textContent = x; row.appendChild(td); });
+      if (done && c.gear === ans) row.className = "win";
+      tbl.appendChild(row);
+    }
+    return tbl;
+  }
   function showMissionReport(t, prev) {
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", rep = $("report"), opts = Missions.options(m, tier);
+    const m = mis.m, tier = tierNow(), rep = $("report"), opts = Missions.options(m, tier), once = Missions.once(m), done = !untested().length;
     const label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+    const place = track.SECTIONS.some((s) => s.slope > 0) && !track.SECTIONS.some((s) => !s.slope && s.len >= 60) ? "the top" : "the end";
     const e = R.MISSION.explain(m, setup, { inputs });
-    const verdict = document.createElement("div"); verdict.className = "verdict " + (t.right ? "good" : "bad");
-    const vb = document.createElement("b"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
-    verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    const verdict = document.createElement("div"), vb = document.createElement("b");
+    if (!once || done) {
+      verdict.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+      verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    } else {
+      verdict.className = "verdict"; vb.textContent = "Your prediction:";
+      verdict.append(vb, ` “${label(t.predicted)}”. Test every gear, then you'll know. Still to try: ${untested().map(gearName).join(", ")}.`);
+    }
     const before = [verdict];
+    if (once) before.push(timesTable());
     if (prev) { // the one-change tracker: what changed since the last try, and what that did
       const ch = Missions.changes(m, prev.choice, t.choice), line = document.createElement("p"); line.className = "changeline";
       const fmt = (k, c) => (k === "gear" ? `${R.GEARS[c.gear]}:1` : k === "tire" ? `${R.TIRES[c.tire].n} tires` : String(c[k]));
-      const out = prev.goal === t.goal ? (t.goal && prev.time != null && t.time != null ? ` It reached the top ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "faster" : "slower"}.` : t.goal ? "" : " It still got stuck.")
-        : t.goal ? " This time it made it to the top!" : " This time it got stuck.";
+      const out = prev.finished === t.finished ? (t.finished ? ` It reached ${place} ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "sooner" : "later"}.` : " It still got stuck.")
+        : t.finished ? ` This time it made it to ${place}!` : " This time it got stuck.";
       line.textContent = ch.n === 0 ? "Same setup as last time, so the car does the same thing. Change one thing to find out more."
         : ch.n === 1 ? `You changed only the ${ch.keys[0]}, from ${fmt(ch.keys[0], prev.choice)} to ${fmt(ch.keys[0], t.choice)}.${out} One change, so you know it was the ${ch.keys[0]}.`
         : `You changed ${ch.n} things (${ch.keys.join(" and ")}), so you can't tell which one made the difference. Try changing one at a time.`;
@@ -2422,10 +2523,15 @@ canvas { display: block; width: 100%; max-width: 100%; }
     Cards.explain(rep, e, { glossary: mis.gloss, before, onTry: (change) => { Object.assign(setup, Missions.choice(m, { ...setup, ...change })); Sound.play("click"); nextTry(); } });
     const ctl = document.createElement("div"); ctl.className = "repctl";
     const again = document.createElement("button"); again.type = "button"; again.className = "btn"; again.textContent = "Next try";
-    again.setAttribute("data-tip", "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    again.setAttribute("data-tip", once ? "Pick another gear in the garage and run it." : "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    ctl.appendChild(again);
+    if (mis.next && mis.tries.some((x) => x.goal) && (!once || done)) {
+      const nx = document.createElement("a"); nx.className = "btn ghost"; nx.href = missionHref(mis.next.id); nx.textContent = `Next mission: ${mis.next.title || "keep going"}`;
+      nx.setAttribute("data-tip", "Go on to the lesson's next test."); ctl.appendChild(nx);
+    }
     const lesson = document.createElement("a"); lesson.className = "btn ghost"; lesson.href = lessonHref(m.lesson); lesson.textContent = "Back to the lesson";
     lesson.setAttribute("data-tip", "Open the lesson this mission tests.");
-    ctl.append(again, lesson); rep.appendChild(ctl);
+    ctl.appendChild(lesson); rep.appendChild(ctl);
   }
 
   // ---------------- the lap report ----------------
@@ -2769,7 +2875,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
     if (state === "countdown") { const n = Math.ceil(rem); bigText(ctx, rem > 3 ? "GET READY" : n > 0 ? String(n) : "GO!", w / 2, h * 0.32, h * (rem > 3 ? 0.08 : 0.16), n > 0 ? "#f4f1ea" : "#4fd18b", 1 + (rem % 1) * 0.2); }
     if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? "PICK A GEAR AND PREDICT, THEN RUN THE TEST" : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
     if (state === "done" && lastLap && lastLap.place) bigText(ctx, lastLap.place, w / 2, h * 0.41, h * 0.06, "#ffd23f", Math.min(1, 0.6 + doneT * 2));
-    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.mission.goal ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.mission.goal ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
+    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.time != null ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.time != null ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
     else if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
     ctx.textAlign = "left";
   }

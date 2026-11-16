@@ -84,9 +84,13 @@
       "explain": "The wheel turns slower but pushes harder. That's the trade-off."
     }
   ],
-  "missions": [],
+  "missions": [
+    "gear-hill",
+    "gear-straight",
+    "hill-straight"
+  ],
   "next": {
-    "label": "Test gears in Robot Racer",
-    "href": "/race"
+    "label": "Help Torque test the gears",
+    "mission": "gear-hill"
   }
 }

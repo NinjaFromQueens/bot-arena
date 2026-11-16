@@ -91,6 +91,10 @@
   const STRIPS = [
     { id: "strip-hill-22", n: "Torque's test hill", theme: "dusk", open: true, about: "A short run-up, then 40 m up a 21.8° hill, as steep as the climbs at Neon Peaks.",
       keys: { straight: "Run-up", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.4 }, { n: "Top", len: 10 }] },
+    { id: "strip-flat-150", n: "Torque's straight", theme: "dusk", open: true, about: "150 m of flat, straight road: long enough to reach top speed.",
+      keys: { straight: "Straight", hill: "", corner: "" }, sections: [{ n: "Straight", len: 150 }] },
+    { id: "strip-hill17-flat", n: "Hill, then straight", theme: "dusk", open: true, about: "40 m up a 16.7° hill, then 120 m of flat road.",
+      keys: { straight: "Straight", hill: "Hill", corner: "" }, sections: [{ n: "Run-up", len: 10 }, { n: "Hill", len: 40, slope: 0.3 }, { n: "Straight", len: 120 }] },
   ].map(makeTrack);
   const stripOf = (id) => STRIPS.find((s) => s.id === id);
 
@@ -277,6 +281,15 @@
     return out;
   }
   const degOf = (slope) => `${(Math.atan(slope) * 180 / Math.PI).toFixed(1)}°`;
+  // the allowed gears' computer-driver runs on a strip, for answers and tips: [{ gi, r, top }] (top: its fastest moment)
+  const gearRuns = (mission, setup) => (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b).map((gi) => {
+    const r = driven(stripOf(mission.setting), { ...setup, gear: gi }).r;
+    return { gi, r, time: r.finished ? r.time : Infinity, top: Math.max(...r.sec.map((s) => s.vMax)) };
+  });
+  const best = (runs, key, sign) => runs.slice().sort((a, b) => sign * (a[key] - b[key]))[0];
+  // too close to call when the runner-up is within 3% of the winner (a retune could swap them)
+  const near = (runs, key, sign) => { const s = runs.slice().sort((a, b) => sign * (a[key] - b[key])); return s.length > 1 && Math.abs(s[1][key] - s[0][key]) < 0.03 * Math.abs(s[0][key]); };
+  const gearOptions = (mission) => (mission.allow.gear || []).map((gi) => ({ value: gi, label: `${GEARS[gi]}:1` }));
   const MISSION = {
     setting: stripOf,
     clamp: clampSetup,
@@ -295,47 +308,70 @@
           return r.finished ? hillMin(strip, r) < 0.5 : climbSpeed(setup, strip.steep) > 0.2;
         },
       },
+      // which allowed gear reaches the highest speed (asked once: it compares every gear, not the one picked)
+      topGear: {
+        once: true,
+        options: gearOptions,
+        answer: (mission, setup) => best(gearRuns(mission, setup), "top", -1).gi,
+        close: (mission, setup) => near(gearRuns(mission, setup), "top", -1),
+      },
+      // which allowed gear gets to the end first (asked once)
+      firstHome: {
+        once: true,
+        options: gearOptions,
+        answer: (mission, setup) => best(gearRuns(mission, setup), "time", 1).gi,
+        close: (mission, setup) => near(gearRuns(mission, setup).filter((o) => o.time < Infinity), "time", 1),
+      },
     },
     goal: {
       reachEnd: { met: (mission, r) => !!r.finished },
+      // finish with the fastest allowed gear (the one the computer driver gets to the end soonest)
+      bestGear: { met: (mission, r, setup) => !!r.finished && setup.gear === best(gearRuns(mission, setup), "time", 1).gi },
     },
-    // the explain card for a hill strip: findings from this run's real numbers, one tip whose change the computer driver
-    // has checked is better (it reaches the top, or gets there faster), and the speed along the hill for the graph
+    // The explain card: findings from this run's real numbers (the hill, the straight), one tip that moves one gear step
+    // the computer driver shows is better (it reaches the end, or gets there sooner), and the speed along the road.
     explain(mission, setup, run) {
       setup = clampSetup(setup);
       const strip = stripOf(mission.setting), own = run && typeof run.inputs === "string", inputs = own ? run.inputs : driven(strip, setup).inputs;
-      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep);
-      const hi = strip.SECTIONS.findIndex((s) => s.slope > 0), hillStart = strip.SECTIONS.slice(0, hi).reduce((a, s) => a + s.len, 0);
-      const can = driven(strip, setup).r.finished, gears = (mission.allow.gear || [setup.gear]).slice().sort((a, b) => a - b);
-      const others = gears.map((gi) => ({ gi, r: driven(strip, { ...setup, gear: gi }).r }));
+      const r = lap(setup, inputs, strip), tr = trace(setup, inputs, strip), g = GEARS[setup.gear], deg = degOf(strip.steep), st = setupStats(setup, strip);
+      const S = strip.SECTIONS, hi = S.findIndex((s) => s.slope > 0), fi = S.findIndex((s) => !s.slope && s.len >= 60);
+      const hillStart = hi < 0 ? 0 : S.slice(0, hi).reduce((a, s) => a + s.len, 0), place = fi < 0 && hi >= 0 ? "the top" : "the end";
+      const runs = gearRuns(mission, setup), can = driven(strip, setup).r.finished, kmh = (v) => Math.round(v * 3.6);
       const items = [];
-      let headline, tip;
+      let headline;
       if (r.finished) {
-        headline = { tone: "good", text: `Made it to the top in ${r.time.toFixed(1)} s.` };
-        items.push({ tone: "good", title: `Slowest on the hill: ${Math.round(hillMin(strip, r) * 3.6)} km/h`, terms: ["gear-ratio", "torque"],
+        headline = { tone: "good", text: place === "the top" ? `Made it to the top in ${r.time.toFixed(1)} s.` : `Finished in ${r.time.toFixed(1)} s.` };
+        if (hi >= 0 && hillMin(strip, r) < 3) items.push({ tone: "bad", title: `Crawled up the hill: ${kmh(hillMin(strip, r))} km/h`, terms: ["gear-ratio", "torque"],
+          text: `With ${g}:1 gears the motor turns only ${g} times for every turn of the wheels, so there's little torque (twisting strength) at the wheels. It made it, but it crawled up the ${deg} hill.` });
+        else if (hi >= 0) items.push({ tone: "good", title: `Slowest on the hill: ${kmh(hillMin(strip, r))} km/h`, terms: ["gear-ratio", "torque"],
           text: `With ${g}:1 gears the motor turns ${g} times for every turn of the wheels. That trades speed for torque (twisting strength): enough push to keep climbing a ${deg} hill.` });
-        const fastest = others.filter((o) => o.r.finished).sort((a, b) => a.r.time - b.r.time)[0];
-        if (setup.gear === gears[gears.length - 1] && fastest && fastest.gi !== setup.gear)
-          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${Math.round(setupStats(setup, strip).top * 3.6)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
-        tip = fastest && fastest.gi !== setup.gear && fastest.r.time < r.time - 0.3
-          ? { text: `Try ${GEARS[fastest.gi]}:1. It still climbs this hill, and ${fastest.gi < setup.gear ? "its higher top speed gets you there faster" : "it pushes harder up the slope"}.`, change: { gear: fastest.gi } }
-          : { text: "That's the fastest gear up this hill. Change one thing and predict again: can you explain what each gear does?" };
+        if (fi >= 0) {
+          const v = r.sec[fi].vMax;
+          items.push({ tone: "info", title: `On the straight: ${kmh(v)} km/h`, terms: ["rpm", "gearing"], text: v >= st.top * 0.95
+            ? `That's the top speed with ${g}:1: the motor reached its top rpm, so it couldn't turn the wheels any faster. Less gearing gives a higher top speed; more gearing gives more push.`
+            : `It was still speeding up at the end. With ${g}:1 the car can reach ${kmh(st.top)} km/h on flat ground.` });
+        } else if (setup.gear === runs[runs.length - 1].gi && runs.some((o) => o.time < r.time - 0.3))
+          items.push({ tone: "info", title: "Strong, but slow on the flat", terms: ["rpm"], text: `${g}:1 tops out at ${kmh(st.top)} km/h, because the motor reaches its top rpm while the wheels still turn slowly.` });
       } else {
         const stopAt = Math.max(0, Math.round(tr[tr.length - 1][0] - hillStart));
         if (can) {
-          headline = { tone: "bad", text: "Stopped on the hill." };
-          items.push({ tone: "bad", title: "This gear can climb it", terms: ["gear-ratio"], text: `Your car can climb this hill with ${g}:1 (the computer driver made it), but this run stopped ${stopAt} m up. Keep the gas pressed all the way to the top.` });
-          tip = { text: "Run it again and hold the gas until you reach the top." };
+          headline = { tone: "bad", text: hi >= 0 ? "Stopped on the hill." : "Stopped before the end." };
+          items.push({ tone: "bad", title: "This gear can do it", terms: ["gear-ratio"], text: `Your car can get to ${place} with ${g}:1 (the computer driver did), but this run stopped. Keep the gas pressed all the way.` });
         } else {
           headline = { tone: "bad", text: `It got stuck ${stopAt} m up the hill.` };
           items.push({ tone: "bad", title: "Stalled on the hill", terms: ["torque", "stall"],
             text: `With ${g}:1 gears the motor couldn't push hard enough. Its torque (twisting strength) at the wheels was less than gravity pulling the car back down the ${deg} hill, so it slowed until it stopped: a stall.` });
-          const up = others.find((o) => o.gi > setup.gear && o.r.finished);
-          tip = up ? { text: `Try more gearing (${GEARS[up.gi]}:1). The wheels turn slower, but they push harder.`, change: { gear: up.gi } } : { text: "No allowed gear climbs this hill." };
         }
       }
-      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, i) => [i * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
-        speed: tr, slow: 3, stop: r.finished ? null : tr[tr.length - 1][0] };
+      const mine = r.finished ? r.time : Infinity, i = runs.findIndex((o) => o.gi === setup.gear);
+      const step = [runs[i - 1], runs[i + 1]].filter((o) => o && o.time < mine - 0.3).sort((a, b) => a.time - b.time)[0];
+      let tip;
+      if (!r.finished && can) tip = { text: `Run it again and hold the gas until you reach ${place}.` };
+      else if (step && step.gi > setup.gear) tip = { change: { gear: step.gi }, text: !r.finished ? `Try more gearing (${GEARS[step.gi]}:1). The wheels turn slower, but they push harder.` : `Try more gearing (${GEARS[step.gi]}:1). It pushes harder up the hill, so it climbs faster.` };
+      else if (step) tip = { change: { gear: step.gi }, text: `Try less gearing (${GEARS[step.gi]}:1). Its higher top speed gets you there sooner.` };
+      else tip = { text: r.finished ? "That's the fastest gear for this test. Can you explain why it wins?" : "No allowed gear gets up this hill." };
+      const graph = { kind: "speedDistance", length: strip.LENGTH, profile: strip.segs.map((s, k) => [k * SEG, s.y]).concat([[strip.LENGTH, strip.segs[strip.segs.length - 1].y]]),
+        speed: tr, slow: hi >= 0 ? 3 : null, stop: r.finished ? null : tr[tr.length - 1][0] };
       return { headline, items, tip, graph, result: r };
     },
   };
