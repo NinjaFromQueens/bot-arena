@@ -13,6 +13,9 @@ const logo = "data:image/svg+xml;base64," + Buffer.from(read("img/logo.svg")).to
 // the lessons and the glossary, which the online page loads from public/data
 const lessons = JSON.parse(read("data/lessons/index.json")).map((id) => JSON.parse(read(`data/lessons/${id}.json`)));
 const glossary = JSON.parse(read("data/glossary.json"));
+const missionIds = JSON.parse(read("data/missions/index.json"));
+const missions = { index: missionIds, missions: Object.fromEntries(missionIds.map((id) => [id, JSON.parse(read(`data/missions/${id}.json`))])) };
+const pages = { learn: "robot-lessons-offline.html", race: "robot-racer-offline.html" }; // lesson buttons and mission links between the copies
 
 function bundle(page, links, data) {
   let html = read(page).replace(/<script src="\/socket\.io\/socket\.io\.js"><\/script>\n?/g, ""); // no server offline
@@ -34,6 +37,6 @@ function bundle(page, links, data) {
 }
 fs.writeFileSync(path.join(out, "bot-arena-offline.html"), bundle("practice.html", { "/lab": "flying-car-lab-offline.html", "/": "bot-arena-offline.html" }));
 fs.writeFileSync(path.join(out, "flying-car-lab-offline.html"), bundle("lab.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html" }));
-fs.writeFileSync(path.join(out, "robot-lessons-offline.html"), bundle("learn.html", { "/": "bot-arena-offline.html", "/practice": "bot-arena-offline.html", "/practice#challenges": "bot-arena-offline.html#challenges", "/lab": "flying-car-lab-offline.html", "/race": "robot-racer-offline.html" }, { LESSON_DATA: lessons, GLOSSARY_DATA: glossary }));
-fs.writeFileSync(path.join(out, "robot-racer-offline.html"), bundle("race.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html", "/practice": "bot-arena-offline.html", "/race": "robot-racer-offline.html" }));
+fs.writeFileSync(path.join(out, "robot-lessons-offline.html"), bundle("learn.html", { "/": "bot-arena-offline.html", "/practice": "bot-arena-offline.html", "/practice#challenges": "bot-arena-offline.html#challenges", "/lab": "flying-car-lab-offline.html", "/race": "robot-racer-offline.html" }, { LESSON_DATA: lessons, GLOSSARY_DATA: glossary, OFFLINE_PAGES: pages }));
+fs.writeFileSync(path.join(out, "robot-racer-offline.html"), bundle("race.html", { "/": "bot-arena-offline.html", "/learn": "robot-lessons-offline.html", "/practice": "bot-arena-offline.html", "/race": "robot-racer-offline.html" }, { MISSION_DATA: missions, GLOSSARY_DATA: glossary, OFFLINE_PAGES: pages }));
 console.log("Built offline/bot-arena-offline.html, flying-car-lab-offline.html, robot-lessons-offline.html, robot-racer-offline.html");

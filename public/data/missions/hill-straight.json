@@ -1,0 +1,49 @@
+{
+  "id": "hill-straight",
+  "title": "Hill, then straight",
+  "game": "racer",
+  "lesson": "dcmotor",
+  "episode": 3,
+  "core": true,
+  "setting": "strip-hill17-flat",
+  "allow": {
+    "gear": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "tire": [
+      1
+    ]
+  },
+  "start": {
+    "gear": 3,
+    "tire": 1
+  },
+  "predict": {
+    "kind": "firstHome"
+  },
+  "goal": {
+    "kind": "bestGear"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "Here's the real test: a 40 m hill, then 120 m of flat road. One gear has to do both. Guess which gear gets to the end first, then test them all.",
+      "question": "Which gear will get to the end first?",
+      "drive": "assist"
+    },
+    "cadet": {
+      "brief": "A hill, then a long flat road. Which gear gets there first? Guess, then try them all.",
+      "question": "Which gear will get there first?",
+      "drive": "auto"
+    },
+    "operative": {
+      "brief": "40 m at 16.7°, then 120 m flat. Predict which gear ratio has the best total time, then test every ratio.",
+      "question": "Which gear ratio finishes first?",
+      "drive": "full"
+    }
+  },
+  "reward": null,
+  "art": []
+}

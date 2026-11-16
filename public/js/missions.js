@@ -47,9 +47,11 @@
   const close = (m, c) => !!(kind(m).close && kind(m).close(m, about(m, c)));
   // run it (with the student's inputs when they drove), and whether it met the goal
   function result(m, c, run) {
-    const r = model(m).run(m, choice(m, c), run);
-    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r) };
+    const ch = choice(m, c), r = model(m).run(m, ch, run);
+    return { result: r, goal: !!model(m).goal[m.goal.kind].met(m, r, ch) };
   }
+  // a question that compares every choice ("which gear wins?") is asked before the first run only
+  const once = (m) => !!kind(m).once;
   // mission text for a reading level, falling back to the Recruit text
   const text = (m, field, tier) => { const t = m.tiers[tier]; return t && t[field] != null ? t[field] : m.tiers.recruit[field]; };
   // which allowed choices changed between two tries (the one-change tracker)
@@ -60,5 +62,5 @@
   // every combination of the allowed choices
   const allChoices = (m) => Object.keys(m.allow).reduce((list, k) => list.flatMap((c) => m.allow[k].map((v) => Object.assign({}, c, { [k]: v }))), [{}]);
 
-  return { register, check, choice, options, answer, close, result, text, changes, allChoices };
+  return { register, check, choice, options, answer, close, result, once, text, changes, allChoices };
 });

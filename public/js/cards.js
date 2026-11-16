@@ -76,7 +76,7 @@
     if (d.graph && d.graph.kind === "speedDistance") {
       const wrap = el("div", "xgraph"), cv = el("canvas"); cv.setAttribute("role", "img");
       cv.setAttribute("aria-label", "A graph of the car's speed along the test, drawn over the shape of the hill." + (d.graph.stop != null ? " The line drops to zero where the car stopped." : ""));
-      wrap.append(cv, el("p", "xcap", "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb.")); frag.appendChild(wrap);
+      wrap.append(cv, el("p", "xcap", d.graph.slow ? "Orange: your speed. Gray: the hill. Below the dashed line is a slow climb." : "Orange: your speed. Gray: the height of the road.")); frag.appendChild(wrap);
       if (window.ResizeObserver) new ResizeObserver(() => graph(cv, d.graph)).observe(cv); // redrawn at its new size when a phone turns
       else requestAnimationFrame(() => graph(cv, d.graph));
     }

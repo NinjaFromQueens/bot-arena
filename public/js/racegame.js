@@ -33,7 +33,7 @@
   // A mission (/race?mission=<id>) runs on a test-bench strip with only the choices it allows. The student predicts
   // before every run; the right answer, the goal and the explanation come from race.js (MISSION, through missions.js).
   const missionId = new URLSearchParams(location.search).get("mission");
-  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, tries: [], still: 0, gloss: {} };
+  const mis = { on: !!missionId, m: null, card: null, cur: null, prev: null, first: null, next: null, tries: [], still: 0, gloss: {} };
   if (mis.on) { cls.on = false; document.body.classList.add("mission"); } // no class leaderboard or Race Day during a mission
 
   // ---------------- the race ----------------
@@ -57,8 +57,11 @@
   function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
     if (mis.on) {
-      if (!mis.m || state !== "garage" || !mis.card || mis.card.value == null) return; // predict first, on a fresh try
-      mis.card.lock(); mis.cur = { choice: { ...setup }, predicted: mis.card.value }; mis.still = 0;
+      if (!mis.m || state !== "garage" || needPrediction()) return; // predict first, on a fresh try
+      const pred = mis.card ? mis.card.value : mis.first;
+      if (mis.card) mis.card.lock();
+      if (mis.first == null) mis.first = pred;
+      mis.cur = { choice: { ...setup }, predicted: pred }; mis.still = 0;
     }
     reset(); cd = 3.4;
     ghost = !mis.on && $("ghost").checked ? makeGhost(ghostSrc && ghostSrc.track === track.id ? ghostSrc : bests[track.id]) : null;
@@ -142,7 +145,7 @@
     $("go").hidden = gp; $("quit").hidden = gp;
     $("go").disabled = state === "countdown" || state === "race"; $("go").textContent = state === "done" ? "Race again" : "Start race";
     if (mis.on) {
-      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && (!mis.card || mis.card.value == null));
+      $("go").disabled = !mis.m || state === "countdown" || state === "race" || (state === "garage" && needPrediction());
       $("go").textContent = state === "done" ? "Next try" : "Run the test";
       $("go").setAttribute("data-tip", state === "done" ? "Set up your next try: change one thing, then predict again." : "Run the test with this gear. Predict first: the button wakes up when you do.");
     }
@@ -150,68 +153,117 @@
   }
 
   // ---------------- missions ----------------
-  const lessonHref = (id) => `/learn#lesson-${encodeURIComponent(id)}`;
+  const page = (name) => (window.OFFLINE_PAGES && window.OFFLINE_PAGES[name]) || "/" + name; // the offline copies link to each other
+  const lessonHref = (id) => `${page("learn")}#lesson-${encodeURIComponent(id)}`;
+  const missionHref = (id) => `${page("race")}?mission=${encodeURIComponent(id)}`;
+  const tierNow = () => (window.Tier ? Tier.current() : "recruit");
+  const choiceKey = (c) => JSON.stringify(Missions.choice(mis.m, c));
+  const untested = () => Missions.allChoices(mis.m).filter((c) => !mis.tries.some((t) => choiceKey(t.choice) === choiceKey(c)));
+  const gearName = (c) => `${R.GEARS[c.gear]}:1`;
+  // a "which gear wins?" question is asked before the first run only; every other kind before every run
+  const needPrediction = () => !(Missions.once(mis.m) && mis.first != null) && (!mis.card || mis.card.value == null);
   function missionLoad() {
     const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + " " + r.status))));
-    Promise.all([get(`/data/missions/${encodeURIComponent(missionId)}.json`), get("/data/glossary.json").catch(() => [])]).then(([m, gl]) => {
+    const data = window.MISSION_DATA; // the offline copy has every mission built in
+    const mission = (id) => (data ? (data.missions[id] ? Promise.resolve(data.missions[id]) : Promise.reject(new Error(id))) : get(`/data/missions/${encodeURIComponent(id)}.json`));
+    const index = data ? Promise.resolve(data.index) : get("/data/missions/index.json").catch(() => []);
+    const glossary = window.GLOSSARY_DATA ? Promise.resolve(window.GLOSSARY_DATA) : get("/data/glossary.json").catch(() => []);
+    Promise.all([mission(missionId), index, glossary]).then(([m, ids, gl]) => {
       Missions.register("racer", R.MISSION);
       if (m.game !== "racer" || Missions.check(m).length) throw new Error("not a Racer mission");
       mis.m = m; track = R.stripOf(m.setting); setup = Missions.choice(m, m.start);
-      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, Tier.current()) : g.def };
+      for (const g of gl) mis.gloss[g.id] = { term: g.term, forms: g.forms, def: window.Tier ? Tier.text(g.def, tierNow()) : g.def };
       renderMission(); nextTry();
+      const nid = ids[ids.indexOf(m.id) + 1]; // the lesson's next mission, offered once this one is done
+      if (nid) mission(nid).then((n) => { if (n.lesson === m.lesson) mis.next = n; }, () => {});
     }).catch(() => {
       $("missionp").hidden = false;
       $("missionp").innerHTML = '<h2>That mission didn\'t load</h2><p>Check your connection and refresh the page, or <a href="/race">race in free play</a>.</p>';
     });
   }
   function renderMission() {
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", box = $("missionp");
+    const m = mis.m, box = $("missionp");
     box.hidden = false; box.innerHTML = "";
     const head = document.createElement("div"); head.className = "mhead";
-    const h = document.createElement("h2"); h.textContent = `Mission: ${track.n}`;
+    const h = document.createElement("h2"); h.textContent = `Mission: ${m.title || track.n}`;
     const back = document.createElement("a"); back.className = "btn ghost"; back.href = lessonHref(m.lesson); back.textContent = "Back to the lesson";
     back.setAttribute("data-tip", "Open the lesson this mission tests. You can come back here any time.");
     head.append(h, back);
     const brief = document.createElement("p"); brief.className = "mbrief"; const who = document.createElement("b"); who.textContent = "Torque: ";
-    brief.append(who, Missions.text(m, "brief", tier));
+    brief.append(who, Missions.text(m, "brief", tierNow()));
     const steps = document.createElement("ol"); steps.className = "msteps";
-    ["Pick a gear", "Predict", "Run the test", "Find out why"].forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
+    (Missions.once(m) ? ["Predict", "Test every gear", "Compare the times", "Find out why"] : ["Pick a gear", "Predict", "Run the test", "Find out why"]).forEach((s) => { const li = document.createElement("li"); li.textContent = s; steps.appendChild(li); });
     box.append(head, brief, steps);
   }
-  // a new try: back to the garage with a fresh prediction card (the choices stay as they were)
+  // a new try: back to the garage (the choices stay as they were), with a fresh prediction card when one is needed
   function nextTry() {
     state = "garage"; reset();
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit";
-    $("report").innerHTML = "";
-    mis.card = Cards.predict($("report"), { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
+    const m = mis.m, tier = tierNow(), box = $("report");
+    box.innerHTML = "";
+    if (Missions.once(m) && mis.first != null) {
+      mis.card = null;
+      const label = (Missions.options(m, tier).find((o) => o.value === mis.first) || {}).label, left = untested();
+      const note = document.createElement("div"); note.className = "pcard";
+      const k = document.createElement("span"); k.className = "pkick"; k.textContent = "Your prediction";
+      const q = document.createElement("p"); q.className = "pq"; q.textContent = `${Missions.text(m, "question", tier)} You said ${label}.`;
+      const s = document.createElement("p"); s.className = "pstatus";
+      s.textContent = left.length ? `Test every gear to find out. Still to try: ${left.map(gearName).join(", ")}.` : "You've tried every gear. Run any of them again, or go on to the next mission.";
+      note.append(k, q, s); box.appendChild(note);
+    } else mis.card = Cards.predict(box, { question: Missions.text(m, "question", tier), options: Missions.options(m, tier), onPick: () => renderAll() });
     renderAll();
   }
   function missionDone() {
     state = "done"; doneT = 0;
     const m = mis.m, run = { inputs }, res = Missions.result(m, setup, run), answer = Missions.answer(m, setup);
-    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, time: res.result.finished ? res.result.time : null };
+    const t = { choice: { ...setup }, predicted: mis.cur.predicted, answer, right: mis.cur.predicted === answer, goal: res.goal, finished: !!res.result.finished,
+      time: res.result.finished ? res.result.time : null, top: Math.max(...res.result.sec.map((s) => s.vMax)) };
     const prev = mis.prev; mis.tries.push(t); mis.prev = t;
     const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
     p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
     lastLap = { setup: { ...setup }, inputs, time: t.time, track: track.id, mission: t };
-    Sound.play(t.goal ? "win" : "miss");
-    if (!RM && t.goal) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
+    Sound.play(t.finished ? "win" : "miss");
+    // no cheering for the winning gear before every gear has been tried: that would give the answer away
+    if (!RM && t.goal && (!Missions.once(m) || !untested().length)) fx.burst(view.w / 2, view.h * 0.32, 40, { colors: E.COLORS, kind: "confetti", speed: 300, g: 300, life: 1.6, size: 6, angle: -Math.PI / 2, spread: 2.6 });
     showMissionReport(t, prev);
     renderAll();
   }
+  // each gear's best result so far; the winner is marked once every gear has been tried
+  function timesTable() {
+    const m = mis.m, topQ = m.predict.kind === "topGear", done = !untested().length, ans = Missions.answer(m, setup);
+    const tbl = document.createElement("table"); tbl.className = "mtimes";
+    const cap = document.createElement("caption"); cap.textContent = "Your tests so far"; tbl.appendChild(cap);
+    const head = document.createElement("tr"); ["Gear", "Time to the end"].concat(topQ ? ["Top speed"] : []).forEach((x) => { const th = document.createElement("th"); th.textContent = x; head.appendChild(th); });
+    tbl.appendChild(head);
+    for (const c of Missions.allChoices(m)) {
+      const runs = mis.tries.filter((t) => choiceKey(t.choice) === choiceKey(c)), fin = runs.filter((t) => t.finished), row = document.createElement("tr");
+      const cells = [gearName(c) + (done && c.gear === ans ? " ★" : ""), !runs.length ? "not tried yet" : fin.length ? `${Math.min(...fin.map((t) => t.time)).toFixed(1)} s` : "stuck"];
+      if (topQ) cells.push(runs.length ? `${Math.round(Math.max(...runs.map((t) => t.top)) * 3.6)} km/h` : "–");
+      cells.forEach((x) => { const td = document.createElement("td"); td.textContent = x; row.appendChild(td); });
+      if (done && c.gear === ans) row.className = "win";
+      tbl.appendChild(row);
+    }
+    return tbl;
+  }
   function showMissionReport(t, prev) {
-    const m = mis.m, tier = window.Tier ? Tier.current() : "recruit", rep = $("report"), opts = Missions.options(m, tier);
+    const m = mis.m, tier = tierNow(), rep = $("report"), opts = Missions.options(m, tier), once = Missions.once(m), done = !untested().length;
     const label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+    const place = track.SECTIONS.some((s) => s.slope > 0) && !track.SECTIONS.some((s) => !s.slope && s.len >= 60) ? "the top" : "the end";
     const e = R.MISSION.explain(m, setup, { inputs });
-    const verdict = document.createElement("div"); verdict.className = "verdict " + (t.right ? "good" : "bad");
-    const vb = document.createElement("b"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
-    verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    const verdict = document.createElement("div"), vb = document.createElement("b");
+    if (!once || done) {
+      verdict.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+      verdict.append(vb, ` You predicted “${label(t.predicted)}”. The test showed: “${label(t.answer)}”.`);
+    } else {
+      verdict.className = "verdict"; vb.textContent = "Your prediction:";
+      verdict.append(vb, ` “${label(t.predicted)}”. Test every gear, then you'll know. Still to try: ${untested().map(gearName).join(", ")}.`);
+    }
     const before = [verdict];
+    if (once) before.push(timesTable());
     if (prev) { // the one-change tracker: what changed since the last try, and what that did
       const ch = Missions.changes(m, prev.choice, t.choice), line = document.createElement("p"); line.className = "changeline";
       const fmt = (k, c) => (k === "gear" ? `${R.GEARS[c.gear]}:1` : k === "tire" ? `${R.TIRES[c.tire].n} tires` : String(c[k]));
-      const out = prev.goal === t.goal ? (t.goal && prev.time != null && t.time != null ? ` It reached the top ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "faster" : "slower"}.` : t.goal ? "" : " It still got stuck.")
-        : t.goal ? " This time it made it to the top!" : " This time it got stuck.";
+      const out = prev.finished === t.finished ? (t.finished ? ` It reached ${place} ${Math.abs(prev.time - t.time).toFixed(1)} s ${t.time < prev.time ? "sooner" : "later"}.` : " It still got stuck.")
+        : t.finished ? ` This time it made it to ${place}!` : " This time it got stuck.";
       line.textContent = ch.n === 0 ? "Same setup as last time, so the car does the same thing. Change one thing to find out more."
         : ch.n === 1 ? `You changed only the ${ch.keys[0]}, from ${fmt(ch.keys[0], prev.choice)} to ${fmt(ch.keys[0], t.choice)}.${out} One change, so you know it was the ${ch.keys[0]}.`
         : `You changed ${ch.n} things (${ch.keys.join(" and ")}), so you can't tell which one made the difference. Try changing one at a time.`;
@@ -221,10 +273,15 @@
     Cards.explain(rep, e, { glossary: mis.gloss, before, onTry: (change) => { Object.assign(setup, Missions.choice(m, { ...setup, ...change })); Sound.play("click"); nextTry(); } });
     const ctl = document.createElement("div"); ctl.className = "repctl";
     const again = document.createElement("button"); again.type = "button"; again.className = "btn"; again.textContent = "Next try";
-    again.setAttribute("data-tip", "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    again.setAttribute("data-tip", once ? "Pick another gear in the garage and run it." : "Change one thing in the garage, predict again, and run it."); again.onclick = nextTry;
+    ctl.appendChild(again);
+    if (mis.next && mis.tries.some((x) => x.goal) && (!once || done)) {
+      const nx = document.createElement("a"); nx.className = "btn ghost"; nx.href = missionHref(mis.next.id); nx.textContent = `Next mission: ${mis.next.title || "keep going"}`;
+      nx.setAttribute("data-tip", "Go on to the lesson's next test."); ctl.appendChild(nx);
+    }
     const lesson = document.createElement("a"); lesson.className = "btn ghost"; lesson.href = lessonHref(m.lesson); lesson.textContent = "Back to the lesson";
     lesson.setAttribute("data-tip", "Open the lesson this mission tests.");
-    ctl.append(again, lesson); rep.appendChild(ctl);
+    ctl.appendChild(lesson); rep.appendChild(ctl);
   }
 
   // ---------------- the lap report ----------------
@@ -568,7 +625,7 @@
     if (state === "countdown") { const n = Math.ceil(rem); bigText(ctx, rem > 3 ? "GET READY" : n > 0 ? String(n) : "GO!", w / 2, h * 0.32, h * (rem > 3 ? 0.08 : 0.16), n > 0 ? "#f4f1ea" : "#4fd18b", 1 + (rem % 1) * 0.2); }
     if (state === "garage") bigText(ctx, inGp() ? (cls.gp.phase === "garage" ? "PICK YOUR SETUP. THE BOARD STARTS THE RACE" : "WAITING FOR THE START") : mis.on ? "PICK A GEAR AND PREDICT, THEN RUN THE TEST" : "PICK A TRACK AND A SETUP, THEN START RACE", w / 2, h * 0.3, h * 0.045, "rgba(255,255,255,.85)");
     if (state === "done" && lastLap && lastLap.place) bigText(ctx, lastLap.place, w / 2, h * 0.41, h * 0.06, "#ffd23f", Math.min(1, 0.6 + doneT * 2));
-    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.mission.goal ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.mission.goal ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
+    if (state === "done" && lastLap && lastLap.mission) bigText(ctx, lastLap.time != null ? `MADE IT! ${lastLap.time.toFixed(1)} s` : "STUCK!", w / 2, h * 0.3, h * 0.085, lastLap.time != null ? "#4fd18b" : "#ff8a50", Math.min(1, 0.6 + doneT * 2));
     else if (state === "done" && lastLap) bigText(ctx, lastLap.dnf ? "TIME'S UP" : lastLap.time != null ? "FINISH! " + fmtTime(lastLap.time) : "DIDN'T FINISH", w / 2, h * 0.3, h * 0.085, lastLap.dnf || lastLap.time == null ? "#ff8a50" : "#4fd18b", Math.min(1, 0.6 + doneT * 2));
     ctx.textAlign = "left";
   }

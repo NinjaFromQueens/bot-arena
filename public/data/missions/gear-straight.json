@@ -1,0 +1,49 @@
+{
+  "id": "gear-straight",
+  "title": "Gear on a straight",
+  "game": "racer",
+  "lesson": "dcmotor",
+  "episode": 3,
+  "core": true,
+  "setting": "strip-flat-150",
+  "allow": {
+    "gear": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "tire": [
+      1
+    ]
+  },
+  "start": {
+    "gear": 3,
+    "tire": 1
+  },
+  "predict": {
+    "kind": "topGear"
+  },
+  "goal": {
+    "kind": "bestGear"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "Now a flat straight, 150 m long. Before you drive, guess which gear will reach the highest top speed. Then test every gear and find out.",
+      "question": "Which gear will reach the highest top speed?",
+      "drive": "assist"
+    },
+    "cadet": {
+      "brief": "Now a long flat road. Which gear goes fastest? Guess, then try them all.",
+      "question": "Which gear will go the fastest?",
+      "drive": "auto"
+    },
+    "operative": {
+      "brief": "A 150 m flat straight. Predict which gear ratio gives the highest top speed, then test every ratio.",
+      "question": "Which gear ratio reaches the highest top speed?",
+      "drive": "full"
+    }
+  },
+  "reward": null,
+  "art": []
+}
