@@ -86,7 +86,7 @@
   ],
   "missions": [],
   "next": {
-    "label": "Build a robot in practice mode",
-    "href": "/practice"
+    "label": "Test gears in Robot Racer",
+    "href": "/race"
   }
 }
