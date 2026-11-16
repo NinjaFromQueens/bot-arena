@@ -371,6 +371,23 @@
     return "Perfect run! Try the next mission.";
   }
 
+  // ---------------- missions (public/data/missions, read by missions.js) ----------------
+  // The Lab's missions stay in MISSIONS; a mission file names one (its setting) and adds the learning loop. The answer
+  // to "will this design complete the mission?" comes from flying the design here, never from the file.
+  const missionOf = (m) => MISSIONS.find((x) => x.id === m.setting);
+  const MISSION = {
+    setting: (id) => MISSIONS.find((x) => x.id === id),
+    clamp: clampDesign,
+    run: (mission, design) => simulate(design, missionOf(mission)),
+    predict: {
+      willClear: {
+        options: () => [{ value: "yes", label: "Yes, it completes the mission" }, { value: "no", label: "No, not this time" }],
+        answer: (mission, design) => (grade(simulate(design, missionOf(mission))).complete ? "yes" : "no"),
+      },
+    },
+    goal: { complete: { met: (mission, r) => grade(r).complete } },
+  };
+
   return { G, CAR_LEN, CAR_H, HALF, BASE, MATERIALS, TANK, NOZZLE, LIMITS, COMPUTERS, GEARS, PERSON_KG, RAMPS, RAMP_LEN, VEH, MISSIONS, ZONE_END,
-    DEFAULT_DESIGN, clampDesign, sheet, simulate, grade, explain, fmt, money, kg, kN };
+    DEFAULT_DESIGN, clampDesign, sheet, simulate, grade, explain, fmt, money, kg, kN, MISSION };
 });

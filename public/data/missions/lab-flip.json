@@ -1,0 +1,137 @@
+{
+  "id": "lab-flip",
+  "title": "Backflip",
+  "game": "lab",
+  "lesson": "engineer",
+  "episode": 8,
+  "core": false,
+  "setting": "flip",
+  "allow": {
+    "material": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "tanks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "lift": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "push": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "flip": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "computer": [
+      0,
+      1,
+      2
+    ],
+    "gear": [
+      0,
+      1,
+      2
+    ],
+    "people": [
+      0,
+      1,
+      2
+    ],
+    "speed": [
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60
+    ],
+    "ramp": [
+      0,
+      1,
+      2
+    ],
+    "reserve": [
+      0,
+      15,
+      30,
+      45
+    ],
+    "flipOn": [
+      0,
+      1
+    ]
+  },
+  "start": {
+    "material": 2,
+    "tanks": 3,
+    "lift": 6,
+    "push": 0,
+    "flip": 0,
+    "computer": 0,
+    "gear": 0,
+    "people": 1,
+    "speed": 50,
+    "ramp": 1,
+    "reserve": 0,
+    "flipOn": 0
+  },
+  "predict": {
+    "kind": "willClear",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "complete"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "Do a full backflip in the air and land on your wheels.",
+      "question": "Will this design complete the mission?"
+    },
+    "cadet": {
+      "question": "Will your car do it?"
+    },
+    "operative": {
+      "question": "Will this design complete the mission? Check its thrust-to-weight and air before you launch."
+    }
+  },
+  "reward": null,
+  "art": []
+}

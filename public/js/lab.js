@@ -9,7 +9,9 @@
   };
 
   let design = F.clampDesign(ls.get("fcl-design", F.DEFAULT_DESIGN));
-  let mIdx = clamp(ls.get("fcl-mission", 0) | 0, 0, F.MISSIONS.length - 1);
+  const asked = F.MISSIONS.findIndex((m) => new RegExp(`[?&]mission=lab-${m.id}(&|$)`).test(location.search)); // a lesson's button: /lab?mission=lab-<id>
+  let mIdx = asked >= 0 ? asked : clamp(ls.get("fcl-mission", 0) | 0, 0, F.MISSIONS.length - 1);
+  if (asked >= 0) ls.set("fcl-mission", asked);
   let stars = ls.get("fcl-stars", {});
   let run = null, lastResult = null, prevResult = null;
   const fx = new FX();
@@ -23,7 +25,7 @@
       const b = document.createElement("button"); b.type = "button"; b.className = "mcard"; b.setAttribute("aria-pressed", i === mIdx);
       b.innerHTML = `<span class="num">MISSION ${i + 1}</span><span class="nm"></span><span class="stars">${starStr(stars[m.id] || [false, false, false])}</span>`;
       b.querySelector(".nm").textContent = m.n; b.setAttribute("data-tip", m.goal);
-      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); classLab.onMission(i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; };
+      b.onclick = () => { mIdx = i; ls.set("fcl-mission", i); classLab.onMission(i); if (window.Presence) Presence.where(i + 1); Sound.play("click"); stopRun(); renderMissions(); renderGoal(); renderSheet(); $("report").innerHTML = ""; prevResult = null; lastResult = null; $("replay").disabled = true; loop.load(); };
       el.appendChild(b);
     });
     const cur = el.children[mIdx]; if (cur && cur.scrollIntoView) try { cur.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch {}
@@ -142,8 +144,8 @@
     $("replay").disabled = false;
     if (!result) $("report").innerHTML = "";
   }
-  $("launch").onclick = () => launch();
-  $("mb-launch").onclick = () => { try { $("track").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" }); } catch {} launch(); };
+  $("launch").onclick = () => loop.launch();
+  $("mb-launch").onclick = () => { if (loop.waiting()) return loop.nudge(); try { $("track").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" }); } catch {} loop.launch(); };
   $("replay").onclick = () => { if (lastResult) launch(lastResult); };
 
   function carState() {
@@ -500,6 +502,7 @@
       return `<i class="${good ? "up" : "down"}">${diff > 0 ? "+" : ""}${F.fmt(diff, dp)} vs last</i>`;
     };
     const rep = $("report"); rep.innerHTML = "";
+    loop.report(r, g).forEach((n) => rep.appendChild(n));
     const hd = document.createElement("div"); hd.className = "headline " + e.headline.tone;
     hd.innerHTML = `<span></span><span class="stars">${starStr(g.stars)}</span>`; hd.firstChild.textContent = e.headline.text + (newStar ? "  New star!" : "");
     rep.appendChild(hd);
@@ -524,6 +527,94 @@
       rep.appendChild(nb);
     }
   }
+
+  // ---------------- predict, test, explain, improve ----------------
+  // Each Lab mission has a mission file (public/data/missions/lab-<id>.json, read by missions.js). Before each launch
+  // the student predicts whether this design will complete the mission; the prediction locks on Launch, and the
+  // report starts with whether they were right and what their one change did. Flight.MISSION works out the answer by
+  // flying the design, so the file never holds one. The board (?present) and replays skip all of this.
+  const loop = (() => {
+    const off = /[?&]present\b/.test(location.search) || !window.Missions || !window.Cards;
+    const tier = () => (window.Tier ? Tier.current() : "recruit");
+    const files = {};
+    let m = null, card = null, pending = null, prev = null;
+    if (!off) Missions.register("lab", F.MISSION);
+    const fileOf = (id) => {
+      if (!files[id]) {
+        const data = window.MISSION_DATA; // the offline copy has the missions built in
+        files[id] = (data ? (data.missions[id] ? Promise.resolve(data.missions[id]) : Promise.reject(new Error(id)))
+          : fetch(`/data/missions/${id}.json`).then((r) => (r.ok ? r.json() : Promise.reject(new Error(id)))))
+          .then((f) => { if (f.game !== "lab" || Missions.check(f).length) throw new Error(id); return f; });
+      }
+      return files[id];
+    };
+    const waiting = () => !!card && card.value == null;
+    function gate() {
+      const w = waiting();
+      for (const id of ["launch", "mb-launch"]) {
+        const b = $(id); b.classList.toggle("wait", w); b.setAttribute("aria-disabled", String(w));
+        b.setAttribute("data-tip", w ? "Predict first: pick an answer in the box under the track, then launch." : "Drive up the ramp and fly with this design.");
+      }
+    }
+    // a fresh question ("Next try" once there's a flight to learn from)
+    function ask() {
+      const box = $("predict"); box.innerHTML = ""; card = null; pending = null;
+      if (m) card = Cards.predict(box, { question: Missions.text(m, "question", tier()), options: Missions.options(m, tier()), go: "Launch", kicker: prev ? "Next try: predict first" : "Predict first", onPick: () => { card.card.classList.remove("nudge"); gate(); } });
+      gate();
+    }
+    function load() {
+      m = null; prev = null; ask();
+      if (off) return;
+      const want = mIdx;
+      fileOf("lab-" + F.MISSIONS[want].id).then((f) => { if (mIdx === want) { m = f; ask(); } }, () => {}); // no file: the Lab still works, without predictions
+    }
+    function nudge() {
+      if (!card) return;
+      card.say("Pick one first, then press Launch.");
+      card.card.classList.remove("nudge"); void card.card.offsetWidth; card.card.classList.add("nudge");
+      try { card.card.scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "center" }); } catch {}
+      Sound.play("click");
+    }
+    function go() {
+      if (waiting()) return nudge();
+      if (card && pending) { ask(); return nudge(); } // launched again before the report: that flight needs its own prediction
+      if (card) { pending = { predicted: card.value, choice: Missions.choice(m, design) }; card.lock(); }
+      launch();
+    }
+    // each design setting's name and value, in the builder's words
+    const NAME = { material: "body material", tanks: "air tanks", lift: "lift nozzles", push: "push nozzles", flip: "flip nozzles", computer: "flight computer", gear: "landing gear", people: "passengers", speed: "ramp speed", ramp: "ramp angle", reserve: "air saved for landing", flipOn: "backflip" };
+    const val = (k, d) => (k === "material" ? F.MATERIALS[d.material].n : k === "computer" ? F.COMPUTERS[d.computer].n : k === "gear" ? F.GEARS[d.gear].n
+      : k === "ramp" ? F.RAMPS[d.ramp].n + " " + F.RAMPS[d.ramp].deg + "°" : k === "speed" ? d.speed + " km/h" : k === "reserve" ? d.reserve + "%" : k === "flipOn" ? (d.flipOn ? "on" : "off") : String(d[k]));
+    const DID = { landed: "landed", crash_hard: "hit the ground too hard", crash_side: "hit the side of an obstacle", crash_top: "came down on top of an obstacle", crash_angle: "tipped over", crash_upside: "landed upside down", overshoot: "flew past the landing zone", short: "came up short" };
+    const list = (a) => (a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]);
+    // what starts the report of a predicted flight (nothing for other flights), then a fresh question for the next try
+    function report(r, g) {
+      if (!pending || !m) return [];
+      const opts = Missions.options(m, tier()), label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+      const answer = Missions.answer(m, pending.choice);
+      const t = { choice: pending.choice, predicted: pending.predicted, answer, right: pending.predicted === answer, goal: g.complete, outcome: r.outcome, landX: r.landX };
+      const prog = ls.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
+      p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.goal; prog[m.id] = p; ls.set("cr-missions", prog);
+      const out = [], v = document.createElement("div"), vb = document.createElement("b");
+      v.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+      v.append(vb, " You predicted “" + label(t.predicted) + "”. " + (answer === "yes" ? "It completed the mission." : "It didn't complete the mission."));
+      out.push(v);
+      if (prev) { // the one-change tracker: what changed since the last try, and what that did
+        const ch = Missions.changes(m, prev.choice, t.choice), line = document.createElement("p"), dx = t.landX - prev.landX; line.className = "changeline";
+        const did = prev.goal !== t.goal ? (t.goal ? " This time it completed the mission!" : " This time it didn't complete the mission.")
+          : prev.outcome !== t.outcome ? " Last time it " + DID[prev.outcome] + "; this time it " + DID[t.outcome] + "."
+          : " It " + DID[t.outcome] + " again, " + (Math.abs(dx) < 0.5 ? "at about the same spot" : F.fmt(Math.abs(dx), 0) + " m " + (dx > 0 ? "farther" : "less far")) + ".";
+        const k = ch.keys[0];
+        line.textContent = ch.n === 0 ? "Same design as last time, so the car does the same thing. Change one thing to find out more."
+          : ch.n === 1 ? "You changed only the " + NAME[k] + ", from " + val(k, prev.choice) + " to " + val(k, t.choice) + "." + did + " One change, so you know it was the " + NAME[k] + "."
+          : "You changed " + ch.n + " things (" + list(ch.keys.map((x) => NAME[x])) + "), so you can't tell which one made the difference. Try changing one at a time.";
+        out.push(line);
+      }
+      prev = t; ask();
+      return out;
+    }
+    return { load, launch: go, waiting, nudge, report };
+  })();
 
   // ---------------- class challenge ----------------
   // A student in a class game sees the teacher's mission here and can submit a design to the board (with their
@@ -622,8 +713,8 @@
 
   // ---------------- boot ----------------
   $("sound").onclick = () => { const on = Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
-  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === document.body) launch(); });
-  renderMissions(); renderGoal(); renderBuilder(); renderSheet();
+  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === document.body) loop.launch(); });
+  renderMissions(); renderGoal(); renderBuilder(); renderSheet(); loop.load();
   let last = performance.now();
   (function loop(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;

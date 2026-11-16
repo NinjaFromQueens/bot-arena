@@ -6,6 +6,16 @@ const fs = require("fs"), path = require("path");
 const Missions = require("../public/js/missions.js");
 const Race = require("../public/js/race.js");
 Missions.register("racer", Race.MISSION);
+const Flight = require("../public/js/flight.js");
+Missions.register("lab", Flight.MISSION);
+// a Lab design has billions of combinations, so Lab missions run on a sample: the default car, a design that earns the
+// mission (test/lab-solutions.json, shared with lab.test.js), and that design with each setting at its lowest and highest
+const SOLUTIONS = require("./lab-solutions.json");
+function labSamples(m) {
+  const sol = SOLUTIONS[m.setting], out = [{ ...Flight.DEFAULT_DESIGN, flipOn: 0 }, { ...sol, flipOn: sol.flipOn ? 1 : 0 }];
+  for (const k of Object.keys(m.allow)) for (const v of [m.allow[k][0], m.allow[k][m.allow[k].length - 1]]) out.push({ ...out[1], [k]: v });
+  return out;
+}
 const pub = path.join(__dirname, "../public/data");
 const index = JSON.parse(fs.readFileSync(path.join(pub, "missions/index.json"), "utf8"));
 const lessons = JSON.parse(fs.readFileSync(path.join(pub, "lessons/index.json"), "utf8"));
@@ -14,6 +24,7 @@ const files = fs.readdirSync(path.join(pub, "missions")).filter((f) => f.endsWit
 assert.deepStrictEqual([...files].sort(), [...index].sort(), "missions/index.json must list every mission file exactly once");
 assert.strictEqual(new Set(index).size, index.length, "mission ids must be unique");
 const M = {};
+let runs = 0;
 
 for (const id of index) {
   const m = (M[id] = JSON.parse(fs.readFileSync(path.join(pub, `missions/${id}.json`), "utf8")));
@@ -22,18 +33,22 @@ for (const id of index) {
   for (const t of ["cadet", "recruit", "operative"]) for (const f of ["brief", "question"]) assert(Missions.text(m, f, t).trim(), `mission ${id}: ${t} ${f} is empty`);
   const values = Missions.options(m, "recruit").map((o) => o.value);
   let met = 0;
-  const all = Missions.allChoices(m);
+  const all = m.game === "lab" ? labSamples(m) : Missions.allChoices(m);
+  runs += all.length;
   for (const c of all) {
     const at = `mission ${id} with ${JSON.stringify(c)}`;
     const ans = Missions.answer(m, c), run = Missions.result(m, c);
     assert(values.includes(ans), `${at}: the answer ${ans} isn't one of the options`);
     assert(!Missions.close(m, c), `${at}: the answer is too close to call, so a small retune could flip it. Change the setting or the allowed choices`);
+    if (m.predict.kind === "willClear" && m.goal.kind === "complete") assert.strictEqual(ans === "yes", run.goal, `${at}: the answer must match the flight`);
     if (m.predict.kind === "reachTop" && m.goal.kind === "reachEnd") assert.strictEqual(ans === "top", run.goal, `${at}: the answer must match the computer driver's run`);
     if (run.goal) met++;
     if (Missions.once(m)) assert.deepStrictEqual(ans, Missions.answer(m, all[0]), `${at}: a question asked once compares every choice, so its answer can't depend on the one picked`);
     if (m.predict.kind === "firstHome" && m.goal.kind === "bestGear") assert.strictEqual(run.goal, c.gear === ans, `${at}: only the gear that finishes first meets the goal`);
     // the explain card: findings and a tip, and a tip's change really is better (it reaches the goal, or gets there faster)
-    const model = { racer: Race.MISSION }[m.game], e = model.explain(m, Missions.choice(m, c));
+    const model = { racer: Race.MISSION, lab: Flight.MISSION }[m.game];
+    if (!model.explain) continue; // the Lab keeps its own flight report (Flight.explain)
+    const e = model.explain(m, Missions.choice(m, c));
     assert(e.headline && e.headline.text && e.items.length && e.tip && e.tip.text, `${at}: the explain card needs a headline, findings and a tip`);
     assert.strictEqual(e.headline.tone === "good", !!run.result.finished, `${at}: the headline must match the run`);
     assert(e.graph && e.graph.speed.length > 2 && e.graph.profile.length > 2 && (e.graph.stop == null) === !!run.result.finished, `${at}: the graph needs the speed, the hill, and a stop mark only when it stopped`);
@@ -45,6 +60,8 @@ for (const id of index) {
     }
   }
   assert(met > 0, `mission ${id}: no allowed choice meets the goal`);
+  if (m.game === "lab") assert.strictEqual(Missions.answer(m, all[1]), "yes", `mission ${id}: the saved solution must complete it`);
+  if (m.game === "lab") assert.strictEqual(id, "lab-" + m.setting, `mission ${id}: the Lab page opens lab-<its Lab mission id>`);
   assert(met < all.length, `mission ${id}: every allowed choice meets the goal, so there's nothing to find out`);
   // lessons and missions link both ways (game standard L4)
   const L = JSON.parse(fs.readFileSync(path.join(pub, `lessons/${m.lesson}.json`), "utf8"));
@@ -69,4 +86,4 @@ assert.strictEqual(Missions.answer(M["hill-straight"], {}), 1, "6:1 finishes fir
 const inputs = Race.autoLap({ gear: 2, tire: 1 }, undefined, Race.stripOf(gh.setting));
 assert(Missions.result(gh, { gear: 2, tire: 1 }, { inputs }).goal, "8:1 driven well reaches the top");
 assert(!Missions.result(gh, { gear: 2, tire: 1 }, { inputs: "a".repeat(600) }).goal, "a run that never presses the gas doesn't");
-console.log(`Mission tests passed (${index.length} mission${index.length === 1 ? "" : "s"}, ${Object.values(M).reduce((n, m) => n + Missions.allChoices(m).length, 0)} choices run)`);
+console.log(`Mission tests passed (${index.length} mission${index.length === 1 ? "" : "s"}, ${runs} choices run)`);

@@ -59,9 +59,14 @@
       "explain": "A good prediction says what will change, and why."
     }
   ],
-  "missions": [],
+  "missions": [
+    "lab-flip",
+    "lab-semiflip",
+    "lab-budget"
+  ],
   "next": {
     "label": "Use the cycle in the Flying Car Lab",
-    "href": "/lab"
+    "mission": "lab-flip",
+    "game": "lab"
   }
 }

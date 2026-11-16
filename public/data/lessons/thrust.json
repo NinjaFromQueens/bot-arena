@@ -52,9 +52,13 @@
       "explain": "Carbon fiber is much lighter than steel. Same thrust, less weight, so the ratio goes up."
     }
   ],
-  "missions": [],
+  "missions": [
+    "lab-hop",
+    "lab-car"
+  ],
   "next": {
     "label": "Try Mission 1 in the Flying Car Lab",
-    "href": "/lab"
+    "mission": "lab-hop",
+    "game": "lab"
   }
 }

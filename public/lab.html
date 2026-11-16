@@ -35,7 +35,8 @@
   .toggle input { width: 18px; height: 18px; accent-color: var(--orange); }
 
   .report { display: grid; gap: 10px; }
-  .report:empty { display: none; }
+  .report:empty, .predict:empty { display: none; }
+  .btn.wait { filter: grayscale(.7) brightness(.8); }
   .headline { font-family: var(--display); font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .headline.good { color: var(--good); } .headline.bad { color: var(--bad); }
   .headline .stars { font-size: 20px; }
@@ -128,10 +129,11 @@
   .mobilebar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; align-items: center; gap: 12px;
     padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
     background: rgba(27,26,30,.96); border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
-  .mobilebar .mb { display: flex; gap: 14px; flex: 1; min-width: 0; font-family: var(--mono); font-size: 13px; }
+  .mobilebar .mb { display: flex; gap: 14px; flex: 1; min-width: 0; overflow: hidden; font-family: var(--mono); font-size: 13px; }
   .mobilebar .mb span { white-space: nowrap; }
   .mobilebar .mb b { display: block; font-size: 16px; }
   @media (max-width: 960px) { .mobilebar { display: flex; } }
+  @media (max-width: 420px) { .mobilebar { gap: 10px; } .mobilebar .mb { gap: 9px; font-size: 11px; } .mobilebar .mb b { font-size: 14px; } .mobilebar .btn.big { padding-left: 16px; padding-right: 16px; } }
   @media (max-width: 560px) { .sheetnums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 440px) { .opt span { display: none; } .cards3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   /* class challenge */
@@ -184,6 +186,7 @@
           <label class="toggle" data-tip="Play flights at about one third speed."><input type="checkbox" id="slowmo"> Slow motion</label>
         </div>
       </div>
+      <section class="predict" id="predict" aria-live="polite"></section>
       <section class="panel report" id="report" aria-live="polite"></section>
     </div>
 
@@ -249,6 +252,9 @@
 <script src="/js/engine.js"></script>
 <script src="/js/flight.js"></script>
 <script src="/js/tips.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/missions.js"></script>
+<script src="/js/cards.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   // one connection for presence and the class challenge; opened from the board (?present) it's the game's host

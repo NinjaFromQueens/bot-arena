@@ -45,9 +45,14 @@
       "explain": "Speed grows with the square root of height. √4 = 2."
     }
   ],
-  "missions": [],
+  "missions": [
+    "lab-semi",
+    "lab-five",
+    "lab-people"
+  ],
   "next": {
     "label": "Try the Semi Jump in the Lab",
-    "href": "/lab"
+    "mission": "lab-semi",
+    "game": "lab"
   }
 }
