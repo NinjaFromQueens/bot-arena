@@ -125,9 +125,10 @@
     const g = R.GEARS[setup.gear], st = all[setup.gear][setup.tire];
     $("d-gear").textContent = `${g}:1 means the motor turns ${g} times for every turn of the wheels. ${setup.gear === 0 ? "The fastest on straights, but the weakest on hills." : setup.gear === R.GEARS.length - 1 ? "The strongest push, but a low top speed." : "A balance of speed and pushing force."}`;
     $("d-tire").textContent = R.TIRES[setup.tire].d + ".";
+    drawGearPic();
     const rows = [
       ["Top speed", st.top, top("top"), kmh(st.top) + " km/h", "var(--blue)", "The fastest the car goes on flat ground: where the motor reaches its top rpm."],
-      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${Math.round(track.steep * 100)}% ${K.hill}. With less gearing, the motor runs out of torque on steep hills.`],
+      [K.hill, st.hill, top("hill"), st.hill < 0.3 ? "stalls" : kmh(st.hill) + " km/h", "var(--good)", `The steady speed the car can hold up the ${hillDeg(track)} ${K.hill}. With less gearing, the motor runs out of torque on steep hills.`],
       ["Push", st.push, top("push"), st.push + " N", "var(--orange)", "How hard the wheels push when starting from a stop (the motor's torque times the gear ratio, up to what the tires can grip)."],
       [K.corner, st.corner, top("corner"), kmh(st.corner) + " km/h", "var(--purple)", `The fastest the tires can hold the ${K.corner}. Any faster and the car slides onto the grass.`],
     ];
@@ -137,6 +138,20 @@
     const md = b && R.medalOf(b.time, track);
     $("bestline").innerHTML = (b ? `Your best on ${track.n}: <b>${fmtTime(b.time)}</b> (${nameOf(b.setup)})${md ? ` ${MEDAL[md]}` : ""}` : `No laps on ${track.n} yet. Your best lap becomes your ghost car.`) +
       `<br><span class="hastip" tabindex="0" data-tip="Gold means you matched the computer driver's best lap on this track, with its best setup. Silver is within 10% of it, bronze within 25%.">${medalTimes(track)}</span>`;
+  }
+  // hills in degrees, the unit lesson 7 uses; Operatives also see the percent grade
+  const hillDeg = (tr) => `${(Math.atan(tr.steep) * 180 / Math.PI).toFixed(1)}°${window.Tier && Tier.current() === "operative" ? ` (a ${Math.round(tr.steep * 100)}% grade)` : ""}`;
+  // the garage's gearbox picture: the same drawing as lesson 7's simulator (Engine.gearPair)
+  function drawGearPic() {
+    const c = $("gearpic"); if (!c.offsetParent) return;
+    const { ctx, w, h } = E.fit(c), g = R.GEARS[setup.gear], Rg = h * 0.4, wx = w / 2 + Rg * 0.9, wy = h * 0.45;
+    ctx.clearRect(0, 0, w, h);
+    const gp = E.gearPair(ctx, wx, wy, Rg, g, 0.4);
+    ctx.font = `600 ${Math.max(10, Math.round(h * 0.14))}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.textAlign = "center";
+    ctx.fillText("wheel", wx, h - 3); ctx.textAlign = "right"; ctx.fillText("motor", gp.left - 4, wy + h * 0.05); // beside its gear: it can be tiny
+    ctx.font = `700 ${Math.round(h * 0.26)}px "Chakra Petch", Arial, sans-serif`; ctx.fillStyle = "#ffd23f"; ctx.textAlign = "left";
+    ctx.fillText(`${g}:1`, wx + Rg + 14, wy + h * 0.09);
+    c.setAttribute("aria-label", `The gearbox at ${g}:1: the motor's small gear turns ${g} times for every turn of the wheel's big gear.`);
   }
   function renderAll() {
     if (!mis.on) renderTracks();
@@ -476,6 +491,7 @@
   showTouch(matchMedia("(pointer: coarse)").matches);
   $("road").addEventListener("touchstart", () => { if ($("touch").hidden) showTouch(true); }, { passive: true });
   addEventListener("resize", measurePads);
+  addEventListener("resize", drawGearPic); // the garage picture is drawn at its size, so redraw it when that changes
   addEventListener("orientationchange", () => setTimeout(measurePads, 250));
   document.addEventListener("fullscreenchange", () => setTimeout(measurePads, 100));
   // full screen: the track (and its touch pads) fill the screen; phones turn sideways where the browser allows it
@@ -586,6 +602,9 @@
     ctx.font = `600 ${Math.round(fs * 0.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("km/h", w - 22, 12 + fs * 2.05);
     ctx.fillStyle = rpmF >= 0.97 ? "#ff5d5d" : "#aaa6b0"; ctx.fillText(rpmF >= 0.97 ? "MAX RPM" : Math.round(car.rpm).toLocaleString("en-US") + " rpm", w - 22, 12 + fs * 2.7);
     ctx.fillStyle = "#f4f1ea"; ctx.fillText(`${R.GEARS[setup.gear]}:1 gear`, w - 22, 12 + fs * 3.3);
+    // the gearbox turning at the real ratio (slowed down to watch): the motor gear turns once per wheel turn times the ratio
+    { const gy = 12 + fs * 3.6 + 6, gh = fs * 2.2; panel(bx, gy, bw, gh); E.gearPair(ctx, bx + fs * 3.2, gy + gh / 2, fs * 0.75, R.GEARS[setup.gear], (car.z / R.CAR.wheelR) * 0.12);
+      ctx.textAlign = "right"; ctx.font = `600 ${Math.round(fs * 0.48)}px "JetBrains Mono", monospace`; ctx.fillStyle = "#aaa6b0"; ctx.fillText("MOTOR → WHEEL", w - 22, gy + gh / 2 + fs * 0.18); }
     // the track map, with everyone on it
     // (a straight test strip has no map worth drawing, so its hill profile gets the space)
     const ms = track.open ? -10 : Math.round(Math.min(w, h) * 0.24), mapY = pads ? 12 + fs * 2.9 + 8 : h - ms - 12; // under the timer when touch pads cover the corners
