@@ -1,6 +1,6 @@
-# Bot Arena
+# Circuit Rebels
 
-A classroom robotics game for Fall Robotics Academy. Students build a robot on their own device (choosing parts for **Sense**, **Think**, and **Act** under a 75 kg weight limit), join the teacher's game with a 4-letter code, and watch their robots battle in a live single-elimination tournament on the projector.
+Free robotics lessons and class games, live at [circuitrebels.org](https://circuitrebels.org). In **Bot Arena**, the class battle game, students build a robot on their own device (choosing parts for **Sense**, **Think**, and **Act** under a 75 kg weight limit), join the teacher's game with a 4-letter code, and watch their robots battle in a live single-elimination tournament on the projector.
 
 ## How a class session works
 

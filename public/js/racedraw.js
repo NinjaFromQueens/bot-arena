@@ -51,7 +51,7 @@
     });
     for (let i = 4; i < 22; i += 3) out[i].push({ k: "stand", x: -(W + 3.5) }, { k: "stand", x: W + 3.5 }); // grandstands along the start
     out[2].push({ k: "gantry" });
-    out[Math.floor(N * 0.5)].push({ k: "board", x: -(W + 2.5), text: "FALL ROBOTICS ACADEMY" });
+    out[Math.floor(N * 0.5)].push({ k: "board", x: -(W + 2.5), text: "CIRCUIT REBELS" });
     out[Math.floor(N * 0.75)].push({ k: "board", x: W + 2.5, text: "ROBOT RACER" });
     return (sceneryCache[track.id] = out);
   }

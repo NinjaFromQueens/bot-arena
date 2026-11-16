@@ -1,6 +1,6 @@
-# Bot Arena — notes for Claude Code
+# Circuit Rebels — notes for Claude Code
 
-Classroom robotics battle game for a middle/high school robotics class (Fall Robotics Academy, NYC). Teacher hosts on a projector; students join from Chromebooks/phones.
+Circuit Rebels (circuitrebels.org): free robotics lessons and class games for school robotics classes in NYC. Bot Arena is its classroom battle game. Teacher hosts on a projector; students join from Chromebooks/phones.
 
 ## Commands
 - `npm install` then `npm start` (port 3000, or `PORT`)

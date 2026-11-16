@@ -1,7 +1,7 @@
 {
   "name": "bot-arena",
   "version": "1.4.0",
-  "description": "Fall Robotics Academy Bot Arena: students build robots on their own devices and battle in a live classroom tournament on the board.",
+  "description": "Circuit Rebels: free robotics lessons and class games. In Bot Arena, students build robots on their own devices and battle in a live classroom tournament on the board.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

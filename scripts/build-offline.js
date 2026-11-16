@@ -21,7 +21,7 @@ function bundle(page, links) {
     html = html.split(`href: "${from}"`).join(`href: "${to}"`); // links inside lesson data
   }
   // Google Fonts load when online; offline the page falls back to Arial
-  html = html.replace("<title>", "<!-- Offline backup of Bot Arena. Built by scripts/build-offline.js -->\n<title>");
+  html = html.replace("<title>", "<!-- Offline backup of a Circuit Rebels page. Built by scripts/build-offline.js -->\n<title>");
   if (/(src|href)(="|: ")\/(?!\/)/.test(html)) throw new Error(page + " still has a server path: " + html.match(/(src|href)(="|: ")\/[^"]*"/)[0]);
   return html;
 }

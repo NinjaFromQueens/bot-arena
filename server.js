@@ -1,4 +1,4 @@
-// Bot Arena server: serves the web pages and runs live classroom tournaments over Socket.IO.
+// Circuit Rebels server: serves the web pages and runs live classroom tournaments over Socket.IO.
 const path = require("path");
 const http = require("http");
 const crypto = require("crypto");
@@ -762,4 +762,4 @@ setInterval(() => {
   for (const [code, room] of rooms) if (now - room.lastActive > ROOM_TTL_MS) { if (room.gp) { clearTimeout(room.gp.timer); clearInterval(room.gp.ticker); } rooms.delete(code); }
 }, 10 * 60 * 1000).unref();
 
-server.listen(PORT, () => console.log(`Bot Arena running at http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`Circuit Rebels running at http://localhost:${PORT}`));
