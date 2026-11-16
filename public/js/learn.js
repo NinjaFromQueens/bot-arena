@@ -32,6 +32,22 @@
     const ids = await get("/data/lessons/index.json");
     return Promise.all(ids.map((id) => get(`/data/lessons/${id}.json`)));
   }
+  // the glossary (public/data/glossary.json): a bold word in a read card that's in it shows its definition as a tooltip
+  const GLOSS = new Map();
+  const glossKey = (t) => t.toLowerCase().replace(/[\s:.✓✗]+$/, "").replace(/\s+/g, " ").trim();
+  async function loadGlossary() {
+    if (window.GLOSSARY_DATA) return window.GLOSSARY_DATA;
+    const r = await fetch("/data/glossary.json"); if (!r.ok) throw new Error("glossary " + r.status);
+    return r.json();
+  }
+  function glossTips(card) {
+    const used = new Set(); // one tooltip per term per card
+    card.querySelectorAll("b").forEach((b) => {
+      const def = GLOSS.get(glossKey(b.textContent));
+      if (!def || used.has(def)) return;
+      used.add(def); b.classList.add("hastip"); b.tabIndex = 0; b.setAttribute("data-tip", def);
+    });
+  }
 
   // ---------------- list ----------------
   function renderList() {
@@ -85,7 +101,7 @@
     if (cur.step >= n) { renderDone(L, card); present.send(); return; }
     const s = L.steps[cur.step];
     $("next").textContent = "Next";
-    if (s.type === "read") { card.innerHTML = s.html; setNext(true); }
+    if (s.type === "read") { card.innerHTML = s.html; glossTips(card); setNext(true); }
     else if (s.type === "quiz") renderQuiz(s, card);
     else if (s.type === "interactive") INTERACTIVES[s.kind](card);
     present.send();
@@ -1249,7 +1265,8 @@
   })();
 
   // ---------------- boot ----------------
-  loadLessons().then((data) => {
+  Promise.all([loadLessons(), loadGlossary().catch(() => [])]).then(([data, glossary]) => {
+    for (const g of glossary) for (const f of [g.term, ...g.forms]) GLOSS.set(glossKey(f), T(g.def));
     LESSONS = data.map(fromData);
     renderList();
     // #lesson-dcmotor opens a lesson by id; old #lesson-7 links still open by number

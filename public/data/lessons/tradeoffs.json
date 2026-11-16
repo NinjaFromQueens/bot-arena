@@ -13,6 +13,7 @@
       "html": [
         "<p class=\"big\">Engineers can't have everything. Every choice gives something and costs something.</p>",
         "<p>That's called a <b>trade-off</b>. In Bot Arena, every part has a weight, and the motors can only carry <b>75 kg</b>.</p>",
+        "<p>(In everyday talk we say a part <i>weighs</i> 5 kg. Scientists call that its <b>mass</b>. The “Thrust vs. weight” lesson shows the difference.)</p>",
         "<p>Heavy parts like Treads and the Hammer are strong. But you can't put every strong part on one robot.</p>"
       ]
     },
