@@ -60,5 +60,37 @@
     const wins = fights.filter((f) => f.won).length;
     return { a, b, fights, wins, passed: wins >= NEED };
   }
-  return { FIGHTS, NEED, LIST, rulesOf, bots, run };
+  // ---------------- missions (public/data/missions, read by missions.js) ----------------
+  // A mission file bc-<id> names a challenge (its setting). A choice is the rules as flat numbers: n rules (0 to 3) and,
+  // for rule i, ci (the IF), vi (its number choice) and ai (the move). The answer to "how many of the 10 fights will
+  // these rules win?" comes from running the fights, so the file never holds one.
+  const SLOTS = E.RULES.max;
+  const ranges = { n: SLOTS + 1, c: E.RULES.IF.length, v: 3, a: E.RULES.DO.length };
+  const choiceOf = (rules) => {
+    const out = { n: Math.min(SLOTS, rules.length) };
+    for (let i = 1; i <= SLOTS; i++) { const r = rules[i - 1] || { c: 0, v: 0, a: 0 }; out["c" + i] = r.c; out["v" + i] = r.v; out["a" + i] = r.a; }
+    return out;
+  };
+  const rulesFromChoice = (c) => Array.from({ length: c.n }, (_, k) => ({ c: c["c" + (k + 1)], v: c["v" + (k + 1)], a: c["a" + (k + 1)] }));
+  const BANDS = [[0, 2, "0 to 2 wins"], [3, 5, "3 to 5 wins"], [6, 8, "6 to 8 wins"], [9, 10, "9 or 10 wins"]];
+  const band = (wins) => BANDS.findIndex(([lo, hi]) => wins >= lo && wins <= hi);
+  const runOf = (mission, c) => run(LIST.find((x) => x.id === mission.setting), rulesFromChoice(c));
+  const MISSION = {
+    setting: (id) => LIST.find((x) => x.id === id),
+    clamp: (c) => {
+      const f = (v, n) => { v = Math.round(+v); return Number.isFinite(v) ? Math.max(0, Math.min(n - 1, v)) : 0; };
+      const out = { n: f(c.n, ranges.n) };
+      for (let i = 1; i <= SLOTS; i++) { out["c" + i] = f(c["c" + i], ranges.c); out["v" + i] = f(c["v" + i], ranges.v); out["a" + i] = f(c["a" + i], ranges.a); }
+      return out;
+    },
+    run: (mission, c) => runOf(mission, c),
+    predict: {
+      winsOfTen: {
+        options: () => BANDS.map(([, , label], i) => ({ value: i, label })),
+        answer: (mission, c) => band(runOf(mission, c).wins),
+      },
+    },
+    goal: { beat: { met: (mission, r) => r.passed } },
+  };
+  return { FIGHTS, NEED, LIST, rulesOf, bots, run, MISSION, choiceOf, rulesFromChoice, BANDS };
 });

@@ -298,6 +298,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .ch-dots button.w { background: #4fd18b26; border-color: var(--good); color: var(--good); }
 .ch-dots button.l { background: #ff5d5d1f; border-color: var(--bad); color: var(--bad); }
 .ch-dots button[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 2px; }
+.ch-verdict { display: grid; gap: 8px; }
+.ch-verdict:empty { display: none; }
+#ch-run.wait { filter: grayscale(.7) brightness(.8); }
 .ch-score { margin: 0; font-size: 17px; font-weight: 600; }
 .ch-lesson { padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--good); background: #4fd18b14; display: grid; gap: 10px; justify-items: start; }
 .ch-lesson p { margin: 0; font-size: 16px; }
@@ -452,12 +455,14 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
         <p class="ch-intro" id="ch-intro"></p>
         <h3>Your robot's rules</h3>
         <div class="rules" id="ch-rules"></div>
+        <div id="ch-predict" aria-live="polite"></div>
         <div class="ch-ctrl">
           <button class="btn big" id="ch-run" type="button" data-tip="Fight the boss 10 times with your rules. Win 6 to beat the challenge.">Run 10 fights</button>
           <button class="btn ghost" id="ch-hint" type="button" data-tip="Show a hint. Each tap shows one more.">Need a hint?</button>
         </div>
         <ol class="ch-hints" id="ch-hints"></ol>
         <div class="ch-results" id="ch-results" hidden>
+          <div class="ch-verdict" id="ch-verdict"></div>
           <div class="ch-dots" id="ch-dots" role="group" aria-label="Fight results. Tap one to watch it."></div>
           <p class="ch-score" id="ch-score" role="status"></p>
           <div class="ch-lesson" id="ch-lesson" hidden><p id="ch-lessontext"></p><button class="btn" id="ch-next" type="button" data-tip="Go to the next challenge.">Next challenge</button></div>
@@ -490,6 +495,9 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 <script src="/js/battle.js"></script>
 <script src="/js/challenges.js"></script>
 <script src="/js/tips.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/missions.js"></script>
+<script src="/js/cards.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/presence.js"></script>
 <script src="/js/practice.js"></script>

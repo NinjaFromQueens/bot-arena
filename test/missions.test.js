@@ -8,9 +8,18 @@ const Race = require("../public/js/race.js");
 Missions.register("racer", Race.MISSION);
 const Flight = require("../public/js/flight.js");
 Missions.register("lab", Flight.MISSION);
+const Challenges = require("../public/js/challenges.js");
+Missions.register("challenge", Challenges.MISSION);
 // a Lab design has billions of combinations, so Lab missions run on a sample: the default car, a design that earns the
 // mission (test/lab-solutions.json, shared with lab.test.js), and that design with each setting at its lowest and highest
 const SOLUTIONS = require("./lab-solutions.json");
+// Brain Challenges: no rules, the answer, every naive set, and the answer with each rule taken out
+function challengeSamples(m) {
+  const ch = Challenges.LIST.find((x) => x.id === m.setting), codes = [ch.answer, ...ch.naive], out = codes.map((c) => Challenges.choiceOf(Challenges.rulesOf(c)));
+  const rules = Challenges.rulesOf(ch.answer);
+  rules.forEach((_, k) => out.push(Challenges.choiceOf(rules.filter((__, j) => j !== k))));
+  return out;
+}
 function labSamples(m) {
   const sol = SOLUTIONS[m.setting], out = [{ ...Flight.DEFAULT_DESIGN, flipOn: 0 }, { ...sol, flipOn: sol.flipOn ? 1 : 0 }];
   for (const k of Object.keys(m.allow)) for (const v of [m.allow[k][0], m.allow[k][m.allow[k].length - 1]]) out.push({ ...out[1], [k]: v });
@@ -33,7 +42,7 @@ for (const id of index) {
   for (const t of ["cadet", "recruit", "operative"]) for (const f of ["brief", "question"]) assert(Missions.text(m, f, t).trim(), `mission ${id}: ${t} ${f} is empty`);
   const values = Missions.options(m, "recruit").map((o) => o.value);
   let met = 0;
-  const all = m.game === "lab" ? labSamples(m) : Missions.allChoices(m);
+  const all = m.game === "lab" ? labSamples(m) : m.game === "challenge" ? challengeSamples(m) : Missions.allChoices(m);
   runs += all.length;
   for (const c of all) {
     const at = `mission ${id} with ${JSON.stringify(c)}`;
@@ -41,12 +50,13 @@ for (const id of index) {
     assert(values.includes(ans), `${at}: the answer ${ans} isn't one of the options`);
     assert(!Missions.close(m, c), `${at}: the answer is too close to call, so a small retune could flip it. Change the setting or the allowed choices`);
     if (m.predict.kind === "willClear" && m.goal.kind === "complete") assert.strictEqual(ans === "yes", run.goal, `${at}: the answer must match the flight`);
+    if (m.predict.kind === "winsOfTen") assert.strictEqual(run.result.wins, Challenges.run(Challenges.LIST.find((x) => x.id === m.setting), Challenges.rulesFromChoice(Missions.choice(m, c))).wins, `${at}: the run must be the ten fights`);
     if (m.predict.kind === "reachTop" && m.goal.kind === "reachEnd") assert.strictEqual(ans === "top", run.goal, `${at}: the answer must match the computer driver's run`);
     if (run.goal) met++;
     if (Missions.once(m)) assert.deepStrictEqual(ans, Missions.answer(m, all[0]), `${at}: a question asked once compares every choice, so its answer can't depend on the one picked`);
     if (m.predict.kind === "firstHome" && m.goal.kind === "bestGear") assert.strictEqual(run.goal, c.gear === ans, `${at}: only the gear that finishes first meets the goal`);
     // the explain card: findings and a tip, and a tip's change really is better (it reaches the goal, or gets there faster)
-    const model = { racer: Race.MISSION, lab: Flight.MISSION }[m.game];
+    const model = { racer: Race.MISSION, lab: Flight.MISSION, challenge: Challenges.MISSION }[m.game];
     if (!model.explain) continue; // the Lab keeps its own flight report (Flight.explain)
     const e = model.explain(m, Missions.choice(m, c));
     assert(e.headline && e.headline.text && e.items.length && e.tip && e.tip.text, `${at}: the explain card needs a headline, findings and a tip`);

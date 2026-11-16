@@ -1,0 +1,104 @@
+{
+  "id": "bc-mega",
+  "title": "Final boss",
+  "game": "challenge",
+  "lesson": "rules",
+  "episode": 4,
+  "core": true,
+  "setting": "mega",
+  "allow": {
+    "n": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c1": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v1": [
+      0,
+      1,
+      2
+    ],
+    "a1": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c2": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v2": [
+      0,
+      1,
+      2
+    ],
+    "a2": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "c3": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "v3": [
+      0,
+      1,
+      2
+    ],
+    "a3": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "start": {
+    "n": 0,
+    "c1": 0,
+    "v1": 0,
+    "a1": 0,
+    "c2": 0,
+    "v2": 0,
+    "a2": 0,
+    "c3": 0,
+    "v3": 0,
+    "a3": 0
+  },
+  "predict": {
+    "kind": "winsOfTen",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "beat"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "MEGA is fast, raises a shield when it gets hurt, and flips robots over. Good news: your Wedge is too low to flip!",
+      "question": "How many of the 10 fights will your rules win?"
+    },
+    "cadet": {
+      "question": "How many fights will your robot win?"
+    },
+    "operative": {
+      "question": "How many of the 10 fights will your rules win? You need 6 to beat the challenge."
+    }
+  },
+  "reward": null,
+  "art": []
+}

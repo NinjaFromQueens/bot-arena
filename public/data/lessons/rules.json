@@ -89,7 +89,13 @@
       "explain": "The IF part checks what the robot senses. Picking the rule is Think, and the THEN part is Act."
     }
   ],
-  "missions": [],
+  "missions": [
+    "bc-bruiser",
+    "bc-turtle",
+    "bc-ghost",
+    "bc-smasher",
+    "bc-mega"
+  ],
   "next": {
     "label": "Try the Brain Challenges",
     "href": "/practice#challenges"

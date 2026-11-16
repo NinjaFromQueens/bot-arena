@@ -228,8 +228,86 @@
     $("ch-log").innerHTML = '<p class="small" style="margin:0">Run the 10 fights, then tap any result to watch that fight here.</p>';
     $("ch-na").textContent = you.name; $("ch-nb").textContent = boss.name;
     chStage.setBots(you, boss, ch.n.toUpperCase());
+    $("ch-verdict").innerHTML = "";
     renderChPick();
+    loop.open(i);
   }
+  // ---------------- predict, test, explain, improve ----------------
+  // Each challenge has a mission file (public/data/missions/bc-<id>.json, read by missions.js). Before Run 10 fights the
+  // student predicts how many they'll win; the prediction locks on Run, and the results start with whether they were right
+  // and what their one change (a rule added, removed or edited) did. Challenges.MISSION runs the fights for the answer.
+  const loop = (() => {
+    const off = !window.Missions || !window.Cards;
+    const tier = () => (window.Tier ? Tier.current() : "recruit");
+    const files = {};
+    let m = null, card = null, prev = null, pending = null;
+    if (!off) Missions.register("challenge", CH.MISSION);
+    const fileOf = (id) => {
+      if (!files[id]) {
+        const data = window.MISSION_DATA; // the offline copy has the missions built in
+        files[id] = (data ? (data.missions[id] ? Promise.resolve(data.missions[id]) : Promise.reject(new Error(id)))
+          : fetch("/data/missions/" + id + ".json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(id)))))
+          .then((f) => { if (f.game !== "challenge" || Missions.check(f).length) throw new Error(id); return f; });
+      }
+      return files[id];
+    };
+    const waiting = () => !!card && card.value == null;
+    function gate() { const b = $("ch-run"), w = waiting(); b.classList.toggle("wait", w); b.setAttribute("aria-disabled", String(w)); }
+    function ask() {
+      const box = $("ch-predict"); box.innerHTML = ""; card = null; pending = null;
+      if (m) card = Cards.predict(box, { question: Missions.text(m, "question", tier()), options: Missions.options(m, tier()), go: "Run 10 fights", kicker: prev ? "Next try: predict first" : "Predict first", onPick: () => { gate(); } });
+      gate();
+    }
+    function open(i) {
+      m = null; prev = null; ask();
+      if (off) return;
+      fileOf("bc-" + CH.LIST[i].id).then((f) => { if (chI === i) { m = f; ask(); } }, () => {}); // no file: the challenge works without predictions
+    }
+    function go() {
+      if (waiting()) { card.say("Pick one first, then press Run 10 fights."); try { card.card.scrollIntoView({ behavior: E.RM ? "auto" : "smooth", block: "center" }); } catch {} return false; }
+      if (card && pending) { ask(); return go(); }
+      if (card) { pending = { predicted: card.value, rules: chRules[CH.LIST[chI].id].map((r) => ({ ...r })) }; card.lock(); }
+      return true;
+    }
+    // rules as short phrases, so a change can be named
+    const phrase = (r) => { const cond = E.RULES.IF[r.c]; return "IF " + cond.n + (cond.v ? " " + cond.v[r.v] + (cond.pct ? "%" : "") : "") + " THEN " + E.RULES.DO[r.a]; };
+    const same = (a, b) => a.c === b.c && a.v === b.v && a.a === b.a;
+    // what changed between two rule lists: { n, text }
+    function diff(a, b) {
+      const k = Math.max(a.length, b.length), ch = [];
+      for (let i = 0; i < k; i++) {
+        if (!a[i]) ch.push("added rule " + (i + 1) + " (" + phrase(b[i]) + ")");
+        else if (!b[i]) ch.push("removed rule " + (i + 1) + " (" + phrase(a[i]) + ")");
+        else if (!same(a[i], b[i])) ch.push("changed rule " + (i + 1) + " to " + phrase(b[i]));
+      }
+      return { n: ch.length, text: ch.join("; ") };
+    }
+    // fills #ch-verdict after a run, then a fresh question for the next try
+    function report(res) {
+      const box = $("ch-verdict"); box.innerHTML = "";
+      if (!pending || !m) return;
+      const opts = Missions.options(m, tier()), label = (v) => (opts.find((o) => o.value === v) || {}).label || v;
+      const answer = CH.BANDS.findIndex(([lo, hi]) => res.wins >= lo && res.wins <= hi);
+      const t = { predicted: pending.predicted, rules: pending.rules, right: pending.predicted === answer, wins: res.wins, passed: res.passed };
+      const prog = store.get("cr-missions", {}), p = prog[m.id] || { tries: 0, firstRight: null, goal: false }; // this device only
+      p.tries++; if (p.firstRight === null) p.firstRight = t.right; p.goal = p.goal || t.passed; prog[m.id] = p; store.set("cr-missions", prog);
+      const v = document.createElement("div"), vb = document.createElement("b");
+      v.className = "verdict " + (t.right ? "good" : "bad"); vb.textContent = t.right ? "✓ Your prediction was right." : "✗ Not what you predicted.";
+      v.append(vb, " You predicted “" + label(t.predicted) + "”. Your rules won " + res.wins + " of " + CH.FIGHTS + ".");
+      box.appendChild(v);
+      if (prev) {
+        const d = diff(prev.rules, t.rules), line = document.createElement("p"); line.className = "changeline";
+        const did = prev.wins === t.wins ? " It won " + t.wins + " again." : " Wins went from " + prev.wins + " to " + t.wins + ", " + (t.wins > prev.wins ? "so that helped." : "so that hurt.");
+        line.textContent = d.n === 0 ? "Same rules as last time, so the same fights happen. Change one thing to find out more."
+          : d.n === 1 ? "You " + d.text + "." + did + " One change, so you know it was that rule."
+          : "You made " + d.n + " changes (" + d.text + "), so you can't tell which one made the difference. Try changing one rule at a time.";
+        box.appendChild(line);
+      }
+      prev = t; ask();
+    }
+    return { open, go, report };
+  })();
+
   $("ch-hint").onclick = () => {
     const ch = CH.LIST[chI];
     if (chHint >= ch.hints.length) return;
@@ -247,8 +325,10 @@
   }
   $("ch-run").onclick = () => {
     const ch = CH.LIST[chI];
+    if (!loop.go()) return;
     chRes = CH.run(ch, chRules[ch.id]);
     if (!chRes) return;
+    loop.report(chRes);
     $("ch-dots").innerHTML = "";
     chRes.fights.forEach((f, k) => {
       const d = document.createElement("button"); d.type = "button"; d.className = f.won ? "w" : "l"; d.textContent = f.won ? "W" : "L";
@@ -274,7 +354,11 @@
   $("ch-next").onclick = () => { if (chI < CH.LIST.length - 1) { E.Sound.play("go"); openCh(chI + 1); } };
   $("ch-skip").onclick = () => chStage.skip();
   [["ch-sp1", 1], ["ch-sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { chStage.speed = v; $("ch-sp1").setAttribute("aria-pressed", v === 1); $("ch-sp2").setAttribute("aria-pressed", v === 2); }));
-  { const first = CH.LIST.findIndex((c, i) => chOpen(i) && !(chProg[c.id] || {}).done); openCh(first < 0 ? 0 : first); }
+  { // a mission link (?mission=bc-<id>) opens that challenge when it's unlocked; otherwise the first one still to beat
+    const asked = CH.LIST.findIndex((c, i) => new RegExp("[?&]mission=bc-" + c.id + "(&|$)").test(location.search) && chOpen(i));
+    const first = CH.LIST.findIndex((c, i) => chOpen(i) && !(chProg[c.id] || {}).done); openCh(asked >= 0 ? asked : first < 0 ? 0 : first); }
+
+  window.__ch = { setRules(r) { chRules[CH.LIST[chI].id] = r; rulesChanged(); }, get rules() { return chRules[CH.LIST[chI].id]; } }; // for the browser checks
 
   // ---------------- tabs + loop ----------------
   function show(bay) {
