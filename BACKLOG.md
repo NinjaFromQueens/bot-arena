@@ -46,7 +46,7 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 
 **Phase 1 (now to winter break)**
 - [x] Decisions (made Nov 15, as recommended)
-- [ ] Step 1: fix what students see now: R-01 road on descents (B-02), R-02 phone layout (B-03), R-03 brake tip (B-04), R-06 branding, R-07 gear wording
+- [x] Step 1: fix what students see now: R-01 road on descents (B-02), R-02 phone layout (B-03), R-03 brake tip (B-04), R-06 branding (with F-32, e6b8ef8), R-07 gear wording
 - [ ] Step 2: lesson 7 meets the Racer: missions as data (R-31), the mission screen (R-32, R-16, R-17, R-18), Torque drives and steering help (R-33), the lesson 7 missions (R-34), the gear picture and hills in degrees (R-35)
 - [ ] Step 3: the teacher's view of predictions (R-19), after decision 4
 - [ ] Step 4: the look test in 3D on a school Chromebook (R-36), the gate for Phase 2
@@ -63,6 +63,9 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| F-32, R-06 | Rename to Circuit Rebels on every page: game page headers and tab titles, the arena banner, the Racer's trackside billboard, the tour and preview wording, the status page, README and package description. "Bot Arena" stays as the battle game's name. Same change on `watch-and-chat` (000357c) | Pushed to `main` Nov 15, 2026; checked on circuitrebels.org (11 pages at desktop and phone width, no errors, no old name left) | e6b8ef8 |
+| MED-1 | Teen voices: Sparrow, Torque, Glitch, June and Ezra cast with young voices that match their genders; the tour's 8 Sparrow and Torque lines re-voiced and leveled to match the rest | Pushed to `main` Nov 15, 2026; checked on circuitrebels.org (all 8 files match, the tour plays them, no errors) | 0a61de6 |
+| — | Facebook domain verification tag in the home page's head (a static meta tag; no Facebook script) | Pushed to `main` Nov 15, 2026; live on circuitrebels.org about 40 s later | 78ef8df |
 | B-02, B-03, B-04 | Racer fixes: the road on steep descents, the phone layout (pads under the track when upright, a Full screen button), an honest brake tip, and "more gearing / less gearing" wording (R-01, R-02, R-03, R-07) | Pushed to `main` Nov 15, 2026; checked on circuitrebels.org (Neon Peaks descent, fresh browser) | 8f41246 |
 | DEC-1 | Decisions for every plan (Racer, games, math and physics, Speed Run, story media), all as recommended, recorded in the private plans | Nov 15, 2026 (no deploy) | — |
 | B-01 | Audit fixes: replay of the final cut short by game updates; Race Day laps limited to one try per second; garage picks throttled; race page no longer drives 36 laps on load (track par) | Pushed to `main` Oct 30, 2026; checked on bot-arena-g5ew.onrender.com | 0a38d0c |
