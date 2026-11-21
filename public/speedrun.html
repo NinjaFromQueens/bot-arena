@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speed Run · Circuit Rebels</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* The board's Speed Run page: the problem (left, big enough for the back of the room) and the controls, live counts
+     and top 5 (right). Made for a projector. */
+  .wrap { max-width: 1600px; }
+  .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pill { font-family: var(--mono); font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+  .sr { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 1000px) { .sr { grid-template-columns: minmax(0, 1fr); } }
+  .stage { display: grid; gap: 16px; min-height: 520px; align-content: start; padding: 26px 30px; }
+  .side { display: grid; gap: 12px; }
+  .side .panel { display: grid; gap: 10px; }
+  .kick { font-family: var(--mono); font-size: 14px; letter-spacing: .14em; color: var(--orange-hi); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .tag { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .1em; padding: 3px 8px; border-radius: 6px; background: var(--panel-hi); color: var(--fg); text-transform: uppercase; }
+  .stage h2 { margin: 0; font-size: 40px; line-height: 1.1; }
+  .qtext { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.25; margin: 0; }
+  .lead { font-size: 19px; color: #d9d5de; margin: 0; max-width: 60ch; }
+  .pic { width: 100%; height: 260px; display: block; background: var(--bg); border-radius: 14px; border: 1px solid var(--line); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .opts div { padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); font-size: 22px; font-weight: 600; }
+  .opts div.right { border-color: var(--good); color: var(--good); }
+  .unit { font-size: 20px; color: var(--muted); margin: 0; }
+  .ansbig { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 5vw, 72px); color: var(--good); line-height: 1; margin: 0; }
+  .steps { margin: 0; padding-left: 28px; display: grid; gap: 8px; font-size: 22px; }
+  .steps li::marker { color: var(--orange-hi); font-family: var(--mono); }
+  .mchart { display: grid; gap: 8px; }
+  .mrow { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .mrow b { font-family: var(--mono); font-size: 26px; text-align: center; color: var(--gold); }
+  .mrow p { margin: 0; font-size: 18px; } .mrow .v { font-family: var(--mono); color: var(--muted); }
+  .setup { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .setup label { display: grid; gap: 6px; font-size: 16px; color: var(--muted); }
+  .setup select { font: inherit; font-size: 18px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); }
+  .count { display: flex; align-items: baseline; gap: 10px; }
+  .count b { font-family: var(--mono); font-size: 44px; color: var(--fg); }
+  .count span { color: var(--muted); font-size: 17px; }
+  .count.good b { color: var(--good); }
+  .ring { width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto; background: conic-gradient(var(--orange) calc(var(--p) * 1turn), var(--panel-hi) 0); }
+  .ring span { width: 92px; height: 92px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; font-family: var(--mono); font-size: 34px; font-weight: 700; }
+  .ring.out { background: var(--bad); } .ring.off span { font-size: 16px; color: var(--muted); }
+  .actions { display: grid; gap: 8px; }
+  .leaders { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; counter-reset: rk; }
+  .leaders li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 19px; counter-increment: rk; }
+  .leaders li::before { content: counter(rk); font-family: var(--mono); color: var(--orange-hi); margin-right: 8px; }
+  .leaders .who { flex: 1; font-family: var(--display); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .leaders .pts { font-family: var(--mono); }
+  .hist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .hist li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 19px; }
+  .hist .n { font-family: var(--mono); }
+</style>
+</head>
+<body data-page="host">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/" data-tip="Go to the Circuit Rebels home page.">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Speed Run</h1></div>
+    </a>
+    <div class="headright">
+      <span class="pill" id="status">Connecting...</span>
+      <button class="soundbtn" id="sound" type="button" aria-pressed="false" data-tip="Turn sound effects on or off: a beep for each new problem and a chime for the answer.">Sound: off</button>
+      <a class="btn ghost" id="toboard" href="/host" style="padding:8px 14px" data-tip="Go back to the game board. A Speed Run keeps going until you end it.">Back to the game board</a>
+    </div>
+  </header>
+  <div class="sr">
+    <section class="panel stage" id="stage" aria-live="polite"></section>
+    <section class="side" id="side"></section>
+  </div>
+</div>
+<script src="/js/engine.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/js/sprintcard.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // this tab is the game's host (opened from the board, same tab, so it has the game's ba-host)
+  if (window.io) window.baSocket = io();
+</script>
+<script src="/js/presence.js"></script>
+<script src="/js/speedrun.js"></script>
+</body>
+</html>

@@ -32,6 +32,16 @@
   .flash div { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 12vw, 80px); animation: pop .5s cubic-bezier(.3,1.8,.5,1); }
   .classline { margin: -6px 0 14px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--orange); background: var(--orange-soft); font-weight: 600; }
   .labbox { width: 100%; display: grid; gap: 8px; justify-items: center; padding: 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--orange); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
+  .sprintbox { border-color: var(--orange) !important; }
+  .sprintbox canvas:not([hidden]) { width: 100%; height: 170px; display: block; border-radius: 10px; background: var(--panel); }
+  .sppad { display: grid; gap: 8px; }
+  .spshow { display: flex; align-items: center; gap: 8px; }
+  .spshow input { flex: 1 1 auto; width: 0; min-width: 0; /* width 0: an input's own width (about 20 letters) would widen the whole card on a phone */ font-family: var(--mono); font-size: 26px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); }
+  .spshow span { font-family: var(--mono); color: var(--muted); font-size: 16px; }
+  .spkeys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .spkeys button { min-height: 48px; font-family: var(--mono); font-size: 22px; font-weight: 700; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+  .spkeys button:active { background: var(--panel-hi); }
+  .spsteps { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-size: 15px; }
   .lessonbox { width: 100%; display: grid; gap: 10px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--blue); animation: pop .4s cubic-bezier(.3,1.6,.5,1); text-align: left; }
   .lbq { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.25; margin: 0; }
   .lbopts { display: grid; gap: 8px; }
@@ -187,6 +197,20 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
         </div>
         <p class="wlog" id="w-log"></p>
       </div>
+      <div class="lessonbox sprintbox" id="sprintbox" hidden>
+        <h3 style="justify-content:center;margin:0" id="sp-head">Speed Run</h3>
+        <p class="lbq" id="sp-q"></p>
+        <canvas id="sp-pic" hidden aria-label="A picture for this problem"></canvas>
+        <div class="lbopts" id="sp-opts"></div>
+        <div class="sppad" id="sp-pad" hidden>
+          <div class="spshow"><input id="sp-val" inputmode="decimal" autocomplete="off" aria-label="Your answer" data-tip="Type your answer, or use the number pad."><span id="sp-unit"></span></div>
+          <div class="spkeys" id="sp-keys"></div>
+          <button class="btn big" id="sp-send" type="button" data-tip="Send your answer. A wrong answer never costs points: you wait 5 seconds and try again.">Send answer</button>
+        </div>
+        <p class="pmsg" id="sp-msg" role="status"></p>
+        <ol class="spsteps" id="sp-steps" hidden></ol>
+        <p class="small" id="sp-pts" style="margin:0"></p>
+      </div>
       <div class="labbox" id="labbox" hidden>
         <h3 style="justify-content:center;margin:0">Flying Car Lab challenge</h3>
         <p class="lbq" id="lab-n"></p>
@@ -249,6 +273,7 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
 <script src="/js/racedraw.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/js/tiers.js"></script>
+<script src="/js/sprintcard.js"></script>
 <script src="/js/play.js"></script>
 <script src="/js/presence.js"></script>
 </body>
