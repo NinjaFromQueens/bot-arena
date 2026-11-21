@@ -301,7 +301,7 @@ function settleForfeits(room) {
 // ---------------- presence ----------------
 // Which page each connected device is on. The home page gets anonymous counts; a teacher's board gets
 // a page + number for each of its own students (only when the student's saved game pass checks out).
-const PAGES = ["home", "play", "host", "practice", "lab", "learn", "race"];
+const PAGES = ["home", "play", "host", "practice", "lab", "learn", "race", "mission"];
 const presence = new Map(); // socket.id -> { page, n, t, code, playerId }
 function presenceCounts() {
   const c = { online: 0, play: 0, practice: 0, lab: 0, learn: 0, race: 0, live: 0 };

@@ -1,0 +1,29 @@
+{
+  "id": "ep5-bridge-debrief",
+  "bg": "/assets/scenes/hill_run.webp",
+  "music": null,
+  "lines": [
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "Touchdown! Did you see that? Right over the top of them."
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "Those convoy trucks are still staring at an empty bridge."
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": {
+        "recruit": "And look what I found wedged under the seat: an Echo. The bridge, all lit up, before OMNI."
+      }
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "Next stop: the hill road up to Meridian Labs. I hear OMNI has a racer waiting for us."
+    }
+  ]
+}

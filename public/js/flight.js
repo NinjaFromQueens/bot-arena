@@ -47,6 +47,7 @@
     cab: { kind: "cab", h: 1.5, w: 4.3, label: "Robotaxi" },
     tractor: { kind: "tractor", h: 4.0, w: 7.0, label: "Semi truck" },
     semi: { kind: "semi", h: 4.0, w: 20.0, label: "Semi truck with trailer" },
+    convoy: { kind: "convoy", h: 3.0, w: 6.5, label: "Warden convoy truck" }, // Episode 5: OMNI's blockade on the harbor bridge
   };
   function row(list, start = 8, gap = 0.8) {
     let x = start;
@@ -72,6 +73,8 @@
       obstacles: row(["semi"], 14), need: { people: 2, maxG: 6 }, eff: { kind: "cost", max: 220000, text: "Costs under $220,000" } },
     { id: "budget", n: "Budget Engineer", goal: "Clear the semi truck while spending less than $150,000. Every dollar counts.",
       obstacles: row(["semi"], 14), need: { budget: 150000 }, eff: { kind: "kg", max: 1150, text: "Car weighs under 1,150 kg" } },
+    { id: "bridge", n: "Bridge Blockade", goal: "Jump the Warden convoy blocking the bridge and land safely.",
+      obstacles: row(["convoy", "convoy"], 14, 1.0), need: {}, eff: { kind: "kg", max: 1200, text: "Car weighs under 1,200 kg" } },
   ];
   const ZONE_END = 85; // landing zone ends here (m past the ramp)
 

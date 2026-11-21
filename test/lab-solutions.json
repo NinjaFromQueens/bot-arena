@@ -110,5 +110,19 @@
     "ramp": 2,
     "reserve": 30,
     "flipOn": false
+  },
+  "bridge": {
+    "material": 3,
+    "tanks": 2,
+    "lift": 6,
+    "push": 0,
+    "flip": 0,
+    "computer": 1,
+    "gear": 1,
+    "people": 0,
+    "speed": 55,
+    "ramp": 1,
+    "reserve": 30,
+    "flipOn": false
   }
 }

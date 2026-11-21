@@ -258,7 +258,11 @@
     ctx.fillStyle = "#f46524"; for (let k = 0.15; k < 1; k += 0.25) { ctx.fillRect(X(rb + (0 - rb) * k), Y(rh * k) - 2, 0.35 * ppm, 3); }
 
     // obstacles
-    for (const o of m.obstacles) drawVehicle(ctx, o, X, Y, ppm);
+    // a row of the same vehicle (the Warden convoy) gets one label over the whole row, so labels never overlap
+    m.obstacles.forEach((o, i, all) => {
+      const first = i === 0 || all[i - 1].kind !== o.kind; let end = i; while (first && all[end + 1] && all[end + 1].kind === o.kind) end++;
+      drawVehicle(ctx, o, X, Y, ppm, !first ? null : { x: o.x, w: all[end].x + all[end].w - o.x, n: end - i + 1 });
+    });
     if (m.obstacles.length) {
       ctx.strokeStyle = "rgba(255,210,63,.45)"; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
       for (const o of m.obstacles) { ctx.beginPath(); ctx.moveTo(X(o.x), Y(o.h)); ctx.lineTo(X(o.x + o.w), Y(o.h)); ctx.stroke(); }
@@ -445,12 +449,21 @@
     ctx.restore();
   }
 
-  function drawVehicle(ctx, o, X, Y, ppm) {
+  function drawVehicle(ctx, o, X, Y, ppm, tag) { // tag: the row this vehicle starts ({x, w, n}), or null for one that isn't labeled
     const x0 = X(o.x), x1 = X(o.x + o.w), base = Y(0), top = Y(o.h), W = x1 - x0, Hh = base - top;
     ctx.save(); ctx.strokeStyle = "#141316"; ctx.lineWidth = Math.max(1.5, ppm * 0.06);
     const wheel = (cx, r) => { ctx.fillStyle = "#141316"; ctx.beginPath(); ctx.arc(cx, base - r, r, 0, 7); ctx.fill(); ctx.fillStyle = "#6f6b77"; ctx.beginPath(); ctx.arc(cx, base - r, r * 0.45, 0, 7); ctx.fill(); };
     const glass = "rgba(159,196,221,.45)";
-    if (o.kind === "semi" || o.kind === "tractor") {
+    if (o.kind === "convoy") { // a Warden convoy truck: glossy white, faceless, one horizontal blue visor, blue light strips (the story's Wardens)
+      const r = Math.min(Hh * 0.28, W * 0.12);
+      ctx.fillStyle = "#eef1f5"; ctx.beginPath(); ctx.moveTo(x0, base - Hh * 0.16); ctx.lineTo(x0, top + r); ctx.quadraticCurveTo(x0, top, x0 + r, top);
+      ctx.lineTo(x1 - r * 1.6, top); ctx.quadraticCurveTo(x1, top, x1, top + r * 1.6); ctx.lineTo(x1, base - Hh * 0.16); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#1b2a3a"; ctx.fillRect(x1 - W * 0.34, top + Hh * 0.2, W * 0.3, Hh * 0.17); // the visor
+      ctx.fillStyle = "#4fb8ff"; ctx.fillRect(x1 - W * 0.32, top + Hh * 0.25, W * 0.26, Hh * 0.07);
+      ctx.fillRect(x0 + W * 0.04, top + Hh * 0.6, W * 0.92, Math.max(2, Hh * 0.035)); // the light strip
+      const ring = (cx) => { wheel(cx, Hh * 0.16); ctx.strokeStyle = "#4fb8ff"; ctx.lineWidth = Math.max(1.5, ppm * 0.05); ctx.beginPath(); ctx.arc(cx, base - Hh * 0.16, Hh * 0.11, 0, 7); ctx.stroke(); ctx.strokeStyle = "#141316"; };
+      ring(x0 + W * 0.2); ring(x0 + W * 0.8);
+    } else if (o.kind === "semi" || o.kind === "tractor") {
       const cabW = Math.min(W, 6.5 * ppm), cabX = o.kind === "semi" ? x0 + W - cabW : x0;
       if (o.kind === "semi") { // trailer
         ctx.fillStyle = "#c9ccd3"; ctx.fillRect(x0, top, W - cabW - 0.3 * ppm, Hh * 0.82); ctx.strokeRect(x0, top, W - cabW - 0.3 * ppm, Hh * 0.82);
@@ -480,7 +493,7 @@
     // label
     const fs = Math.max(10, Math.round(Math.min(ppm * 0.62, 16)));
     ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,210,63,.9)";
-    ctx.fillText(`${o.label.toUpperCase()} · ${F.fmt(o.h)} m`, (x0 + x1) / 2, top - fs * 0.6);
+    if (tag) ctx.fillText(`${o.label.toUpperCase()}${tag.n > 1 ? " ×" + tag.n : ""} · ${F.fmt(o.h)} m`, X(tag.x + tag.w / 2), top - fs * 0.6);
     ctx.restore();
   }
 

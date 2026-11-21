@@ -1,0 +1,40 @@
+{
+  "id": "ep5",
+  "num": 5,
+  "title": "The Missing Engineer",
+  "about": {
+    "recruit": "OMNI blocked the bridge to Meridian Labs. Sparrow has a plan, and it involves flying."
+  },
+  "place": "bridge",
+  "map": {
+    "x": 62,
+    "y": 46
+  },
+  "art": "/assets/scenes/bridge_blockade.webp",
+  "open": true,
+  "missions": [
+    {
+      "id": "ep5-bridge",
+      "title": "Jump the bridge blockade",
+      "core": true,
+      "briefing": "ep5-bridge-brief",
+      "discover": {
+        "lesson": "thrust"
+      },
+      "build": {
+        "missions": [
+          "lab-hop",
+          "lab-car"
+        ],
+        "need": 1
+      },
+      "mission": {
+        "mission": "lab-bridge"
+      },
+      "debrief": "ep5-bridge-debrief",
+      "rewards": [
+        "echo-bridge-lights"
+      ]
+    }
+  ]
+}

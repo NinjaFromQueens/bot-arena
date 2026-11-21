@@ -1,0 +1,20 @@
+{
+  "sparrow": {
+    "name": "Sparrow",
+    "faces": {
+      "pose": "/assets/characters/sparrow/pose.webp"
+    }
+  },
+  "torque": {
+    "name": "Torque",
+    "faces": {
+      "pose": "/assets/characters/torque/pose.webp"
+    }
+  },
+  "rivet": {
+    "name": "Commander Rivet",
+    "faces": {
+      "briefing": "/assets/characters/rivet/briefing.webp"
+    }
+  }
+}
