@@ -12,6 +12,7 @@ const Challenges = require("./public/js/challenges.js");
 const Missions = require("./public/js/missions.js");
 const Tier = require("./public/js/tiers.js");
 const Sprint = require("./public/js/sprint.js");
+const Story = require("./public/js/story.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,8 @@ const pub = path.join(__dirname, "public");
 app.use(express.static(pub, { extensions: ["html"] }));
 // the mission files, read once (they only change with a deploy); the games' models work out every answer
 Missions.register("racer", Race.MISSION); Missions.register("lab", Flight.MISSION); Missions.register("challenge", Challenges.MISSION);
+// the story's episodes, read once like the mission files: the class Now signal only accepts their missions
+const EPISODES = JSON.parse(fs.readFileSync(path.join(pub, "data/episodes/index.json"), "utf8")).map((id) => JSON.parse(fs.readFileSync(path.join(pub, `data/episodes/${id}.json`), "utf8")));
 const MISSION_FILES = new Map(JSON.parse(fs.readFileSync(path.join(pub, "data/missions/index.json"), "utf8"))
   .map((id) => [id, JSON.parse(fs.readFileSync(path.join(pub, `data/missions/${id}.json`), "utf8"))]).filter(([, m]) => !Missions.check(m).length));
 app.get("/art/manifest.json", (_req, res) => res.json({ parts: {} })); // no art pack installed (public/art/): every part is drawn in code
@@ -99,6 +102,7 @@ function publicState(room) {
     race: Race.TRACKS.map((tr) => raceBoard(room, tr.id).slice(0, 3).map((b) => ({ id: b.id, builder: b.builder, time: b.time, track: tr.id, n: tr.n }))).flat(),
     gp: gpState(room),
     sprint: sprintState(room),
+    now: room.now || null, // the class's story mission and step (PF-3), set by the board
     lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
@@ -777,6 +781,16 @@ io.on("connection", (socket) => {
     r.tries++; r.goal = r.goal || (goal ? 1 : 0); r.last = c;
     cb && cb({ ok: true, correct, goal, tier: room.settings.tier || null });
     missionUpdate(room);
+  });
+  // the class's story mission (PF-3, docs/platform-flow-spec.md section 8): Mission Control moves the class from step
+  // to step and every game page follows. It carries only the mission id and the step; nothing comes back from students.
+  socket.on("host:now", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    if (!d || !d.mission) { room.now = null; cb && cb({ ok: true }); return broadcast(room); }
+    if (!Story.find(EPISODES, d.mission) || !Story.STEPS.includes(d.step)) return cb && cb({ ok: false });
+    room.now = { mission: d.mission, step: d.step, at: Date.now() };
+    cb && cb({ ok: true });
+    broadcast(room);
   });
   // Speed Run: the board sets it up, opens each problem, reveals it, and ends it
   socket.on("host:sprint", (d, cb) => {

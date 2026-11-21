@@ -32,6 +32,11 @@
   .flash div { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 12vw, 80px); animation: pop .5s cubic-bezier(.3,1.8,.5,1); }
   .classline { margin: -6px 0 14px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--orange); background: var(--orange-soft); font-weight: 600; }
   .labbox { width: 100%; display: grid; gap: 8px; justify-items: center; padding: 14px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--orange); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
+  .nowbox { border-color: var(--teal, #36c2b0) !important; }
+  .nowbox .nowlinks { display: grid; gap: 8px; }
+  .nowbox .nowlinks a { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); text-decoration: none; font-size: 17px; font-weight: 600; }
+  .nowbox .nowlinks a.done { border-color: var(--good); } .nowbox .nowlinks a span { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .nowbox .nowlinks a.done span { color: var(--good); }
   .sprintbox { border-color: var(--orange) !important; }
   .sprintbox canvas:not([hidden]) { width: 100%; height: 170px; display: block; border-radius: 10px; background: var(--panel); }
   .sppad { display: grid; gap: 8px; }
@@ -196,6 +201,12 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
           <div class="side b"><span><span id="w-hb">100</span> <b id="w-nb"></b></span><div class="bar"><i id="w-bb"></i></div></div>
         </div>
         <p class="wlog" id="w-log"></p>
+      </div>
+      <div class="lessonbox nowbox" id="nowbox" hidden>
+        <h3 style="justify-content:center;margin:0" id="now-head">Story mission</h3>
+        <p class="lbq" id="now-title"></p>
+        <p class="pmsg" id="now-msg" role="status"></p>
+        <div class="nowlinks" id="now-links"></div>
       </div>
       <div class="lessonbox sprintbox" id="sprintbox" hidden>
         <h3 style="justify-content:center;margin:0" id="sp-head">Speed Run</h3>

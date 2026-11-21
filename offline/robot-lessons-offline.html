@@ -3267,13 +3267,15 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     const api = { on, send() {}, quiz() {} };
     if (!on) return api;
     const socket = window.baSocket;
+    const back = /[?&]back=control\b/.test(location.search) ? { to: "/control", label: "Back to Mission Control", tip: "Stop presenting and go back to Mission Control, at the same step." } : { to: "/host", label: "Back to the game board", tip: "Stop presenting and go back to the game board. Students\' devices go back to normal." };
     let saved = null, ready = false, poll = null, onPoll = null;
     try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
     document.body.classList.add("present");
     const bar = document.createElement("div"); bar.className = "presentbar";
     bar.innerHTML = '<span id="pr-msg">Connecting to your game...</span><button class="btn ghost" id="pr-back" type="button" data-tip="Stop presenting and go back to the game board. Students\' devices go back to normal.">Back to the game board</button>';
     document.querySelector(".wrap").insertBefore(bar, document.querySelector(".wrap").children[1]);
-    $("pr-back").onclick = () => { if (ready) socket.emit("host:lessonEnd", {}, () => (location.href = "/host")); else location.href = "/host"; };
+    $("pr-back").textContent = back.label; $("pr-back").setAttribute("data-tip", back.tip);
+    $("pr-back").onclick = () => { if (ready) socket.emit("host:lessonEnd", {}, () => (location.href = back.to)); else location.href = back.to; };
     if (!saved) { $("pr-msg").textContent = "No game found in this tab. Open the board (Host on the board) first, then press Present a lesson."; return api; }
     socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
       if (!r || !r.ok) { ready = false; $("pr-msg").textContent = "That game has ended. Go back to the board to start a new one."; return; }

@@ -273,6 +273,64 @@
       : (p.input.kind === "choice" ? "Tap your answer." : "Type your answer and press Send.") + (left != null ? ` ${left} s left.` : "");
   }
 
+  // the class's story mission (PF-3): one card that follows Mission Control on the board. In class, steps the class moved
+  // past (the briefing, the lesson) count for this student, and everyone present gets the reward; Build and Mission count
+  // from the student's own runs. All of it stays in cr-record on this device.
+  const NOW_STEPS = ["briefing", "discover", "build", "mission", "reward"];
+  const nowFiles = {};
+  const getJSON = (u) => fetch(u).then((r) => (r.ok ? r.json() : Promise.reject(new Error(u))));
+  function nowLoad(id) { // the mission, its episode, its missions' titles and the rewards, loaded once per mission
+    if (nowFiles[id]) return nowFiles[id];
+    nowFiles[id] = { loading: true };
+    getJSON("/data/episodes/index.json").then((idx) => Promise.all(idx.map((e) => getJSON(`/data/episodes/${e}.json`)))).then((eps) => {
+      let m = null; for (const e of eps) m = m || e.missions.find((x) => x.id === id);
+      if (!m) throw new Error(id);
+      const mids = [...m.build.missions, ...(m.mission.mission ? [m.mission.mission] : [])];
+      return Promise.all([Promise.all(mids.map((x) => getJSON(`/data/missions/${x}.json`))), getJSON("/data/rewards.json")])
+        .then(([ms, rewards]) => { nowFiles[id] = { m, files: Object.fromEntries(ms.map((x) => [x.id, x])), rewards }; render(); });
+    }).catch(() => { nowFiles[id] = { failed: true }; });
+    return nowFiles[id];
+  }
+  function nowRecord(now, m) {
+    let rec = null; try { rec = JSON.parse(localStorage.getItem("cr-record")); } catch {}
+    if (!rec || !rec.missions) rec = { v: 1, missions: {}, rewards: {}, last: null };
+    const r = (rec.missions[now.mission] = rec.missions[now.mission] || {}), k = NOW_STEPS.indexOf(now.step), t = Date.now();
+    let changed = false;
+    for (const s of ["briefing", "discover"].concat(m.mission.event ? ["mission"] : [])) if (NOW_STEPS.indexOf(s) < k && !r[s]) { r[s] = t; changed = true; }
+    if (now.step === "reward" && !r.done) { r.reward = r.reward || t; r.done = t; for (const id of m.rewards || []) rec.rewards[id] = rec.rewards[id] || t; changed = true; }
+    if (changed || rec.last !== now.mission) { rec.last = now.mission; try { localStorage.setItem("cr-record", JSON.stringify(rec)); } catch {} }
+  }
+  const NOW_PAGE = { lab: (mid, run) => `/lab?mission=${mid}&run=${run}`, racer: (mid, run) => `/race?mission=${mid}&run=${run}`, challenge: (mid, run) => `/practice?mission=${mid}&run=${run}#challenges` };
+  function renderNow(me) {
+    const now = state && state.now, box = $("nowbox");
+    const T = (v) => (window.Tier ? Tier.text(v, Tier.current()) : v && typeof v === "object" ? v.recruit : v);
+    if (!now || !me) { box.hidden = true; return; }
+    const d = nowLoad(now.mission);
+    if (!d.m) { box.hidden = true; return; }
+    box.hidden = false;
+    nowRecord(now, d.m);
+    const k = NOW_STEPS.indexOf(now.step), m = d.m;
+    $("now-head").textContent = `Story mission · Step ${k + 1} of 5`;
+    $("now-title").textContent = T(m.title);
+    const links = $("now-links"); links.innerHTML = "";
+    const goal = (mid) => { try { return !!((JSON.parse(localStorage.getItem("cr-missions")) || {})[mid] || {}).goal; } catch { return false; } };
+    const link = (mid) => {
+      const f = d.files[mid], a = document.createElement("a"), done = goal(mid), sp = document.createElement("span");
+      a.href = NOW_PAGE[f.game](mid, now.mission); a.className = done ? "done" : ""; a.setAttribute("data-tip", `Open ${T(f.title)}. Predict first, then test your design.`);
+      a.textContent = T(f.title); sp.textContent = done ? "✓ goal reached" : "open"; a.appendChild(sp); links.appendChild(a);
+    };
+    if (now.step === "briefing") $("now-msg").textContent = "Watch the board: the briefing.";
+    else if (now.step === "discover") $("now-msg").textContent = "Your teacher is presenting the lesson. Its questions pop up here.";
+    else if (now.step === "build") { $("now-msg").textContent = `Practice in the Lab. Reach the goal in ${m.build.need || 1} of these:`; m.build.missions.forEach(link); }
+    else if (now.step === "mission") {
+      if (m.mission.event) $("now-msg").textContent = "Class challenge! Follow your teacher on the board.";
+      else { const f = d.files[m.mission.mission]; $("now-msg").textContent = T((f.tiers[window.Tier ? Tier.current() : "recruit"] || {}).brief || f.tiers.recruit.brief); link(m.mission.mission); }
+    } else {
+      const got = (m.rewards || []).map((id) => d.rewards.find((r) => r.id === id)).filter(Boolean).map((r) => ({ echo: "New Echo", volt: "New Volt part", file: "New Lazarus file", access: "New place" }[r.kind] + ": " + T(r.title)));
+      $("now-msg").textContent = "Mission complete! " + (got.length ? got.join(" · ") + "." : "");
+    }
+  }
+
   // the teacher started a Flying Car Lab challenge
   function renderLab(me) {
     const L = state && state.lab;
@@ -465,6 +523,7 @@
     $("editbtn").hidden = !state || state.phase !== "lobby";
     const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
     renderPredict(me);
+    renderNow(me);
     renderSprint(me);
     renderLesson(me);
     renderLab(me);
