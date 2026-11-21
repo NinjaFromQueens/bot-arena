@@ -81,6 +81,7 @@
   socket.on("disconnect", () => $("gamechip").classList.add("off"));
   socket.on("room:state", (s) => {
     state = s; applyLimit(s.settings && s.settings.maxw);
+    if (s.sprint) spOffset = s.sprint.now - Date.now();
     if (window.Tier && session) Tier.setClass(session.code, s.settings && s.settings.tier); // lessons and missions on this device follow it
     render();
   });
@@ -199,6 +200,78 @@
       : mine === q.answer ? `Correct! +1 quiz point (you have ${me.qpts}). ${q.explain}` : mine == null ? `The answer: ${q.options[q.answer]}. ${q.explain}` : `Not this time. ${q.explain}`;
   }
 
+  // Speed Run: the teacher's class math race. The server sends each problem without its answer and checks every
+  // answer itself; a wrong one locks the student out for 5 seconds. spMe is this student's standing on the problem.
+  let spSig = "", spMe = null, spGained = 0, spOffset = 0; // spOffset: the server's clock minus this device's
+  const spLeft = () => (spMe && spMe.lockUntil ? Math.max(0, Math.ceil((spMe.lockUntil - Date.now()) / 1000)) : 0);
+  function spMine(r) { spMe = { tries: r.tries, right: !!(r.right || r.correct), left: r.left, total: r.total, lockUntil: r.lockout ? Date.now() + r.lockout : 0 }; }
+  function spSend(value) {
+    const S = state && state.sprint; if (!S || !S.problem || String(value).trim() === "") return;
+    socket.emit("player:sprintAnswer", { id: S.problem.id, value }, (r) => {
+      if (!r) return;
+      if (r.ok) { spMine(r); spGained = r.gained || 0; E.Sound.play(r.correct ? "win" : "miss"); if (!r.correct) $("sp-val").value = ""; }
+      else { if (r.lockout) spMe = { ...(spMe || {}), lockUntil: Date.now() + r.lockout }; $("sp-msg").textContent = r.error || "Try again."; }
+      render();
+    });
+  }
+  // the number pad, made once
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "⌫"].forEach((k) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = k;
+    b.setAttribute("data-tip", k === "⌫" ? "Delete the last digit." : k === "." ? "Add a decimal point." : `Type ${k}.`);
+    b.onclick = () => { const v = $("sp-val"); v.value = k === "⌫" ? v.value.slice(0, -1) : (v.value + k).slice(0, 12); };
+    $("sp-keys").appendChild(b);
+  });
+  $("sp-send").onclick = () => spSend($("sp-val").value);
+  $("sp-val").addEventListener("keydown", (e) => { if (e.key === "Enter") spSend($("sp-val").value); });
+  setInterval(() => { const S = state && state.sprint; if (S && S.phase === "open") renderSprint(state.players.find((p) => session && p.id === session.playerId)); }, 500);
+  function renderSprint(me) {
+    const S = state && state.sprint, box = $("sprintbox");
+    if (!S || !me) { box.hidden = true; spSig = ""; return; }
+    box.hidden = false;
+    const p = S.problem, C = window.SprintCard;
+    $("sp-head").textContent = S.phase === "ready" ? `Speed Run: ${S.name}` : S.phase === "done" ? `Speed Run: ${S.name} is over` : `Speed Run · Problem ${S.i + 1} of ${S.n}`;
+    $("sp-pts").textContent = spMe && spMe.total ? `Your Speed Run points: ${spMe.total}` : "";
+    if (!p) {
+      $("sp-q").textContent = S.phase === "ready" ? "Get ready! Your teacher is about to show the first problem." : "That's the end! Look at the board to see how the class did.";
+      ["sp-pic", "sp-pad", "sp-steps"].forEach((id) => ($(id).hidden = true)); $("sp-opts").innerHTML = ""; $("sp-msg").textContent = "";
+      spSig = S.phase; return;
+    }
+    const sig = p.id + S.phase;
+    if (spSig !== sig) {
+      if (!spSig.startsWith(p.id)) { // a new problem: start fresh, and ask the server where this student stands (after a refresh)
+        spMe = null; spGained = 0; $("sp-val").value = "";
+        socket.emit("player:sprintMe", {}, (r) => { if (r && r.ok && r.id === p.id) { spMine(r); render(); } });
+        E.Sound.play("beep"); if (navigator.vibrate) try { navigator.vibrate(120); } catch {}
+        setTimeout(() => box.scrollIntoView({ behavior: E.RM ? "auto" : "smooth", block: "center" }), 50);
+      }
+      spSig = sig;
+      $("sp-q").textContent = p.text;
+      $("sp-pic").hidden = !p.pic; if (p.pic) requestAnimationFrame(() => C.draw($("sp-pic"), p.pic));
+      $("sp-opts").innerHTML = "";
+      if (p.input.kind === "choice") p.input.options.forEach((o) => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = o.label; b.dataset.v = String(o.value);
+        b.setAttribute("data-tip", "Tap your answer.");
+        b.onclick = () => spSend(o.value);
+        $("sp-opts").appendChild(b);
+      });
+      $("sp-pad").hidden = p.input.kind === "choice";
+      $("sp-unit").textContent = p.input.unit || "";
+    }
+    const revealed = S.phase === "revealed", lock = spLeft(), now = Date.now() + spOffset, timeUp = !!S.endAt && now > S.endAt;
+    const done = revealed || (spMe && (spMe.right || spMe.left === 0)) || timeUp;
+    $("sp-send").disabled = done || lock > 0;
+    [...$("sp-opts").children].forEach((b) => { b.disabled = done || lock > 0; b.classList.toggle("right", revealed && b.dataset.v === String(S.reveal.answer.value)); });
+    $("sp-steps").hidden = !revealed; $("sp-steps").innerHTML = "";
+    if (revealed) S.reveal.steps.forEach((s) => { const li = document.createElement("li"); li.textContent = s; $("sp-steps").appendChild(li); });
+    const left = S.endAt ? Math.max(0, Math.ceil((S.endAt - now) / 1000)) : null;
+    $("sp-msg").textContent = revealed ? (spMe && spMe.right ? "You got it! " : "") + `The answer: ${C.answerText(p, S.reveal.answer)}.`
+      : spMe && spMe.right ? `Right! +${spGained} points. Watch the board.`
+      : spMe && spMe.left === 0 ? "No tries left on this one. Watch the board for the answer."
+      : timeUp ? "Time's up! Watch the board."
+      : lock > 0 ? `Not quite. Try again in ${lock} s (${spMe.left} ${spMe.left === 1 ? "try" : "tries"} left).`
+      : (p.input.kind === "choice" ? "Tap your answer." : "Type your answer and press Send.") + (left != null ? ` ${left} s left.` : "");
+  }
+
   // the teacher started a Flying Car Lab challenge
   function renderLab(me) {
     const L = state && state.lab;
@@ -280,6 +353,7 @@
     $("editbtn").hidden = !state || state.phase !== "lobby";
     const me = state && session ? state.players.find((p) => p.id === session.playerId) : null;
     renderPredict(me);
+    renderSprint(me);
     renderLesson(me);
     renderLab(me);
     renderGp(me);

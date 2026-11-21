@@ -11,6 +11,7 @@ const Race = require("./public/js/race.js");
 const Challenges = require("./public/js/challenges.js");
 const Missions = require("./public/js/missions.js");
 const Tier = require("./public/js/tiers.js");
+const Sprint = require("./public/js/sprint.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -97,6 +98,7 @@ function publicState(room) {
     lesson: lessonState(room),
     race: Race.TRACKS.map((tr) => raceBoard(room, tr.id).slice(0, 3).map((b) => ({ id: b.id, builder: b.builder, time: b.time, track: tr.id, n: tr.n }))).flat(),
     gp: gpState(room),
+    sprint: sprintState(room),
     lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
@@ -236,6 +238,41 @@ function missionData(room) {
   return { rows, summary: [...sums.values()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])) }; // summary: [id, title, students, first right, goal met, one at a time]
 }
 const missionUpdate = (room) => toHosts(room, "room:missions", missionData(room));
+
+// ---------------- Speed Run (docs/speed-run-plan.md) ----------------
+// A class math race, round by round: the teacher opens each problem, students answer on their game pages, the server
+// checks every answer itself (time measured here), then the teacher reveals the worked answer and the class's common
+// mistakes. No points are ever taken away: a wrong answer locks the student out for 5 seconds, 3 tries per problem.
+// Students get the problem without its answer, steps, mistakes, car or seed; the board gets live counts (toHosts).
+const SPRINT = { tries: 3, lockMs: 5000, timers: [0, 30, 60, 90], sizes: [5, 10], grace: 300 };
+function sprintState(room) {
+  const s = room.sprint; if (!s) return null;
+  const p = s.problem, top = (s.phase === "revealed" || s.phase === "done") && s.names === "top5"
+    ? [...s.pts].filter(([id]) => room.players.has(id)).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id, pts]) => ({ id, builder: room.players.get(id).builder, pts })) : null;
+  return {
+    set: s.set, name: Sprint.set(s.set).name, n: s.n, i: s.i, phase: s.phase, tier: s.tier, timer: s.timer, names: s.names,
+    startAt: s.startAt, endAt: s.endAt, now: Date.now(),
+    problem: p && s.phase !== "done" ? { ...Sprint.forStudent(p), id: `${s.round}:${s.i}` } : null,
+    reveal: p && s.phase === "revealed" ? { answer: p.answer, steps: p.steps, mistakes: p.mistakes.map((m) => ({ value: m.value, why: m.why })) } : null,
+    top,
+  };
+}
+function sprintStats(room) {
+  const s = room.sprint; if (!s) return null;
+  const a = [...s.answers].filter(([id]) => room.players.has(id)).map(([, v]) => v), p = s.problem;
+  const mistakes = p ? p.mistakes.map((_, k) => a.filter((x) => x.mistakes.includes(k)).length) : [];
+  return {
+    i: s.i, answered: a.filter((x) => x.tries).length, right: a.filter((x) => x.right).length,
+    players: [...room.players.values()].filter((q) => q.connected && !q.out).length,
+    mistakes, other: a.filter((x) => !x.right && x.tries && x.other).length,
+    answer: p ? p.answer : null, mistakeValues: p ? p.mistakes.map((m) => m.value) : [], car: p ? p.car : null, // the board only: shown at the reveal; S-04 launches the car
+    history: s.history,
+    leaders: [...s.pts].filter(([id]) => room.players.has(id)).sort((x, y) => y[1] - x[1]).map(([id, pts]) => [id, pts, s.right.get(id) || 0]),
+  };
+}
+const sprintUpdate = (room) => toHosts(room, "room:sprintStats", sprintStats(room));
+// tries per problem: 3 for a typed answer; with choices, one fewer than the choices (a second pick of two is no test)
+const sprintTries = (p) => (p.input.kind === "choice" ? Math.max(1, p.input.options.length - 1) : SPRINT.tries);
 function botWithBuilder(p) { return { ...p.bot, builder: p.builder }; }
 
 // Settle matches that can't be played: a removed player forfeits.
@@ -371,7 +408,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
-    broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room); missionUpdate(room);
+    broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room); missionUpdate(room); if (room.sprint) sprintUpdate(room);
   });
 
   socket.on("room:check", (d, cb) => {
@@ -443,8 +480,9 @@ io.on("connection", (socket) => {
     if (room.phase === "lobby") room.players.delete(p.id);
     else { p.out = true; if (!room.current) settleForfeits(room); }
     if (room.missions) room.missions.delete(p.id);
+    if (room.sprint) { room.sprint.pts.delete(p.id); room.sprint.right.delete(p.id); room.sprint.answers.delete(p.id); }
     cb && cb({ ok: true });
-    broadcast(room); missionUpdate(room);
+    broadcast(room); missionUpdate(room); if (room.sprint) sprintUpdate(room);
   });
 
   socket.on("host:start", (_d, cb) => {
@@ -733,6 +771,81 @@ io.on("connection", (socket) => {
     r.tries++; r.goal = r.goal || (goal ? 1 : 0); r.last = c;
     cb && cb({ ok: true, correct, goal, tier: room.settings.tier || null });
     missionUpdate(room);
+  });
+  // Speed Run: the board sets it up, opens each problem, reveals it, and ends it
+  socket.on("host:sprint", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const set = Sprint.set(d && d.set), n = d && d.n, timer = d && d.timer, names = d && d.names, tier = d && d.tier;
+    if (!set || !SPRINT.sizes.includes(n) || !SPRINT.timers.includes(timer) || !["top5", "none"].includes(names) || !Tier.LEVELS.includes(tier)) return cb && cb({ ok: false });
+    room.sprint = { set: set.id, n, timer, names, tier, seed: crypto.randomInt(1, 2 ** 31 - 1), round: rid(4), i: -1, phase: "ready", problem: null,
+      startAt: null, endAt: null, answers: new Map(), pts: new Map(), right: new Map(), history: [] };
+    cb && cb({ ok: true });
+    broadcast(room); sprintUpdate(room);
+  });
+  socket.on("host:sprintNext", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const s = room.sprint;
+    if (!s || !(s.phase === "ready" || s.phase === "revealed")) return cb && cb({ ok: false });
+    if (s.i >= s.n - 1) s.phase = "done"; // after the last reveal: the results
+    else {
+      s.i++; s.problem = Sprint.set(s.set).make(s.seed + s.i, s.tier); s.answers = new Map();
+      s.startAt = Date.now(); s.endAt = s.timer ? s.startAt + s.timer * 1000 : null; s.phase = "open";
+    }
+    cb && cb({ ok: true, phase: s.phase });
+    broadcast(room); sprintUpdate(room);
+  });
+  socket.on("host:sprintReveal", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const s = room.sprint;
+    if (!s || s.phase !== "open") return cb && cb({ ok: false });
+    s.phase = "revealed";
+    const st = sprintStats(room);
+    s.history.push({ i: s.i, kind: s.problem.kind, answered: st.answered, right: st.right });
+    cb && cb({ ok: true });
+    broadcast(room); sprintUpdate(room);
+  });
+  socket.on("host:sprintEnd", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    room.sprint = null;
+    cb && cb({ ok: true });
+    broadcast(room);
+  });
+  // a student's answer, from their game page. Right answers score 100, plus up to 100 more the sooner they come when
+  // there's a timer. Nothing is ever taken away.
+  socket.on("player:sprintAnswer", (d, cb) => {
+    if (!joined || joined.role !== "player") return cb && cb({ ok: false });
+    const room = joined.room, s = room.sprint, now = Date.now();
+    if (!s || s.phase !== "open" || !d || d.id !== `${s.round}:${s.i}`) return cb && cb({ ok: false, error: "That problem is over." });
+    if (s.endAt && now > s.endAt + SPRINT.grace) return cb && cb({ ok: false, error: "Time's up!" });
+    const pid = joined.playerId;
+    if (!s.answers.has(pid)) s.answers.set(pid, { tries: 0, right: false, ms: null, mistakes: [], other: false, lockUntil: 0 });
+    const a = s.answers.get(pid);
+    if (a.right) return cb && cb({ ok: false, error: "You already got this one!" });
+    const maxTries = sprintTries(s.problem);
+    if (a.tries >= maxTries) return cb && cb({ ok: false, error: "No tries left on this one. Watch the board!" });
+    if (now < a.lockUntil) return cb && cb({ ok: false, lockout: a.lockUntil - now, error: "Wait for the lockout to end." });
+    const value = d.value;
+    if (!((typeof value === "string" && value.length <= 24) || (typeof value === "number" && Number.isFinite(value)))) return cb && cb({ ok: false, error: "Type a number." });
+    const r = Sprint.check(s.problem, value);
+    a.tries++;
+    let gained = 0;
+    if (r.correct) {
+      a.right = true; a.ms = now - s.startAt;
+      gained = 100 + (s.endAt ? Math.round((100 * Math.max(0, s.endAt - now)) / (s.timer * 1000)) : 0);
+      s.pts.set(pid, (s.pts.get(pid) || 0) + gained); s.right.set(pid, (s.right.get(pid) || 0) + 1);
+    } else {
+      if (r.mistake >= 0) { if (!a.mistakes.includes(r.mistake)) a.mistakes.push(r.mistake); } else a.other = true;
+      if (a.tries < maxTries) a.lockUntil = now + SPRINT.lockMs;
+    }
+    cb && cb({ ok: true, correct: r.correct, tries: a.tries, left: maxTries - a.tries, lockout: r.correct ? 0 : Math.max(0, a.lockUntil - now), gained, total: s.pts.get(pid) || 0 });
+    sprintUpdate(room);
+  });
+  // a student's own standing on the current problem (after a refresh, or when a new problem opens)
+  socket.on("player:sprintMe", (_d, cb) => {
+    if (!joined || joined.role !== "player") return cb && cb({ ok: false });
+    const s = joined.room.sprint; if (!s) return cb && cb({ ok: false });
+    const a = s.answers.get(joined.playerId), now = Date.now(), maxTries = s.problem ? sprintTries(s.problem) : SPRINT.tries;
+    cb && cb({ ok: true, id: `${s.round}:${s.i}`, tries: a ? a.tries : 0, right: !!(a && a.right), left: maxTries - (a ? a.tries : 0), lockout: a ? Math.max(0, a.lockUntil - now) : 0, total: s.pts.get(joined.playerId) || 0 });
   });
   socket.on("lab:check", (d, cb) => {
     const me = labPlayer(d && d.who);

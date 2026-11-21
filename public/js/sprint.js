@@ -252,9 +252,10 @@
     if (Math.abs(v - p.answer.value) <= p.answer.tol + 1e-9) return { correct: true, mistake: -1 };
     return { correct: false, mistake: p.mistakes.findIndex((m) => Math.abs(v - m.value) <= (m.tol != null ? m.tol : p.answer.tol) + 1e-9) };
   }
-  // what a student's device gets: the question only (no answer, steps, mistakes, or the car: the board shows the car)
+  // what a student's device gets: the question only. No answer, steps or mistakes, no car (the board shows it), and no
+  // seed or id (with the seed, anyone could make the same problem and read its answer)
   function forStudent(p) {
-    const { answer, steps, mistakes, car, ...rest } = p;
+    const { answer, steps, mistakes, car, seed, id, ...rest } = p;
     return rest;
   }
 

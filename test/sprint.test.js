@@ -76,7 +76,7 @@ for (let seed = 1; seed <= SEEDS; seed++) {
 
     // students' copy: no answer, steps, mistakes or car
     const st = Sprint.forStudent(p);
-    assert(!("answer" in st) && !("steps" in st) && !("mistakes" in st) && !("car" in st) && st.text === p.text && st.input && st.id === p.id, `${at}: the student's copy is the question only`);
+    assert(!("answer" in st) && !("steps" in st) && !("mistakes" in st) && !("car" in st) && !("seed" in st) && !("id" in st) && st.text === p.text && st.input, `${at}: the student's copy is the question only (no seed: it would give the answer away)`);
   }
 }
 // every kind shows up often enough that a class sees a mix
