@@ -114,6 +114,8 @@ function publicState(room) {
     championId: room.championId || null,
     awards: room.phase === "done" ? room.awards || [] : [],
     reactions: !room.reactionsOff,
+    live: { ...room.live, muted: [...room.muted] },
+    announce: room.announce,
   };
 }
 // ---------------- live lessons ----------------
@@ -190,7 +192,7 @@ function gpEndRace(room) {
 function gpTicker(room) { // everyone's position, 5 times a second, to the race pages and the board
   const g = room.gp; if (!g) return;
   const snap = { t: Date.now(), cars: [...g.live].map(([id, c]) => [id, c.z, c.x, c.v, g.laps.has(id) ? 1 : 0]) };
-  io.to("race:" + room.code).emit("gp:live", snap); toHosts(room, "gp:live", snap);
+  io.to("race:" + room.code).emit("gp:live", snap); io.to(room.code).emit("gp:live", snap); // race pages; the board and students' game pages
 }
 
 // ---------------- Robot Racer class laps ----------------
@@ -394,7 +396,8 @@ io.on("connection", (socket) => {
   socket.on("host:create", (_d, cb) => {
     const code = newCode();
     const room = { code, hostKey: rid(), phase: "lobby", players: new Map(), bracket: null, current: null, championId: null, lastActive: Date.now(), hosts: new Set([socket.id]),
-      settings: { maxw: Engine.MAXW, bo3: 0, tier: "" } }; // bo3: 0 off, 1 the final, 2 semifinals and final; tier: "" = students choose
+      settings: { maxw: Engine.MAXW, bo3: 0, tier: "" }, // bo3: 0 off, 1 the final, 2 semifinals and final; tier: "" = students choose
+      live: { chat: true, slow: false, fights: true }, muted: new Set(), chatLog: [], announce: null, watching: null }; // chat, and fights on students' devices
     rooms.set(code, room);
     joined = { room, role: "host" };
     socket.join(code);
@@ -408,6 +411,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "host" }; room.hosts.add(socket.id);
     socket.join(room.code);
     cb && cb({ ok: true, code: room.code });
+    socket.emit("room:chatlog", room.chatLog);
     broadcast(room); statusChanged(room); pollUpdate(room); labUpdate(room); missionUpdate(room); if (room.sprint) sprintUpdate(room);
   });
 
@@ -434,6 +438,7 @@ io.on("connection", (socket) => {
         joined = { room, role: "player", playerId: p.id };
         socket.join(room.code);
         cb && cb({ ok: true, playerId: p.id, token: p.token, rejoined: true }); linkPresence(room, p.id);
+        socket.emit("room:chatlog", room.chatLog);
         return broadcast(room);
       }
     }
@@ -445,6 +450,7 @@ io.on("connection", (socket) => {
     joined = { room, role: "player", playerId: p.id };
     socket.join(room.code);
     cb && cb({ ok: true, playerId: p.id, token: p.token });
+    socket.emit("room:chatlog", room.chatLog);
     linkPresence(room, p.id);
     io.to(room.code).emit("room:joined", { id: p.id });
     broadcast(room);
@@ -875,6 +881,74 @@ io.on("connection", (socket) => {
     broadcast(room);
   });
 
+  // ---------------- class chat, and the fight on students' devices ----------------
+  // Quick chat: students pick one of Engine.QUICK, nothing typed. The teacher can turn chat off, slow it down, mute a
+  // student or clear it; messages live only in memory with the game.
+  socket.on("player:chat", (d, cb) => {
+    if (!joined || joined.role !== "player") return cb && cb({ ok: false });
+    const room = joined.room, p = room.players.get(joined.playerId), q = d && d.q;
+    if (!p) return cb && cb({ ok: false });
+    if (!room.live.chat) return cb && cb({ ok: false, error: "Chat is off right now." });
+    if (room.muted.has(p.id)) return cb && cb({ ok: false, error: "Your teacher turned off chat for you." });
+    if (!Number.isInteger(q) || q < 0 || q >= Engine.QUICK.length) return cb && cb({ ok: false });
+    const now = Date.now(), wait = room.live.slow ? 10000 : 3000;
+    if (now - (p.lastChat || 0) < wait) return cb && cb({ ok: false, error: room.live.slow ? "Slow mode: one message every 10 seconds." : "Wait a moment before sending again." });
+    let text = Engine.QUICK[q], side = null;
+    if (/\{[ab]\}/.test(text)) { // cheering for a robot needs a match on
+      const c = room.current, A = c && room.players.get(c.aId), B = c && room.players.get(c.bId);
+      if (!A || !B) return cb && cb({ ok: false, error: "There's no match on right now." });
+      side = text.includes("{a}") ? "a" : "b";
+      text = text.replace("{a}", A.bot.name).replace("{b}", B.bot.name);
+    }
+    p.lastChat = now;
+    const msg = { id: rid(4), pid: p.id, name: p.builder, text, side, t: now };
+    room.chatLog.push(msg); if (room.chatLog.length > 40) room.chatLog.shift();
+    io.to(room.code).emit("room:chat", msg);
+    cb && cb({ ok: true });
+  });
+  socket.on("host:live", (d, cb) => { // chat on or off, slow chat, fights on students' devices
+    const room = requireHost(cb); if (!room) return;
+    for (const k of ["chat", "slow", "fights"]) if (d && typeof d[k] === "boolean") room.live[k] = d[k];
+    cb && cb({ ok: true }); broadcast(room);
+  });
+  socket.on("host:mute", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const id = d && d.playerId; if (!room.players.has(id)) return cb && cb({ ok: false });
+    if (d.on) room.muted.add(id); else room.muted.delete(id);
+    cb && cb({ ok: true }); broadcast(room);
+  });
+  socket.on("host:chatClear", (_d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    room.chatLog = []; io.to(room.code).emit("room:chatClear");
+    cb && cb({ ok: true });
+  });
+  socket.on("host:announce", (d, cb) => { // a message from the teacher to every device (students render it as plain text)
+    const room = requireHost(cb); if (!room) return;
+    const text = cleanText(d && d.text, 140).replace(/\s+/g, " ");
+    if (!text) return cb && cb({ ok: false, error: "Type a message first." });
+    room.announce = { text, t: Date.now() };
+    cb && cb({ ok: true }); broadcast(room);
+  });
+  // Once predictions close, the board says which game it's playing and every device replays the same seed in step with
+  // it; speed changes and Skip follow the board.
+  socket.on("host:watch", (d, cb) => {
+    const room = requireHost(cb); if (!room) return;
+    const c = room.current, g = d && d.g;
+    if (!c || c.matchId !== (d && d.matchId) || c.open || !Number.isInteger(g) || !c.games[g]) return cb && cb({ ok: false });
+    if (!room.live.fights) return cb && cb({ ok: true, off: true });
+    const A = room.players.get(c.aId), B = room.players.get(c.bId); if (!A || !B) return cb && cb({ ok: false });
+    room.watching = { matchId: c.matchId, g, at: Date.now() };
+    io.to(room.code).emit("room:watch", { matchId: c.matchId, g, seed: c.games[g].seed, bestOf: c.bestOf, round: T.roundName(room.bracket, c.r), a: botWithBuilder(A), b: botWithBuilder(B), speed: [1, 2, 3].includes(d.speed) ? d.speed : 1, maxw: room.settings.maxw });
+    cb && cb({ ok: true });
+  });
+  socket.on("host:watchCtl", (d) => {
+    if (!joined || joined.role !== "host" || !joined.room.watching) return;
+    const out = {};
+    if ([1, 2, 3].includes(d && d.speed)) out.speed = d.speed;
+    if (d && d.skip === true) out.skip = true;
+    if (Object.keys(out).length) io.to(joined.room.code).emit("room:watchCtl", out);
+  });
+
   socket.on("host:lock", (_d, cb) => {
     const room = requireHost(cb); if (!room) return;
     if (room.current) room.current.open = false;
@@ -888,7 +962,7 @@ io.on("connection", (socket) => {
     if (!c || c.matchId !== (d && d.matchId)) return cb && cb({ ok: false });
     T.setWinner(room.bracket, c.r, c.m, c.winnerId);
     room.bracket.rounds[c.r][c.m].seeds = c.games.map((g) => g.seed); // so the board can replay it: same seeds, same fight
-    room.current = null;
+    room.current = null; room.watching = null;
     const correct = [];
     for (const [pid, side] of c.picks) {
       const p = room.players.get(pid);
@@ -909,7 +983,7 @@ io.on("connection", (socket) => {
 
   socket.on("host:reset", (_d, cb) => {
     const room = requireHost(cb); if (!room) return;
-    room.phase = "lobby"; room.bracket = null; room.current = null; room.championId = null; room.awards = [];
+    room.phase = "lobby"; room.bracket = null; room.current = null; room.championId = null; room.awards = []; room.watching = null;
     for (const [id, p] of room.players) { if (p.out) room.players.delete(id); else { p.pts = 0; p.stats = null; } }
     room.missions = null; // a new game starts with no mission data
     cb && cb({ ok: true });

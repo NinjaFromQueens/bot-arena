@@ -6,6 +6,8 @@ node_modules/
 art-work/
 public/assets/**/*.mp4
 
+# personal Claude Code settings (the daily-briefing startup hook)
+.claude/settings.local.json
 # private plans: story spoilers and business plans stay off the public repo (backed up by OneDrive)
 docs/
 .claude/

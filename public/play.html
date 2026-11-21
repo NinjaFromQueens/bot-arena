@@ -63,6 +63,35 @@
   .pickrow.locked .pick:not(.on) { opacity: .4; }
   .pickrow.locked .pick { cursor: default; }
   .pmsg { font-weight: 600; min-height: 1.4em; }
+  /* the fight on this screen, class chat, teacher announcements, the race live */
+  .announce { width: 100%; display: grid; gap: 2px; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--gold); background: #ffd23f1a; text-align: left; animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
+  .announce b { font-family: var(--display); color: var(--gold); font-size: 14px; letter-spacing: .04em; }
+  .watchbox { width: 100%; display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--orange); }
+  .whead { display: flex; gap: 8px; align-items: center; justify-content: center; font-family: var(--display); font-size: 17px; flex-wrap: wrap; }
+  .whead .live { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; padding: 2px 7px; border-radius: 5px; background: var(--bad); color: var(--ink); }
+  #w-arena { aspect-ratio: 16 / 9; border-radius: 10px; }
+  .whp { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: end; font-size: 14px; }
+  .whp .side { display: grid; gap: 3px; min-width: 0; } .whp .side.b { text-align: right; }
+  .whp .side b { font-family: var(--display); } .whp .a b { color: var(--orange-hi); } .whp .b b { color: var(--blue); }
+  .whp .bar { height: 8px; background: var(--panel); border-radius: 4px; overflow: hidden; display: flex; }
+  .whp .bar i { display: block; height: 100%; width: 100%; background: var(--orange); transition: width .3s; }
+  .whp .b .bar { justify-content: flex-end; } .whp .b .bar i { background: var(--blue); }
+  .wlog { font-size: 14px; color: var(--muted); min-height: 1.3em; margin: 0; text-align: left; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--orange); }
+  .watchpref { font-size: 14px; color: var(--muted); }
+  .chatbox { width: 100%; display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); text-align: left; }
+  .feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow-y: auto; font-size: 15px; }
+  .feed li b { font-family: var(--display); margin-right: 6px; }
+  .feed li.me b { color: var(--orange-hi); }
+  .quick { display: flex; flex-wrap: wrap; gap: 6px; }
+  .quick button { font: inherit; font-size: 14px; padding: 7px 11px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+  .quick button.a { border-color: var(--orange); } .quick button.b { border-color: var(--blue); }
+  .quick button:disabled { opacity: .45; cursor: not-allowed; }
+  #gp-watch { aspect-ratio: 16 / 9; border-radius: 10px; }
+  .gptop { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; width: 100%; font-size: 14px; counter-reset: gp; }
+  .gptop li { counter-increment: gp; display: flex; gap: 8px; } .gptop li::before { content: counter(gp); font-family: var(--mono); color: var(--muted); width: 1.4em; }
+  .gptop li span:last-child { margin-left: auto; font-family: var(--mono); color: var(--muted); }
   .mywhy { width: 100%; text-align: left; display: grid; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
   .mywhy h4 { margin: 0; font-family: var(--display); font-size: 19px; color: var(--gold); }
   .mywhy ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
@@ -156,6 +185,18 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
       <canvas id="mybot" aria-label="Your robot"></canvas>
       <div class="status" id="status" role="status">You're in!</div>
       <p class="substatus" id="substatus"></p>
+      <div class="announce" id="announce" hidden role="status"><b>📣 From your teacher</b><span id="announce-t"></span></div>
+      <label class="switch watchpref" id="watchpref" hidden data-tip="Play each fight on this screen too, at the same time as the board."><input type="checkbox" id="watchon" checked> Show fights on my screen</label>
+      <div class="watchbox" id="watchbox" hidden>
+        <div class="whead"><span class="live">LIVE</span><span id="w-title"></span></div>
+        <canvas id="w-arena" aria-label="The fight on the board, live"></canvas>
+        <div class="whp">
+          <div class="side a"><span><b id="w-na"></b> <span id="w-ha">100</span></span><div class="bar"><i id="w-ba"></i></div></div>
+          <span class="small">VS</span>
+          <div class="side b"><span><span id="w-hb">100</span> <b id="w-nb"></b></span><div class="bar"><i id="w-bb"></i></div></div>
+        </div>
+        <p class="wlog" id="w-log"></p>
+      </div>
       <div class="lessonbox sprintbox" id="sprintbox" hidden>
         <h3 style="justify-content:center;margin:0" id="sp-head">Speed Run</h3>
         <p class="lbq" id="sp-q"></p>
@@ -180,6 +221,8 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
         <h3 style="justify-content:center;margin:0">Race Day</h3>
         <p class="lbq" id="gp-n"></p>
         <p class="pmsg" id="gp-msg"></p>
+        <canvas id="gp-watch" hidden aria-label="The race, live"></canvas>
+        <ol class="gptop" id="gp-top" hidden></ol>
         <a class="btn" href="/race" id="gp-go" data-tip="Open Robot Racer. Race Day starts there: pick your setup in the garage, then race the whole class at once.">Open Robot Racer</a>
       </div>
       <div class="lessonbox" id="lessonbox" hidden>
@@ -198,6 +241,12 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
       </div>
       <div class="mywhy" id="mywhy" hidden><h4 id="mywhy-h"></h4><ul id="mywhy-r"></ul><p class="tip" id="mywhy-t"></p></div>
       <div class="myawards" id="myawards" hidden></div>
+      <div class="chatbox" id="chatbox" hidden>
+        <h3 style="justify-content:center;margin:0"><span class="hastip" tabindex="0" data-tip="Tap a message to send it to the class. Everyone sees your name with it. Your teacher can turn chat off.">Class chat</span></h3>
+        <ol class="feed" id="feed" aria-live="polite"></ol>
+        <div class="quick" id="quick"></div>
+        <p class="pmsg small" id="chatmsg" role="status"></p>
+      </div>
       <div class="reacts" id="reacts" hidden><span class="small">Cheer on the board</span><div class="rbtns" id="rbtns"></div></div>
       <div class="ptsline" id="ptsline" hidden><span class="hastip" tabindex="0" data-tip="You get 1 point for every winner you predict right. The Top Predictor gets an award at the end.">Prediction points</span>: <b id="mypts">0</b></div>
       <button class="btn ghost" id="editbtn" type="button" data-tip="Swap parts. You can change your robot until the tournament starts.">Change my robot</button>
@@ -219,6 +268,9 @@ Red dot: reconnecting. Keep this page open."><span class="dot"></span>Game <b id
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/engine.js"></script>
 <script src="/js/builder.js"></script>
+<script src="/js/battle.js"></script>
+<script src="/js/race.js"></script>
+<script src="/js/racedraw.js"></script>
 <script src="/js/tips.js"></script>
 <script src="/js/tiers.js"></script>
 <script src="/js/sprintcard.js"></script>

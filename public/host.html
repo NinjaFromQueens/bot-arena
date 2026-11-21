@@ -133,6 +133,23 @@
   .un-votes span:first-child { color: var(--orange-hi); font-weight: 700; } .un-votes span:last-child { color: var(--blue); font-weight: 700; }
   #un-msg { font-family: var(--display); font-weight: 700; color: var(--fg); text-align: center; }
   .rxlayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  /* class chat: bubbles over the arena, and the teacher's chat panel */
+  .chatlayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .bub { position: absolute; max-width: 40%; padding: .6cqw 1.2cqw; border-radius: 1.4cqw; background: #f4f1ea; color: #141316; font-family: var(--display); font-weight: 700; font-size: clamp(13px, 1.8cqw, 26px); line-height: 1.15; box-shadow: 0 .4cqw 0 #0006; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: bubUp 4.5s ease-out forwards; }
+  .bub small { display: block; font-family: var(--mono); font-size: .58em; color: #6d6a75; font-weight: 500; }
+  .bub.a { border: .25cqw solid var(--orange); } .bub.b { border: .25cqw solid var(--blue); }
+  @keyframes bubUp { 0% { transform: translateY(1cqw) scale(.6); opacity: 0; } 10% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-3cqw); opacity: 0; } }
+  .slot { display: contents; }
+  .chatctl { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .hfeed { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .hfeed li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); font-size: 15px; }
+  .hfeed li b { font-family: var(--display); }
+  .hfeed li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hfeed li.muted { opacity: .5; }
+  .hfeed button, .mutedline button { font: inherit; font-size: 12px; padding: 3px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-hi); color: var(--fg); cursor: pointer; }
+  .mutedline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 0 0 10px; }
+  .annform { display: flex; gap: 8px; margin-bottom: 8px; }
+  .annform input { flex: 1; min-width: 0; }
   .rx { position: absolute; bottom: 4%; font-size: clamp(22px, 3.4cqw, 48px); line-height: 1; animation: rxUp 2.6s ease-out forwards; }
   @keyframes rxUp { 0% { transform: translateY(0) scale(.5); opacity: 0; } 12% { transform: translateY(-2cqw) scale(1.15); opacity: 1; } 100% { transform: translateY(-34cqw) scale(1); opacity: 0; } }
   #un-msg b { color: var(--gold); font-family: var(--mono); }
@@ -209,6 +226,23 @@
         <div class="empty" id="emptymsg">Robots will appear here as students join.</div>
         <p class="small" style="margin-top:12px">To remove a robot (for example, an inappropriate name), click the × on its card twice. · <a href="/soundtest" style="color:inherit" data-tip="Hear the music and sound effects before class (opens the sound test page).">Sound test</a></p>
       </div>
+      <div class="slot" id="chatslot-lobby">
+      <div class="panel" id="chatp">
+        <h2 style="margin-bottom:8px"><span class="hastip" tabindex="0" data-tip="Students can tap quick messages on their device (like Good game! or Go ZAPPY!). They can't type, so there's nothing to filter. Messages show here and as bubbles over the battle, and disappear when the game ends.">Class chat</span></h2>
+        <div class="chatctl">
+          <label class="switch" data-tip="Let students send quick chat messages. Turn it off any time."><input type="checkbox" id="chaton" checked> Chat</label>
+          <label class="switch" data-tip="Each student can send one message every 10 seconds instead of every 3."><input type="checkbox" id="chatslow"> Slow mode</label>
+          <label class="switch" data-tip="Play each fight on students' devices too, at the same time as the board (after predictions close)."><input type="checkbox" id="fightson" checked> Fights on devices</label>
+        </div>
+        <ol class="hfeed" id="hfeed"></ol>
+        <div class="mutedline" id="mutedline" hidden></div>
+        <form class="annform" id="annform" autocomplete="off">
+          <input type="text" id="anntext" maxlength="140" placeholder="Message to every device" aria-label="Message to every device">
+          <button class="btn" type="submit" data-tip="Send this to every student's device. It stays on their screen for 10 minutes.">Send</button>
+        </form>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn ghost" type="button" id="chatclear" data-tip="Clear the chat on the board and on every device.">Clear chat</button><span class="small" id="annmsg"></span></div>
+      </div>
+      </div>
       <div class="panel">
         <div class="sechead"><div><span class="kicker opt">Optional</span><h2>Other class activities</h2></div></div>
         <p class="lead">Students use the same game code, and their robots stay in the tournament. Open one on this screen, then press <b>Back to the game board</b> to come back here.</p>
@@ -250,6 +284,7 @@
             </div>
           </div>
           <div class="rxlayer" id="rxlayer" aria-hidden="true"></div>
+          <div class="chatlayer" id="chatlayer" aria-hidden="true"></div>
         </div>
         <div class="huds">
           <div class="hud a"><div class="who"><span id="na">—</span><span id="ha">100</span></div><div class="hpbar"><i class="ghost" id="ga" style="width:100%"></i><i class="main" id="ba" style="width:100%"></i></div></div>
@@ -292,6 +327,7 @@ Shortcut: Space or → (works with a presentation clicker).">Next match</button>
           <ol class="leaders" id="leaderlist"></ol>
           <p class="small" id="leaderempty">Students pick a winner on their device before each match. Correct picks earn a point.</p>
         </div>
+        <div class="slot" id="chatslot-tour"></div>
         <div class="panel" id="classp">
           <h2 style="margin-bottom:10px"><span class="hastip" tabindex="0" data-tip="What each student's device is showing right now: the game page, a lesson, the Flying Car Lab or practice mode. Only you can see this.">Class status</span></h2>
           <ul class="cls" id="clslist"></ul>

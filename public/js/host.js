@@ -123,6 +123,7 @@
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
     renderRace(); renderMissions();
+    renderChat();
     if (state.phase === "lobby") renderLobby();
     else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); renderClass(); }
   }
@@ -356,7 +357,10 @@
     $("log").innerHTML = ""; $("why").hidden = true;
     stage.setBots(m.a.bot, m.b.bot, m.bestOf === 3 ? `${m.round.toUpperCase()} · GAME ${series.g + 1}` : m.round.toUpperCase());
     showScore();
-    setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match"; }, 300);
+    setTimeout(() => {
+      stage.play(sim.events); $("skip").disabled = false; $("next").textContent = "Next match";
+      socket.emit("host:watch", { matchId: m.id, g: series.g, speed: stage.speed }); // students' devices play the same fight now
+    }, 300);
   }
   function showScore() {
     const m = series.m, base = `${m.a.bot.name} (${m.a.bot.builder}) vs ${m.b.bot.name} (${m.b.bot.builder})`;
@@ -381,6 +385,58 @@
     stage.setBots(a, b, `REPLAY · ${round.toUpperCase()}${many ? ` · GAME ${g + 1}` : ""}`);
     setTimeout(() => { stage.play(sim.events); $("skip").disabled = false; }, 300);
   }
+
+  // ---------- class chat: the feed, muting, announcements, and bubbles over the battle ----------
+  let feed = [], feedSig = "";
+  socket.on("room:chatlog", (log) => { feed = (log || []).slice(-40); renderChat(); });
+  socket.on("room:chat", (m) => { feed.push(m); if (feed.length > 40) feed.shift(); renderChat(); bubble(m); });
+  socket.on("room:chatClear", () => { feed = []; $("chatlayer").innerHTML = ""; renderChat(); });
+  function bubble(m) {
+    if ($("v-tour").hidden) return;
+    const layer = $("chatlayer"); while (layer.childElementCount >= 5) layer.firstChild.remove();
+    const b = document.createElement("div"), r = Math.random(); b.className = "bub" + (m.side ? " " + m.side : "");
+    if (m.side === "a") { b.style.left = 5 + r * 14 + "%"; b.style.top = 12 + Math.random() * 16 + "%"; }
+    else if (m.side === "b") { b.style.right = 5 + r * 14 + "%"; b.style.top = 12 + Math.random() * 16 + "%"; }
+    else { b.style.left = 28 + r * 30 + "%"; b.style.top = 6 + Math.random() * 12 + "%"; }
+    const who = document.createElement("small"); who.textContent = m.name; b.append(who, document.createTextNode(m.text));
+    layer.appendChild(b); setTimeout(() => b.remove(), 4500);
+  }
+  function renderChat() {
+    if (!state || !state.live) return;
+    const slot = state.phase === "lobby" ? $("chatslot-lobby") : $("chatslot-tour");
+    if ($("chatp").parentNode !== slot) slot.appendChild($("chatp")); // the panel follows the board from the lobby to the tournament
+    const L = state.live, muted = new Set(L.muted), name = (id) => { const p = state.players.find((x) => x.id === id); return p ? p.builder : "?"; };
+    $("chaton").checked = L.chat; $("chatslow").checked = L.slow; $("fightson").checked = L.fights;
+    const sig = JSON.stringify([feed.length, feed.length && feed[feed.length - 1].id, L.muted, L.chat]);
+    if (sig === feedSig) return; // only rebuild when something changed, so a click on Mute isn't lost
+    feedSig = sig;
+    const ol = $("hfeed"); ol.innerHTML = "";
+    if (!feed.length) { const li = document.createElement("li"); li.className = "small"; li.textContent = L.chat ? "No messages yet." : "Chat is off."; ol.appendChild(li); }
+    feed.slice(-20).forEach((m) => {
+      const li = document.createElement("li"), b = document.createElement("b"), t = document.createElement("span"), btn = document.createElement("button");
+      if (muted.has(m.pid)) li.className = "muted";
+      b.textContent = m.name; t.textContent = m.text; btn.type = "button";
+      btn.textContent = muted.has(m.pid) ? "Unmute" : "Mute"; btn.setAttribute("data-tip", muted.has(m.pid) ? `Let ${m.name} send chat messages again.` : `Stop ${m.name} from sending chat messages.`);
+      btn.onclick = () => socket.emit("host:mute", { playerId: m.pid, on: !muted.has(m.pid) });
+      li.append(b, t, btn); ol.appendChild(li);
+    });
+    ol.scrollTop = ol.scrollHeight;
+    const ml = $("mutedline"); ml.innerHTML = ""; ml.hidden = !muted.size;
+    if (muted.size) {
+      const lbl = document.createElement("span"); lbl.className = "small"; lbl.textContent = "Muted:"; ml.appendChild(lbl);
+      muted.forEach((id) => { const b = document.createElement("button"); b.type = "button"; b.textContent = name(id) + " ×"; b.setAttribute("data-tip", `Unmute ${name(id)}.`); b.onclick = () => socket.emit("host:mute", { playerId: id, on: false }); ml.appendChild(b); });
+    }
+  }
+  ["chaton", "chatslow", "fightson"].forEach((id) => ($(id).onchange = () => socket.emit("host:live", { chat: $("chaton").checked, slow: $("chatslow").checked, fights: $("fightson").checked })));
+  $("chatclear").onclick = () => socket.emit("host:chatClear", {});
+  $("annform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    socket.emit("host:announce", { text: $("anntext").value }, (r) => {
+      $("annmsg").textContent = r && r.ok ? "Sent to every device." : (r && r.error) || "Couldn't send.";
+      if (r && r.ok) $("anntext").value = "";
+      setTimeout(() => ($("annmsg").textContent = ""), 4000);
+    });
+  });
 
   // ---------- controls ----------
   $("start").onclick = () => {
@@ -428,10 +484,11 @@
     if ($("v-tour").hidden || $("next").hidden || $("next").disabled) return;
     e.preventDefault(); nextMatch();
   });
-  $("skip").onclick = () => stage.skip();
+  $("skip").onclick = () => { stage.skip(); if (playing) socket.emit("host:watchCtl", { skip: true }); };
   $("auto").onchange = () => { if ($("auto").checked && !playing && state && state.phase === "tournament") nextMatch(); else clearTimeout(autoTimer); };
   [["sp1", 1], ["sp2", 2], ["sp3", 3]].forEach(([id, v]) => ($(id).onclick = () => {
     stage.speed = v; ["sp1", "sp2", "sp3"].forEach((x) => $(x).setAttribute("aria-pressed", x === id));
+    if (playing) socket.emit("host:watchCtl", { speed: v });
   }));
   $("again").onclick = () => socket.emit("host:reset", {}, () => { series = null; stage.setBots(null, null); $("log").innerHTML = ""; $("why").hidden = true; awardsShown = ""; });
   $("newgame").onclick = () => { ss.del("ba-host"); location.reload(); };

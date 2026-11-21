@@ -460,6 +460,9 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     return null;
   }
   const REACTIONS = ["👏", "🔥", "😮", "😂", "💪", "🤖"]; // the only reactions students can send to the board
+  // quick chat: the only chat messages students can send (no typing, so nothing to filter and no way to share personal
+  // details). {a} and {b} become the robots fighting right now. Add new ones at the END: messages are sent by position.
+  const QUICK = ["Good luck!", "Good game!", "Nice hit!", "So close!", "Wow!", "Let's go!", "Well played!", "I'm ready!", "What part should I try?", "Go {a}!", "Go {b}!"];
   const MAXW = 75;
   // the host picks one per game; balance is tuned at 75 kg, and Open adds only a few heavy builds
   const WEIGHT_CLASSES = [{ kg: 50, n: "Lightweight" }, { kg: 75, n: "Standard" }, { kg: 100, n: "Open" }];
@@ -1153,7 +1156,7 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     };
   })();
 
-  return { setArt, loadArt, TUNE, RULES, REACTIONS, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 

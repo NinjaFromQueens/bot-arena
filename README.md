@@ -30,6 +30,12 @@ Free robotics lessons and class games, live at [circuitrebels.org](https://circu
 
 **Emoji reactions:** during the tournament, students can tap 👏 🔥 😮 😂 💪 🤖 on their device and the emoji floats up over the battle on the board. Reactions are anonymous and limited to one per student every 1.2 seconds, and the **Reactions** switch on the board turns them off.
 
+**Watch the fight on your device:** once predictions close, each fight also plays on every student's screen, in step with the board: the same fight and the same winner, and the board's speed and **Skip** carry over. A student can turn it off on their device (**Show fights on my screen**), and the board's **Fights on devices** switch turns it off for everyone. During Race Day, students on their game page who aren't driving see the race live, with the leaders.
+
+**Class chat:** students tap quick messages on their device (Good luck!, Nice hit!, So close!, What part should I try?, or Go ZAPPY! for a robot in the current match). They can't type, so there's nothing to filter and no way to share personal details. Messages show in the board's **Class chat** panel and as bubbles over the battle (a cheer sits on that robot's side). On the board you can turn **Chat** off, use **Slow mode** (one message every 10 seconds instead of 3), **Mute** a student, or **Clear chat**. Messages exist only while the game runs.
+
+**Announcements:** type in the Class chat panel's message box and press **Send**: it appears on every student's device for 10 minutes.
+
 **Music and sound:** the **Music** button on the board plays original retro 8-bit tunes in the style of classic console games (no audio files: the browser plays them like an old game chip, with two square-wave channels, a triangle bass and a noise drum channel): a bouncy lobby tune in the lobby and between matches, a tense riff while students predict, a fast boss-battle track during each fight (it cuts out at the KO so the win jingle lands), and a victory song on the champion screen. The sound effects (hits, misses, the KO explosion, the win jingle, the champion fanfare) use the same chip sounds. Music and Sound are separate buttons, and both start off. Students' devices never play music. To hear everything before class, open **/soundtest** (linked under the lobby).
 
 ## The parts (balanced)
