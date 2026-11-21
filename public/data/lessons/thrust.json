@@ -54,7 +54,8 @@
   ],
   "missions": [
     "lab-hop",
-    "lab-car"
+    "lab-car",
+    "lab-bridge"
   ],
   "next": {
     "label": "Try Mission 1 in the Flying Car Lab",

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Story Mission · Circuit Rebels</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* A story mission (docs/platform-flow-spec.md section 5): the episode's painting behind everything, the five steps
+     across the top, and the current step's card with one big button. */
+  body { background: #0d0c10; }
+  .scenebg { position: fixed; inset: 0; z-index: -1; background: #1b1a1e center / cover no-repeat; }
+  .scenebg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13,12,16,.55) 0%, rgba(13,12,16,.82) 55%, rgba(13,12,16,.94) 100%); }
+  .wrap { max-width: 980px; }
+  .mhead { display: grid; gap: 6px; margin: 8px 0 18px; }
+  .kick { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; color: var(--orange-hi); }
+  .mhead h2 { margin: 0; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; text-wrap: balance; }
+  .mhead p { margin: 0; font-size: 18px; color: #d9d5de; max-width: 62ch; }
+  .steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .steps button { display: grid; gap: 2px; justify-items: start; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: rgba(27,26,30,.88); color: var(--fg); font: inherit; cursor: pointer; min-width: 0; }
+  .steps button .n { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--muted); }
+  .steps button b { font-family: var(--display); font-size: 17px; }
+  .steps button .st { font-size: 13px; color: var(--muted); }
+  .steps button.done { border-color: var(--good); } .steps button.done .st { color: var(--good); }
+  .steps button.cur { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+  .steps button:disabled { opacity: .5; cursor: not-allowed; }
+  @media (max-width: 720px) { .steps { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; } .steps button { padding: 8px 6px; } .steps button b { font-size: 13px; } .steps button .st { display: none; } }
+  .card { display: grid; gap: 14px; padding: 22px; border-radius: 16px; background: rgba(27,26,30,.94); border: 1.5px solid var(--line); }
+  .card h3 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--fg); display: block; }
+  .card p { margin: 0; font-size: 18px; color: #d9d5de; max-width: 62ch; }
+  .card .kick { font-size: 12px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 10px; }
+  .acts .btn { font-size: 18px; }
+  .build { display: grid; gap: 8px; }
+  .build a { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); text-decoration: none; font-size: 18px; }
+  .build a b { font-family: var(--display); }
+  .build a .st { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .build a.done { border-color: var(--good); } .build a.done .st { color: var(--good); }
+  .reward { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px; border-radius: 14px; border: 1.5px solid var(--gold); background: #ffd23f12; }
+  .reward .pic { width: 96px; height: 96px; border-radius: 12px; background: #3a3842 center / cover; display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: #d8d4dc; text-align: center; padding: 6px; overflow: hidden; }
+  .reward b { font-family: var(--display); font-size: 20px; color: var(--gold); display: block; }
+  .reward .k { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .note { font-size: 15px; color: var(--muted); }
+</style>
+</head>
+<body data-page="mission">
+<div class="scenebg" id="scenebg"></div>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/" data-tip="Go to the Circuit Rebels home page.">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Story</h1></div>
+    </a>
+    <div class="headright">
+      <a class="btn ghost" href="/learn" style="padding:8px 14px" data-tip="Robot Lessons: every lesson, in order.">Lessons</a>
+    </div>
+  </header>
+  <main id="main" aria-live="polite"><p class="note">Loading the mission...</p></main>
+</div>
+<script src="/js/tips.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/story.js"></script>
+<script src="/js/storyplayer.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/presence.js"></script>
+<script src="/js/mission.js"></script>
+</body>
+</html>

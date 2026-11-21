@@ -1,0 +1,12 @@
+[
+  {
+    "id": "echo-bridge-lights",
+    "kind": "echo",
+    "title": "Bridge lights",
+    "text": {
+      "cadet": "An Echo from long ago: the bridge covered in lights for a party.",
+      "recruit": "An Echo from before the Day of Silence: the harbor bridge lit up for a city festival, full of people."
+    },
+    "art": null
+  }
+]

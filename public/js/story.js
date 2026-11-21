@@ -1,0 +1,123 @@
+/*
+ * Story mode's rules (docs/platform-flow-spec.md), shared by the browser, the server and the tests. The story is the
+ * spine: an episode holds missions, and every mission runs the same five steps. Each step's "done" is read from what
+ * the activity pages already save on the device, so the pages themselves don't change:
+ *   saved = { lessons: learn-progress, missions: cr-missions, record: cr-record }
+ * cr-record holds only what nothing else saves: briefings and debriefs watched, steps the class moved past, rewards,
+ * finished missions and where the student was. Everything here is a pure function of the files and `saved`.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Story = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const STEPS = ["briefing", "discover", "build", "mission", "reward"];
+  const STEP_NAME = { briefing: "Briefing", discover: "Discover", build: "Build", mission: "Mission", reward: "Reward" };
+  const emptyRecord = () => ({ v: 1, missions: {}, rewards: {}, last: null });
+  const recOf = (saved, id) => ((saved.record && saved.record.missions) || {})[id] || {};
+  const goal = (saved, mid) => !!((saved.missions || {})[mid] || {}).goal;
+
+  // find a mission in the episodes: { episode, mission, index } or null
+  function find(episodes, id) {
+    for (const episode of episodes) { const index = episode.missions.findIndex((m) => m.id === id); if (index >= 0) return { episode, mission: episode.missions[index], index }; }
+    return null;
+  }
+  // is this step of this mission done? (a step the class moved past counts: the record keeps it)
+  function stepDone(m, step, saved) {
+    const r = recOf(saved, m.id);
+    if (r[step]) return true;
+    if (step === "discover") return !!((saved.lessons || {})[m.discover.lesson] || {}).done;
+    if (step === "build") return m.build.missions.filter((id) => goal(saved, id)).length >= (m.build.need || 1);
+    if (step === "mission") return !!m.mission.mission && goal(saved, m.mission.mission);
+    return false; // briefing and reward: only the record says so
+  }
+  // the first step not done yet, or null when the mission is finished
+  const nextStep = (m, saved) => (missionDone(m, saved) ? null : STEPS.find((s) => !stepDone(m, s, saved)) || "reward");
+  const missionDone = (m, saved) => !!recOf(saved, m.id).done;
+  // can the student open this step? Steps open in order; one already done can always be revisited
+  function stepOpen(m, step, saved) {
+    const k = STEPS.indexOf(step);
+    return stepDone(m, step, saved) || STEPS.slice(0, k).every((s) => stepDone(m, s, saved));
+  }
+  // an episode opens when every core mission of the one before it is done, or when it's marked open (a pilot)
+  function episodeUnlocked(ep, episodes, saved) {
+    if (ep.open) return true;
+    const prev = episodes.find((e) => e.num === ep.num - 1);
+    return !!prev && prev.missions.filter((m) => m.core).every((m) => missionDone(m, saved));
+  }
+  // a mission opens when the one before it in its episode is done
+  function missionUnlocked(episodes, id, saved) {
+    const f = find(episodes, id); if (!f) return false;
+    if (!episodeUnlocked(f.episode, episodes, saved)) return false;
+    return f.index === 0 || missionDone(f.episode.missions[f.index - 1], saved);
+  }
+  // the mission after this one: the next in its episode, or the first of the next episode
+  function nextMission(episodes, id) {
+    const f = find(episodes, id); if (!f) return null;
+    if (f.index + 1 < f.episode.missions.length) return f.episode.missions[f.index + 1];
+    const next = episodes.find((e) => e.num === f.episode.num + 1);
+    return next && next.missions[0] ? next.missions[0] : null;
+  }
+
+  // problems with the story files, as sentences (an empty list means fine). `known` = { lessons: [ids],
+  // missions: { id: { game, lesson } }, exists(path) } so the same check runs in the tests and the browser
+  function check(data, known) {
+    const p = [], ids = new Set(), sceneIds = new Set(Object.keys(data.scenes)), rewardIds = new Set(data.rewards.map((r) => r.id));
+    const idOk = (s) => typeof s === "string" && /^[a-z][a-z0-9-]*$/.test(s);
+    const path = (where, v) => { if (v != null && (typeof v !== "string" || !v.startsWith("/assets/") || (known.exists && !known.exists(v)))) p.push(`${where}: ${v} isn't a picture or sound under /assets/ that exists`); };
+    const nums = new Set();
+    for (const ep of data.episodes) {
+      if (!/^ep\d+$/.test(ep.id) || ep.id !== "ep" + ep.num) p.push(`episode ${ep.id}: the id must be ep + its number`);
+      if (nums.has(ep.num)) p.push(`episode ${ep.id}: two episodes have number ${ep.num}`); nums.add(ep.num);
+      if (!ep.title) p.push(`episode ${ep.id}: it needs a title`);
+      if (!ep.map || !(ep.map.x >= 0 && ep.map.x <= 100 && ep.map.y >= 0 && ep.map.y <= 100)) p.push(`episode ${ep.id}: map x and y are percents of the map picture`);
+      path(`episode ${ep.id}`, ep.art);
+      if (!Array.isArray(ep.missions) || !ep.missions.length) p.push(`episode ${ep.id}: it needs missions`);
+      for (const m of ep.missions || []) {
+        const at = `mission ${m.id}`;
+        if (!idOk(m.id) || !m.id.startsWith(ep.id + "-")) p.push(`${at}: the id must start with ${ep.id}-`);
+        if (ids.has(m.id)) p.push(`${at}: the id is used twice`); ids.add(m.id);
+        if (!m.title) p.push(`${at}: it needs a title`);
+        if (!sceneIds.has(m.briefing)) p.push(`${at}: there's no briefing scene ${m.briefing}`);
+        if (m.debrief != null && !sceneIds.has(m.debrief)) p.push(`${at}: there's no debrief scene ${m.debrief}`);
+        if (!m.discover || !known.lessons.includes(m.discover.lesson)) p.push(`${at}: there's no lesson ${m.discover && m.discover.lesson}`);
+        const b = m.build || {};
+        if (!Array.isArray(b.missions) || !b.missions.length) p.push(`${at}: Build needs at least one mission`);
+        for (const id of b.missions || []) {
+          const mi = known.missions[id];
+          if (!mi) p.push(`${at}: Build names a mission that doesn't exist: ${id}`);
+          else if (m.discover && mi.lesson !== m.discover.lesson) p.push(`${at}: Build mission ${id} belongs to lesson ${mi.lesson}, not ${m.discover.lesson}`);
+        }
+        if (b.need != null && !(Number.isInteger(b.need) && b.need >= 1 && b.need <= (b.missions || []).length)) p.push(`${at}: Build's need must be between 1 and its number of missions`);
+        const mm = m.mission || {};
+        if (!!mm.mission === !!mm.event) p.push(`${at}: Mission is either a mission or a class event`);
+        if (mm.mission && !known.missions[mm.mission]) p.push(`${at}: there's no mission ${mm.mission}`);
+        if (mm.event && !EVENTS.includes(mm.event)) p.push(`${at}: there's no class event ${mm.event}`);
+        for (const r of m.rewards || []) if (!rewardIds.has(r)) p.push(`${at}: there's no reward ${r}`);
+      }
+    }
+    for (const [id, sc] of Object.entries(data.scenes)) {
+      if (sc.id !== id) p.push(`scene ${id}: the id must match the file name`);
+      path(`scene ${id}`, sc.bg); path(`scene ${id}`, sc.music);
+      if (!Array.isArray(sc.lines) || !sc.lines.length) p.push(`scene ${id}: it needs lines`);
+      for (const [k, ln] of (sc.lines || []).entries()) {
+        const c = data.characters[ln.who];
+        if (!c) p.push(`scene ${id} line ${k + 1}: there's no character ${ln.who}`);
+        else if (!c.faces[ln.face]) p.push(`scene ${id} line ${k + 1}: ${ln.who} has no face ${ln.face}`);
+        if (!ln.text || (typeof ln.text === "object" && !ln.text.recruit)) p.push(`scene ${id} line ${k + 1}: it needs text (Recruit at least)`);
+        path(`scene ${id} line ${k + 1}`, ln.voice);
+      }
+    }
+    for (const [id, c] of Object.entries(data.characters)) { if (!c.name) p.push(`character ${id}: it needs a name`); for (const f of Object.values(c.faces || {})) path(`character ${id}`, f); }
+    for (const r of data.rewards) {
+      if (!idOk(r.id)) p.push(`reward ${r.id}: the id must be lowercase words with dashes`);
+      if (!REWARD_KINDS.includes(r.kind)) p.push(`reward ${r.id}: the kind must be ${REWARD_KINDS.join(", ")}`);
+      if (!r.title || !r.text) p.push(`reward ${r.id}: it needs a title and text`);
+      path(`reward ${r.id}`, r.art);
+    }
+    return p;
+  }
+  const EVENTS = ["labchallenge", "raceday", "speedrun", "tournament"]; // class events a Mission step can be (PF-3)
+  const REWARD_KINDS = ["echo", "volt", "file", "access"];
+
+  return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, check };
+});

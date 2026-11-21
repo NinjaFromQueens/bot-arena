@@ -179,3 +179,23 @@ canvas { display: block; width: 100%; max-width: 100%; }
 .pcard.nudge { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(255, 210, 63, .25); }
 @media (prefers-reduced-motion: no-preference) { .pcard.nudge { animation: pnudge .45s ease-out; } }
 @keyframes pnudge { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+
+/* The story player (storyplayer.js): a scene over its painted background, the speaker's picture, and the line in the
+   story's hand-drawn dialog frame (ui/dialog_frame.webp, stretched by its corners). */
+.sp-overlay { position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: 1fr auto; background: #0d0c10; cursor: pointer;
+  padding: env(safe-area-inset-top, 0px) max(12px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.sp-bg { position: absolute; inset: 0; background: #1b1a1e center / cover no-repeat; }
+.sp-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,12,0) 45%, rgba(10,9,12,.75) 100%); }
+.sp-face { position: relative; align-self: end; justify-self: start; height: min(62vh, 560px); max-width: 46vw; margin-left: 4vw; display: flex; align-items: flex-end; pointer-events: none; }
+.sp-face img { height: 100%; width: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0,0,0,.5)); }
+.sp-box { position: relative; width: min(980px, 100%); justify-self: center; margin-top: -8vh; border: 30px solid transparent; border-image: url("/assets/ui/dialog_frame.webp") 110 fill / 30px stretch; background-clip: padding-box; display: grid; gap: 8px; cursor: default; color: #f2eee6; }
+.sp-name { font-family: var(--display); font-size: 20px; color: var(--orange-hi); letter-spacing: .04em; }
+.sp-text { margin: 0; font-size: clamp(19px, 2.1vw, 26px); line-height: 1.4; min-height: 3.2em; }
+.sp-text.in { animation: spIn .35s ease-out; }
+@keyframes spIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.sp-ctl { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.sp-count { margin-right: auto; font-family: var(--mono); font-size: 13px; color: #b8b1a6; }
+.sp-missing { display: grid; place-items: center; min-width: 160px; min-height: 120px; padding: 10px; border-radius: 10px; background: #3a3842; color: #d8d4dc; font-family: var(--mono); font-size: 12px; text-align: center; }
+.sp-bg .sp-missing { position: absolute; top: 16px; right: 16px; }
+.sp-overlay.big .sp-text { font-size: clamp(26px, 2.8vw, 40px); } .sp-overlay.big .sp-name { font-size: 26px; }
+@media (max-width: 640px) { .sp-face { height: 42vh; max-width: 70vw; margin-left: 0; } .sp-box { border-width: 20px; border-image-width: 20px; margin-top: -4vh; } }

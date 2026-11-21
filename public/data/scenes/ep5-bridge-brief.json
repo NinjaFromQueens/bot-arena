@@ -1,0 +1,44 @@
+{
+  "id": "ep5-bridge-brief",
+  "bg": "/assets/scenes/bridge_blockade.webp",
+  "music": null,
+  "lines": [
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "There it is. Meridian Labs, right across the harbor."
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": {
+        "cadet": "But OMNI parked big trucks all over the bridge. We can't drive past.",
+        "recruit": "And there's OMNI's welcome party. They blocked the whole bridge with convoy trucks. No way around."
+      }
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "So we go over. My car can jump it, if the numbers work."
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": {
+        "cadet": "The thrusters have to push up harder than the car weighs. Or we don't fly.",
+        "recruit": "The thrusters have to push up harder than gravity pulls down. If they don't, we roll off the ramp and drop.",
+        "operative": "Lift has to beat weight: thrust ÷ weight over 1. Under that, the ramp is all the height we get."
+      }
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "So first, learn how thrust works. Then test a few designs in the Lab."
+    },
+    {
+      "who": "sparrow",
+      "face": "pose",
+      "text": "Then we take our shot. One shot. Thrust up, nose level, land it like a feather."
+    }
+  ]
+}
