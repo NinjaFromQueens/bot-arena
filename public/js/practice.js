@@ -180,6 +180,8 @@
     stage.play(sim.events);
   };
   $("skip").onclick = () => stage.skip();
+  $("simplegfx").checked = E.simpleGfx();
+  $("simplegfx").onchange = () => E.setSimpleGfx($("simplegfx").checked);
   [["sp1", 1], ["sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { stage.speed = v; $("sp1").setAttribute("aria-pressed", v === 1); $("sp2").setAttribute("aria-pressed", v === 2); }));
 
   // ---------------- BRAIN CHALLENGES ----------------

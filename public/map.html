@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neo Harbor Map · Circuit Rebels</title>
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* The Neo Harbor map (docs/platform-flow-spec.md section 9): the season's painted map with a marker per episode,
+     and the chosen episode's missions underneath. On a phone the map scrolls sideways inside its own frame. */
+  body { background: #0d0c10; }
+  .wrap { max-width: 1280px; }
+  .kick { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; color: var(--orange-hi); }
+  .intro { display: grid; gap: 6px; margin: 6px 0 14px; }
+  .intro h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); color: var(--fg); }
+  .intro p { margin: 0; font-size: 18px; color: #d9d5de; max-width: 64ch; }
+  .frame { overflow-x: auto; border-radius: 16px; border: 1.5px solid var(--line); background: #1b1a1e; -webkit-overflow-scrolling: touch; }
+  .map { position: relative; min-width: 720px; aspect-ratio: 1600 / 905; background: #2a2730 center / cover no-repeat; }
+  .pin { position: absolute; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; border: 3px solid #fff7e6; display: grid; place-items: center;
+    font-family: var(--display); font-weight: 700; font-size: 22px; color: #fff; cursor: pointer; padding: 0; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+  .pin.open { background: var(--orange); }
+  .pin.done { background: var(--good); color: #10301f; }
+  .pin.locked { background: #4a4652; color: #c9c4cf; }
+  .pin.soon { background: rgba(40,37,46,.72); color: #d8d2c6; border-style: dashed; font-size: 18px; }
+  .pin[aria-pressed="true"] { outline: 4px solid #ffd23f; outline-offset: 3px; }
+  @media (prefers-reduced-motion: no-preference) { .pin.open::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid var(--orange); animation: ring 1.8s ease-out infinite; } }
+  @keyframes ring { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.35); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; font-size: 15px; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+  .legend .l-open::before { background: var(--orange); } .legend .l-done::before { background: var(--good); } .legend .l-locked::before { background: #4a4652; } .legend .l-soon::before { border: 2px dashed #d8d2c6; }
+  .ep { display: grid; gap: 12px; margin-top: 16px; padding: 22px; }
+  .ep h3 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--fg); display: block; }
+  .ep p { margin: 0; font-size: 18px; color: #d9d5de; max-width: 64ch; }
+  .ms { display: grid; gap: 8px; }
+  .m { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); }
+  .m b { font-family: var(--display); font-size: 20px; }
+  .m .st { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .m.done { border-color: var(--good); } .m.done .st { color: var(--good); }
+  .m.next { border-color: var(--orange); }
+  .note { font-size: 16px; color: var(--muted); }
+</style>
+</head>
+<body data-page="map">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/" data-tip="Go to the Circuit Rebels home page.">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Neo Harbor</h1></div>
+    </a>
+    <div class="headright">
+      <a class="btn ghost" href="/learn" style="padding:8px 14px" data-tip="Robot Lessons: every lesson, in order.">Lessons</a>
+    </div>
+  </header>
+  <div class="intro">
+    <span class="kick" id="season">SEASON 1</span>
+    <h2>The story map</h2>
+    <p>Each place on the map is an episode of the story. Pick one to see its missions. Your progress stays on this device.</p>
+  </div>
+  <div class="frame" id="frame"><div class="map" id="map" role="group" aria-label="The Neo Harbor map"></div></div>
+  <div class="legend" aria-hidden="true"><span class="l-open">Ready to play</span><span class="l-done">Done</span><span class="l-locked">Finish the one before first</span><span class="l-soon">Coming soon</span></div>
+  <section class="panel ep" id="ep" aria-live="polite"><p class="note">Loading the map...</p></section>
+</div>
+<script src="/js/tips.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/story.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/presence.js"></script>
+<script src="/js/map.js"></script>
+</body>
+</html>

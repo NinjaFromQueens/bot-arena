@@ -11,6 +11,8 @@
   let design = F.clampDesign(ls.get("fcl-design", F.DEFAULT_DESIGN));
   const asked = F.MISSIONS.findIndex((m) => new RegExp(`[?&]mission=lab-${m.id}(&|$)`).test(location.search)); // a lesson's button: /lab?mission=lab-<id>
   let mIdx = asked >= 0 ? asked : clamp(ls.get("fcl-mission", 0) | 0, 0, F.MISSIONS.length - 1);
+  $("simplegfx").checked = E.simpleGfx();
+  $("simplegfx").onchange = () => E.setSimpleGfx($("simplegfx").checked);
   if (asked >= 0) ls.set("fcl-mission", asked);
   let stars = ls.get("fcl-stars", {});
   let run = null, lastResult = null, prevResult = null;
@@ -213,6 +215,14 @@
     // sky
     const sky = ctx.createLinearGradient(0, 0, 0, gy); sky.addColorStop(0, "#14122a"); sky.addColorStop(0.6, "#3b2a4f"); sky.addColorStop(1, "#b8573a");
     ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    const art = !E.simpleGfx() && E.paint("/assets/scenes/bridge_blockade.webp");
+    if (art) { // the sunset over Neo Harbor from the bridge (the sky above the convoy), sitting on the ground line; drifts a little as the camera moves
+      const sx = art.naturalWidth * 0.2, sw = art.naturalWidth * 0.6, sh = art.naturalHeight * 0.65;
+      const s = Math.max((w * 1.12) / sw, gy / sh), dw = sw * s, dh = sh * s, room = (dw - w) / 2;
+      ctx.drawImage(art, sx, 0, sw, sh, (w - dw) / 2 + clamp(-cam.left * ppm * 0.03, -room, room), gy - dh, dw, dh);
+      const dim = ctx.createLinearGradient(0, 0, 0, gy); dim.addColorStop(0, "rgba(16,12,30,.55)"); dim.addColorStop(1, "rgba(16,12,30,.18)");
+      ctx.fillStyle = dim; ctx.fillRect(0, 0, w, gy);
+    } else {
     ctx.fillStyle = "#fff";
     for (const [sx, sy, sz] of stars2) { ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 2 + sx * 40); ctx.fillRect(sx * w, sy * gy, sz, sz); }
     ctx.globalAlpha = 1;
@@ -225,6 +235,7 @@
       ctx.lineTo(bx, gy - h * 0.06); ctx.lineTo(bx + w * 0.04, gy - h * (0.13 + (i % 3) * 0.03)); ctx.lineTo(bx + w * 0.2, gy - h * (0.13 + (i % 3) * 0.03)); ctx.lineTo(bx + w * 0.24, gy - h * 0.06);
     }
     ctx.lineTo(w, gy); ctx.fill();
+    }
 
     // height ruler
     const top = (gy - 10) / ppm, stepM = top > 40 ? 10 : top > 20 ? 5 : 2;
@@ -364,6 +375,11 @@
     ctx.fillStyle = air > 0.25 ? "#38a7f0" : "#ff5d5d"; rr(ctx, bx, y - fs * 0.25, Math.max(0, barW * air), fs * 0.8, 4); ctx.fill();
   }
 
+  // a label with a dark outline, so it reads on the painted sky as well as the plain one
+  function outlined(ctx, text, x, y, col, fs) {
+    ctx.save(); ctx.lineWidth = Math.max(3, fs * 0.3); ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(14,10,24,.85)";
+    ctx.strokeText(text, x, y); ctx.fillStyle = col; ctx.fillText(text, x, y); ctx.restore();
+  }
   function drawForces(ctx, sx, sy, ppm, d, jets, idle) {
     const S = F.sheet(d), base = 2.4 * ppm;
     const wl = base, tl = base * (S.lift / Math.max(1, S.weight));
@@ -371,11 +387,11 @@
     const fs = Math.max(11, Math.round(ppm * 0.55));
     ctx.save(); ctx.lineWidth = Math.max(3, ppm * 0.16); ctx.lineCap = "round"; ctx.font = `700 ${fs}px "JetBrains Mono", monospace`;
     arrow(ctx, sx + ppm * 0.9, sy, sx + ppm * 0.9, sy + wl, "#38a7f0");
-    ctx.fillStyle = "#38a7f0"; ctx.fillText(`WEIGHT ${F.kN(S.weight)}`, sx + ppm * 1.3, sy + wl);
+    outlined(ctx, `WEIGHT ${F.kN(S.weight)}`, sx + ppm * 1.3, sy + wl, "#38a7f0", fs);
     if (d.lift && firing) {
       ctx.globalAlpha = idle ? 0.75 : 1;
       arrow(ctx, sx - ppm * 0.9, sy, sx - ppm * 0.9, sy - tl, "#ff8a50");
-      ctx.fillStyle = "#ff8a50"; ctx.textAlign = "right"; ctx.fillText(`THRUST ${F.kN(S.lift)}`, sx - ppm * 1.3, sy - tl + fs); ctx.textAlign = "left";
+      ctx.textAlign = "right"; outlined(ctx, `THRUST ${F.kN(S.lift)}`, sx - ppm * 1.3, sy - tl + fs, "#ff8a50", fs); ctx.textAlign = "left";
     }
     ctx.restore();
   }
@@ -493,7 +509,7 @@
     // label
     const fs = Math.max(10, Math.round(Math.min(ppm * 0.62, 16)));
     ctx.font = `700 ${fs}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,210,63,.9)";
-    if (tag) ctx.fillText(`${o.label.toUpperCase()}${tag.n > 1 ? " ×" + tag.n : ""} · ${F.fmt(o.h)} m`, X(tag.x + tag.w / 2), top - fs * 0.6);
+    if (tag) outlined(ctx, `${o.label.toUpperCase()}${tag.n > 1 ? " ×" + tag.n : ""} · ${F.fmt(o.h)} m`, X(tag.x + tag.w / 2), top - fs * 0.6, "rgba(255,210,63,.9)", fs);
     ctx.restore();
   }
 

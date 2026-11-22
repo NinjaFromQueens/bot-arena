@@ -267,6 +267,7 @@
     if (s.page === "practice") return { text: "PRACTICE", cls: "practice", tip: "In practice mode." };
     if (s.page === "race") return { text: "RACER", cls: "practice", tip: "Driving in Robot Racer." };
     if (s.page === "mission") return { text: "STORY", cls: "learn", tip: "On a story mission." };
+    if (s.page === "map") return { text: "MAP", cls: "learn", tip: "Looking at the Neo Harbor story map." };
     if (s.page === "home") return { text: "HOME", cls: "", tip: "On the home page." };
     return { text: "GAME", cls: "play", tip: "On the game page." };
   }

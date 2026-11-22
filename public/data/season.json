@@ -1,0 +1,14 @@
+{
+  "title": "Season 1: The Circuit Rebellion",
+  "map": "/assets/ui/campaign_map.webp",
+  "episodes": [
+    { "num": 1, "title": "The Forgotten World", "place": "The Archive", "map": { "x": 12.8, "y": 89.3 } },
+    { "num": 2, "title": "Powerless", "place": "The Workshop", "map": { "x": 34.5, "y": 88.4 } },
+    { "num": 3, "title": "The Machine", "place": "Meridian Labs' robotics wing", "map": { "x": 63.1, "y": 88.4 } },
+    { "num": 4, "title": "Ghost in the Network", "place": "OMNI's old database", "map": { "x": 83.3, "y": 82.7 } },
+    { "num": 5, "title": "The Missing Engineer", "place": "The harbor bridge", "map": { "x": 42.3, "y": 55.2 } },
+    { "num": 6, "title": "The Warden", "place": "The Learning Center", "map": { "x": 20.6, "y": 55.6 } },
+    { "num": 7, "title": "The Truth", "place": "OMNI's design files", "map": { "x": 26.3, "y": 32.0 } },
+    { "num": 8, "title": "The Day of Silence", "place": "Restoration Day: OMNI's Correction", "map": { "x": 56.1, "y": 18.2 } }
+  ]
+}

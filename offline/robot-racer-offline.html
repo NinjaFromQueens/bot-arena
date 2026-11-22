@@ -212,6 +212,10 @@ canvas { display: block; width: 100%; max-width: 100%; }
 
 </style>
 <style>
+  /* the painted hill road behind the page (PF-4), added by racegame.js once loaded unless Simple graphics is on */
+  .scenebg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .8s; }
+  .painted .scenebg { opacity: 1; background: linear-gradient(rgba(13,12,16,.8), rgba(13,12,16,.92)), url(/assets/scenes/hill_run.webp) center 30% / cover no-repeat; }
+  @media (prefers-reduced-motion: reduce) { .scenebg { transition: none; } }
   /* Layout: left = the track (canvas) + lap report; right = the garage (gear, tires, what they do) + class leaderboard. */
   .wrap { max-width: 1400px; }
   .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -361,6 +365,7 @@ canvas { display: block; width: 100%; max-width: 100%; }
 </style>
 </head>
 <body data-page="race">
+<div class="scenebg" aria-hidden="true"></div>
 <div class="wrap">
   <header class="top">
     <a class="brand" href="bot-arena-offline.html" data-tip="Go to the Circuit Rebels home page.">
@@ -1222,7 +1227,26 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     };
   })();
 
-  return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  // Painted backdrops (browser only): each picture loads once, after the page is usable, and paint() is null until it has,
+  // so a scene draws its coded look first. Simple graphics ("cr-simple" on the device; Data Saver turns it on until the
+  // student switches it off) skips the pictures entirely, so nothing is downloaded.
+  const PAINT = {};
+  function paint(src) {
+    if (!isBrowser || typeof Image === "undefined") return null;
+    let p = PAINT[src];
+    if (!p) { p = PAINT[src] = { img: new Image(), ok: false }; p.img.decoding = "async"; p.img.onload = () => (p.ok = true); p.img.src = src; }
+    return p.ok ? p.img : null;
+  }
+  let SIMPLE = null;
+  function simpleGfx() {
+    if (SIMPLE !== null) return SIMPLE;
+    let v = null; try { v = localStorage.getItem("cr-simple"); } catch {}
+    SIMPLE = v === "1" ? true : v === "0" ? false : !!(isBrowser && navigator.connection && navigator.connection.saveData);
+    return SIMPLE;
+  }
+  function setSimpleGfx(on) { SIMPLE = !!on; try { localStorage.setItem("cr-simple", on ? "1" : "0"); } catch {} }
+
+  return { setArt, loadArt, paint, simpleGfx, setSimpleGfx, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
@@ -2508,7 +2532,10 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
   function reset() { car = R.newCar(); inputs = ""; acc = 0; secShown = -1; stall = 0; fx.p = []; fx.txt = []; lastLap = null; sent = false; }
   let low = ls.get("race-low", false); // simple graphics for slower computers
   $("lowgfx").checked = low;
-  $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); };
+  // the painted hill road behind the page (not the track view), loaded after the page is usable; simple graphics skips it
+  const scene = () => { if (low) return document.body.classList.remove("painted"); const i = new Image(); i.onload = () => !low && document.body.classList.add("painted"); i.src = "/assets/scenes/hill_run.webp"; };
+  $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); scene(); };
+  addEventListener("load", scene);
   function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
     if (mis.on) {

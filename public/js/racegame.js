@@ -63,7 +63,10 @@
   function reset() { car = R.newCar(); inputs = ""; acc = 0; secShown = -1; stall = 0; fx.p = []; fx.txt = []; lastLap = null; sent = false; }
   let low = ls.get("race-low", false); // simple graphics for slower computers
   $("lowgfx").checked = low;
-  $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); };
+  // the painted hill road behind the page (not the track view), loaded after the page is usable; simple graphics skips it
+  const scene = () => { if (low) return document.body.classList.remove("painted"); const i = new Image(); i.onload = () => !low && document.body.classList.add("painted"); i.src = "/assets/scenes/hill_run.webp"; };
+  $("lowgfx").onchange = () => { low = $("lowgfx").checked; ls.set("race-low", low); scene(); };
+  addEventListener("load", scene);
   function start() { // a solo time trial, or a mission run
     if (inGp() || state === "countdown" || state === "race") return;
     if (mis.on) {

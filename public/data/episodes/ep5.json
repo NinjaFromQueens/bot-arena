@@ -7,8 +7,8 @@
   },
   "place": "bridge",
   "map": {
-    "x": 62,
-    "y": 46
+    "x": 42.3,
+    "y": 55.2
   },
   "art": "/assets/scenes/bridge_blockade.webp",
   "open": true,

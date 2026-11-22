@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/css/style.css">
 <style>
+  /* the painted hill road behind the page (PF-4), added by racegame.js once loaded unless Simple graphics is on */
+  .scenebg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .8s; }
+  .painted .scenebg { opacity: 1; background: linear-gradient(rgba(13,12,16,.8), rgba(13,12,16,.92)), url(/assets/scenes/hill_run.webp) center 30% / cover no-repeat; }
+  @media (prefers-reduced-motion: reduce) { .scenebg { transition: none; } }
   /* Layout: left = the track (canvas) + lap report; right = the garage (gear, tires, what they do) + class leaderboard. */
   .wrap { max-width: 1400px; }
   .headright { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -157,6 +161,7 @@
 </style>
 </head>
 <body data-page="race">
+<div class="scenebg" aria-hidden="true"></div>
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/" data-tip="Go to the Circuit Rebels home page.">

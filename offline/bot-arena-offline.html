@@ -415,6 +415,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
           <div class="seg" role="group" aria-label="Battle speed" data-tip="Battle speed. The winner is the same at any speed.">
             <button type="button" id="sp1" aria-pressed="true">1x</button><button type="button" id="sp2" aria-pressed="false">2x</button>
           </div>
+          <label class="toggle" data-tip="Skips the painted arena, for slower computers. Fights and winners are exactly the same."><input type="checkbox" id="simplegfx"> Simple graphics</label>
         </div>
         <div class="why" id="why" hidden><h4 id="why-h"></h4><ul id="why-r"></ul><p class="tip" id="why-t"></p></div>
         <div class="log" id="log" aria-live="polite"></div>
@@ -1267,7 +1268,26 @@ window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight","lab
     };
   })();
 
-  return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  // Painted backdrops (browser only): each picture loads once, after the page is usable, and paint() is null until it has,
+  // so a scene draws its coded look first. Simple graphics ("cr-simple" on the device; Data Saver turns it on until the
+  // student switches it off) skips the pictures entirely, so nothing is downloaded.
+  const PAINT = {};
+  function paint(src) {
+    if (!isBrowser || typeof Image === "undefined") return null;
+    let p = PAINT[src];
+    if (!p) { p = PAINT[src] = { img: new Image(), ok: false }; p.img.decoding = "async"; p.img.onload = () => (p.ok = true); p.img.src = src; }
+    return p.ok ? p.img : null;
+  }
+  let SIMPLE = null;
+  function simpleGfx() {
+    if (SIMPLE !== null) return SIMPLE;
+    let v = null; try { v = localStorage.getItem("cr-simple"); } catch {}
+    SIMPLE = v === "1" ? true : v === "0" ? false : !!(isBrowser && navigator.connection && navigator.connection.saveData);
+    return SIMPLE;
+  }
+  function setSimpleGfx(on) { SIMPLE = !!on; try { localStorage.setItem("cr-simple", on ? "1" : "0"); } catch {} }
+
+  return { setArt, loadArt, paint, simpleGfx, setSimpleGfx, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
@@ -1565,11 +1585,21 @@ window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight","lab
     }
     // The parts of the garage arena that never move, drawn once per canvas size.
     backdrop(w, h) {
-      if (this.bg && this.bg.w === w && this.bg.h === h) return this.bg.c;
+      const art = !E.simpleGfx() && E.paint("/assets/scenes/arena.webp");
+      if (this.bg && this.bg.w === w && this.bg.h === h && this.bg.art === !!art) return this.bg.c;
       const dpr = Math.min(2, window.devicePixelRatio || 1), c = document.createElement("canvas");
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
       const g = c.getContext("2d"); g.scale(dpr, dpr);
       const fy = h * 0.66;
+      if (art) { // the painted arena, its stage centre (66% down the picture) on the floor line, dimmed so the robots stand out
+        const iw = art.naturalWidth, ih = art.naturalHeight, s = Math.max(w / iw, h / ih), dw = iw * s, dh = ih * s;
+        g.drawImage(art, (w - dw) / 2, Math.min(0, Math.max(h - dh, fy - 0.66 * dh)), dw, dh);
+        const dim = g.createLinearGradient(0, 0, 0, h);
+        dim.addColorStop(0, "rgba(10,9,14,.62)"); dim.addColorStop(0.55, "rgba(10,9,14,.4)"); dim.addColorStop(1, "rgba(10,9,14,.5)");
+        g.fillStyle = dim; g.fillRect(0, 0, w, h);
+        this.bg = { w, h, c, art: true };
+        return c;
+      }
       const wall = g.createLinearGradient(0, 0, 0, fy); wall.addColorStop(0, "#121116"); wall.addColorStop(1, "#211f27");
       g.fillStyle = wall; g.fillRect(0, 0, w, fy);
       g.strokeStyle = "rgba(255,255,255,.045)"; g.lineWidth = 1; // wall panel seams
@@ -1588,7 +1618,7 @@ window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight","lab
       g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 1;
       for (let k = -10; k <= 10; k++) { g.beginPath(); g.moveTo(w / 2 + k * w * 0.05, fy); g.lineTo(w / 2 + k * w * 0.16, h); g.stroke(); }
       for (let k = 0; k < 5; k++) { const y = fy + (h - fy) * Math.pow(k / 5, 1.6); g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
-      this.bg = { w, h, c };
+      this.bg = { w, h, c, art: false };
       return c;
     }
     drawStage(ctx, w, h, t) {
@@ -2565,6 +2595,8 @@ window.MISSION_DATA = {"index":["gear-hill","gear-straight","hill-straight","lab
     stage.play(sim.events);
   };
   $("skip").onclick = () => stage.skip();
+  $("simplegfx").checked = E.simpleGfx();
+  $("simplegfx").onchange = () => E.setSimpleGfx($("simplegfx").checked);
   [["sp1", 1], ["sp2", 2]].forEach(([id, v]) => ($(id).onclick = () => { stage.speed = v; $("sp1").setAttribute("aria-pressed", v === 1); $("sp2").setAttribute("aria-pressed", v === 2); }));
 
   // ---------------- BRAIN CHALLENGES ----------------

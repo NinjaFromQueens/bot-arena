@@ -72,7 +72,7 @@
   <div class="hp-in hp-nav-in">
     <a class="hp-brand" href="/"><img src="/img/logo.svg" width="36" height="36" alt="">Circuit Rebels</a>
     <nav class="hp-links" aria-label="Site">
-      <a href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Story</a>
+      <a href="/map" data-tip="The Neo Harbor story map: play the story's missions, episode by episode.">Story</a>
       <a href="/learn" data-tip="Short lessons you can do on your own. Each one has something to try.">Learn</a>
       <a href="#games" data-tip="Bot Arena, Robot Racer and the Flying Car Lab.">Games</a>
       <a href="#schools" data-tip="For teachers and program leaders: how it runs in class, hosting a game, and the spring pilot.">For Schools</a>
@@ -85,20 +85,33 @@
 <main id="main">
 <section class="hp-hero" aria-label="Circuit Rebels">
   <div class="hp-in">
-    <div class="hp-card">
+    <div class="hp-card hp-card-wide">
       <p class="hp-kicker gold">Neo Harbor · 2060</p>
       <h1><span>Learn how machines work.</span> <span class="hp-h1b">Take the city back.</span></h1>
       <p class="hp-lead">Free robotics lessons and class games for grades 5 to 8, wrapped in a story. They run in any browser, with no student accounts.</p>
+      <div class="hp-doors">
+      <div class="hp-door hp-door-s">
+      <p class="hp-kicker">Students</p>
+      <h2>Join your class</h2>
       <form class="hp-join" id="joinform" autocomplete="off">
-        <label for="code">Have a class code?</label>
+        <label for="code">Type the 4-letter code from the board</label>
         <div class="hp-joinrow">
           <input type="text" id="code" class="upper" maxlength="4" placeholder="ABCD" inputmode="text" aria-label="Game code" autocapitalize="characters" spellcheck="false" enterkeyhint="go" data-tip="The 4 letters on your teacher's board.">
           <button class="btn big" type="submit" data-tip="Join your class game.">Join</button>
         </div>
         <p class="warn" id="msg" role="status"></p>
-        <p class="hp-hint">Your teacher shows the code on the board. Teaching a class? <a href="/host" data-tip="Put this on the projector. You get a join code, students' robots appear as they join, and you run the bracket.">Host a game</a>.</p>
         <p class="online" id="online" hidden></p>
       </form>
+      <a class="hp-more" href="/map" data-tip="The Neo Harbor story map: play the story's missions, episode by episode. Your progress stays on this device.">Play the story on your own</a>
+      </div>
+      <div class="hp-door hp-door-t">
+      <p class="hp-kicker blue">Teachers</p>
+      <h2>Run your class from the board</h2>
+      <p class="hp-soft">Put it on the projector. Students join with its code, then you run a story mission, a lesson or a class game.</p>
+      <a class="btn big" href="/host" data-tip="Opens the teacher's board with a join code. From there: story missions, lessons, Bot Arena, Race Day, Speed Run and the Flying Car challenge.">Host a class</a>
+      <a class="hp-more" href="#schools" data-tip="How it runs in class, hosting a game, and the spring pilot.">How it runs in class</a>
+      </div>
+      </div>
       <div class="hp-cta">
         <a class="hp-play" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the trailer</a>
         <a class="hp-more" href="#schools" data-tip="How it runs in class, hosting a game, and the spring pilot.">For schools and programs</a>
@@ -182,6 +195,7 @@
         <p class="hp-soft">In the old subway tunnels, a crew of kids is finding what OMNI erased, and learning how its machines really work. Every lesson you finish is one more thing OMNI can’t fool you with.</p>
         <div class="hp-cta">
           <a class="btn big" href="/tour" data-tip="Watch the Circuit Rebels trailer: the story, the lessons and the new art, with music and voices.">Watch the trailer</a>
+          <a class="hp-more" href="/map" data-tip="The Neo Harbor story map: play the story's missions, episode by episode.">Try a story mission</a>
           <div class="hp-qr" data-tip="Scan with a phone to watch the Circuit Rebels trailer."><canvas id="crqr" width="1" height="1" aria-label="QR code to the Circuit Rebels trailer"></canvas><span>Scan to watch the trailer</span></div>
         </div>
       </div>
@@ -338,7 +352,8 @@
       <div>
         <h3>Learn</h3>
         <a href="/learn">Lessons</a>
-        <a href="/tour">The story</a>
+        <a href="/map">Story map</a>
+        <a href="/tour">The trailer</a>
         <a href="#questions">Questions</a>
       </div>
       <div>

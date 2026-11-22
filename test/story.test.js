@@ -36,6 +36,18 @@ for (const [id, sc] of Object.entries(scenes)) {
   if (sc.lines.some((l) => l.who === "volt")) assert(sceneEpisode[id] >= 3 || (sceneEpisode[id] === 2 && sc.voltFirstWords), `scene ${id}: Volt doesn't speak before Episode 2's end`);
 }
 
+// the season (the map): every episode number once, a place on the map picture, and built episodes agree with it
+const season = json("season.json");
+assert(exists(season.map), "the season map picture exists");
+assert.deepStrictEqual(season.episodes.map((e) => e.num), season.episodes.map((_, i) => i + 1), "the season lists episodes 1, 2, 3... once each, in order");
+for (const e of season.episodes) assert(e.title && e.place && e.map.x >= 0 && e.map.x <= 100 && e.map.y >= 0 && e.map.y <= 100, `season episode ${e.num}: title, place, and a map position in percent`);
+for (const ep of episodes) {
+  const s = season.episodes.find((e) => e.num === ep.num);
+  assert(s, `episode ${ep.id} isn't in the season`);
+  assert.strictEqual(ep.title, s.title, `episode ${ep.id}: the same title as the season file`);
+  assert.deepStrictEqual(ep.map, s.map, `episode ${ep.id}: the same map position as the season file`);
+}
+
 // the step rules, on the pilot
 const ep5 = episodes.find((e) => e.id === "ep5"), m = ep5.missions[0];
 const S = (lessonsDone = {}, goals = {}, rec = {}) => ({ lessons: lessonsDone, missions: goals, record: { v: 1, missions: rec, rewards: {}, last: null } });

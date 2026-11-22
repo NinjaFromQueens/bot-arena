@@ -139,11 +139,21 @@
     }
     // The parts of the garage arena that never move, drawn once per canvas size.
     backdrop(w, h) {
-      if (this.bg && this.bg.w === w && this.bg.h === h) return this.bg.c;
+      const art = !E.simpleGfx() && E.paint("/assets/scenes/arena.webp");
+      if (this.bg && this.bg.w === w && this.bg.h === h && this.bg.art === !!art) return this.bg.c;
       const dpr = Math.min(2, window.devicePixelRatio || 1), c = document.createElement("canvas");
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
       const g = c.getContext("2d"); g.scale(dpr, dpr);
       const fy = h * 0.66;
+      if (art) { // the painted arena, its stage centre (66% down the picture) on the floor line, dimmed so the robots stand out
+        const iw = art.naturalWidth, ih = art.naturalHeight, s = Math.max(w / iw, h / ih), dw = iw * s, dh = ih * s;
+        g.drawImage(art, (w - dw) / 2, Math.min(0, Math.max(h - dh, fy - 0.66 * dh)), dw, dh);
+        const dim = g.createLinearGradient(0, 0, 0, h);
+        dim.addColorStop(0, "rgba(10,9,14,.62)"); dim.addColorStop(0.55, "rgba(10,9,14,.4)"); dim.addColorStop(1, "rgba(10,9,14,.5)");
+        g.fillStyle = dim; g.fillRect(0, 0, w, h);
+        this.bg = { w, h, c, art: true };
+        return c;
+      }
       const wall = g.createLinearGradient(0, 0, 0, fy); wall.addColorStop(0, "#121116"); wall.addColorStop(1, "#211f27");
       g.fillStyle = wall; g.fillRect(0, 0, w, fy);
       g.strokeStyle = "rgba(255,255,255,.045)"; g.lineWidth = 1; // wall panel seams
@@ -162,7 +172,7 @@
       g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 1;
       for (let k = -10; k <= 10; k++) { g.beginPath(); g.moveTo(w / 2 + k * w * 0.05, fy); g.lineTo(w / 2 + k * w * 0.16, h); g.stroke(); }
       for (let k = 0; k < 5; k++) { const y = fy + (h - fy) * Math.pow(k / 5, 1.6); g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
-      this.bg = { w, h, c };
+      this.bg = { w, h, c, art: false };
       return c;
     }
     drawStage(ctx, w, h, t) {

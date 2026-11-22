@@ -1156,7 +1156,26 @@ window.OFFLINE_PAGES = {"learn":"robot-lessons-offline.html","race":"robot-racer
     };
   })();
 
-  return { setArt, loadArt, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
+  // Painted backdrops (browser only): each picture loads once, after the page is usable, and paint() is null until it has,
+  // so a scene draws its coded look first. Simple graphics ("cr-simple" on the device; Data Saver turns it on until the
+  // student switches it off) skips the pictures entirely, so nothing is downloaded.
+  const PAINT = {};
+  function paint(src) {
+    if (!isBrowser || typeof Image === "undefined") return null;
+    let p = PAINT[src];
+    if (!p) { p = PAINT[src] = { img: new Image(), ok: false }; p.img.decoding = "async"; p.img.onload = () => (p.ok = true); p.img.src = src; }
+    return p.ok ? p.img : null;
+  }
+  let SIMPLE = null;
+  function simpleGfx() {
+    if (SIMPLE !== null) return SIMPLE;
+    let v = null; try { v = localStorage.getItem("cr-simple"); } catch {}
+    SIMPLE = v === "1" ? true : v === "0" ? false : !!(isBrowser && navigator.connection && navigator.connection.saveData);
+    return SIMPLE;
+  }
+  function setSimpleGfx(on) { SIMPLE = !!on; try { localStorage.setItem("cr-simple", on ? "1" : "0"); } catch {} }
+
+  return { setArt, loadArt, paint, simpleGfx, setSimpleGfx, TUNE, RULES, REACTIONS, QUICK, COLORS, BRAIN_COL, PARTS, MAXW, WEIGHT_CLASSES, partsTooHeavy, SLOTS, clamp, statsOf, cleanName, sanitizeBot, codeOf, parseCode, rng, simulate, explainBattle,
     fit, rr, shade, ease, gearPair, bigText, FX, drawBot, portrait, Sound, RM };
 });
 
