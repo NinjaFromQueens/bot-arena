@@ -14,7 +14,7 @@ Last updated: November 15, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| ACC-1 | Class accounts live | Prepared Nov 21 on the local branch `accounts-main` (1b92f6d, not pushed): the accounts work on today's site, plus the story saved to the account (mission steps, predictions, reading level; two devices merge by earliest time), a Story column on the dashboard and spreadsheet, and the account script on the map, mission and game pages. Every test and browser check passes with accounts on and off, including a new two-Chromebook check. **Waiting on Duron:** the Render database (`DATABASE_URL`) and the Google sign-in ID (`GOOGLE_CLIENT_ID`), steps in MAINTAINING.md on that branch. Then: merge, switch on, check live. |
+| ACC-1 | Class accounts live | **Live Nov 21** (dca4a60, 80a810c, d5dc461): the live server reports the database connected and Google sign-in set up; Google's button draws on circuitrebels.org, www and the onrender address with no origin errors; every page and earlier check passes live with accounts on. Fixed before going live: google-auth-library 11 needs Node 22 (Render runs 20), so it's 10; the white box behind Google's button. **Left:** Duron signs in once at /teacher with Google (and checks the consent screen says In production), then the two-Chromebook check runs live with a test class. |
 
 ---
 
