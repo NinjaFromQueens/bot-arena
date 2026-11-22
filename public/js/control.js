@@ -87,9 +87,9 @@
     const grid = el("div", "mc"), stage = el("section", "panel stage"), side = el("section", "side");
     grid.append(stage, side); main.appendChild(grid);
     if (now.step === "reward") markDone(m.id);
+    sidePanel(side, m, k); // the controls first: they don't need the mission's files
     missionFiles(m).then((mf) => {
       stepStage(stage, m, now.step, mf);
-      sidePanel(side, m, k);
     }).catch(() => { stage.appendChild(el("p", "", "This mission's files didn't load. Check the connection.")); });
   }
   const play = (sid, onDone) => get(`/data/scenes/${sid}.json`).then((sc) => StoryPlayer.play(sc, { characters: D.characters, text: T, big: true, onDone }));
