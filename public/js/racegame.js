@@ -26,6 +26,7 @@
 
   // ---------------- class game (a saved game pass): leaderboards, ghosts, and Race Day ----------------
   const socket = window.baSocket;
+  const onConnect = (fn) => { socket.on("connect", fn); if (socket.connected) fn(); }; // the connection may already be up (made by the page's inline script)
   let who = null;
   try { const s = JSON.parse(localStorage.getItem("ba-session")); if (s && s.code && s.playerId && s.token) who = { code: s.code, playerId: s.playerId, token: s.token }; } catch {}
   const cls = { on: !!(socket && who), boards: R.TRACKS.map(() => []), gp: null, offset: 0, live: { prev: null, cur: null }, racers: new Map() };
@@ -456,7 +457,7 @@
     });
   }
   if (cls.on) {
-    socket.on("connect", () => socket.emit("race:check", { who, look }, (r) => { if (r && r.ok) { cls.boards = r.boards; gpApply(r.gp); renderBoard(); } }));
+    onConnect(() => socket.emit("race:check", { who, look }, (r) => { if (r && r.ok) { cls.boards = r.boards; gpApply(r.gp); renderBoard(); } }));
     socket.on("race:board", (d) => { cls.boards[d.track] = d.board; renderBoard(); });
     socket.on("gp:state", gpApply);
     socket.on("gp:live", (snap) => { cls.live = { prev: cls.live.cur, cur: { ...snap, at: performance.now() } }; });

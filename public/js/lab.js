@@ -636,6 +636,7 @@
   // lists the designs as they come in (the server flies and ranks them), and replays any of them on the track.
   const classLab = (() => {
     const none = { onMission() {} }, socket = window.baSocket;
+    const onConnect = (fn) => { socket.on("connect", fn); if (socket.connected) fn(); }; // the connection may already be up (made by the page's inline script)
     if (!socket) return none;
     const box = $("classlab"), present = /[?&]present\b/.test(location.search);
     const starsOf = (n) => "★".repeat(n) + "☆".repeat(3 - n);
@@ -683,7 +684,7 @@
           $("cl-list").appendChild(li);
         });
       }
-      socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
+      onConnect(() => socket.emit("host:resume", saved, (r) => {
         if (!r || !r.ok) { ready = false; $("cl-status").textContent = "That game has ended"; return; }
         ready = true; $("cl-status").textContent = "Connected";
       }));
@@ -720,7 +721,7 @@
       if (info && switched !== info.m && mIdx !== info.m) { switched = info.m; $("missions").children[info.m].click(); }
       render();
     }
-    socket.on("connect", () => socket.emit("lab:check", { who }, (r) => { if (r && r.ok) { submitted = r.score || null; apply(r.lab); } }));
+    onConnect(() => socket.emit("lab:check", { who }, (r) => { if (r && r.ok) { submitted = r.score || null; apply(r.lab); } }));
     socket.on("lab:info", (lab) => { if (!lab || !info || lab.m !== info.m) submitted = null; apply(lab); });
     return { onMission() { setTimeout(render, 0); } };
   })();

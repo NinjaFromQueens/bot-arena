@@ -6,6 +6,7 @@
 (function () {
   const S = window.Story, $ = (id) => document.getElementById(id);
   const socket = window.baSocket;
+  const onConnect = (fn) => { socket.on("connect", fn); if (socket.connected) fn(); }; // the connection may already be up (made by the page's inline script)
   let saved = null; try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
   const ls = {
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -162,7 +163,7 @@
   load().then((d) => { D = d; refresh(); }).catch(() => message("Mission Control didn't load", "Check the connection and refresh."));
   if (!socket || !saved) { $("status").textContent = "No game in this tab"; refresh(); }
   else {
-    socket.on("connect", () => socket.emit("host:resume", saved, (r) => { ready = !!(r && r.ok); $("status").textContent = ready ? "Connected" : "That game has ended"; refresh(); }));
+    onConnect(() => socket.emit("host:resume", saved, (r) => { ready = !!(r && r.ok); $("status").textContent = ready ? "Connected" : "That game has ended"; refresh(); }));
     socket.on("disconnect", () => { ready = false; $("status").textContent = "Reconnecting..."; });
     socket.on("room:state", (s) => { st = s; refresh(); });
     socket.on("room:missions", (d) => { missions = d; refresh(); });

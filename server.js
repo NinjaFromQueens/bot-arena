@@ -103,6 +103,7 @@ function publicState(room) {
     gp: gpState(room),
     sprint: sprintState(room),
     now: room.now || null, // the class's story mission and step (PF-3), set by the board
+    storyDone: storyDone(room), // missions the class finished: { missionId: [player ids in the class then] }
     lab: room.lab && { m: room.lab.m, n: Flight.MISSIONS[room.lab.m].n, open: room.lab.open, ids: [...room.lab.entries.keys()] },
     settings: room.settings,
     bracket: room.bracket && {
@@ -244,6 +245,16 @@ function missionData(room) {
   return { rows, summary: [...sums.values()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])) }; // summary: [id, title, students, first right, goal met, one at a time]
 }
 const missionUpdate = (room) => toHosts(room, "room:missions", missionData(room));
+// story missions the class finished (PF-3): who was in the class when it reached Reward, wherever their device was. Ids
+// only (every device already has the player list). Activity pages opened from a mission hear it through story:state.
+const storyDone = (room) => Object.fromEntries([...(room.storyDone || new Map())].map(([m, ids]) => [m, [...ids]]));
+function storyFinish(room, mission, ids) {
+  room.storyDone = room.storyDone || new Map();
+  const set = room.storyDone.get(mission) || new Set();
+  for (const id of ids) set.add(id);
+  room.storyDone.set(mission, set);
+}
+const storyUpdate = (room) => io.to("story:" + room.code).emit("story:state", { now: room.now || null, done: storyDone(room) });
 
 // ---------------- Speed Run (docs/speed-run-plan.md) ----------------
 // A class math race, round by round: the teacher opens each problem, students answer on their game pages, the server
@@ -441,7 +452,7 @@ io.on("connection", (socket) => {
         if (room.phase === "lobby") { p.bot = bot; p.builder = builder; }
         joined = { room, role: "player", playerId: p.id };
         socket.join(room.code);
-        cb && cb({ ok: true, playerId: p.id, token: p.token, rejoined: true }); linkPresence(room, p.id);
+        if (room.now && room.now.step === "reward") { storyFinish(room, room.now.mission, [p.id]); storyUpdate(room); } cb && cb({ ok: true, playerId: p.id, token: p.token, rejoined: true }); linkPresence(room, p.id);
         socket.emit("room:chatlog", room.chatLog);
         return broadcast(room);
       }
@@ -453,7 +464,7 @@ io.on("connection", (socket) => {
     room.players.set(p.id, p);
     joined = { room, role: "player", playerId: p.id };
     socket.join(room.code);
-    cb && cb({ ok: true, playerId: p.id, token: p.token });
+    if (room.now && room.now.step === "reward") { storyFinish(room, room.now.mission, [p.id]); storyUpdate(room); } cb && cb({ ok: true, playerId: p.id, token: p.token });
     socket.emit("room:chatlog", room.chatLog);
     linkPresence(room, p.id);
     io.to(room.code).emit("room:joined", { id: p.id });
@@ -786,11 +797,20 @@ io.on("connection", (socket) => {
   // to step and every game page follows. It carries only the mission id and the step; nothing comes back from students.
   socket.on("host:now", (d, cb) => {
     const room = requireHost(cb); if (!room) return;
-    if (!d || !d.mission) { room.now = null; cb && cb({ ok: true }); return broadcast(room); }
+    if (!d || !d.mission) { room.now = null; cb && cb({ ok: true }); broadcast(room); return storyUpdate(room); }
     if (!Story.find(EPISODES, d.mission) || !Story.STEPS.includes(d.step)) return cb && cb({ ok: false });
     room.now = { mission: d.mission, step: d.step, at: Date.now() };
+    // everyone in the class gets the reward, wherever their device is (the game page, the Lab, a lesson)
+    if (d.step === "reward") storyFinish(room, d.mission, [...room.players.values()].filter((p) => !p.out).map((p) => p.id));
     cb && cb({ ok: true });
-    broadcast(room);
+    broadcast(room); storyUpdate(room);
+  });
+  // an activity page opened from a story mission (the mission bar) follows the class: it proves who it is with the game pass
+  socket.on("story:hello", (d, cb) => {
+    const me = labPlayer(d && d.who);
+    if (!me) return cb && cb({ ok: false });
+    socket.join("story:" + me.room.code);
+    cb && cb({ ok: true, now: me.room.now || null, done: storyDone(me.room) });
   });
   // Speed Run: the board sets it up, opens each problem, reveals it, and ends it
   socket.on("host:sprint", (d, cb) => {

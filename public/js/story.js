@@ -58,6 +58,33 @@
     return next && next.missions[0] ? next.missions[0] : null;
   }
 
+  // In class (PF-3): what the class's progress gives this student, applied to their record. cls = { now, finished }:
+  // now = the class's mission and step (steps the class moved past count: the briefing, the lesson, and the mission when
+  // it's a class event); finished = missions the class finished with this student in it (the reward and done). Returns
+  // { record, changed } so a page only writes when something is new.
+  function applyClass(record, cls, episodes, t) {
+    const rec = record && record.missions ? record : emptyRecord();
+    rec.rewards = rec.rewards || {};
+    let changed = false;
+    const now = cls && cls.now, f = now && find(episodes, now.mission);
+    if (f) {
+      const m = f.mission, k = STEPS.indexOf(now.step), r = (rec.missions[m.id] = rec.missions[m.id] || {});
+      for (const s of ["briefing", "discover"].concat(m.mission.event ? ["mission"] : [])) if (STEPS.indexOf(s) < k && !r[s]) { r[s] = t; changed = true; }
+      if (rec.last !== m.id) { rec.last = m.id; changed = true; }
+    }
+    for (const id of (cls && cls.finished) || []) {
+      const g = find(episodes, id); if (!g) continue;
+      const r = (rec.missions[id] = rec.missions[id] || {});
+      if (r.done) continue;
+      r.reward = r.reward || t; r.done = t;
+      for (const x of g.mission.rewards || []) rec.rewards[x] = rec.rewards[x] || t;
+      changed = true;
+    }
+    return { record: rec, changed };
+  }
+  // the missions the class finished with this player in it, from the server's { missionId: [playerIds] }
+  const finishedFor = (done, playerId) => Object.keys(done || {}).filter((id) => (done[id] || []).includes(playerId));
+
   // problems with the story files, as sentences (an empty list means fine). `known` = { lessons: [ids],
   // missions: { id: { game, lesson } }, exists(path) } so the same check runs in the tests and the browser
   function check(data, known) {
@@ -119,5 +146,5 @@
   const EVENTS = ["labchallenge", "raceday", "speedrun", "tournament"]; // class events a Mission step can be (PF-3)
   const REWARD_KINDS = ["echo", "volt", "file", "access"];
 
-  return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, check };
+  return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, applyClass, finishedFor, check };
 });

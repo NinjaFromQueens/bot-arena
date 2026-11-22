@@ -65,6 +65,21 @@ const fake = [{ ...ep5, id: "ep4", num: 4, open: false, missions: [{ ...m, id: "
 assert(!Story.episodeUnlocked(fake[0], fake, S()) && !Story.missionUnlocked(fake, "ep5-a", S()), "no previous episode file, not open: locked");
 assert(Story.missionUnlocked(fake, "ep5-a", S({}, {}, { "ep4-a": { done: 1 } })), "the previous episode's core missions done: open");
 
+// the class's progress on a student's record (PF-3): the one rule the game page and the mission bar both use
+let out = Story.applyClass(null, { now: { mission: m.id, step: "build" }, finished: [] }, episodes, 5);
+const r5 = out.record.missions[m.id];
+assert(out.changed && r5.briefing === 5 && r5.discover === 5 && !r5.build && out.record.last === m.id, "the class moved past the briefing and the lesson; Build comes from the student's own runs");
+assert(!Story.applyClass(out.record, { now: { mission: m.id, step: "build" }, finished: [] }, episodes, 9).changed, "nothing new the second time");
+out = Story.applyClass(out.record, { now: null, finished: [m.id] }, episodes, 7);
+assert(out.changed && out.record.missions[m.id].done === 7 && out.record.missions[m.id].reward === 7 && out.record.rewards["echo-bridge-lights"] === 7, "the class finished it: the reward and done");
+assert(Story.missionDone(m, { record: out.record }) && Story.nextStep(m, { record: out.record }) === null, "the mission counts as done");
+assert(!Story.applyClass(out.record, { now: null, finished: [m.id] }, episodes, 8).changed, "a reward is given once");
+assert(!Story.applyClass(null, { now: { mission: "nope", step: "build" }, finished: ["nope"] }, episodes, 1).changed, "unknown missions change nothing");
+const evEps = [{ ...ep5, missions: [{ ...m, mission: { event: "raceday" } }] }];
+assert.strictEqual(Story.applyClass(null, { now: { mission: m.id, step: "reward" } }, evEps, 3).record.missions[m.id].mission, 3, "a class event in the Mission step counts once the class moves past it");
+assert.deepStrictEqual(Story.finishedFor({ a: ["p1", "p2"], b: ["p2"] }, "p1"), ["a"]);
+assert.deepStrictEqual(Story.finishedFor(undefined, "p1"), []);
+
 // the pilot's Mission really is the bridge Lab mission, and the lesson lists it
 assert.strictEqual(m.mission.mission, "lab-bridge");
 assert(json("lessons/thrust.json").missions.includes("lab-bridge"), "the thrust lesson lists the bridge mission");

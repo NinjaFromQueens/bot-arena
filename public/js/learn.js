@@ -1215,6 +1215,7 @@
     const api = { on, send() {}, quiz() {} };
     if (!on) return api;
     const socket = window.baSocket;
+    const onConnect = (fn) => { socket.on("connect", fn); if (socket.connected) fn(); }; // the connection may already be up (made by the page's inline script)
     const back = /[?&]back=control\b/.test(location.search) ? { to: "/control", label: "Back to Mission Control", tip: "Stop presenting and go back to Mission Control, at the same step." } : { to: "/host", label: "Back to the game board", tip: "Stop presenting and go back to the game board. Students\' devices go back to normal." };
     let saved = null, ready = false, poll = null, onPoll = null;
     try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
@@ -1225,7 +1226,7 @@
     $("pr-back").textContent = back.label; $("pr-back").setAttribute("data-tip", back.tip);
     $("pr-back").onclick = () => { if (ready) socket.emit("host:lessonEnd", {}, () => (location.href = back.to)); else location.href = back.to; };
     if (!saved) { $("pr-msg").textContent = "No game found in this tab. Open the board (Host on the board) first, then press Present a lesson."; return api; }
-    socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
+    onConnect(() => socket.emit("host:resume", saved, (r) => {
       if (!r || !r.ok) { ready = false; $("pr-msg").textContent = "That game has ended. Go back to the board to start a new one."; return; }
       ready = true; $("pr-msg").innerHTML = `Presenting to game <b>${esc(r.code)}</b>. Students follow along on their devices.`; api.send();
     }));

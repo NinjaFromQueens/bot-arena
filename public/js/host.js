@@ -122,7 +122,7 @@
     if (!state) return;
     $("v-lobby").hidden = state.phase !== "lobby";
     $("v-tour").hidden = state.phase === "lobby";
-    renderRace(); renderMissions();
+    renderRace(); renderMissions(); renderStoryAct();
     renderChat();
     if (state.phase === "lobby") renderLobby();
     else { renderTour(); renderLeaders(); renderVotes(); renderAwards(); renderClass(); }
@@ -190,6 +190,16 @@
       });
       wrap.appendChild(t);
     });
+  }
+
+  // a story mission still running (Mission Control keeps the class's place): the lobby's card says so
+  function renderStoryAct() {
+    const a = document.querySelector('.acts a[href="/control"]'); if (!a) return;
+    const ad = a.querySelector(".ad"), STEP = ["briefing", "discover", "build", "mission", "reward"], NAME = ["Briefing", "Discover", "Build", "Mission", "Reward"];
+    if (!a.dataset.ad) a.dataset.ad = ad.textContent;
+    const k = state.now ? STEP.indexOf(state.now.step) : -1;
+    ad.textContent = k >= 0 ? `In progress: step ${k + 1} of 5, ${NAME[k]}. Open it to go on or end it.` : a.dataset.ad;
+    a.classList.toggle("live", k >= 0);
   }
 
   // the fastest Robot Racer lap on each track from this game (checked by the server)

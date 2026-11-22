@@ -291,24 +291,26 @@
     }).catch(() => { nowFiles[id] = { failed: true }; });
     return nowFiles[id];
   }
-  function nowRecord(now, m) {
+  // the class's progress, applied to this student's record with story.js's shared rule (the mission bar uses it too)
+  let storyEps = null;
+  function storyRecord(me) {
+    const finished = window.Story ? Story.finishedFor(state.storyDone, me.id) : [];
+    if (!window.Story || (!state.now && !finished.length)) return;
+    if (storyEps === null) { storyEps = false; getJSON("/data/episodes/index.json").then((idx) => Promise.all(idx.map((e) => getJSON(`/data/episodes/${e}.json`)))).then((eps) => { storyEps = eps; render(); }).catch(() => { storyEps = null; }); return; }
+    if (!storyEps) return;
     let rec = null; try { rec = JSON.parse(localStorage.getItem("cr-record")); } catch {}
-    if (!rec || !rec.missions) rec = { v: 1, missions: {}, rewards: {}, last: null };
-    const r = (rec.missions[now.mission] = rec.missions[now.mission] || {}), k = NOW_STEPS.indexOf(now.step), t = Date.now();
-    let changed = false;
-    for (const s of ["briefing", "discover"].concat(m.mission.event ? ["mission"] : [])) if (NOW_STEPS.indexOf(s) < k && !r[s]) { r[s] = t; changed = true; }
-    if (now.step === "reward" && !r.done) { r.reward = r.reward || t; r.done = t; for (const id of m.rewards || []) rec.rewards[id] = rec.rewards[id] || t; changed = true; }
-    if (changed || rec.last !== now.mission) { rec.last = now.mission; try { localStorage.setItem("cr-record", JSON.stringify(rec)); } catch {} }
+    const out = Story.applyClass(rec, { now: state.now, finished }, storyEps, Date.now());
+    if (out.changed) try { localStorage.setItem("cr-record", JSON.stringify(out.record)); } catch {}
   }
   const NOW_PAGE = { lab: (mid, run) => `/lab?mission=${mid}&run=${run}`, racer: (mid, run) => `/race?mission=${mid}&run=${run}`, challenge: (mid, run) => `/practice?mission=${mid}&run=${run}#challenges` };
   function renderNow(me) {
     const now = state && state.now, box = $("nowbox");
     const T = (v) => (window.Tier ? Tier.text(v, Tier.current()) : v && typeof v === "object" ? v.recruit : v);
+    if (me && state) storyRecord(me);
     if (!now || !me) { box.hidden = true; return; }
     const d = nowLoad(now.mission);
     if (!d.m) { box.hidden = true; return; }
     box.hidden = false;
-    nowRecord(now, d.m);
     const k = NOW_STEPS.indexOf(now.step), m = d.m;
     $("now-head").textContent = `Story mission · Step ${k + 1} of 5`;
     $("now-title").textContent = T(m.title);

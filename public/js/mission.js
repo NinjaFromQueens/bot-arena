@@ -16,6 +16,7 @@
   const saved = () => ({ lessons: ls.get("learn-progress", {}), missions: ls.get("cr-missions", {}), record: ls.get("cr-record", null) || S.emptyRecord() });
   function mark(fields) { // add to this mission's record (times in ms, so two devices can be merged later)
     const rec = ls.get("cr-record", null) || S.emptyRecord();
+    if (!Object.keys(fields).length && rec.last === id) return; // nothing new: don't write
     rec.missions[id] = { ...(rec.missions[id] || {}), ...fields }; rec.last = id;
     if (fields.rewards) { for (const r of fields.rewards) rec.rewards[r] = rec.rewards[r] || Date.now(); delete rec.missions[id].rewards; }
     ls.set("cr-record", rec);

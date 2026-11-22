@@ -7,6 +7,7 @@
   const E = window.Engine, C = window.SprintCard, { Sound, RM } = E;
   const $ = (id) => document.getElementById(id);
   const socket = window.baSocket;
+  const onConnect = (fn) => { socket.on("connect", fn); if (socket.connected) fn(); }; // the connection may already be up (made by the page's inline script)
   let saved = null;
   try { saved = JSON.parse(sessionStorage.getItem("ba-host")); } catch {}
 
@@ -171,7 +172,7 @@
   // ---------------- connection ----------------
   if (!socket || !saved) { $("status").textContent = "No game in this tab"; render(); }
   else {
-    socket.on("connect", () => socket.emit("host:resume", saved, (r) => {
+    onConnect(() => socket.emit("host:resume", saved, (r) => {
       ready = !!(r && r.ok); $("status").textContent = ready ? "Connected" : "That game has ended";
       render();
     }));
