@@ -1,0 +1,24 @@
+{
+  "id": "demo-v2",
+  "place": "tunnels",
+  "continuity": { "volt": "stage0", "omni": "blue", "time": "night" },
+  "music": "/assets/audio/music/missions.mp3",
+  "ambience": "/assets/audio/ambient/tunnels.mp3",
+  "shots": [
+    { "kind": "still", "art": "/assets/scenes/tunnels.webp", "move": "push", "secs": 20 },
+    { "kind": "still", "art": "bg_blast_door", "move": "pan-left", "layers": ["/assets/characters/volt/stage0_broken.webp"] },
+    { "kind": "still", "art": "key_demo_not_made", "note": { "recruit": "A placeholder: this picture isn't made yet." } },
+    { "kind": "still", "art": "/assets/scenes/omni_core.webp", "look": "camera", "stamp": "ARCHIVE CAM 3 · 02:17" },
+    { "kind": "video", "art": "cut_ch01", "poster": "/assets/cutscenes/ch01_wake_up.webp" },
+    { "kind": "video", "art": "cut_ch02", "poster": "/assets/cutscenes/ch02_eyes.webp" }
+  ],
+  "lines": [
+    { "id": "demo-01", "kind": "narration", "text": { "cadet": "The tunnels were dark.", "recruit": "Under the city, the old subway tunnels were dark and quiet." } },
+    { "id": "demo-02", "who": "sparrow", "face": "pose", "text": "Did you hear that?", "voice": { "recruit": "/assets/audio/voice2/L01.mp3" }, "sfx": ["/assets/audio/sfx/beep.mp3"] },
+    { "id": "demo-03", "who": "volt", "face": "stage0", "kind": "beeps", "feel": "curious", "text": "(curious beeps)", "shot": 1 },
+    { "id": "demo-04", "who": "torque", "face": "pose", "text": "That's just the old door.", "shot": 2 },
+    { "id": "demo-05", "who": "omni", "face": "idle", "text": "Recording.", "shot": 3, "music": null },
+    { "id": "demo-06", "kind": "narration", "text": "Volt's eye flickers on.", "shot": 4, "music": "/assets/audio/music/workshop.mp3" },
+    { "id": "demo-07", "kind": "narration", "text": "A clip that isn't made yet shows its poster.", "shot": 5 }
+  ]
+}

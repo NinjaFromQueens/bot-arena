@@ -1,6 +1,6 @@
 {
   "id": "ep5-bridge-debrief",
-  "bg": "/assets/scenes/hill_run.webp",
+  "shots": [{ "kind": "still", "art": "/assets/scenes/hill_run.webp", "move": "drift", "secs": 40 }],
   "music": null,
   "lines": [
     {

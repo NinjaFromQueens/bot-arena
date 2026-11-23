@@ -1,5 +1,6 @@
 // Story mode (docs/platform-flow-spec.md): every episode, scene, character and reward file is well-formed and every
-// link between them and the lessons and missions exists; Volt doesn't speak before Episode 2's end; and the step rules
+// link between them and the lessons and missions exists (art and sound by path or by asset ID, in the story player's
+// scene format, with a sample scene that uses all of it); Volt only beeps before Episode 2's end; and the step rules
 // say the right thing for sample saved data (nothing done, a lesson finished last week, one Build goal, the mission's
 // goal, the class moving past a step, a finished mission unlocking the next).
 const assert = require("assert");
@@ -18,9 +19,22 @@ const characters = json("characters.json"), rewards = json("rewards.json");
 const lessons = json("lessons/index.json");
 const missions = Object.fromEntries(json("missions/index.json").map((id) => { const m = json(`missions/${id}.json`); return [id, { game: m.game, lesson: m.lesson }]; }));
 const exists = (p) => fs.existsSync(path.join(pub, p));
+const assets = JSON.parse(fs.readFileSync(path.join(pub, "assets/story-assets.json"), "utf8")).assets;
 
 // every file and every link
-assert.deepStrictEqual(Story.check({ episodes, scenes, characters, rewards }, { lessons, missions, exists }), [], "the story files have problems");
+assert.deepStrictEqual(Story.check({ episodes, scenes, characters, rewards }, { lessons, missions, exists, assets }), [], "the story files have problems");
+// the sample scene uses every part of the scene format (shots, moves, layers, the camera look, clips made and not,
+// asset IDs, narration, Volt's beeps, voice per level, cues, music changes) and passes
+const demoAssets = { ...assets, key_demo_not_made: { file: "/assets/scenes/demo.webp", kind: "image", made: false } }; // a picture in the list that isn't made yet
+const demo = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/story/scene-v2.json"), "utf8"));
+assert.deepStrictEqual(Story.check({ episodes: [], scenes: { "demo-v2": demo }, characters, rewards: [] }, { lessons, missions, exists, assets: demoAssets }), [], "the sample scene passes");
+const bad = JSON.parse(JSON.stringify(demo));
+bad.shots[0].move = "spin"; bad.shots[1].art = "bg_nope"; bad.shots[2].kind = "gif"; bad.shots[4].art = "bg_workshop"; bad.shots[3].layers = "x";
+bad.lines[0].who = "sparrow"; bad.lines[1].kind = "beeps"; bad.lines[2].feel = "angry"; bad.lines[3].shot = 6; bad.lines[4].id = "demo-01";
+bad.lines[5].voice = { teacher: "/assets/audio/voice2/L01.mp3" }; bad.lines[6].sfx = "/assets/audio/sfx/beep.mp3"; bad.bg = "/assets/scenes/arena.webp";
+const caught = Story.check({ episodes: [], scenes: { "demo-v2": bad }, characters, rewards: [] }, { lessons, missions, exists, assets: demoAssets });
+for (const want of [/move is push/, /no asset bg_nope/, /kind must be still or video/, /bg_workshop is an image, not a video/, /layers are a list/, /narration has no speaker/,
+  /only Volt beeps/, /feel is for Volt/, /0 to 5/, /demo-01 is used twice/, /voice levels/, /sfx is a list/, /shots or bg, not both/]) assert(caught.some((s) => want.test(s)), "the scene check catches: " + want);
 // the check really catches mistakes
 const broken = JSON.parse(JSON.stringify({ episodes, scenes, characters, rewards }));
 broken.episodes[0].missions[0].discover.lesson = "nope"; broken.episodes[0].missions[0].build.missions.push("race-nope");
@@ -33,7 +47,7 @@ const sceneEpisode = {};
 for (const ep of episodes) for (const m of ep.missions) for (const s of [m.briefing, m.debrief]) if (s) sceneEpisode[s] = ep.num;
 for (const [id, sc] of Object.entries(scenes)) {
   assert(sceneEpisode[id], `scene ${id} isn't used by any mission`);
-  if (sc.lines.some((l) => l.who === "volt")) assert(sceneEpisode[id] >= 3 || (sceneEpisode[id] === 2 && sc.voltFirstWords), `scene ${id}: Volt doesn't speak before Episode 2's end`);
+  if (sc.lines.some((l) => l.who === "volt" && l.kind !== "beeps")) assert(sceneEpisode[id] >= 3 || (sceneEpisode[id] === 2 && sc.voltFirstWords), `scene ${id}: Volt only beeps before Episode 2's end`);
 }
 
 // the season (the map): every episode number once, a place on the map picture, and built episodes agree with it

@@ -194,12 +194,38 @@ canvas { display: block; width: 100%; max-width: 100%; }
 @media (prefers-reduced-motion: no-preference) { .pcard.nudge { animation: pnudge .45s ease-out; } }
 @keyframes pnudge { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 
-/* The story player (storyplayer.js): a scene over its painted background, the speaker's picture, and the line in the
-   story's hand-drawn dialog frame (ui/dialog_frame.webp, stretched by its corners). */
+/* The story player (storyplayer.js): a scene's shots (painted stills with a slow camera move and parallax layers, or
+   clips), the speaker's picture, and the line in the story's hand-drawn dialog frame (ui/dialog_frame.webp, stretched
+   by its corners). */
 .sp-overlay { position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: 1fr auto; background: #0d0c10; cursor: pointer;
   padding: env(safe-area-inset-top, 0px) max(12px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
-.sp-bg { position: absolute; inset: 0; background: #1b1a1e center / cover no-repeat; }
+.sp-bg { position: absolute; inset: 0; overflow: hidden; background: #1b1a1e; }
 .sp-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,9,12,0) 45%, rgba(10,9,12,.75) 100%); }
+.sp-shot { position: absolute; inset: 0; overflow: hidden; opacity: 0; background: #1b1a1e; }
+.sp-shot.on { opacity: 1; }
+.sp-art { position: absolute; inset: 0; background: center / cover no-repeat; }
+.sp-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* camera moves: --mv names the move, --secs its length, --k makes nearer layers move more (parallax) */
+@media (prefers-reduced-motion: no-preference) {
+  .sp-shot { transition: opacity .6s ease; }
+  .sp-shot.run .sp-art { animation: var(--mv, none) var(--secs, 24s) ease-out forwards; will-change: transform; }
+}
+@keyframes spPush { from { transform: scale(1.03); } to { transform: scale(calc(1.03 + .09 * var(--k, 1))); } }
+@keyframes spPull { from { transform: scale(calc(1.03 + .09 * var(--k, 1))); } to { transform: scale(1.03); } }
+@keyframes spPanL { from { transform: scale(1.14) translateX(calc(3% * var(--k, 1))); } to { transform: scale(1.14) translateX(calc(-3% * var(--k, 1))); } }
+@keyframes spPanR { from { transform: scale(1.14) translateX(calc(-3% * var(--k, 1))); } to { transform: scale(1.14) translateX(calc(3% * var(--k, 1))); } }
+@keyframes spDrift { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(calc(1.06 + .03 * var(--k, 1))) translate(calc(-1.2% * var(--k, 1)), calc(-.8% * var(--k, 1))); } }
+/* the security-camera look (a recording someone finds) */
+.sp-shot.look-camera .sp-art, .sp-shot.look-camera .sp-vid { filter: grayscale(1) contrast(1.2) brightness(.85); }
+.sp-look { position: absolute; inset: 0; pointer-events: none; font-family: var(--mono); font-size: 14px; color: #e6efe6; letter-spacing: .06em;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 2px, transparent 2px 4px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.65)); }
+.sp-look b { position: absolute; top: 18px; left: 20px; color: #ff5252; }
+.sp-look span { position: absolute; top: 18px; right: 20px; }
+/* a picture that isn't made yet: its asset ID and what the shot shows */
+.sp-ph { position: absolute; left: 50%; top: 36%; transform: translate(-50%, -50%); width: min(560px, 86%); display: grid; gap: 8px; padding: 22px; border-radius: 14px; background: #3a3842; color: #d8d4dc; text-align: center; font-family: var(--mono); font-size: 14px; }
+.sp-ph b { color: #fff; font-size: 16px; overflow-wrap: anywhere; }
+.sp-chip { position: absolute; top: 14px; left: 14px; padding: 4px 10px; border-radius: 6px; background: #f46524; color: #111; font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.sp-face.off { visibility: hidden; }
 .sp-face { position: relative; align-self: end; justify-self: start; height: min(62vh, 560px); max-width: 46vw; margin-left: 4vw; display: flex; align-items: flex-end; pointer-events: none; }
 .sp-face img { height: 100%; width: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0,0,0,.5)); }
 .sp-box { position: relative; width: min(980px, 100%); justify-self: center; margin-top: -8vh; border: 30px solid transparent; border-image: url("/assets/ui/dialog_frame.webp") 110 fill / 30px stretch; background-clip: padding-box; display: grid; gap: 8px; cursor: default; color: #f2eee6; }
@@ -207,12 +233,16 @@ canvas { display: block; width: 100%; max-width: 100%; }
 .sp-text { margin: 0; font-size: clamp(19px, 2.1vw, 26px); line-height: 1.4; min-height: 3.2em; }
 .sp-text.in { animation: spIn .35s ease-out; }
 @keyframes spIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.sp-ctl { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.sp-ctl { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.sp-ctl [hidden] { display: none; }
+.sp-box.narr .sp-text { font-style: italic; }
+.sp-text.beeps { font-family: var(--mono); color: #9fe3ff; }
 .sp-count { margin-right: auto; font-family: var(--mono); font-size: 13px; color: #b8b1a6; }
 .sp-missing { display: grid; place-items: center; min-width: 160px; min-height: 120px; padding: 10px; border-radius: 10px; background: #3a3842; color: #d8d4dc; font-family: var(--mono); font-size: 12px; text-align: center; }
 .sp-bg .sp-missing { position: absolute; top: 16px; right: 16px; }
 .sp-overlay.big .sp-text { font-size: clamp(26px, 2.8vw, 40px); } .sp-overlay.big .sp-name { font-size: 26px; }
-@media (max-width: 640px) { .sp-face { height: 42vh; max-width: 70vw; margin-left: 0; } .sp-box { border-width: 20px; border-image-width: 20px; margin-top: -4vh; } }
+@media (max-width: 640px) { .sp-face { height: 42vh; max-width: 70vw; margin-left: 0; } .sp-box { border-width: 20px; border-image-width: 20px; margin-top: -4vh; } .sp-ctl { gap: 6px; } .sp-ctl .btn { padding: 9px 12px; font-size: 14px; } }
+@media (max-width: 420px) { .sp-count { display: none; } } /* the four buttons need the whole row on a phone */
 
 </style>
 <style>

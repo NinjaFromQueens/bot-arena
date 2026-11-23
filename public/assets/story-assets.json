@@ -320,7 +320,7 @@
    "job": "1f8f4160-565d-40a5-b034-0ce84f9d550d"
   },
   "cut_intro": {
-   "file": "/assets/cutscenes/intro.mp4",
+   "file": "/assets/cutscenes/intro.webm",
    "kind": "video",
    "made": true,
    "job": "0a528a71-12b8-4f17-8dbf-d7b07f528860"
@@ -332,7 +332,7 @@
    "job": "a9f282c5-9622-417c-afd7-2e46e37b406a"
   },
   "cut_ch01": {
-   "file": "/assets/cutscenes/ch01_wake_up.mp4",
+   "file": "/assets/cutscenes/ch01_wake_up.webm",
    "kind": "video",
    "made": true,
    "job": "624defa9-dfeb-4a15-ac91-6ddb2df1ac38"

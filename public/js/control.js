@@ -92,9 +92,10 @@
       stepStage(stage, m, now.step, mf);
     }).catch(() => { stage.appendChild(el("p", "", "This mission's files didn't load. Check the connection.")); });
   }
-  const play = (sid, onDone) => get(`/data/scenes/${sid}.json`).then((sc) => StoryPlayer.play(sc, { characters: D.characters, text: T, big: true, onDone }));
+  const play = (sid, onDone) => StoryPlayer.open(sid, { characters: D.characters, text: T, tier: window.__classTier || "recruit", big: true, onDone });
   function stepStage(stage, m, step, mf) {
     if (step === "briefing") {
+      StoryPlayer.preload(m.briefing);
       stage.append(el("h2", "", "The briefing"), el("p", "", "Play the story scene for the room. Students' devices say: watch the board."),
         btn("Play the briefing", "Play the scene full screen. Space or the right arrow shows each line.", () => play(m.briefing, () => {})));
     } else if (step === "discover") {
@@ -110,6 +111,7 @@
       fillStats();
     } else {
       stage.append(el("h2", "", "Mission complete!"), el("p", "", "Play the debrief, then see how the class did. Everyone here gets the reward."));
+      if (m.debrief) StoryPlayer.preload(m.debrief);
       if (m.debrief) stage.appendChild(btn("Play the debrief", "Play the closing scene full screen.", () => play(m.debrief, () => {})));
       for (const id of m.rewards || []) {
         const r = D.rewards.find((x) => x.id === id); if (!r) continue;

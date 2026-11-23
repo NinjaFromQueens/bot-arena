@@ -16,5 +16,26 @@
     "faces": {
       "briefing": "/assets/characters/rivet/briefing.webp"
     }
+  },
+  "volt": {
+    "name": "Volt",
+    "faces": {
+      "stage0": "/assets/characters/volt/stage0_broken.webp",
+      "stage1": "/assets/characters/volt/stage1_power.webp",
+      "stage2": "/assets/characters/volt/stage2_sensors.webp",
+      "stage3": "/assets/characters/volt/stage3_brain.webp",
+      "stage4": "/assets/characters/volt/stage4_wheels.webp",
+      "stage5": "/assets/characters/volt/stage5_arm.webp",
+      "stage6": "/assets/characters/volt/stage6_jets.webp"
+    }
+  },
+  "omni": {
+    "name": "OMNI",
+    "faces": {
+      "idle": "/assets/characters/omni/idle.webp",
+      "friendly": "/assets/characters/omni/friendly.webp",
+      "alert": "/assets/characters/omni/alert.webp",
+      "cadet": "/assets/characters/omni/cadet.webp"
+    }
   }
 }

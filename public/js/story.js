@@ -86,11 +86,24 @@
   const finishedFor = (done, playerId) => Object.keys(done || {}).filter((id) => (done[id] || []).includes(playerId));
 
   // problems with the story files, as sentences (an empty list means fine). `known` = { lessons: [ids],
-  // missions: { id: { game, lesson } }, exists(path) } so the same check runs in the tests and the browser
+  // missions: { id: { game, lesson } }, exists(path), assets: story-assets.json's assets } so the same check runs in
+  // the tests and the browser
   function check(data, known) {
-    const p = [], ids = new Set(), sceneIds = new Set(Object.keys(data.scenes)), rewardIds = new Set(data.rewards.map((r) => r.id));
+    const p = [], ids = new Set(), sceneIds = new Set(Object.keys(data.scenes)), rewardIds = new Set(data.rewards.map((r) => r.id)), lineIds = new Set();
     const idOk = (s) => typeof s === "string" && /^[a-z][a-z0-9-]*$/.test(s);
     const path = (where, v) => { if (v != null && (typeof v !== "string" || !v.startsWith("/assets/") || (known.exists && !known.exists(v)))) p.push(`${where}: ${v} isn't a picture or sound under /assets/ that exists`); };
+    // art and sound in scenes: a path under /assets/, or an asset ID from the asset list (made or not yet) of the right kind
+    const an = (w) => (/^[aeiou]/.test(w) ? "an " : "a ") + w;
+    const ref = (where, v, kind) => {
+      if (v == null) return;
+      if (typeof v === "string" && v.startsWith("/")) return path(where, v);
+      if (typeof v !== "string" || !/^[a-z][a-z0-9_]*$/.test(v)) return p.push(`${where}: ${JSON.stringify(v)} isn't a path under /assets/ or an asset ID`);
+      if (!known.assets) return;
+      const a = known.assets[v];
+      if (!a) p.push(`${where}: there's no asset ${v} in story-assets.json`);
+      else if (a.kind !== kind) p.push(`${where}: asset ${v} is ${an(a.kind)}, not ${an(kind)}`);
+      else if (a.made && known.exists && !known.exists(a.file)) p.push(`${where}: asset ${v} says it's made, but ${a.file} doesn't exist`);
+    };
     const nums = new Set();
     for (const ep of data.episodes) {
       if (!/^ep\d+$/.test(ep.id) || ep.id !== "ep" + ep.num) p.push(`episode ${ep.id}: the id must be ep + its number`);
@@ -124,14 +137,42 @@
     }
     for (const [id, sc] of Object.entries(data.scenes)) {
       if (sc.id !== id) p.push(`scene ${id}: the id must match the file name`);
-      path(`scene ${id}`, sc.bg); path(`scene ${id}`, sc.music);
+      if (sc.bg != null && sc.shots != null) p.push(`scene ${id}: use shots or bg, not both`);
+      ref(`scene ${id}`, sc.bg, "image"); ref(`scene ${id} music`, sc.music, "music"); ref(`scene ${id} ambience`, sc.ambience, "ambience");
+      const shots = Array.isArray(sc.shots) ? sc.shots : [];
+      if (sc.shots != null && !shots.length) p.push(`scene ${id}: shots must be a list of at least one shot`);
+      for (const [k, s] of shots.entries()) {
+        const at = `scene ${id} shot ${k}`;
+        if (!SHOT_KINDS.includes(s.kind)) p.push(`${at}: the kind must be ${SHOT_KINDS.join(" or ")}`);
+        if (!s.art) p.push(`${at}: it needs art`);
+        ref(at, s.art, s.kind === "video" ? "video" : "image");
+        if (s.kind === "video") ref(`${at} poster`, s.poster, "image");
+        else if (s.poster != null || s.loop != null) p.push(`${at}: only a video has a poster or loops`);
+        if (s.move != null && (s.kind === "video" || !MOVES.includes(s.move))) p.push(`${at}: a still's move is ${MOVES.join(", ")} (a video has none)`);
+        if (s.secs != null && !(s.secs > 0)) p.push(`${at}: secs is how long the move takes, in seconds`);
+        if (s.look != null && !LOOKS.includes(s.look)) p.push(`${at}: the look must be ${LOOKS.join(" or ")}`);
+        if (s.layers != null) { if (!Array.isArray(s.layers) || s.kind === "video") p.push(`${at}: layers are a list of pictures on a still`); else for (const l of s.layers) ref(`${at} layer`, l, "image"); }
+      }
+      const nShots = shots.length || (sc.bg ? 1 : 0);
       if (!Array.isArray(sc.lines) || !sc.lines.length) p.push(`scene ${id}: it needs lines`);
       for (const [k, ln] of (sc.lines || []).entries()) {
-        const c = data.characters[ln.who];
-        if (!c) p.push(`scene ${id} line ${k + 1}: there's no character ${ln.who}`);
-        else if (!c.faces[ln.face]) p.push(`scene ${id} line ${k + 1}: ${ln.who} has no face ${ln.face}`);
-        if (!ln.text || (typeof ln.text === "object" && !ln.text.recruit)) p.push(`scene ${id} line ${k + 1}: it needs text (Recruit at least)`);
-        path(`scene ${id} line ${k + 1}`, ln.voice);
+        const at = `scene ${id} line ${k + 1}`, kind = ln.kind == null ? "line" : ln.kind;
+        if (!LINE_KINDS.includes(kind)) p.push(`${at}: the kind must be ${LINE_KINDS.join(", ")}`);
+        if (kind === "narration") { if (ln.who != null || ln.face != null) p.push(`${at}: narration has no speaker or face`); }
+        else {
+          const c = data.characters[ln.who];
+          if (!c) p.push(`${at}: there's no character ${ln.who}`);
+          else if (!c.faces[ln.face]) p.push(`${at}: ${ln.who} has no face ${ln.face}`);
+        }
+        if (kind === "beeps" && ln.who !== "volt") p.push(`${at}: only Volt beeps`);
+        if (ln.feel != null && (kind !== "beeps" || !FEELS.includes(ln.feel))) p.push(`${at}: feel is for Volt's beeps: ${FEELS.join(", ")}`);
+        if (!ln.text || (typeof ln.text === "object" && !ln.text.recruit)) p.push(`${at}: it needs text (Recruit at least)`);
+        if (ln.id != null) { if (!idOk(ln.id)) p.push(`${at}: the line id must be lowercase words with dashes`); else if (lineIds.has(ln.id)) p.push(`${at}: the line id ${ln.id} is used twice`); lineIds.add(ln.id); }
+        if (ln.shot != null && !(Number.isInteger(ln.shot) && ln.shot >= 0 && ln.shot < nShots)) p.push(`${at}: shot is a place in the scene's shots, 0 to ${nShots - 1}`);
+        if (ln.voice != null && typeof ln.voice === "object") for (const [t, v] of Object.entries(ln.voice)) { if (!LEVELS.includes(t)) p.push(`${at}: voice levels are ${LEVELS.join(", ")}`); ref(`${at} voice`, v, "voice"); }
+        else ref(`${at} voice`, ln.voice, "voice");
+        if (ln.sfx != null) { if (!Array.isArray(ln.sfx)) p.push(`${at}: sfx is a list of sounds`); else for (const s of ln.sfx) ref(`${at} sound`, s, "sfx"); }
+        if ("music" in ln) ref(`${at} music`, ln.music, "music");
       }
     }
     for (const [id, c] of Object.entries(data.characters)) { if (!c.name) p.push(`character ${id}: it needs a name`); for (const f of Object.values(c.faces || {})) path(`character ${id}`, f); }
@@ -145,6 +186,10 @@
   }
   const EVENTS = ["labchallenge", "raceday", "speedrun", "tournament"]; // class events a Mission step can be (PF-3)
   const REWARD_KINDS = ["echo", "volt", "file", "access"];
+  // the scene format the story player plays (storyplayer.js, ST-2)
+  const SHOT_KINDS = ["still", "video"], MOVES = ["push", "pull", "pan-left", "pan-right", "drift"], LOOKS = ["camera"];
+  const LINE_KINDS = ["line", "narration", "beeps"], FEELS = ["happy", "sad", "curious", "scared", "excited", "thinking"];
+  const LEVELS = ["cadet", "recruit", "operative"];
 
-  return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, applyClass, finishedFor, check };
+  return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, SHOT_KINDS, MOVES, LOOKS, LINE_KINDS, FEELS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, applyClass, finishedFor, check };
 });

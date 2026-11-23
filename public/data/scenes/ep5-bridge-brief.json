@@ -1,6 +1,6 @@
 {
   "id": "ep5-bridge-brief",
-  "bg": "/assets/scenes/bridge_blockade.webp",
+  "shots": [{ "kind": "still", "art": "/assets/scenes/bridge_blockade.webp", "move": "push", "secs": 40 }],
   "music": null,
   "lines": [
     {

@@ -35,9 +35,8 @@
           .then(([lesson, ...ms]) => ({ ...d, f, lesson, missionFiles: Object.fromEntries(ms.map((x) => [x.id, x])) }));
       });
   }
-  const scene = (sid) => get(`/data/scenes/${sid}.json`);
   function playScene(sid, done) {
-    scene(sid).then((sc) => StoryPlayer.play(sc, { characters: D.characters, text: T, onDone: done }))
+    StoryPlayer.open(sid, { characters: D.characters, text: T, tier: tier(), onDone: done })
       .catch(() => { message("That scene didn't load", "Check your connection and try again."); });
   }
 
@@ -83,7 +82,7 @@
     const acts = el("div", "acts"), btn = (text, tip, onclick, ghost) => { const b = el("button", ghost ? "btn ghost" : "btn big", text); b.type = "button"; b.setAttribute("data-tip", tip); b.onclick = onclick; acts.appendChild(b); return b; };
     const link = (text, tip, href) => { const a = el("a", "btn big", text); a.href = href; a.setAttribute("data-tip", tip); acts.appendChild(a); return a; };
     if (s === "briefing") {
-      c.append(el("h3", "", "The briefing"), el("p", "", "Find out what's going on, and what you need to learn."));
+      c.append(el("h3", "", "The briefing"), el("p", "", "Find out what's going on, and what you need to learn.")); StoryPlayer.preload(m.briefing);
       btn(done ? "Watch it again" : "Watch the briefing", "Play the story scene. Tap or press Space for each line.", () => playScene(m.briefing, () => { mark({ briefing: Date.now() }); view = null; render(); }));
     } else if (s === "discover") {
       const L = D.lesson, num = D.lessonIds.indexOf(L.id) + 1;
@@ -106,7 +105,7 @@
       c.append(el("h3", "", T(mf.title)), el("p", "", T((mf.tiers[tier()] && mf.tiers[tier()].brief) || mf.tiers.recruit.brief)));
       link(done ? "Play it again" : "Take your shot", "Open the mission. Predict, test your design, and reach the goal.", PAGE[mf.game](mid));
     } else {
-      c.append(el("h3", "", "Mission debrief"), el("p", "", "See how it went, and what you found."));
+      c.append(el("h3", "", "Mission debrief"), el("p", "", "See how it went, and what you found.")); if (m.debrief) StoryPlayer.preload(m.debrief);
       btn("Watch the debrief", "Play the closing scene, then see your reward.", () => {
         const finish = () => { mark({ reward: Date.now(), done: Date.now(), rewards: m.rewards || [] }); view = null; render(); };
         if (m.debrief) playScene(m.debrief, finish); else finish();
