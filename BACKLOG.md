@@ -14,7 +14,6 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| EP1-1 | Episode 1 outline and continuity sheet | Drafted Nov 22 in the private story folder (`ep1-outline.md`, next to the game bible): six missions, the story in 23 beats, the Sentinel's three phases on the sensor simulator's rules, Volt's stages, reading tiers, a continuity sheet and 10 decisions. **Waiting on Duron's approval** (the gate before the script, EP1-2). |
 
 ---
 
@@ -66,6 +65,7 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| EP1-1 | Episode 1 outline and continuity sheet (private, next to the game bible): six missions, 23 story beats, the Sentinel's three phases on the sensor simulator's rules, Volt's stages, reading tiers and a continuity sheet. Approved by Duron with all 10 decisions as recommended; the bible's Episode 1 line now matches the scrap pile, and the repair bench (REP-1) is on the schedule | Nov 22, 2026 (a story document, no deploy) | — |
 | MED-3 | Story media tool (`npm run media`): `report` measures every sound's loudness against its kind's target; `make` levels voice, music, ambience and sound effects to their targets (within 0.2 LU, true peaks under −1.5 dBTP, trimmed and mono for voice, a note when a sharp sound can't get louder without clipping) and makes WebP stills and WebM clips at the plan's sizes. ffmpeg was already installed (9.0.2, winget). The first report found the tour's voice lines spread over 8 LU and its alarm and glitch effects nearly silent (not changed: the tour is approved) | Pushed to `main` Nov 22, 2026 (a production tool; nothing on the site changes). Checked on copies of real files of every kind | 8f52502 |
 | S-02 | Solo Speed Run in the Flying Car Lab: a Speed Run tab next to Missions where a student races the Thrust problems alone (5 or 10, at their reading level, Cadets with pictures), with a number pad, splits green or red against their best, and a personal best saved by set id (and to their class account). A wrong answer locks for 5 seconds; the worked steps and the named mistake show when a problem is over, with the clock stopped. Works offline too | Pushed to `main` Nov 22, 2026; checked on circuitrebels.org (a new browser check: a clean run sets a best, Run again without reloading, a wrong try, a missed problem, Cadet choices, phone size, the offline copy; plus every page and the earlier Lab, story and Speed Run checks) | adcfa34 |
 | DEP-1 | Production check and backlog tidy after the platform flow: every page and earlier check passes on circuitrebels.org with accounts on; finished plan items marked done | Nov 22, 2026 (no deploy) | — |
