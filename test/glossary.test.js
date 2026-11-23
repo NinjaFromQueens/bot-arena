@@ -35,6 +35,8 @@ const sources = [
   ...fs.readdirSync(path.join(pub, "js")).filter((f) => f.endsWith(".js")).map((f) => "js/" + f),
   ...fs.readdirSync(pub).filter((f) => f.endsWith(".html")),
   ...index.map((id) => `data/lessons/${id}.json`),
+  // blog posts (content/blog, outside public/), drafts too: the blog uses the same words as the lessons
+  ...(fs.existsSync(path.join(pub, "../content/blog")) ? fs.readdirSync(path.join(pub, "../content/blog")).filter((f) => f.endsWith(".md")).map((f) => "../content/blog/" + f) : []),
 ];
 const defs = G.map((g) => Tier.LEVELS.map((t) => Tier.text(g.def, t)).join(" ")).join(" ");
 for (const g of G) for (const bad of g.avoid || []) {

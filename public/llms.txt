@@ -13,6 +13,13 @@
 - [Host a class game](https://circuitrebels.org/host): The teacher's board: a join code, then a robot tournament, story missions, Race Day, Speed Run or a live lesson
 - [The trailer](https://circuitrebels.org/tour): A short voiced tour of the story, the crew and the games
 
+## Blog
+
+- [The Circuit Rebels Blog](https://circuitrebels.org/blog/): Clear explanations of how robots sense, think and act, and how to teach it with free lessons and class games.
+- [What is Sense-Think-Act? A simple way to teach how robots work](https://circuitrebels.org/blog/what-is-sense-think-act): Every robot senses, thinks and acts. Teach the loop with a robot vacuum, a quick sorting question and Bot Arena, where every move shows all three steps.
+- [What is Circuit Rebels?](https://circuitrebels.org/blog/what-is-circuit-rebels): A free, browser-based robotics program for grades 5 to 8: 5-minute lessons, class games and a story, run from the teacher's board with a join code.
+- [How do ultrasonic sensors work, and why can't they see a couch?](https://circuitrebels.org/blog/how-ultrasonic-sensors-work): How ultrasonic distance sensors time echoes, the math behind them, and the three things that fool them: soft surfaces, tilted walls and distance past 4 m.
+
 ## Contact
 
 - Email: hello@circuitrebels.org

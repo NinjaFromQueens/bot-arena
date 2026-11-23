@@ -362,7 +362,7 @@ function main(argv) {
     const sm = path.join(PUB, "sitemap.xml"); fs.writeFileSync(sm, sitemapWith(r.config, r.posts, fs.readFileSync(sm, "utf8")));
     const keep = new Set(r.pictures.map((p) => path.basename(p.to))), ogDir = path.join(PUB, "img/blog/og");
     if (fs.existsSync(ogDir)) for (const f of fs.readdirSync(ogDir)) if (!keep.has(f)) fs.unlinkSync(path.join(ogDir, f));
-    if (fs.existsSync(ogDir) && !fs.readdirSync(ogDir).length) fs.rmSync(path.join(PUB, "img/blog"), { recursive: true, force: true });
+    if (fs.existsSync(ogDir) && !fs.readdirSync(ogDir).length) fs.rmdirSync(ogDir); // only the share pictures' folder: post pictures live in img/blog too
   }
   const made = r.pictures.map((p) => `${p.to} (${sharePicture(out, p.from, p.to)})`);
   console.log(`${r.posts.length} post${r.posts.length === 1 ? "" : "s"}${out === PUB ? "" : " (preview in " + out + ")"}: ${Object.keys(r.files).length} files${made.length ? "; share pictures: " + made.join(", ") : ""}`);

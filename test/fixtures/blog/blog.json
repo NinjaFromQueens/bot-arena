@@ -1,7 +1,7 @@
 {
   "site": "https://circuitrebels.org",
   "name": "The Circuit Rebels Blog",
-  "description": "Clear, classroom-tested explanations of how robots sense, think and act, and how to teach it with free lessons and class games.",
+  "description": "Clear explanations of how robots sense, think and act, and how to teach it with free lessons and class games.",
   "facts": "Circuit Rebels is a free, browser-based robotics program for grades 5 to 8, made in New York City by Duron Epps. Students learn how machines sense, think and act through 5-minute lessons and class games. No student accounts are needed to play, and it runs on Chromebooks.",
   "author": {
     "name": "Duron Epps",

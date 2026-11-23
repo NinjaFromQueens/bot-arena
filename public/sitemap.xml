@@ -8,5 +8,11 @@
   <url><loc>https://circuitrebels.org/race</loc></url>
   <url><loc>https://circuitrebels.org/lab</loc></url>
   <!-- blog: written by npm run blog -->
+  <url><loc>https://circuitrebels.org/blog/</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://circuitrebels.org/blog/topic/lessons-explained</loc></url>
+  <url><loc>https://circuitrebels.org/blog/topic/for-teachers</loc></url>
+  <url><loc>https://circuitrebels.org/blog/what-is-sense-think-act</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://circuitrebels.org/blog/what-is-circuit-rebels</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://circuitrebels.org/blog/how-ultrasonic-sensors-work</loc><lastmod>2026-11-22</lastmod></url>
   <!-- /blog -->
 </urlset>

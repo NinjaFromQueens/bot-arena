@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en" class="hp-html">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How do ultrasonic sensors work, and why can't they see a couch? | Circuit Rebels</title>
+<meta name="description" content="How ultrasonic distance sensors time echoes, the math behind them, and the three things that fool them: soft surfaces, tilted walls and distance past 4 m.">
+<link rel="canonical" href="https://circuitrebels.org/blog/how-ultrasonic-sensors-work">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Circuit Rebels">
+<meta property="og:url" content="https://circuitrebels.org/blog/how-ultrasonic-sensors-work">
+<meta property="og:title" content="How do ultrasonic sensors work, and why can't they see a couch?">
+<meta property="og:description" content="How ultrasonic distance sensors time echoes, the math behind them, and the three things that fool them: soft surfaces, tilted walls and distance past 4 m.">
+<meta property="og:image" content="https://circuitrebels.org/img/blog/og/how-ultrasonic-sensors-work.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The lesson's ultrasonic simulator: a robot's chirp spreads out in a cone, bounces off a hard wall 2 m away and comes back as an echo. The sensor's range ends at about 4 m.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1b1a1e">
+<meta property="article:published_time" content="2026-11-22">
+<meta property="article:modified_time" content="2026-11-22">
+<meta property="article:section" content="Lessons Explained">
+<meta name="author" content="Duron Epps">
+<link rel="icon" href="/img/logo.svg">
+<link rel="alternate" type="application/rss+xml" title="The Circuit Rebels Blog" href="/blog/feed.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="/css/blog.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      "@id": "https://circuitrebels.org/blog/how-ultrasonic-sensors-work#post",
+      "headline": "How do ultrasonic sensors work, and why can't they see a couch?",
+      "description": "How ultrasonic distance sensors time echoes, the math behind them, and the three things that fool them: soft surfaces, tilted walls and distance past 4 m.",
+      "abstract": "An ultrasonic sensor chirps a sound too high for people to hear, then times the echo. Sound travels about 343 meters per second and makes a round trip, so distance equals 343 times the time, divided by 2. Soft things like couches soak up the chirp, so the robot hears nothing and thinks the path is clear.",
+      "image": [
+        "https://circuitrebels.org/img/blog/og/how-ultrasonic-sensors-work.jpg"
+      ],
+      "datePublished": "2026-11-22",
+      "dateModified": "2026-11-22",
+      "inLanguage": "en",
+      "articleSection": "Lessons Explained",
+      "wordCount": 608,
+      "author": {
+        "@type": "Person",
+        "name": "Duron Epps",
+        "url": "https://circuitrebels.org/#about",
+        "jobTitle": "Founder of Circuit Rebels"
+      },
+      "publisher": {
+        "@id": "https://circuitrebels.org/#org"
+      },
+      "mainEntityOfPage": "https://circuitrebels.org/blog/how-ultrasonic-sensors-work"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://circuitrebels.org/blog/how-ultrasonic-sensors-work#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Why is it called ultrasonic?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ultrasonic means beyond sound. The chirp vibrates about 40,000 times per second, and people can only hear up to about 20,000, so it's too high for us to hear."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do you calculate distance from an ultrasonic echo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Multiply the echo time by the speed of sound, about 343 meters per second, then divide by 2, because the sound goes there and back. An echo after 10 milliseconds means about 1.7 meters."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How far can an ultrasonic sensor measure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A typical classroom ultrasonic sensor can't hear echoes from more than about 4 meters away. Past that, the sound spreads out and gets too weak."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can an ultrasonic sensor detect glass?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Sound bounces off a glass door like any hard wall. That's one place ultrasonic beats lidar, whose laser can go straight through clear glass."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does my robot drive into the couch?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Soft things like couches, pillows and curtains soak up the chirp instead of bouncing it back. The sensor hears no echo, so the robot thinks the path is clear."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Blog",
+          "item": "https://circuitrebels.org/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Lessons Explained",
+          "item": "https://circuitrebels.org/blog/topic/lessons-explained"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "How do ultrasonic sensors work, and why can't they see a couch?",
+          "item": "https://circuitrebels.org/blog/how-ultrasonic-sensors-work"
+        }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://circuitrebels.org/#org",
+      "name": "Circuit Rebels",
+      "url": "https://circuitrebels.org/",
+      "logo": "https://circuitrebels.org/img/logo.svg",
+      "email": "hello@circuitrebels.org",
+      "description": "Circuit Rebels is a free, browser-based robotics program for grades 5 to 8, made in New York City by Duron Epps. Students learn how machines sense, think and act through 5-minute lessons and class games. No student accounts are needed to play, and it runs on Chromebooks.",
+      "founder": {
+        "@type": "Person",
+        "name": "Duron Epps"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/company/circuit-rebels/",
+        "https://www.facebook.com/circuitrebels1",
+        "https://www.instagram.com/circuitrebels/"
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-page="blog" class="hp">
+<a class="hp-skip" href="#main">Skip to the page</a>
+<header class="hp-nav">
+  <div class="hp-in hp-nav-in">
+    <a class="hp-brand" href="/"><img src="/img/logo.svg" width="36" height="36" alt="">Circuit Rebels</a>
+    <nav class="hp-links" aria-label="Site">
+      <a href="/map" data-tip="The Neo Harbor story map: play the story's missions, episode by episode.">Story</a>
+      <a href="/learn" data-tip="Short lessons you can do on your own. Each one has something to try.">Learn</a>
+      <a href="/#games" data-tip="Bot Arena, Robot Racer and the Flying Car Lab.">Games</a>
+      <a href="/#schools" data-tip="For teachers and program leaders: how it runs in class, hosting a game, and the spring pilot.">For Schools</a>
+      <a href="/blog/" data-tip="Articles for teachers about how robots sense, think and act, and how to teach it.">Blog</a>
+      <a href="/#about" data-tip="Who makes Circuit Rebels, and how to reach us.">About</a>
+    </nav>
+    <a class="btn" href="/#joinform" data-tip="Type the code from your teacher's board to join the class game.">Join a game</a>
+  </div>
+</header>
+<main id="main" class="bl">
+<article class="hp-in bl-post">
+  <nav class="bl-crumb" aria-label="Breadcrumb"><a href="/blog/">Blog</a> <span aria-hidden="true">›</span> <a href="/blog/topic/lessons-explained">Lessons Explained</a></nav>
+  <h1>How do ultrasonic sensors work, and why can't they see a couch?</h1>
+  <p class="bl-by">By <a href="#author">Duron Epps</a> · <time datetime="2026-11-22">November 22, 2026</time> · 4 min read</p>
+  <img class="bl-hero-img" src="/img/blog/ultrasonic-echo.webp" alt="The lesson's ultrasonic simulator: a robot's chirp spreads out in a cone, bounces off a hard wall 2 m away and comes back as an echo. The sensor's range ends at about 4 m." width="1200" height="675" decoding="async">
+  <div class="bl-answer"><p class="hp-kicker">Quick answer</p><p>An ultrasonic sensor chirps a sound too high for people to hear, then times the echo. Sound travels about 343 meters per second and makes a round trip, so distance equals 343 times the time, divided by 2. Soft things like couches soak up the chirp, so the robot hears nothing and thinks the path is clear.</p></div>
+  <div class="bl-body">
+<p>Ultrasonic sensors are the eyes of most classroom robots, and they don&#39;t see at all: they listen. Understanding how they work, and how they fail, is one of the best ways to teach students that a robot only knows what its sensors tell it.</p>
+<h2>Chirp, then listen</h2>
+<p>An ultrasonic sensor finds things the way a bat does: it chirps, then listens for the echo. It has two round parts on its front:</p>
+<ul>
+<li>a <strong>speaker</strong> that sends the chirp</li>
+<li>a <strong>microphone</strong> that hears the echo</li>
+</ul>
+<p>The chirp vibrates about 40,000 times per second. People can only hear up to about 20,000, so it&#39;s too high for us. That&#39;s why it&#39;s called ultrasonic: beyond sound.</p>
+<h2>The math: distance = 343 × time ÷ 2</h2>
+<p>The sensor starts a timer when it chirps and stops it when the echo comes back. Sound travels about 343 meters per second, and it goes there <strong>and back</strong>, so:</p>
+<p><strong>distance = 343 × time ÷ 2</strong></p>
+<p>The times are tiny, so we use milliseconds (thousandths of a second):</p>
+<table>
+<thead>
+<tr>
+<th>Echo time</th>
+<th>Distance</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>6 ms</td>
+<td>about 1.0 m</td>
+</tr>
+<tr>
+<td>10 ms</td>
+<td>about 1.7 m</td>
+</tr>
+<tr>
+<td>11.7 ms</td>
+<td>2 m (the picture above)</td>
+</tr>
+</tbody></table>
+<p>The &quot;÷ 2&quot; is the step students forget. Ask them why it&#39;s there before you explain it: the sound&#39;s trip is twice the distance to the wall.</p>
+<h2>The cone</h2>
+<p>The chirp doesn&#39;t go out in a thin line. It spreads in a cone, like a flashlight beam, and the sensor reports the <strong>closest</strong> thing inside the cone. In the lesson&#39;s simulator, the cone spreads 15° to each side of straight ahead.</p>
+<h2>Three things that fool it</h2>
+<p>Every one of these ends the same way: the robot hears nothing, decides the path is clear, and crashes.</p>
+<table>
+<thead>
+<tr>
+<th>What fools it</th>
+<th>Why</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Soft things</strong></td>
+<td>Fabric soaks up the sound instead of bouncing it back</td>
+<td>Couches, pillows, curtains</td>
+</tr>
+<tr>
+<td><strong>Tilted walls</strong></td>
+<td>The sound bounces off to the side, like a ball hitting a wall at an angle, and the echo never reaches the microphone. In the simulator, a wall turned more than 15° does this.</td>
+<td>A wall the robot meets at an angle</td>
+</tr>
+<tr>
+<td><strong>Far things</strong></td>
+<td>Sound gets weaker as it spreads out</td>
+<td>Anything past about 4 m for a typical classroom sensor</td>
+</tr>
+</tbody></table>
+<p>This is the Sense step failing. The robot&#39;s Think step is working perfectly: it heard no echo, so it decided the way was clear. It was wrong because of what it sensed, not how it thought.</p>
+<h2>What about glass?</h2>
+<p>Glass doesn&#39;t fool an ultrasonic sensor: sound bounces off a glass door like any hard wall. That&#39;s where ultrasonic beats lidar, whose laser can go straight through clear glass. It&#39;s one reason many robots carry more than one kind of sensor.</p>
+<h2>Try it in the simulator</h2>
+<p>The lesson&#39;s simulator shows the chirp in super slow motion. Students pick a target, set the distance and press Ping, with four experiments to finish:</p>
+<ol>
+<li>Get an echo from the hard wall</li>
+<li>Ping the pillow</li>
+<li>Ping the tilted wall</li>
+<li>Find a wall too far away to hear</li>
+</ol>
+<p>Have students predict each result before they press Ping, then explain any surprise using the table above.</p>
+<h2>In Bot Arena</h2>
+<p>In Bot Arena, the Ultrasonic sensor measures distance, so it aims okay and dodges better. It&#39;s a good choice for students who want a robot that&#39;s hard to hit, and a good way to start a conversation about what each sensor is best at.</p>
+
+  </div>
+  <aside class="bl-try" aria-label="Try it free"><p class="hp-kicker">Try it free</p><div class="bl-tries"><a class="bl-tryitem" href="/learn#lesson-ultrasonic" data-tip="Lesson: Ultrasonic: seeing with sound"><span class="k">Lesson</span><b>Ultrasonic: seeing with sound</b><span class="a">How a robot measures distance with echoes, and what can fool it.</span></a><a class="bl-tryitem" href="/practice" data-tip="Game: Bot Arena"><span class="k">Game</span><b>Bot Arena</b><span class="a">Build a robot from parts that sense, think and act, then battle it.</span></a></div></aside>
+  <section class="bl-faq" aria-labelledby="faq-h"><h2 id="faq-h">Questions and answers</h2>
+    <h3>Why is it called ultrasonic?</h3>
+    <p>Ultrasonic means beyond sound. The chirp vibrates about 40,000 times per second, and people can only hear up to about 20,000, so it's too high for us to hear.</p>
+    <h3>How do you calculate distance from an ultrasonic echo?</h3>
+    <p>Multiply the echo time by the speed of sound, about 343 meters per second, then divide by 2, because the sound goes there and back. An echo after 10 milliseconds means about 1.7 meters.</p>
+    <h3>How far can an ultrasonic sensor measure?</h3>
+    <p>A typical classroom ultrasonic sensor can't hear echoes from more than about 4 meters away. Past that, the sound spreads out and gets too weak.</p>
+    <h3>Can an ultrasonic sensor detect glass?</h3>
+    <p>Yes. Sound bounces off a glass door like any hard wall. That's one place ultrasonic beats lidar, whose laser can go straight through clear glass.</p>
+    <h3>Why does my robot drive into the couch?</h3>
+    <p>Soft things like couches, pillows and curtains soak up the chirp instead of bouncing it back. The sensor hears no echo, so the robot thinks the path is clear.</p>
+  </section>
+  <aside class="bl-author" id="author"><img src="/img/logo.svg" width="56" height="56" alt=""><div><b>Duron Epps</b><span>Founder of Circuit Rebels</span><p>Duron Epps made Circuit Rebels. He is a CUNY York College alumnus and a former robotics team software lead, and he teaches robotics on Saturdays in New York City.</p></div></aside>
+</article>
+<section class="hp-in bl-sec" aria-labelledby="more-h"><h2 class="bl-h" id="more-h">Keep reading</h2><div class="bl-three"><article class="bl-card"><a class="bl-pic" href="/blog/what-is-sense-think-act" tabindex="-1" aria-hidden="true"><img src="/img/blog/sense-think-act.webp" alt="" loading="lazy" decoding="async" width="1200" height="675"></a><h3><a href="/blog/what-is-sense-think-act">What is Sense-Think-Act? A simple way to teach how robots work</a></h3><p class="bl-by">By Duron Epps | November 22, 2026</p></article><article class="bl-card"><a class="bl-pic" href="/blog/what-is-circuit-rebels" tabindex="-1" aria-hidden="true"><img src="/img/home/hero.webp" alt="" loading="lazy" decoding="async" width="1200" height="675"></a><h3><a href="/blog/what-is-circuit-rebels">What is Circuit Rebels?</a></h3><p class="bl-by">By Duron Epps | November 22, 2026</p></article></div></section>
+</main>
+<section class="bl-cta" aria-label="Try Circuit Rebels">
+  <div class="hp-in">
+    <div><p class="hp-kicker">Free for every class</p><h2>Try it with your students</h2><p class="hp-soft">Circuit Rebels is a free, browser-based robotics program for grades 5 to 8, made in New York City by Duron Epps. Students learn how machines sense, think and act through 5-minute lessons and class games. No student accounts are needed to play, and it runs on Chromebooks.</p></div>
+    <div class="bl-ctabtns"><a class="btn big" href="/host" data-tip="Opens the teacher's board with a join code.">Host a class</a><a class="btn big ghost" href="/learn" data-tip="Open the free lessons. Each one takes about 5 minutes.">See the lessons</a></div>
+  </div>
+</section>
+<footer class="hp-foot" id="about">
+  <div class="hp-in">
+    <div class="hp-footcols">
+      <div>
+        <b>Circuit Rebels</b>
+        <p>Circuit Rebels is a free, browser-based robotics program for grades 5 to 8. It is made in New York City by Duron Epps, a CUNY York College alumnus who teaches robotics on Saturdays.</p>
+        <p><a href="mailto:hello@circuitrebels.org" data-tip="Opens an email to hello@circuitrebels.org.">hello@circuitrebels.org</a></p>
+      </div>
+      <div>
+        <h3>Play</h3>
+        <a href="/#joinform">Join a game</a>
+        <a href="/host">Host a game</a>
+        <a href="/practice">Bot Arena</a>
+        <a href="/race">Robot Racer</a>
+        <a href="/lab">Flying Car Lab</a>
+      </div>
+      <div>
+        <h3>Learn</h3>
+        <a href="/learn">Lessons</a>
+        <a href="/blog/">Blog</a>
+        <a href="/map">Story map</a>
+        <a href="/tour">The trailer</a>
+      </div>
+      <div>
+        <h3>Schools</h3>
+        <a href="/#schools">For schools</a>
+        <a href="/#pilot">Founding Programs</a>
+        <a href="/host">Host on the board</a>
+      </div>
+      <div>
+        <h3>Follow</h3>
+        <a href="https://www.linkedin.com/company/circuit-rebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on LinkedIn. Opens in a new tab.">LinkedIn</a>
+        <a href="https://www.facebook.com/circuitrebels1" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Facebook. Opens in a new tab.">Facebook</a>
+        <a href="https://www.instagram.com/circuitrebels/" target="_blank" rel="noopener" data-tip="Follow Circuit Rebels on Instagram. Opens in a new tab.">Instagram</a>
+        <a href="/blog/feed.xml" data-tip="New posts in your feed reader (RSS).">RSS feed</a>
+      </div>
+    </div>
+    <div class="hp-fine">
+      <span>© 2026 Circuit Rebels. Made in New York City.</span>
+      <span>Story mode and the new labs are in development and may change before launch.</span>
+    </div>
+  </div>
+</footer>
+<script src="/js/tips.js"></script>
+</body>
+</html>

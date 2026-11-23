@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>The Circuit Rebels Blog</title>
+  <link>https://circuitrebels.org/blog/</link>
+  <atom:link href="https://circuitrebels.org/blog/feed.xml" rel="self" type="application/rss+xml"/>
+  <description>Clear explanations of how robots sense, think and act, and how to teach it with free lessons and class games.</description>
+  <language>en</language>
+  <lastBuildDate>Sun, 22 Nov 2026 12:00:00 GMT</lastBuildDate>
+  <item>
+    <title>What is Sense-Think-Act? A simple way to teach how robots work</title>
+    <link>https://circuitrebels.org/blog/what-is-sense-think-act</link>
+    <guid isPermaLink="true">https://circuitrebels.org/blog/what-is-sense-think-act</guid>
+    <pubDate>Sun, 22 Nov 2026 12:00:00 GMT</pubDate>
+    <category>Lessons Explained</category>
+    <description>Sense-Think-Act is the loop every robot runs. It senses the world with sensors, thinks with a computer that decides what to do, and acts with motors, wheels or arms. If a machine is missing one of the three, or a person has to make every decision, it isn't a robot.</description>
+  </item>
+  <item>
+    <title>What is Circuit Rebels?</title>
+    <link>https://circuitrebels.org/blog/what-is-circuit-rebels</link>
+    <guid isPermaLink="true">https://circuitrebels.org/blog/what-is-circuit-rebels</guid>
+    <pubDate>Sun, 22 Nov 2026 12:00:00 GMT</pubDate>
+    <category>For Teachers</category>
+    <description>Circuit Rebels is a free, browser-based robotics program for grades 5 to 8. Students learn how machines sense, think and act in 5-minute lessons, then put each idea to work in class games like Bot Arena, Robot Racer and the Flying Car Lab. It runs on Chromebooks, and no student accounts are needed to play.</description>
+  </item>
+  <item>
+    <title>How do ultrasonic sensors work, and why can't they see a couch?</title>
+    <link>https://circuitrebels.org/blog/how-ultrasonic-sensors-work</link>
+    <guid isPermaLink="true">https://circuitrebels.org/blog/how-ultrasonic-sensors-work</guid>
+    <pubDate>Sun, 22 Nov 2026 12:00:00 GMT</pubDate>
+    <category>Lessons Explained</category>
+    <description>An ultrasonic sensor chirps a sound too high for people to hear, then times the echo. Sound travels about 343 meters per second and makes a round trip, so distance equals 343 times the time, divided by 2. Soft things like couches soak up the chirp, so the robot hears nothing and thinks the path is clear.</description>
+  </item>
+</channel>
+</rss>

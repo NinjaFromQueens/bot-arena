@@ -1,7 +1,7 @@
 {
   "site": "https://circuitrebels.org",
   "name": "The Circuit Rebels Blog",
-  "description": "Clear, classroom-tested explanations of how robots sense, think and act, and how to teach it with free lessons and class games.",
+  "description": "Clear explanations of how robots sense, think and act, and how to teach it with free lessons and class games.",
   "facts": "Circuit Rebels is a free, browser-based robotics program for grades 5 to 8, made in New York City by Duron Epps. Students learn how machines sense, think and act through 5-minute lessons and class games. No student accounts are needed to play, and it runs on Chromebooks.",
   "author": {
     "name": "Duron Epps",
@@ -9,21 +9,77 @@
     "bio": "Duron Epps made Circuit Rebels. He is a CUNY York College alumnus and a former robotics team software lead, and he teaches robotics on Saturdays in New York City."
   },
   "topics": [
-    { "id": "lessons-explained", "name": "Lessons Explained", "blurb": "How sensors, motors, gears, forces and if-then rules work, each tied to a free lesson." },
-    { "id": "classroom-games", "name": "Classroom Games", "blurb": "How each game teaches, and how to run it with a class." },
-    { "id": "for-teachers", "name": "For Teachers", "blurb": "Setup, classroom routines, standards and privacy." },
-    { "id": "inside-neo-harbor", "name": "Inside Neo Harbor", "blurb": "The story world students explore, without spoilers." },
-    { "id": "updates", "name": "Updates", "blurb": "What's new on Circuit Rebels." }
+    {
+      "id": "lessons-explained",
+      "name": "Lessons Explained",
+      "blurb": "How sensors, motors, gears, forces and if-then rules work, each tied to a free lesson."
+    },
+    {
+      "id": "classroom-games",
+      "name": "Classroom Games",
+      "blurb": "How each game teaches, and how to run it with a class."
+    },
+    {
+      "id": "for-teachers",
+      "name": "For Teachers",
+      "blurb": "Setup, classroom routines, standards and privacy."
+    },
+    {
+      "id": "inside-neo-harbor",
+      "name": "Inside Neo Harbor",
+      "blurb": "The story world students explore, without spoilers."
+    },
+    {
+      "id": "updates",
+      "name": "Updates",
+      "blurb": "What's new on Circuit Rebels."
+    }
   ],
-  "featured": [],
+  "featured": [
+    "what-is-circuit-rebels",
+    "what-is-sense-think-act",
+    "how-ultrasonic-sensors-work"
+  ],
   "pages": [
-    { "name": "Home", "path": "/", "about": "What Circuit Rebels is, the doors for students and teachers, and how it runs in class" },
-    { "name": "Robot lessons", "path": "/learn", "about": "{lessons} five-minute lessons on sensors, motors, robot arms, forces and if-then rules, each ending in a game challenge" },
-    { "name": "The story map", "path": "/map", "about": "Neo Harbor, the story's world: each episode's missions, played alone or with a class" },
-    { "name": "Bot Arena practice", "path": "/practice", "about": "Build a robot from parts that sense, think and act, battle it, and solve Brain Challenges with if-then rules" },
-    { "name": "Robot Racer", "path": "/race", "about": "A racing game about motors and gears: pick the gear ratio and tires for each track's hills and corners" },
-    { "name": "Flying Car Lab", "path": "/lab", "about": "Design a flying car and fly missions that teach thrust, weight and landing, plus a solo Speed Run of math problems" },
-    { "name": "Host a class game", "path": "/host", "about": "The teacher's board: a join code, then a robot tournament, story missions, Race Day, Speed Run or a live lesson" },
-    { "name": "The trailer", "path": "/tour", "about": "A short voiced tour of the story, the crew and the games" }
+    {
+      "name": "Home",
+      "path": "/",
+      "about": "What Circuit Rebels is, the doors for students and teachers, and how it runs in class"
+    },
+    {
+      "name": "Robot lessons",
+      "path": "/learn",
+      "about": "{lessons} five-minute lessons on sensors, motors, robot arms, forces and if-then rules, each ending in a game challenge"
+    },
+    {
+      "name": "The story map",
+      "path": "/map",
+      "about": "Neo Harbor, the story's world: each episode's missions, played alone or with a class"
+    },
+    {
+      "name": "Bot Arena practice",
+      "path": "/practice",
+      "about": "Build a robot from parts that sense, think and act, battle it, and solve Brain Challenges with if-then rules"
+    },
+    {
+      "name": "Robot Racer",
+      "path": "/race",
+      "about": "A racing game about motors and gears: pick the gear ratio and tires for each track's hills and corners"
+    },
+    {
+      "name": "Flying Car Lab",
+      "path": "/lab",
+      "about": "Design a flying car and fly missions that teach thrust, weight and landing, plus a solo Speed Run of math problems"
+    },
+    {
+      "name": "Host a class game",
+      "path": "/host",
+      "about": "The teacher's board: a join code, then a robot tournament, story missions, Race Day, Speed Run or a live lesson"
+    },
+    {
+      "name": "The trailer",
+      "path": "/tour",
+      "about": "A short voiced tour of the story, the crew and the games"
+    }
   ]
 }
