@@ -211,9 +211,9 @@
       showShot(at(scene, k, "shot", 0));
       if (kind === "narration") { faceBox.classList.add("off"); name.hidden = true; }
       else {
-        const f = faceFor(ln); faceBox.classList.remove("off"); name.hidden = false;
-        if (faceBox.firstChild !== f.node) { faceBox.innerHTML = ""; faceBox.appendChild(f.node); }
-        name.textContent = f.name;
+        const f = faceFor(ln); name.hidden = false; name.textContent = f.name;
+        faceBox.classList.toggle("off", ln.face == null); // a line without a face is a voice with no picture
+        if (ln.face != null && faceBox.firstChild !== f.node) { faceBox.innerHTML = ""; faceBox.appendChild(f.node); }
       }
       box.classList.toggle("narr", kind === "narration"); text.classList.toggle("beeps", kind === "beeps");
       text.textContent = T(ln.text);
@@ -226,7 +226,7 @@
       lineSound(ln, my);
       kick();
       const n = lines[k + 1]; // get the next line's picture and shot ready
-      if (n) { if ((n.kind || "line") !== "narration") faceFor(n); const ns = at(scene, k + 1, "shot", 0); if (shots[ns]) shotEl(ns); }
+      if (n) { if ((n.kind || "line") !== "narration" && n.face != null) faceFor(n); const ns = at(scene, k + 1, "shot", 0); if (shots[ns]) shotEl(ns); }
     }
     function stop() {
       if (stopped) return; stopped = true;
@@ -257,5 +257,52 @@
     show(0); next.focus();
     return { end };
   }
-  window.StoryPlayer = { play, open, preload, resolve };
+
+  // a finished film (the opening): the clip with its captions (WebVTT with <v Speaker> tags) in the dialog frame under
+  // the picture. Sound follows the same Sound button as scenes and the captions always show. Tap or Space pauses; the
+  // arrows jump 5 s. Skipping counts as watched. f: { film, captions, poster }; o: { big, onDone }
+  function film(f, o) {
+    const old = document.querySelector(".sp-overlay"); if (old) { if (old._stop) old._stop(); else old.remove(); }
+    const wrap = el("div", "sp-overlay film" + (o.big ? " big" : "")); wrap.setAttribute("role", "dialog"); wrap.setAttribute("aria-modal", "true"); wrap.setAttribute("aria-label", "The opening film");
+    const v = document.createElement("video"); v.className = "sp-film"; v.playsInline = true; v.preload = "auto"; if (f.poster) v.poster = f.poster;
+    const tr = document.createElement("track"); tr.kind = "captions"; tr.srclang = "en"; tr.label = "English"; tr.src = f.captions; v.appendChild(tr); tr.track.mode = "hidden"; // the player draws the captions itself, in the dialog frame
+    const box = el("div", "sp-box"), name = el("b", "sp-name"), text = el("p", "sp-text"); text.setAttribute("aria-live", "polite");
+    const ctl = el("div", "sp-ctl"), clock = el("span", "sp-count"), snd = el("button", "btn ghost sp-snd"), pause = el("button", "btn ghost"), skip = el("button", "btn", "Skip");
+    for (const b of [snd, pause, skip]) b.type = "button";
+    snd.setAttribute("data-tip", "Turn the film's sound on or off. The words always show.");
+    pause.setAttribute("data-tip", "Pause or play the film. Space works too, and the arrow keys jump 5 seconds.");
+    skip.setAttribute("data-tip", "Close the film. It still counts as watched.");
+    ctl.append(clock, snd, pause, skip); box.append(name, text, ctl); wrap.append(v, box);
+    document.body.appendChild(wrap);
+    let soundOn = store.get("cr-story-sound") === "1", finished = false, stopped = false;
+    const mm = (s) => (s > 0 ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00");
+    const labels = () => { snd.textContent = soundOn ? "Sound: on" : "Sound: off"; snd.setAttribute("aria-pressed", soundOn); pause.textContent = v.paused && !v.ended ? "Play" : "Pause"; clock.textContent = `${mm(v.currentTime)} / ${mm(v.duration)}`; };
+    function caption() { // the cue playing now, or nothing between lines
+      const c = tr.track.activeCues && tr.track.activeCues[0], raw = c ? c.text : "", who = (raw.match(/^<v\s+([^>]+)>/) || [])[1] || "";
+      text.textContent = raw.replace(/<[^>]+>/g, "").trim();
+      box.classList.toggle("narr", !who || who === "Narrator"); name.hidden = !who || who === "Narrator"; name.textContent = who;
+    }
+    tr.track.addEventListener("cuechange", caption);
+    v.addEventListener("timeupdate", labels); v.addEventListener("play", labels); v.addEventListener("pause", labels); v.addEventListener("loadedmetadata", labels);
+    v.addEventListener("ended", () => end());
+    v.addEventListener("error", () => { text.textContent = "The film didn't load. Check your connection and try again."; name.hidden = true; pause.hidden = true; skip.textContent = "Close"; });
+    function go() { v.muted = !soundOn; const p = v.play(); if (p && p.catch) p.catch(() => { if (!v.muted) { v.muted = true; soundOn = false; labels(); start(v); } }); } // a refused start with sound plays muted
+    const toggle = () => (v.paused ? go() : v.pause());
+    function stop() { if (stopped) return; stopped = true; v.pause(); v.removeAttribute("src"); v.load(); removeEventListener("keydown", onKey); wrap.remove(); }
+    function end() { if (finished) return; finished = true; stop(); if (o.onDone) o.onDone(); }
+    function onKey(e) {
+      if ((e.key === " " || e.key === "Enter") && e.target.closest && e.target.closest("button")) return;
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
+      else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); try { v.currentTime = Math.max(0, v.currentTime + (e.key === "ArrowRight" ? 5 : -5)); } catch {} }
+      else if (e.key === "Escape") end();
+    }
+    snd.onclick = () => { soundOn = !soundOn; store.set("cr-story-sound", soundOn ? "1" : "0"); v.muted = !soundOn; labels(); };
+    pause.onclick = toggle; skip.onclick = end;
+    wrap.addEventListener("click", (e) => { if (!e.target.closest("button")) toggle(); });
+    addEventListener("keydown", onKey);
+    wrap._stop = stop;
+    v.src = f.film; labels(); go(); pause.focus();
+    return { end, video: v };
+  }
+  window.StoryPlayer = { play, open, preload, resolve, film };
 })();

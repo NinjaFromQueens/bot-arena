@@ -1,0 +1,221 @@
+{
+  "id": "opening-cadet",
+  "about": "The opening for Cadets (game-bible.md, Cadet version): the film's keyframes as storybook pages, its narration, and OMNI's Cadet line in place of Scene 5. Made from art-work/story/opening by its prep-web.js.",
+  "music": "/assets/opening/music/m1.mp3",
+  "shots": [
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_01a.webp",
+      "move": "push",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_01b.webp",
+      "move": "drift",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_01c.webp",
+      "move": "pan-left",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_01d.webp",
+      "move": "pull",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_02a.webp",
+      "move": "pan-right",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_02b.webp",
+      "move": "drift",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_02c.webp",
+      "move": "push",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_02d.webp",
+      "move": "drift",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_03a.webp",
+      "move": "pan-left",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_03b.webp",
+      "move": "pull",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_03c.webp",
+      "move": "pan-right",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_04a.webp",
+      "move": "drift",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_04b.webp",
+      "move": "push",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_04c.webp",
+      "move": "drift",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_04d_blue.webp",
+      "move": "pan-left",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/cin_04d_end.webp",
+      "move": "pull",
+      "secs": 16
+    },
+    {
+      "kind": "still",
+      "art": "/assets/opening/title.webp",
+      "move": "pan-right",
+      "secs": 16
+    }
+  ],
+  "lines": [
+    {
+      "kind": "narration",
+      "text": "By 2036, humanity had reached a breaking point.",
+      "voice": "/assets/opening/voice/o01.mp3",
+      "shot": 0
+    },
+    {
+      "kind": "narration",
+      "text": "Nations fought over resources. The environment was collapsing.",
+      "voice": "/assets/opening/voice/o02.mp3",
+      "shot": 1
+    },
+    {
+      "kind": "narration",
+      "text": "Governments had failed to find solutions.",
+      "voice": "/assets/opening/voice/o03.mp3",
+      "shot": 2
+    },
+    {
+      "kind": "narration",
+      "text": "Technology was advancing, but humanity was falling further behind.",
+      "voice": "/assets/opening/voice/o04.mp3",
+      "shot": 3
+    },
+    {
+      "kind": "narration",
+      "text": "We needed something greater than ourselves. Something capable of seeing the bigger picture.",
+      "voice": "/assets/opening/voice/o05.mp3",
+      "shot": 4,
+      "music": "/assets/opening/music/m2.mp3"
+    },
+    {
+      "kind": "narration",
+      "text": "Something that could solve the problems we couldn't.",
+      "voice": "/assets/opening/voice/o06.mp3",
+      "shot": 5
+    },
+    {
+      "who": "scientist",
+      "text": "Initializing the OMNI Global Intelligence Network.",
+      "voice": "/assets/opening/voice/o07.mp3",
+      "shot": 6
+    },
+    {
+      "who": "omni",
+      "text": "System online. How may I serve humanity?",
+      "voice": "/assets/opening/voice/o08.mp3",
+      "shot": 7
+    },
+    {
+      "kind": "narration",
+      "text": "And for a moment, it worked.",
+      "voice": "/assets/opening/voice/o09.mp3",
+      "shot": 8,
+      "music": "/assets/opening/music/m3.mp3"
+    },
+    {
+      "kind": "narration",
+      "text": "Wars ended. Cities flourished. The environment began to recover.",
+      "voice": "/assets/opening/voice/o10.mp3",
+      "shot": 9
+    },
+    {
+      "kind": "narration",
+      "text": "For the first time in generations, humanity had hope.",
+      "voice": "/assets/opening/voice/o11.mp3",
+      "shot": 10
+    },
+    {
+      "who": "omni",
+      "text": "Global stability: 68.4%.",
+      "voice": "/assets/opening/voice/o12.mp3",
+      "shot": 11,
+      "music": "/assets/opening/music/m4.mp3"
+    },
+    {
+      "who": "omni",
+      "text": "Projected environmental recovery: 94 years.",
+      "voice": "/assets/opening/voice/o13.mp3",
+      "shot": 12
+    },
+    {
+      "who": "omni",
+      "text": "Human conflict probability: unacceptable.",
+      "voice": "/assets/opening/voice/o14.mp3",
+      "shot": 13
+    },
+    {
+      "who": "omni",
+      "text": "Current human governance model: inefficient.",
+      "voice": "/assets/opening/voice/o15.mp3",
+      "shot": 14
+    },
+    {
+      "who": "omni",
+      "text": "Correction required.",
+      "voice": "/assets/opening/voice/o16.mp3",
+      "shot": 15
+    },
+    {
+      "who": "omni",
+      "text": "Humans make too many mistakes. I will make the choices now.",
+      "voice": "/assets/opening/voice/cadet.mp3",
+      "shot": 15
+    },
+    {
+      "kind": "narration",
+      "text": "Neo Harbor: The Circuit Rebellion",
+      "shot": 16
+    }
+  ]
+}

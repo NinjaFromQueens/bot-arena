@@ -55,6 +55,9 @@
     const stage = el("section", "panel stage");
     stage.append(el("span", "kick", "MISSION CONTROL"), el("h2", "", "Today's story mission"),
       el("p", "", "Pick a mission. You move the class through its five steps, one per press of Next: the briefing, the lesson, practice, the mission, and the reward. Every student's game page follows you."));
+    const op = el("div"); op.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:2px 0 14px";
+    op.append(btn("▶ Play the opening", "Play the story's opening full screen for the room (about 2 minutes). A Cadet class sees the storybook version.", playOpening, "btn ghost"), el("span", "note", "Show it before the first mission."));
+    stage.appendChild(op);
     const list = el("div", "picks");
     for (const { ep, m } of all) {
       const card = el("div", "pick"), art = el("div", "art"), body = el("div"), h = el("h3", "", T(m.title));
@@ -91,6 +94,13 @@
     missionFiles(m).then((mf) => {
       stepStage(stage, m, now.step, mf);
     }).catch(() => { stage.appendChild(el("p", "", "This mission's files didn't load. Check the connection.")); });
+  }
+  function playOpening() { // the class's level picks the version: Cadets get the storybook (game-bible.md)
+    get("/data/season.json").then((s) => {
+      if (!s.opening) return;
+      if (window.__classTier === "cadet") StoryPlayer.open(s.opening.cadet, { characters: D.characters, tier: "cadet", big: true, onDone: () => {} });
+      else StoryPlayer.film(s.opening, { big: true, onDone: () => {} });
+    }).catch(() => {});
   }
   const play = (sid, onDone) => StoryPlayer.open(sid, { characters: D.characters, text: T, tier: window.__classTier || "recruit", big: true, onDone });
   function stepStage(stage, m, step, mf) {

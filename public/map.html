@@ -40,6 +40,12 @@
   .m.done { border-color: var(--good); } .m.done .st { color: var(--good); }
   .m.next { border-color: var(--orange); }
   .note { font-size: 16px; color: var(--muted); }
+  /* the opening film: a "start here" card until it's watched (or a mission is started), then a small button */
+  .opening { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 14px; }
+  .opening.new { padding: 16px 18px; border-radius: 14px; border: 1.5px solid var(--orange); background: rgba(244,101,36,.1); }
+  .opening .txt { display: grid; gap: 2px; flex: 1 1 260px; }
+  .opening b { font-family: var(--display); font-size: 22px; color: var(--fg); }
+  .opening span { font-size: 16px; color: #d9d5de; }
 </style>
 </head>
 <body data-page="map">
@@ -58,6 +64,7 @@
     <h2>The story map</h2>
     <p>Each place on the map is an episode of the story. Pick one to see its missions. Your progress stays on this device.</p>
   </div>
+  <div class="opening" id="opening" hidden></div>
   <div class="frame" id="frame"><div class="map" id="map" role="group" aria-label="The Neo Harbor map"></div></div>
   <div class="legend" aria-hidden="true"><span class="l-open">Ready to play</span><span class="l-done">Done</span><span class="l-locked">Finish the one before first</span><span class="l-soon">Coming soon</span></div>
   <section class="panel ep" id="ep" aria-live="polite"><p class="note">Loading the map...</p></section>
@@ -65,6 +72,7 @@
 <script src="/js/tips.js"></script>
 <script src="/js/tiers.js"></script>
 <script src="/js/story.js"></script>
+<script src="/js/storyplayer.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/presence.js"></script>
 <script src="/js/account.js"></script>

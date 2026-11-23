@@ -43,16 +43,27 @@ const found = Story.check(broken, { lessons, missions, exists });
 for (const want of [/no lesson nope/, /doesn't exist: race-nope/, /no character nobody/, /kind must be/]) assert(found.some((s) => want.test(s)), "the check catches: " + want);
 
 // Volt has no lines before Episode 2's first-words scene (the bible: its first sentence ends Episode 2)
+const season = json("season.json");
 const sceneEpisode = {};
 for (const ep of episodes) for (const m of ep.missions) for (const s of [m.briefing, m.debrief]) if (s) sceneEpisode[s] = ep.num;
+if (season.opening) sceneEpisode[season.opening.cadet] = 0.5; // the opening comes before Episode 1
 for (const [id, sc] of Object.entries(scenes)) {
   assert(sceneEpisode[id], `scene ${id} isn't used by any mission`);
   if (sc.lines.some((l) => l.who === "volt" && l.kind !== "beeps")) assert(sceneEpisode[id] >= 3 || (sceneEpisode[id] === 2 && sc.voltFirstWords), `scene ${id}: Volt only beeps before Episode 2's end`);
 }
 
 // the season (the map): every episode number once, a place on the map picture, and built episodes agree with it
-const season = json("season.json");
 assert(exists(season.map), "the season map picture exists");
+// the opening: the film, its captions (every cue names its speaker) and poster exist, and the Cadet version is a scene
+if (season.opening) {
+  const o = season.opening;
+  for (const k of ["film", "captions", "poster"]) assert(exists(o[k]), `the opening's ${k} exists: ${o[k]}`);
+  const vtt = fs.readFileSync(path.join(pub, o.captions), "utf8"), cueBlocks = vtt.split(/\r?\n\r?\n/).filter((b) => b.includes("-->"));
+  assert(vtt.startsWith("WEBVTT") && cueBlocks.length > 0 && cueBlocks.every((b) => /\n<v [^>]+>\S/.test(b)), "the opening's captions are WebVTT, each cue with its speaker");
+  assert(scenes[o.cadet], "the opening's Cadet version is a scene file: " + o.cadet);
+  assert(!scenes[o.cadet].lines.some((l) => /consent|It has failed|New directive/i.test(l.text)), "the Cadet version leaves out Scene 5 (the bible swaps it for OMNI's Cadet line)");
+  assert(o.minutes > 0, "the opening says how many minutes it is");
+}
 assert.deepStrictEqual(season.episodes.map((e) => e.num), season.episodes.map((_, i) => i + 1), "the season lists episodes 1, 2, 3... once each, in order");
 for (const e of season.episodes) assert(e.title && e.place && e.map.x >= 0 && e.map.x <= 100 && e.map.y >= 0 && e.map.y <= 100, `season episode ${e.num}: title, place, and a map position in percent`);
 for (const ep of episodes) {

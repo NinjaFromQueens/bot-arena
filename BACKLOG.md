@@ -14,7 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| ST-2 | The story player: shots (moving stills, parallax layers, clips), narration and Volt beeps, asset IDs with placeholders, voice per reading level, music and ambience ducked under voices, sound cues, Back, the animatic, then the opening film, reply lines, a scene list | Started Nov 23 (Opus 5.5). ST-2a (the scene format and the player, with sound) pushed Nov 23 (90f32b6) and checked on circuitrebels.org (the player check and every page); next: ST-2b the opening film (needs your OK to put the 16 MB opening on the site), ST-2c reply lines and a scene list |
+| ST-2 | The story player: shots (moving stills, parallax layers, clips), narration and Volt beeps, asset IDs with placeholders, voice per reading level, music and ambience ducked under voices, sound cues, Back, the animatic, then the opening film, reply lines, a scene list | Started Nov 23 (Opus 5.5). ST-2a (the scene format and the player, with sound) pushed Nov 23 (90f32b6) and checked on circuitrebels.org (the player check and every page); ST-2b (the opening on the site: the film on the map and in Mission Control, the Cadet storybook version) done and checked locally; next: ST-2c reply lines and a scene list |
 
 ---
 

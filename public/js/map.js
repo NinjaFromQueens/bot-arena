@@ -53,6 +53,22 @@
     });
     box.appendChild(list);
   }
+  // the opening film (season.json's opening): Cadets get the storybook version (a scene file), per the game bible
+  function opening() {
+    const o = season.opening, box = $("opening"); if (!o) return;
+    const sv = saved(), fresh = !ls("cr-opening", 0) && !Object.keys((sv.record && sv.record.missions) || {}).length;
+    box.innerHTML = ""; box.hidden = false; box.className = "opening" + (fresh ? " new" : "");
+    const b = el("button", fresh ? "btn big" : "btn ghost", fresh ? "▶ Watch the opening" : "▶ Watch the opening again"); b.type = "button";
+    b.setAttribute("data-tip", `Play the story's opening (about ${o.minutes} minutes). It shows how Neo Harbor got this way.`);
+    b.onclick = watch;
+    if (fresh) { const t = el("div", "txt"); t.append(el("b", "", "New here? Start with the opening."), el("span", "", `About ${o.minutes} minutes. Then pick an episode on the map.`)); box.append(t); }
+    box.appendChild(b);
+  }
+  function watch() {
+    const o = season.opening, done = () => { try { localStorage.setItem("cr-opening", "1"); } catch {} opening(); };
+    if (window.Tier && Tier.current() === "cadet") get("/data/characters.json").then((c) => StoryPlayer.open(o.cadet, { characters: c, tier: "cadet", onDone: done })).catch(() => {});
+    else StoryPlayer.film(o, { onDone: done });
+  }
   // the episode to show first: the one with the student's last mission, else the first one ready to play
   function firstPick(sv) {
     const last = sv.record && sv.record.last && S.find(episodes, sv.record.last);
@@ -66,7 +82,7 @@
     .then(() => {
       $("season").textContent = season.title.toUpperCase();
       const probe = new Image(); probe.onload = () => ($("map").style.backgroundImage = `url("${season.map}")`); probe.src = season.map;
-      pick = firstPick(saved()); render();
+      pick = firstPick(saved()); render(); opening();
       // on a narrow screen the map scrolls inside its frame: start with the chosen episode in view
       const e = season.episodes.find((x) => x.num === pick), fr = $("frame");
       if (fr.scrollWidth > fr.clientWidth) fr.scrollLeft = Math.max(0, (e.map.x / 100) * fr.scrollWidth - fr.clientWidth / 2);

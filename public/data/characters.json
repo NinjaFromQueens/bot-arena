@@ -29,6 +29,10 @@
       "stage6": "/assets/characters/volt/stage6_jets.webp"
     }
   },
+  "scientist": {
+    "name": "Scientist",
+    "faces": {}
+  },
   "omni": {
     "name": "OMNI",
     "faces": {

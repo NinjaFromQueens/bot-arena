@@ -1,4 +1,11 @@
 {
+  "opening": {
+    "film": "/assets/opening/opening.webm",
+    "captions": "/assets/opening/opening.vtt",
+    "poster": "/assets/opening/opening-poster.webp",
+    "minutes": 2,
+    "cadet": "opening-cadet"
+  },
   "title": "Season 1: The Circuit Rebellion",
   "map": "/assets/ui/campaign_map.webp",
   "episodes": [

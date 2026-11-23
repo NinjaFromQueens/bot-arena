@@ -162,7 +162,7 @@
         else {
           const c = data.characters[ln.who];
           if (!c) p.push(`${at}: there's no character ${ln.who}`);
-          else if (!c.faces[ln.face]) p.push(`${at}: ${ln.who} has no face ${ln.face}`);
+          else if (ln.face != null && !c.faces[ln.face]) p.push(`${at}: ${ln.who} has no face ${ln.face}`); // no face: a voice with no picture
         }
         if (kind === "beeps" && ln.who !== "volt") p.push(`${at}: only Volt beeps`);
         if (ln.feel != null && (kind !== "beeps" || !FEELS.includes(ln.feel))) p.push(`${at}: feel is for Volt's beeps: ${FEELS.join(", ")}`);
