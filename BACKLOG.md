@@ -14,7 +14,6 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| BLOG-1 | Blog plan (F-52) | Written Nov 22: [docs/blog-plan.md](docs/blog-plan.md). Waiting on Duron to confirm two recommendations: the blog says grades 5 to 8 (matching the home page), and the small `marked` package for writing posts in Markdown. |
 
 ---
 
@@ -67,6 +66,7 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| BLOG-2 | The blog engine (F-52): one Markdown file per post, built by `npm run blog` into plain pages search engines and AI assistants can read: a front page laid out like Angel's blog (a featured post, two featured cards, a row per topic), post pages with the quick answer first, a Try it free card, questions and answers and search markup, topic pages, a feed, share pictures, the sitemap and `llms.txt`. A test keeps posts complete, spoiler-free and the pages up to date. No posts published yet, so only `/llms.txt` is new on the site | Pushed to `main` Nov 22, 2026; checked on circuitrebels.org (`llms.txt` and the sitemap live); the pages checked locally with six sample posts at desktop and phone size, with JavaScript on and off | 1cdb3d6 |
 | MED-4 | The opening cinematic, finished and assembled (private story folder): the two queued clips checked, the ring turning red fixed for free, the narration in Duron's Lazarus clone, OMNI's lines, the scientist's line and 100 seconds of music, leveled with `npm run media` and cut together with captions and the title card (104 s; a preview to watch and a 16 MB web copy for the story player). 27.34 credits, approved first. One regenerated clip merges OMNI's five modules into one, so it's kept for Episode 7 | Nov 22, 2026 (media, no deploy; the story player plays it in ST-2) | — |
 | EP1-1 | Episode 1 outline and continuity sheet (private, next to the game bible): six missions, 23 story beats, the Sentinel's three phases on the sensor simulator's rules, Volt's stages, reading tiers and a continuity sheet. Approved by Duron with all 10 decisions as recommended; the bible's Episode 1 line now matches the scrap pile, and the repair bench (REP-1) is on the schedule | Nov 22, 2026 (a story document, no deploy) | — |
 | MED-3 | Story media tool (`npm run media`): `report` measures every sound's loudness against its kind's target; `make` levels voice, music, ambience and sound effects to their targets (within 0.2 LU, true peaks under −1.5 dBTP, trimmed and mono for voice, a note when a sharp sound can't get louder without clipping) and makes WebP stills and WebM clips at the plan's sizes. ffmpeg was already installed (9.0.2, winget). The first report found the tour's voice lines spread over 8 LU and its alarm and glitch effects nearly silent (not changed: the tour is approved) | Pushed to `main` Nov 22, 2026 (a production tool; nothing on the site changes). Checked on copies of real files of every kind | 8f52502 |
