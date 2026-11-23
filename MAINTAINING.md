@@ -60,6 +60,7 @@ git push             # Render deploys in ~2 minutes
 | What a student account saves | `KEYS` in both `lib/accounts.js` (how the server checks each one) and `public/js/account.js` (which localStorage keys get copied). Add a key to both, with a check that cleans or rejects bad values. |
 | Lessons on the teacher dashboard | `public/js/catalog.js` → `LESSONS` (`npm test` checks it matches the lesson files: ids in `index.json` order, the Recruit title) |
 | Picture-password pictures | `public/js/catalog.js` → `PICS`. Add new ones at the END: the database stores positions. |
+| Story media loudness and web copies | `npm run media -- make <in folder> <out folder>`: voice, music, ambience and sound effects leveled to their targets (in `KINDS` in `scripts/media.js`), stills to WebP, clips to WebM. Put each sound in a `voice`, `music`, `ambient` or `sfx` folder (or pass `--kind`). `npm run media -- report <folder>` checks loudness. Needs ffmpeg (`winget install Gyan.FFmpeg`). |
 | Race Day points and time limit | `server.js` → `GP_POINTS` (1st, 2nd, ... then 1 for any finish) and `GP_LIMIT` (seconds before a race ends). |
 | Flight report wording | `public/js/flight.js` → `explain()` and `tipFor()` |
 | "Why ___ won" battle wording | `public/js/engine.js` → `explainBattle()` |
