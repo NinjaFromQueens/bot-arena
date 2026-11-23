@@ -31,10 +31,12 @@ assert.deepStrictEqual(Story.check({ episodes: [], scenes: { "demo-v2": demo }, 
 const bad = JSON.parse(JSON.stringify(demo));
 bad.shots[0].move = "spin"; bad.shots[1].art = "bg_nope"; bad.shots[2].kind = "gif"; bad.shots[4].art = "bg_workshop"; bad.shots[3].layers = "x";
 bad.lines[0].who = "sparrow"; bad.lines[1].kind = "beeps"; bad.lines[2].feel = "angry"; bad.lines[3].shot = 6; bad.lines[4].id = "demo-01";
+bad.lines.push({ kind: "reply", who: "sparrow", replies: [{ text: "Only one reply", next: "demo-02" }] });
 bad.lines[5].voice = { teacher: "/assets/audio/voice2/L01.mp3" }; bad.lines[6].sfx = "/assets/audio/sfx/beep.mp3"; bad.bg = "/assets/scenes/arena.webp";
 const caught = Story.check({ episodes: [], scenes: { "demo-v2": bad }, characters, rewards: [] }, { lessons, missions, exists, assets: demoAssets });
 for (const want of [/move is push/, /no asset bg_nope/, /kind must be still or video/, /bg_workshop is an image, not a video/, /layers are a list/, /narration has no speaker/,
-  /only Volt beeps/, /feel is for Volt/, /0 to 5/, /demo-01 is used twice/, /voice levels/, /sfx is a list/, /shots or bg, not both/]) assert(caught.some((s) => want.test(s)), "the scene check catches: " + want);
+  /only Volt beeps/, /feel is for Volt/, /0 to 5/, /demo-01 is used twice/, /voice levels/, /sfx is a list/, /shots or bg, not both/,
+  /a reply is the student's line/, /2 or 3 replies/, /no branches in Season 1/]) assert(caught.some((s) => want.test(s)), "the scene check catches: " + want);
 // the check really catches mistakes
 const broken = JSON.parse(JSON.stringify({ episodes, scenes, characters, rewards }));
 broken.episodes[0].missions[0].discover.lesson = "nope"; broken.episodes[0].missions[0].build.missions.push("race-nope");

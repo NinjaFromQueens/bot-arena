@@ -22,6 +22,14 @@
       "text": "So we go over. My car can jump it, if the numbers work."
     },
     {
+      "kind": "reply",
+      "replies": [
+        { "text": "Jump a bridge? I'm in." },
+        { "text": "Let's do the math." },
+        { "text": { "cadet": "What if we fall?", "recruit": "And if the numbers don't work?" } }
+      ]
+    },
+    {
       "who": "sparrow",
       "face": "pose",
       "text": {

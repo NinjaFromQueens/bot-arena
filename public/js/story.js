@@ -159,6 +159,14 @@
         const at = `scene ${id} line ${k + 1}`, kind = ln.kind == null ? "line" : ln.kind;
         if (!LINE_KINDS.includes(kind)) p.push(`${at}: the kind must be ${LINE_KINDS.join(", ")}`);
         if (kind === "narration") { if (ln.who != null || ln.face != null) p.push(`${at}: narration has no speaker or face`); }
+        else if (kind === "reply") { // the student's own line: 2 or 3 short replies; Season 1 has no branches, so no "next"
+          if (ln.who != null || ln.face != null || ln.voice != null || ln.text != null) p.push(`${at}: a reply is the student's line: just its replies, no speaker, face, voice or text`);
+          if (!Array.isArray(ln.replies) || ln.replies.length < 2 || ln.replies.length > 3) p.push(`${at}: a reply line has 2 or 3 replies`);
+          for (const r of Array.isArray(ln.replies) ? ln.replies : []) {
+            if (!r || !r.text || (typeof r.text === "object" && !r.text.recruit)) p.push(`${at}: every reply needs text (Recruit at least)`);
+            if (r && Object.keys(r).some((key) => key !== "text")) p.push(`${at}: a reply only has text (no branches in Season 1)`);
+          }
+        }
         else {
           const c = data.characters[ln.who];
           if (!c) p.push(`${at}: there's no character ${ln.who}`);
@@ -166,7 +174,7 @@
         }
         if (kind === "beeps" && ln.who !== "volt") p.push(`${at}: only Volt beeps`);
         if (ln.feel != null && (kind !== "beeps" || !FEELS.includes(ln.feel))) p.push(`${at}: feel is for Volt's beeps: ${FEELS.join(", ")}`);
-        if (!ln.text || (typeof ln.text === "object" && !ln.text.recruit)) p.push(`${at}: it needs text (Recruit at least)`);
+        if (kind !== "reply" && (!ln.text || (typeof ln.text === "object" && !ln.text.recruit))) p.push(`${at}: it needs text (Recruit at least)`);
         if (ln.id != null) { if (!idOk(ln.id)) p.push(`${at}: the line id must be lowercase words with dashes`); else if (lineIds.has(ln.id)) p.push(`${at}: the line id ${ln.id} is used twice`); lineIds.add(ln.id); }
         if (ln.shot != null && !(Number.isInteger(ln.shot) && ln.shot >= 0 && ln.shot < nShots)) p.push(`${at}: shot is a place in the scene's shots, 0 to ${nShots - 1}`);
         if (ln.voice != null && typeof ln.voice === "object") for (const [t, v] of Object.entries(ln.voice)) { if (!LEVELS.includes(t)) p.push(`${at}: voice levels are ${LEVELS.join(", ")}`); ref(`${at} voice`, v, "voice"); }
@@ -188,7 +196,7 @@
   const REWARD_KINDS = ["echo", "volt", "file", "access"];
   // the scene format the story player plays (storyplayer.js, ST-2)
   const SHOT_KINDS = ["still", "video"], MOVES = ["push", "pull", "pan-left", "pan-right", "drift"], LOOKS = ["camera"];
-  const LINE_KINDS = ["line", "narration", "beeps"], FEELS = ["happy", "sad", "curious", "scared", "excited", "thinking"];
+  const LINE_KINDS = ["line", "narration", "beeps", "reply"], FEELS = ["happy", "sad", "curious", "scared", "excited", "thinking"];
   const LEVELS = ["cadet", "recruit", "operative"];
 
   return { STEPS, STEP_NAME, EVENTS, REWARD_KINDS, SHOT_KINDS, MOVES, LOOKS, LINE_KINDS, FEELS, emptyRecord, find, stepDone, stepOpen, nextStep, missionDone, episodeUnlocked, missionUnlocked, nextMission, applyClass, finishedFor, check };

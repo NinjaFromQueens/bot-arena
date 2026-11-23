@@ -8,6 +8,8 @@
  * labeled placeholder (or plays nothing), so scenes can be written and timed before the art exists. Sound stays off
  * until the player's Sound button turns it on (cr-story-sound on the device). With ?animatic in the address (EP1-3),
  * lines without a voice file are read by the browser's voice and the scene moves on by itself, to check timing for free.
+ * A reply line (kind "reply") is the student's own: they pick one of its short replies, shown with their recruit and call
+ * sign from the map (cr-recruit, cr-callsign). Season 1 has no branches, so every reply leads to the same next line.
  */
 (function () {
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -70,11 +72,16 @@
     skip.setAttribute("data-tip", "Skip to the end of this scene. It still counts as watched.");
     next.setAttribute("data-tip", "Show the next line. Space, Enter or the right arrow work too.");
     snd.hidden = !audible;
-    ctl.append(count, snd, back, skip, next); box.append(name, text, ctl);
+    const replies = el("div", "sp-replies"); replies.setAttribute("role", "group"); replies.setAttribute("aria-label", "Your reply"); replies.hidden = true;
+    ctl.append(count, snd, back, skip, next); box.append(name, text, replies, ctl);
     wrap.append(bg, faceBox, box);
     if (tts) wrap.appendChild(el("span", "sp-chip", "ANIMATIC"));
     document.body.appendChild(wrap);
     let i = -1, finished = false, stopped = false, tok = 0, autoT = null;
+    const picked = {}; // line number -> the reply the student picked
+    const me = { pic: store.get("cr-recruit"), sign: store.get("cr-callsign") }; // the student's recruit, picked on the map
+    const myFace = /^[a-f]$/.test(me.pic || "") ? el("img") : null;
+    if (myFace) { myFace.src = `/assets/characters/recruit/${me.pic}.webp`; myFace.alt = "Your recruit"; myFace.onerror = () => myFace.remove(); }
 
     // ---- shots ----
     const shotEls = []; let shotNow = -1;
@@ -194,7 +201,7 @@
       const src = voiceFor(ln);
       if (src) { voice.src = src; voice.onended = () => lineDone(my, 700); start(voice); }
       else if (ln.kind === "beeps" && !(ln.sfx && ln.sfx.length)) beep(ln.feel);
-      else if (tts && ln.kind !== "beeps") say(ln, my);
+      else if (tts && ln.kind !== "beeps" && ln.text) say(ln, my);
     }
     // the animatic moves on by itself: ms after a line's sound ends, or after its reading time, but never while a sound
     // still plays (and a voice that fails to play can't stall it)
@@ -206,27 +213,50 @@
     function sndLabel() { snd.textContent = soundOn ? "Sound: on" : "Sound: off"; snd.setAttribute("aria-pressed", soundOn); }
 
     // ---- lines ----
+    function pick(k, j) { // the student's reply becomes their line
+      picked[k] = j; replies.hidden = true; text.hidden = false; next.disabled = false;
+      text.textContent = T(lines[k].replies[j].text);
+      if (!RM) { text.classList.remove("in"); void text.offsetWidth; text.classList.add("in"); }
+      next.focus(); lineDone(tok, 1200 + 55 * text.textContent.length);
+    }
+    function showReplies(k) {
+      replies.innerHTML = ""; replies.hidden = false; text.hidden = true; text.textContent = ""; next.disabled = picked[k] == null; // going Back keeps the earlier pick
+      lines[k].replies.forEach((r, j) => {
+        const b = el("button", "btn ghost sp-reply", T(r.text)); b.type = "button";
+        b.setAttribute("aria-pressed", String(picked[k] === j)); b.setAttribute("data-tip", `Say this. You can also press ${j + 1}.`);
+        b.onclick = () => pick(k, j); replies.appendChild(b);
+      });
+      (replies.querySelector('[aria-pressed="true"]') || replies.firstChild).focus();
+      if (tts) { const my = tok; autoT = setTimeout(() => my === tok && !stopped && pick(k, picked[k] || 0), 2500); } // the animatic picks for itself
+    }
     function show(k) {
       i = k; const ln = lines[k], kind = ln.kind || "line", my = ++tok; clearTimeout(autoT);
       showShot(at(scene, k, "shot", 0));
-      if (kind === "narration") { faceBox.classList.add("off"); name.hidden = true; }
+      replies.hidden = true; text.hidden = false; next.disabled = false;
+      if (kind === "reply") { // the student's line: their recruit and call sign, or just "You"
+        faceBox.classList.toggle("off", !myFace); name.hidden = false; name.textContent = me.sign || "You";
+        if (myFace && faceBox.firstChild !== myFace) { faceBox.innerHTML = ""; faceBox.appendChild(myFace); }
+      } else if (kind === "narration") { faceBox.classList.add("off"); name.hidden = true; }
       else {
         const f = faceFor(ln); name.hidden = false; name.textContent = f.name;
         faceBox.classList.toggle("off", ln.face == null); // a line without a face is a voice with no picture
         if (ln.face != null && faceBox.firstChild !== f.node) { faceBox.innerHTML = ""; faceBox.appendChild(f.node); }
       }
       box.classList.toggle("narr", kind === "narration"); text.classList.toggle("beeps", kind === "beeps");
-      text.textContent = T(ln.text);
+      text.textContent = kind === "reply" ? "" : T(ln.text);
       count.textContent = `${k + 1} / ${lines.length}`;
       next.textContent = k === lines.length - 1 ? "Done" : "Next";
       back.disabled = k === 0;
       if (!RM) { text.classList.remove("in"); void text.offsetWidth; text.classList.add("in"); }
       track(chans.music, at(scene, k, "music", scene.music)); track(chans.amb, scene.ambience);
-      lineDone(my, 1200 + 55 * String(T(ln.text) || "").length); // reading time, until a sound's end replaces it
-      lineSound(ln, my);
-      kick();
+      if (kind === "reply") { lineSound({ sfx: ln.sfx }, my); showReplies(k); kick(); }
+      else {
+        lineDone(my, 1200 + 55 * String(T(ln.text) || "").length); // reading time, until a sound's end replaces it
+        lineSound(ln, my);
+        kick();
+      }
       const n = lines[k + 1]; // get the next line's picture and shot ready
-      if (n) { if ((n.kind || "line") !== "narration" && n.face != null) faceFor(n); const ns = at(scene, k + 1, "shot", 0); if (shots[ns]) shotEl(ns); }
+      if (n) { if (n.who && n.face != null) faceFor(n); const ns = at(scene, k + 1, "shot", 0); if (shots[ns]) shotEl(ns); }
     }
     function stop() {
       if (stopped) return; stopped = true;
@@ -237,13 +267,15 @@
       removeEventListener("keydown", onKey); wrap.remove();
     }
     function end() { if (finished) return; finished = true; stop(); if (o.onDone) o.onDone(); }
-    const advance = () => (i >= lines.length - 1 ? end() : show(i + 1));
+    const waiting = () => lines[i].kind === "reply" && picked[i] == null; // a reply line waits for the student's pick
+    const advance = () => (waiting() ? null : i >= lines.length - 1 ? end() : show(i + 1));
     const goBack = () => { if (i > 0) show(i - 1); };
     function onKey(e) {
       if ((e.key === " " || e.key === "Enter") && e.target.closest && e.target.closest("button")) return; // a focused button handles its own press (else a line is skipped)
       if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); advance(); }
       else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); goBack(); }
       else if (e.key === "Escape") end();
+      else if (/^[1-3]$/.test(e.key) && !replies.hidden && lines[i].replies[+e.key - 1]) { e.preventDefault(); pick(i, +e.key - 1); }
     }
     next.onclick = advance; skip.onclick = end; back.onclick = goBack;
     snd.onclick = () => {
