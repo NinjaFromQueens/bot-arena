@@ -93,4 +93,24 @@ assert.strictEqual(set.make(5, "grade5").tier, "recruit");
 assert(set.make("x", "cadet").text);
 
 const mix = Sprint.TIERS.map((t) => `${t}: ${set.kinds[t].map((k) => `${k} ${counts[t + ":" + k] || 0}`).join(", ")}`).join(" | ");
+// the solo Speed Run's rules (S-02, solorun.js): only a clean run sets a best, splits compare against the best's
+{
+  const Solo = require("../public/js/solorun.js");
+  const run = (time, splits, right = splits.length) => ({ time, splits, right });
+  let st = {}, r = Solo.record(st, "thrust", "recruit", 5, run(50000, [9000, 20000, 30000, 40000, 50000]), 1);
+  assert(r.best && r.store.thrust["recruit-5"].time === 50000, "solo: the first clean run is the best");
+  st = r.store;
+  assert(!Solo.record(st, "thrust", "recruit", 5, run(60000, [1, 2, 3, 4, 60000]), 2).best, "solo: a slower run isn't");
+  assert(!Solo.record(st, "thrust", "recruit", 5, run(10000, [1000, 2000, 3000, 4000], 4), 2).best, "solo: a run with a miss never sets a best, however fast");
+  r = Solo.record(st, "thrust", "recruit", 5, run(45000, [8000, 19000, 31000, 39000, 45000]), 3);
+  assert(r.best && r.store.thrust["recruit-5"].time === 45000, "solo: a faster clean run replaces the best");
+  assert(!Solo.bestOf(r.store, "thrust", "recruit", 10) && !Solo.bestOf(r.store, "thrust", "cadet", 5), "solo: bests are kept per reading level and length");
+  assert.deepStrictEqual(Solo.deltas([8000, 21000, null], st.thrust["recruit-5"]), [-1000, 1000, null], "solo: splits below the best's are ahead, above are behind");
+  assert.deepStrictEqual(Solo.deltas([5000], null), [null], "solo: no best, nothing to compare");
+  assert.strictEqual(Solo.clock(83456), "1:23.4"); assert.strictEqual(Solo.clock(9999), "0:09.9"); assert.strictEqual(Solo.delta(-1250), "−1.3");
+  const cadet = Sprint.set("thrust").make(7, "cadet"), rec = Sprint.set("thrust").make(7, "recruit");
+  assert.strictEqual(Solo.triesFor(cadet), cadet.input.kind === "choice" ? cadet.input.options.length - 1 : 3, "solo: choices give one fewer try than options");
+  assert.strictEqual(Solo.triesFor(rec), 3, "solo: number answers get 3 tries");
+}
+
 console.log(`Problem set tests passed (Thrust, ${SEEDS} seeds per tier: ${mix})`);

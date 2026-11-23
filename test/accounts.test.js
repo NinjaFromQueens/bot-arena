@@ -107,6 +107,12 @@ function client() { // a browser: keeps its cookie, sends this site's Origin on 
   assert.deepStrictEqual(r.body.value, { "lab-bridge": { tries: 3, firstRight: false, goal: true }, "lab-hop": { tries: 1, firstRight: true, goal: true } }, "mission tries merge: the most tries, the first prediction kept, a goal met on either");
   assert.strictEqual((await kid2("/progress/cr-tier", "PUT", { value: "wizard" })).status, 400, "only real reading levels");
   assert.strictEqual((await kid2("/progress/cr-tier", "PUT", { value: "operative" })).body.value, "operative", "the reading level is saved");
+  // solo Speed Run bests: checked, and the faster one kept when two devices have one
+  r = await kid2("/progress/cr-sprint", "PUT", { value: { thrust: { "recruit-5": { time: 60000, splits: [9000, 20000, 33000, 47000, 60000], at: T }, "recruit-7": { time: 1, splits: [1] }, "cadet-5": { time: 5000, splits: [1, 2, 3] } } } });
+  assert.deepStrictEqual(r.body.value, { thrust: { "recruit-5": { time: 60000, splits: [9000, 20000, 33000, 47000, 60000], at: T } } }, "Speed Run bests: a bad length or a wrong number of splits is dropped");
+  assert.strictEqual((await kid2("/progress/cr-sprint", "PUT", { value: { thrust: { "recruit-5": { time: 50000, splits: [9000, 8000, 30000, 40000, 50000] } } } })).body.value.thrust["recruit-5"].time, 60000, "splits that go backwards are refused, so the old best stays");
+  r = await kid3("/progress/cr-sprint", "PUT", { value: { thrust: { "recruit-5": { time: 70000, splits: [10000, 25000, 40000, 55000, 70000] }, "operative-10": { time: 200000, splits: [10, 20, 30, 40, 50, 60, 70, 80, 90, 200000] } } } });
+  assert(r.body.value.thrust["recruit-5"].time === 60000 && r.body.value.thrust["operative-10"].time === 200000, "a slower best from another device doesn't replace the faster one; a new length is added");
   const story = (await kid3("/progress")).body.progress;
   assert(story["cr-record"].missions["ep5-bridge"].done && story["cr-missions"]["lab-hop"].goal && story["cr-tier"] === "operative", "the story follows Ben to the other device");
 

@@ -744,7 +744,7 @@
 
   // ---------------- boot ----------------
   $("sound").onclick = () => { const on = Sound.toggle(); $("sound").textContent = "Sound: " + (on ? "on" : "off"); $("sound").setAttribute("aria-pressed", on); };
-  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === document.body) loop.launch(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target === document.body && !document.body.classList.contains("srmode")) loop.launch(); }); // not on the Speed Run tab, where the track is hidden
   renderMissions(); renderGoal(); renderBuilder(); renderSheet(); loop.load();
   let last = performance.now();
   (function loop(now) {

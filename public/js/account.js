@@ -4,9 +4,9 @@
    the student to any device. Nobody signed in, no accounts on the server, or the offline file: it does nothing. */
 (function () {
   if (location.protocol === "file:") return;
-  const KEYS = ["learn-progress", "fcl-stars", "fcl-design", "fcl-mission", "rba-challenges", "rba-ch-rules", "race-bests", "race-look", "race-setup", "race-track", "ba-bot", "rba-bot", "cr-record", "cr-missions", "cr-tier"];
+  const KEYS = ["learn-progress", "fcl-stars", "fcl-design", "fcl-mission", "rba-challenges", "rba-ch-rules", "race-bests", "race-look", "race-setup", "race-track", "ba-bot", "rba-bot", "cr-record", "cr-missions", "cr-tier", "cr-sprint"];
   const PENDING = "ba-sync-pending"; // keys saved on this device that the account doesn't have yet
-  const MERGED = new Set(["cr-record", "cr-missions"]); // the server merges these with what it has (lib/accounts.js MERGE), so this device's copy is sent, never just replaced
+  const MERGED = new Set(["cr-record", "cr-missions", "cr-sprint"]); // the server merges these with what it has (lib/accounts.js MERGE), so this device's copy is sent, never just replaced
   const NO_RELOAD = ["play"]; // the class game page applies a sync quietly: reloading it would drop the student out of the game for a moment
   const ls = window.localStorage, rawSet = Storage.prototype.setItem;
   const get = (k) => { try { const v = ls.getItem(k); return v == null ? undefined : JSON.parse(v); } catch { return undefined; } };
