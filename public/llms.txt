@@ -1,0 +1,18 @@
+# Circuit Rebels
+
+> Circuit Rebels is a free, browser-based robotics program for grades 5 to 8, made in New York City by Duron Epps. Students learn how machines sense, think and act through 5-minute lessons and class games. No student accounts are needed to play, and it runs on Chromebooks.
+
+## Key pages
+
+- [Home](https://circuitrebels.org/): What Circuit Rebels is, the doors for students and teachers, and how it runs in class
+- [Robot lessons](https://circuitrebels.org/learn): 16 five-minute lessons on sensors, motors, robot arms, forces and if-then rules, each ending in a game challenge
+- [The story map](https://circuitrebels.org/map): Neo Harbor, the story's world: each episode's missions, played alone or with a class
+- [Bot Arena practice](https://circuitrebels.org/practice): Build a robot from parts that sense, think and act, battle it, and solve Brain Challenges with if-then rules
+- [Robot Racer](https://circuitrebels.org/race): A racing game about motors and gears: pick the gear ratio and tires for each track's hills and corners
+- [Flying Car Lab](https://circuitrebels.org/lab): Design a flying car and fly missions that teach thrust, weight and landing, plus a solo Speed Run of math problems
+- [Host a class game](https://circuitrebels.org/host): The teacher's board: a join code, then a robot tournament, story missions, Race Day, Speed Run or a live lesson
+- [The trailer](https://circuitrebels.org/tour): A short voiced tour of the story, the crew and the games
+
+## Contact
+
+- Email: hello@circuitrebels.org

@@ -161,4 +161,4 @@ function main(argv) {
   return usage();
 }
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { KINDS, kindOf, measure, main };
+module.exports = { KINDS, kindOf, measure, main, FF };

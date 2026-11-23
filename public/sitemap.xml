@@ -7,4 +7,6 @@
   <url><loc>https://circuitrebels.org/practice</loc></url>
   <url><loc>https://circuitrebels.org/race</loc></url>
   <url><loc>https://circuitrebels.org/lab</loc></url>
+  <!-- blog: written by npm run blog -->
+  <!-- /blog -->
 </urlset>
