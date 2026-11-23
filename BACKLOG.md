@@ -14,6 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| EP1-1 | Episode 1 outline and continuity sheet | Drafted Nov 22 in the private story folder (`ep1-outline.md`, next to the game bible): six missions, the story in 23 beats, the Sentinel's three phases on the sensor simulator's rules, Volt's stages, reading tiers, a continuity sheet and 10 decisions. **Waiting on Duron's approval** (the gate before the script, EP1-2). |
 
 ---
 
