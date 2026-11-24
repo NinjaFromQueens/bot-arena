@@ -14,6 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| ST-3 | The asset tool: `npm run story:assets` reads every scene file and lists the pictures, clips, voices, music and sounds not made yet, per episode, with the credit total and the prompts for the next Higgsfield batch | Started Nov 23; built and tested locally |
 
 ---
 

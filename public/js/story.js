@@ -178,12 +178,12 @@
         if (ln.id != null) { if (!idOk(ln.id)) p.push(`${at}: the line id must be lowercase words with dashes`); else if (lineIds.has(ln.id)) p.push(`${at}: the line id ${ln.id} is used twice`); lineIds.add(ln.id); }
         if (ln.shot != null && !(Number.isInteger(ln.shot) && ln.shot >= 0 && ln.shot < nShots)) p.push(`${at}: shot is a place in the scene's shots, 0 to ${nShots - 1}`);
         if (ln.voice != null && typeof ln.voice === "object") for (const [t, v] of Object.entries(ln.voice)) { if (!LEVELS.includes(t)) p.push(`${at}: voice levels are ${LEVELS.join(", ")}`); ref(`${at} voice`, v, "voice"); }
-        else ref(`${at} voice`, ln.voice, "voice");
+        else if (ln.voice !== false) ref(`${at} voice`, ln.voice, "voice"); // false: silent on purpose (the asset tool doesn't ask for a voice)
         if (ln.sfx != null) { if (!Array.isArray(ln.sfx)) p.push(`${at}: sfx is a list of sounds`); else for (const s of ln.sfx) ref(`${at} sound`, s, "sfx"); }
         if ("music" in ln) ref(`${at} music`, ln.music, "music");
       }
     }
-    for (const [id, c] of Object.entries(data.characters)) { if (!c.name) p.push(`character ${id}: it needs a name`); for (const f of Object.values(c.faces || {})) path(`character ${id}`, f); }
+    for (const [id, c] of Object.entries(data.characters)) { if (!c.name) p.push(`character ${id}: it needs a name`); for (const f of Object.values(c.faces || {})) ref(`character ${id}`, f, "image"); } // a face can be an asset ID not made yet
     for (const r of data.rewards) {
       if (!idOk(r.id)) p.push(`reward ${r.id}: the id must be lowercase words with dashes`);
       if (!REWARD_KINDS.includes(r.kind)) p.push(`reward ${r.id}: the kind must be ${REWARD_KINDS.join(", ")}`);

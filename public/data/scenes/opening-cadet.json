@@ -215,7 +215,8 @@
     {
       "kind": "narration",
       "text": "Neo Harbor: The Circuit Rebellion",
-      "shot": 16
+      "shot": 16,
+      "voice": false
     }
   ]
 }

@@ -1,19 +1,29 @@
 {
   "id": "ep5-bridge-debrief",
-  "shots": [{ "kind": "still", "art": "/assets/scenes/hill_run.webp", "move": "drift", "secs": 40 }],
+  "shots": [
+    {
+      "kind": "still",
+      "art": "/assets/scenes/hill_run.webp",
+      "move": "drift",
+      "secs": 40
+    }
+  ],
   "music": null,
   "lines": [
     {
+      "id": "ep5-debrief-01",
       "who": "sparrow",
       "face": "pose",
       "text": "Touchdown! Did you see that? Right over the top of them."
     },
     {
+      "id": "ep5-debrief-02",
       "who": "sparrow",
       "face": "pose",
       "text": "Those convoy trucks are still staring at an empty bridge."
     },
     {
+      "id": "ep5-debrief-03",
       "who": "sparrow",
       "face": "pose",
       "text": {
@@ -21,6 +31,7 @@
       }
     },
     {
+      "id": "ep5-debrief-04",
       "who": "sparrow",
       "face": "pose",
       "text": "Next stop: the hill road up to Meridian Labs. I hear OMNI has a racer waiting for us."

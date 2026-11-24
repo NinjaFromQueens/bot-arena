@@ -130,10 +130,10 @@
     // ---- faces ----
     const faces = {}; // one picture per character face, reused across lines
     function faceFor(ln) {
-      const c = (o.characters || {})[ln.who] || { name: ln.who, faces: {} }, src = c.faces[ln.face], key = ln.who + ":" + ln.face;
-      if (!faces[key]) {
+      const c = (o.characters || {})[ln.who] || { name: ln.who, faces: {} }, ref = c.faces[ln.face], src = resolve(ref, A), key = ln.who + ":" + ln.face;
+      if (!faces[key]) { // a face can be an asset ID: until it's made, a placeholder with its ID
         if (src) { const img = el("img"); img.alt = c.name; img.src = src; img.onerror = () => { const ph = el("span", "sp-missing", src); img.replaceWith(ph); faces[key] = ph; }; faces[key] = img; }
-        else faces[key] = el("span", "sp-missing", `${ln.who} (${ln.face})`);
+        else faces[key] = el("span", "sp-missing", ref ? String(ref) : `${ln.who} (${ln.face})`);
       }
       return { node: faces[key], name: c.name };
     }

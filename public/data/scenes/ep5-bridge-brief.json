@@ -1,14 +1,23 @@
 {
   "id": "ep5-bridge-brief",
-  "shots": [{ "kind": "still", "art": "/assets/scenes/bridge_blockade.webp", "move": "push", "secs": 40 }],
+  "shots": [
+    {
+      "kind": "still",
+      "art": "/assets/scenes/bridge_blockade.webp",
+      "move": "push",
+      "secs": 40
+    }
+  ],
   "music": null,
   "lines": [
     {
+      "id": "ep5-brief-01",
       "who": "sparrow",
       "face": "pose",
       "text": "There it is. Meridian Labs, right across the harbor."
     },
     {
+      "id": "ep5-brief-02",
       "who": "sparrow",
       "face": "pose",
       "text": {
@@ -17,6 +26,7 @@
       }
     },
     {
+      "id": "ep5-brief-03",
       "who": "sparrow",
       "face": "pose",
       "text": "So we go over. My car can jump it, if the numbers work."
@@ -24,12 +34,22 @@
     {
       "kind": "reply",
       "replies": [
-        { "text": "Jump a bridge? I'm in." },
-        { "text": "Let's do the math." },
-        { "text": { "cadet": "What if we fall?", "recruit": "And if the numbers don't work?" } }
+        {
+          "text": "Jump a bridge? I'm in."
+        },
+        {
+          "text": "Let's do the math."
+        },
+        {
+          "text": {
+            "cadet": "What if we fall?",
+            "recruit": "And if the numbers don't work?"
+          }
+        }
       ]
     },
     {
+      "id": "ep5-brief-04",
       "who": "sparrow",
       "face": "pose",
       "text": {
@@ -39,11 +59,13 @@
       }
     },
     {
+      "id": "ep5-brief-05",
       "who": "sparrow",
       "face": "pose",
       "text": "So first, learn how thrust works. Then test a few designs in the Lab."
     },
     {
+      "id": "ep5-brief-06",
       "who": "sparrow",
       "face": "pose",
       "text": "Then we take our shot. One shot. Thrust up, nose level, land it like a feather."
