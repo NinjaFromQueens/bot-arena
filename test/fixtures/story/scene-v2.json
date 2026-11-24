@@ -18,7 +18,7 @@
     { "id": "demo-03", "who": "volt", "face": "stage0", "kind": "beeps", "feel": "curious", "text": "(curious beeps)", "shot": 1 },
     { "id": "demo-04", "who": "torque", "face": "pose", "text": "That's just the old door.", "shot": 2 },
     { "id": "demo-05", "who": "omni", "face": "idle", "text": "Recording.", "shot": 3, "music": null },
-    { "id": "demo-06", "kind": "narration", "text": "Volt's eye flickers on.", "shot": 4, "music": "/assets/audio/music/workshop.mp3" },
+    { "id": "demo-06", "kind": "narration", "text": "Volt's eye flickers on.", "shot": 4, "music": "/assets/audio/music/workshop.mp3", "ambience": "/assets/audio/ambient/workshop.mp3" },
     { "id": "demo-07", "kind": "narration", "text": "A clip that isn't made yet shows its poster.", "shot": 5 }
   ]
 }

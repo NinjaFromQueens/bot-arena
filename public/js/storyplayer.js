@@ -248,7 +248,7 @@
       next.textContent = k === lines.length - 1 ? "Done" : "Next";
       back.disabled = k === 0;
       if (!RM) { text.classList.remove("in"); void text.offsetWidth; text.classList.add("in"); }
-      track(chans.music, at(scene, k, "music", scene.music)); track(chans.amb, scene.ambience);
+      track(chans.music, at(scene, k, "music", scene.music)); track(chans.amb, at(scene, k, "ambience", scene.ambience)); // a line can change the music or the ambience from there on
       if (kind === "reply") { lineSound({ sfx: ln.sfx }, my); showReplies(k); kick(); }
       else {
         lineDone(my, 1200 + 55 * String(T(ln.text) || "").length); // reading time, until a sound's end replaces it

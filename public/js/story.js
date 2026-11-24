@@ -181,6 +181,7 @@
         else if (ln.voice !== false) ref(`${at} voice`, ln.voice, "voice"); // false: silent on purpose (the asset tool doesn't ask for a voice)
         if (ln.sfx != null) { if (!Array.isArray(ln.sfx)) p.push(`${at}: sfx is a list of sounds`); else for (const s of ln.sfx) ref(`${at} sound`, s, "sfx"); }
         if ("music" in ln) ref(`${at} music`, ln.music, "music");
+        if ("ambience" in ln) ref(`${at} ambience`, ln.ambience, "ambience");
       }
     }
     for (const [id, c] of Object.entries(data.characters)) { if (!c.name) p.push(`character ${id}: it needs a name`); for (const f of Object.values(c.faces || {})) ref(`character ${id}`, f, "image"); } // a face can be an asset ID not made yet

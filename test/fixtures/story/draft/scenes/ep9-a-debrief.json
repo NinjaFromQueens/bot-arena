@@ -1,0 +1,18 @@
+{
+  "id": "ep9-a-debrief",
+  "music": null,
+  "shots": [
+    {
+      "kind": "video",
+      "art": "boss_sentinel_intro",
+      "poster": "boss_sentinel"
+    }
+  ],
+  "lines": [
+    {
+      "id": "ep9-a-d01",
+      "kind": "narration",
+      "text": "The end."
+    }
+  ]
+}

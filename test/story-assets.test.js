@@ -18,7 +18,7 @@ assert.strictEqual(e.id, "unused", "a scene no mission uses is grouped as unused
 assert.deepStrictEqual(e.make.map((m) => m.id).sort(), ["cut_ch02", "key_demo_not_made"], "to make: the picture and the clip not made yet");
 assert.strictEqual(e.make.find((m) => m.id === "cut_ch02").credits, 7.5, "a 5 s clip: 7.5");
 assert.strictEqual(e.make.find((m) => m.id === "key_demo_not_made").credits, 2.75, "a keyframe: 2.75");
-assert(e.reused.keyframe >= 3 && e.reused.clip === 1 && e.reused.music === 2 && e.reused.ambience === 1 && e.reused.sfx === 1 && e.reused.voice === 1, "reused: paths and made IDs, once each " + JSON.stringify(e.reused));
+assert(e.reused.keyframe >= 3 && e.reused.clip === 1 && e.reused.music === 2 && e.reused.ambience === 2 && e.reused.sfx === 1 && e.reused.voice === 1, "reused: paths and made IDs, once each (a line can change the ambience) " + JSON.stringify(e.reused));
 assert.deepStrictEqual(e.voices.map((v) => v.id), ["demo-01", "demo-04", "demo-05", "demo-06", "demo-07"], "voice lines: every speaking line without a recording (not Volt's beeps)");
 assert.strictEqual(e.voices[0].who, "narrator", "narration is the narrator's");
 assert.deepStrictEqual(e.feels, ["curious"], "Volt's feelings used");
@@ -60,4 +60,19 @@ assert(r.episodes.every((x) => !x.unlisted.length && !x.missingFiles.length), "t
 const op = r.episodes.find((x) => x.id === "opening");
 assert(op && op.total === 0 && op.reused.voice > 0, "the opening has nothing left to make");
 assert(r.episodes.every((x) => !x.noId.length), "every real line that needs a voice has an id");
+// a draft episode (EP1-2): merged for the report, its scenes checked, art that only needs a web copy, the script
+const dr = A.withDraft(real, path.join(__dirname, "fixtures/story/draft"));
+assert.deepStrictEqual(A.checkDraft(dr.data, dr.scenes), [], "the draft's scenes pass the scene check");
+assert.strictEqual(dr.data.assets.boss_sentinel_intro.kind, "video", "a draft adds fields to a listed asset without losing its own");
+const de = A.report(dr.data, { only: ["ep9"] }).episodes[0];
+assert(de && de.id === "ep9" && de.scenes.length === 2, "the draft episode groups its scenes");
+assert.deepStrictEqual(de.make.map((m) => m.id).sort(), ["boss_sentinel_intro", "char_tester_pose"], "to make: the new face and the clip");
+assert.deepStrictEqual(de.copies, ["bg_test_place"], "art with a job only needs its web copy, for free");
+assert(!de.noPrompt.includes("boss_sentinel_intro"), "the draft gave the clip its prompt");
+assert(de.reused.ambience === 1, "a line's ambience is counted");
+const md = A.script(dr.data, ["ep9"], "Script");
+for (const want of ["## Episode 9: The Test Episode", "### The test mission: Briefing (`ep9-a-brief`)", "**TESTER (pose):** Hello there.", "- C: Hi.", "**YOU (reply):**", "2. Who are you?", "ambience: city.mp3", "*Narration* The end."]) assert(md.includes(want), "the script has: " + want);
+const broken = JSON.parse(JSON.stringify(dr.scenes)); broken["ep9-a-brief"].lines[0].face = "nope";
+assert(A.checkDraft(dr.data, broken).some((s) => /tester has no face nope/.test(s)), "the draft check catches a bad face");
+
 console.log(`Story asset tool tests passed (${r.episodes.length} groups, about ${r.total} credits to make)`);

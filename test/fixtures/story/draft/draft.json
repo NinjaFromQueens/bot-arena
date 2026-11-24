@@ -1,0 +1,43 @@
+{
+  "about": "A made-up draft episode for test/story-assets.test.js (the shape of a private draft folder).",
+  "episode": {
+    "id": "ep9",
+    "num": 9,
+    "title": "The Test Episode",
+    "missions": [
+      {
+        "id": "ep9-a",
+        "title": "The test mission",
+        "briefing": "ep9-a-brief",
+        "debrief": "ep9-a-debrief"
+      }
+    ]
+  },
+  "characters": {
+    "tester": {
+      "name": "Tester",
+      "faces": {
+        "pose": "char_tester_pose"
+      }
+    }
+  },
+  "assets": {
+    "char_tester_pose": {
+      "file": "/assets/characters/tester/pose.webp",
+      "kind": "image",
+      "made": false,
+      "prompt": "A test character, full body"
+    },
+    "bg_test_place": {
+      "file": "/assets/scenes/test_place.webp",
+      "kind": "image",
+      "made": false,
+      "job": "00000000-0000-4000-8000-000000000003",
+      "prompt": "A test place"
+    },
+    "boss_sentinel_intro": {
+      "from": "boss_sentinel",
+      "prompt": "Added by the draft"
+    }
+  }
+}

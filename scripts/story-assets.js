@@ -7,15 +7,23 @@
  *   npm run story:assets -- ep1                   one episode; "opening" is the opening's scenes
  *     --tier cadet|recruit|operative              which reading level's voice lines to count (Recruit first)
  *     --batch <file>                              also write the next Higgsfield batch as JSON, for a quote
+ *     --drafts <dir>                              add a private draft episode (EP1-2): <dir>/draft.json (episode,
+ *                                                 characters, assets, rewards) and <dir>/scenes/*.json; checks its scenes
+ *     --script <file>                             write the chosen episodes' scenes as a readable script (Markdown)
  *
  * Art and sound in scenes are paths (already made) or asset IDs from public/assets/story-assets.json. An ID's entry
  * can carry what the batch needs: prompt, aspect, refs (asset IDs or Higgsfield job ids for image_references), from
  * (a clip's keyframe ID), secs (a clip's or a track's length), credits (overrides the estimate). Voice lines are the
  * speaking lines without a voice at that level (a level hears the Recruit recording where its words are the same, as
  * the player does); "voice": false keeps a line silent on purpose. Prices are the Nov 15 quotes: every batch is quoted
- * again with get_cost and approved by Duron before anything is spent.
+ * again with get_cost and approved by Duron before anything is spent. An entry with a job but made: false is art that
+ * was generated and only needs its web copy (npm run media, free).
+ *
+ * Drafts stay out of the public repo until their episode ships (story spoilers, and asset names that give the season
+ * away), so they live with the story files in the private art folder and are merged here only for the report.
  */
 const fs = require("fs"), path = require("path");
+const Story = require("../public/js/story.js");
 const ROOT = path.resolve(__dirname, ".."), PUB = path.join(ROOT, "public"), DATA = path.join(PUB, "data");
 const LEVELS = ["cadet", "recruit", "operative"];
 
@@ -48,6 +56,20 @@ function load(dir = DATA, pub = PUB) {
   return { episodes, scenes, season, characters, assets, exists: (p) => fs.existsSync(path.join(pub, p)) };
 }
 
+// a draft episode merged in: its scenes, new characters and asset entries (fields added to a listed asset's entry),
+// and its episode file for grouping. Returns the merged data and the draft's own scenes, for checking
+function withDraft(d, dir) {
+  const draft = JSON.parse(fs.readFileSync(path.join(dir, "draft.json"), "utf8")), sdir = path.join(dir, "scenes");
+  const scenes = Object.fromEntries(fs.readdirSync(sdir).filter((f) => f.endsWith(".json")).map((f) => [f.slice(0, -5), JSON.parse(fs.readFileSync(path.join(sdir, f), "utf8"))]));
+  const assets = { ...d.assets }; for (const [id, a] of Object.entries(draft.assets || {})) assets[id] = { ...(assets[id] || {}), ...a };
+  const episodes = draft.episode ? [...d.episodes.filter((e) => e.id !== draft.episode.id), draft.episode].sort((a, b) => a.num - b.num) : d.episodes;
+  return { data: { ...d, episodes, scenes: { ...d.scenes, ...scenes }, characters: { ...d.characters, ...(draft.characters || {}) }, assets }, draft, scenes };
+}
+// the scene check (story.js) on a draft's scenes, against the merged characters and assets
+function checkDraft(merged, scenes) {
+  return Story.check({ episodes: [], scenes, characters: merged.characters, rewards: [] }, { lessons: [], missions: {}, exists: merged.exists, assets: merged.assets });
+}
+
 // which episode each scene belongs to: its missions' briefings and debriefs, and the opening's Cadet version
 function sceneGroups(d) {
   const of = {};
@@ -70,6 +92,7 @@ function refsOf(sc, characters) {
     const where = `line ${k + 1}`;
     for (const s of ln.sfx || []) add(s, "sfx", where);
     if (typeof ln.music === "string") add(ln.music, "music", where);
+    if (typeof ln.ambience === "string") add(ln.ambience, "ambience", where);
     const c = ln.who && characters[ln.who];
     if (c && ln.face != null) add(c.faces[ln.face], "portrait", `${where} (${ln.who} ${ln.face})`);
   });
@@ -109,7 +132,7 @@ function report(d, { only = null, tier = "recruit", cast = null } = {}) {
   const order = [...d.episodes.map((e) => e.id), "opening", "unused"];
   for (const [sid, sc] of Object.entries(d.scenes)) {
     const g = group[sid]; if (only && !only.includes(g)) continue;
-    const e = eps[g] || (eps[g] = { id: g, title: g === "opening" ? "The opening" : g === "unused" ? "Scenes no mission uses" : (d.episodes.find((x) => x.id === g) || {}).title, scenes: [], make: new Map(), reused: new Map(), unlisted: [], missingFiles: [], voices: [], noId: [], feels: new Set(), recorded: 0 });
+    const e = eps[g] || (eps[g] = { id: g, title: g === "opening" ? "The opening" : g === "unused" ? "Scenes no mission uses" : (d.episodes.find((x) => x.id === g) || {}).title, scenes: [], make: new Map(), copies: new Map(), reused: new Map(), unlisted: [], missingFiles: [], voices: [], noId: [], feels: new Set(), recorded: 0 });
     e.scenes.push(sid);
     for (const r of refsOf(sc, d.characters)) {
       const at = `${sid} ${r.where}`;
@@ -117,6 +140,7 @@ function report(d, { only = null, tier = "recruit", cast = null } = {}) {
       const a = d.assets[r.ref];
       if (!a) { e.unlisted.push(`${r.ref} (${at})`); continue; }
       if (a.made) { e.reused.set(r.ref, r.use); continue; }
+      if (a.job) { e.copies.set(r.ref, r.use); continue; } // generated already: only its web copy is missing
       const m = e.make.get(r.ref) || { id: r.ref, use: r.use, asset: a, where: [] };
       m.where.push(at); e.make.set(r.ref, m);
     }
@@ -133,7 +157,7 @@ function report(d, { only = null, tier = "recruit", cast = null } = {}) {
     const noPrompt = [...e.make.values()].filter((m) => !m.asset.prompt).map((m) => m.id);
     const total = round(Object.values(rows).reduce((s, r) => s + r.credits, 0));
     for (const r of Object.values(rows)) r.credits = round(r.credits);
-    return { id: e.id, title: e.title, scenes: e.scenes, rows, total, make: [...e.make.values()], voices: e.voices, reused, unlisted: e.unlisted, missingFiles: e.missingFiles, noPrompt, noId: e.noId, feels: [...e.feels] };
+    return { id: e.id, title: e.title, scenes: e.scenes, rows, total, make: [...e.make.values()], copies: [...e.copies.keys()], voices: e.voices, reused, unlisted: e.unlisted, missingFiles: e.missingFiles, noPrompt, noId: e.noId, feels: [...e.feels] };
   });
   return { tier, episodes: out, total: round(out.reduce((s, e) => s + e.total, 0)) };
 }
@@ -185,6 +209,7 @@ function print(rep, w = console.log) {
       const byWho = {}; for (const v of e.voices) byWho[v.who] = (byWho[v.who] || 0) + 1;
       if (e.voices.length) w(`      voice lines by speaker: ${Object.entries(byWho).map(([k, n]) => `${k} ${n}`).join(", ")}`);
     }
+    if (e.copies.length) w(`  Web copies to make (the art exists; free with npm run media): ${e.copies.join(", ")}`);
     const re = Object.entries(e.reused);
     if (re.length) w(`  Reused (already made): ${re.map(([u, n]) => `${n} ${n === 1 ? NAMES[u].replace(/s$/, "") : NAMES[u]}`).join(", ")}`);
     if (e.feels.length) w(`  Volt's feelings used: ${e.feels.join(", ")} (synthesized beeps until the sound library's feelings exist)`);
@@ -197,23 +222,73 @@ function print(rep, w = console.log) {
   w(`All: about ${rep.total.toFixed(2)} credits to make.`);
 }
 
+// the scenes as a script to read and lock (production step 2): shots as stage directions, every line with its speaker,
+// the other levels' words under the Recruit's, replies as choices
+function script(d, ids, title) {
+  const out = [`# ${title}`, "", `Made by \`npm run story:assets -- --script\` from the scene files. Recruit words first; Cadet (C) and Operative (O) where they differ.`, ""];
+  const group = sceneGroups(d), name = (who) => (d.characters[who] && d.characters[who].name) || who;
+  const ref = (r) => (typeof r !== "string" ? "" : r.startsWith("/") ? r.split("/").pop() : r);
+  for (const ep of d.episodes.filter((e) => ids.includes(e.id))) {
+    out.push(`## Episode ${ep.num}: ${textAt(ep.title, "recruit")}`, "");
+    for (const m of ep.missions) for (const [kind, sid] of [["Briefing", m.briefing], ["Debrief", m.debrief]]) {
+      const sc = d.scenes[sid]; if (!sc || group[sid] !== ep.id) continue;
+      out.push(`### ${textAt(m.title, "recruit")}: ${kind} (\`${sid}\`)`, "");
+      const shots = Array.isArray(sc.shots) ? sc.shots : sc.bg ? [{ kind: "still", art: sc.bg }] : [];
+      const sound = [sc.music && `music ${ref(sc.music)}`, sc.ambience && `ambience ${ref(sc.ambience)}`].filter(Boolean).join(", ");
+      if (sound) out.push(`*Sound: ${sound}.*`, "");
+      let shot = -1;
+      sc.lines.forEach((ln, k) => {
+        const s = ln.shot != null ? ln.shot : k === 0 ? 0 : shot;
+        if (s !== shot && shots[s]) { shot = s; const x = shots[s]; out.push(`> **Shot ${s}:** ${x.kind === "video" ? "clip" : "still"} ${ref(x.art)}${x.move ? `, ${x.move}` : ""}${x.look ? `, ${x.look} look` : ""}${x.note ? `. ${textAt(x.note, "recruit")}` : ""}`, ""); }
+        const extra = [ln.sfx && ln.sfx.length && `sound: ${ln.sfx.map(ref).join(", ")}`, "music" in ln && `music: ${ln.music ? ref(ln.music) : "stops"}`, "ambience" in ln && `ambience: ${ln.ambience ? ref(ln.ambience) : "stops"}`].filter(Boolean);
+        if (extra.length) out.push(`*(${extra.join("; ")})*`, "");
+        const kind = ln.kind || "line";
+        if (kind === "reply") {
+          out.push(`**YOU (reply):**`);
+          ln.replies.forEach((r, j) => { out.push(`${j + 1}. ${textAt(r.text, "recruit")}`); for (const t of ["cadet", "operative"]) if (r.text && typeof r.text === "object" && r.text[t] && r.text[t] !== r.text.recruit) out.push(`   - ${t[0].toUpperCase()}: ${r.text[t]}`); });
+          out.push("");
+          return;
+        }
+        const who = kind === "narration" ? "*Narration*" : `**${name(ln.who).toUpperCase()}${ln.face ? ` (${ln.face})` : ""}:**`;
+        out.push(`${who} ${kind === "beeps" ? "_" + textAt(ln.text, "recruit") + "_" : textAt(ln.text, "recruit")}`);
+        for (const t of ["cadet", "operative"]) if (ln.text && typeof ln.text === "object" && ln.text[t] && ln.text[t] !== ln.text.recruit) out.push(`- ${t[0].toUpperCase()}: ${ln.text[t]}`);
+        out.push("");
+      });
+    }
+  }
+  return out.join("\n");
+}
+
 function main(argv) {
   const args = argv.slice(), opt = (k) => { const i = args.indexOf(k); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
   const tier = opt("--tier") || "recruit", batchFile = opt("--batch"), styleFile = opt("--style") || path.resolve(ROOT, "../bot-arena-v2/art-work/story/STYLE.md");
   if (!LEVELS.includes(tier)) { console.error(`--tier is ${LEVELS.join(", ")}`); return 2; }
   const castFile = path.join(ROOT, "docs/voice-cast.json"), cast = fs.existsSync(castFile) ? JSON.parse(fs.readFileSync(castFile, "utf8")).cast : null;
-  const d = load(), only = args.length ? args : null;
+  const draftDir = opt("--drafts"), scriptFile = opt("--script");
+  let d = load(), drafted = null;
+  if (draftDir) {
+    drafted = withDraft(d, path.resolve(draftDir)); d = drafted.data;
+    const problems = checkDraft(d, drafted.scenes);
+    console.log(problems.length ? `Draft scene problems (${problems.length}):\n  ${problems.join("\n  ")}\n` : `Draft ${drafted.draft.episode ? drafted.draft.episode.id : ""}: ${Object.keys(drafted.scenes).length} scenes pass the scene check.\n`);
+    if (problems.length) process.exitCode = 1;
+  }
+  const only = args.length ? args : null;
   if (only) { const known = [...d.episodes.map((e) => e.id), "opening", "unused"]; const bad = only.filter((x) => !known.includes(x)); if (bad.length) { console.error(`No episode ${bad.join(", ")}. Episodes: ${known.join(", ")}`); return 2; } }
   const rep = report(d, { only, tier, cast });
   print(rep);
+  if (scriptFile) {
+    const ids = only || d.episodes.map((e) => e.id);
+    fs.writeFileSync(scriptFile, script(d, ids, `Script: ${ids.join(", ")}`) + "\n");
+    console.log(`\nWrote the script to ${scriptFile}.`);
+  }
   if (batchFile) {
     const b = batch(rep, d, { style: readStyle(styleFile), cast });
     fs.mkdirSync(path.dirname(path.resolve(batchFile)), { recursive: true });
     fs.writeFileSync(batchFile, JSON.stringify(b, null, 2) + "\n");
     console.log(`\nWrote ${batchFile}: ${b.images.length} images, ${b.clips.length} clips, ${b.audio.length} sounds, ${b.voices.length} voice lines${b.style ? "" : " (STYLE.md not found: no style prefix)"}${b.missingPrompts.length ? `; ${b.missingPrompts.length} without a prompt` : ""}.`);
   }
-  return rep.episodes.some((e) => e.unlisted.length || e.missingFiles.length) ? 1 : 0;
+  return rep.episodes.some((e) => e.unlisted.length || e.missingFiles.length) || process.exitCode === 1 ? 1 : 0;
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { PRICE, REDO, load, sceneGroups, refsOf, voiceNeeds, report, batch, readStyle, print };
+module.exports = { PRICE, REDO, load, withDraft, checkDraft, sceneGroups, refsOf, voiceNeeds, report, batch, readStyle, print, script };

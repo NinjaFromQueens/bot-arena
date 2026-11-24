@@ -14,6 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| EP1-2 | Episode 1's script as scene files (Recruit words, with Cadet and Operative for the tier table's beats), private until the episode ships | Written Nov 23 (12 scenes, 145 lines, quote about 123 credits); waiting for Duron to read and lock it |
 
 ---
 

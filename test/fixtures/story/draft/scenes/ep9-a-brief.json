@@ -1,0 +1,39 @@
+{
+  "id": "ep9-a-brief",
+  "music": null,
+  "shots": [
+    {
+      "kind": "still",
+      "art": "bg_test_place",
+      "move": "push"
+    }
+  ],
+  "lines": [
+    {
+      "id": "ep9-a-b01",
+      "who": "tester",
+      "face": "pose",
+      "text": {
+        "cadet": "Hi.",
+        "recruit": "Hello there."
+      }
+    },
+    {
+      "id": "ep9-a-b02",
+      "kind": "narration",
+      "ambience": "/assets/audio/ambient/city.mp3",
+      "text": "The city hums."
+    },
+    {
+      "kind": "reply",
+      "replies": [
+        {
+          "text": "Hello."
+        },
+        {
+          "text": "Who are you?"
+        }
+      ]
+    }
+  ]
+}
