@@ -14,7 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| EP1-2 | Episode 1's script as scene files (Recruit words, with Cadet and Operative for the tier table's beats), private until the episode ships | Written Nov 23 (12 scenes, 145 lines, quote about 123 credits); waiting for Duron to read and lock it |
+| EP1-3 | Episode 1's asset list (the quote to approve) and its animatic: the twelve draft scenes played in the story player with placeholders and the browser's voice, to check pacing for free | Started Nov 26 |
 
 ---
 
@@ -67,6 +67,7 @@ The whole plan is in [docs/racer-plan.md](docs/racer-plan.md): the Nov 15 review
 ## ✅ Recently Completed
 | # | Item | Deployed | Commit |
 |---|---|---|---|
+| EP1-2 | Episode 1's script: twelve scene files (145 lines, Recruit words, Cadet and Operative for the tier table's beats, 12 reply lines), the episode file, rewards, new characters and asset entries, private in `art-work/story/ep1/` until the episode ships. Locked by Duron Nov 26; Lazarus's voice narrates. The asset tool reads private drafts (`--drafts`, `--script`) | The tool pushed Nov 23 and checked on circuitrebels.org; the script stays private | a71256e |
 | ST-3 | The asset tool: `npm run story:assets` lists per episode what's still to make (art, clips, music, sounds, voice lines per reading level) with a credit estimate, what's reused, and what a batch would be missing; `--batch` writes the next Higgsfield batch for a get_cost quote (prompts, STYLE.md, each speaker's voice from the private docs/voice-cast.json). Faces can be asset IDs; `"voice": false` marks a silent line; Episode 5's lines have ids | Pushed to `main` Nov 23, 2026; the story checks and every page pass on circuitrebels.org | d1b5972 |
 | ST-2 | The story player: shots (painted stills with camera moves and parallax layers, clips), narration, Volt's beeps, the security-camera look, voice per reading level, music and ambience ducked under voices, sound cues, Back, placeholders for art not made yet, asset IDs, the animatic (ST-2a); the opening film on the map and in Mission Control, with the Cadet storybook version (ST-2b); reply lines with the student's own recruit and call sign, Your recruit and Scenes you've seen on the map (ST-2c) | Pushed to `main` Nov 23, 2026; checked on circuitrebels.org each time (the player, opening and reply checks, PF-2, PF-3, every page) | 90f32b6, 26e98cc, 97a7488 |
 | BLOG-3 | The blog is live at circuitrebels.org/blog/ with its first three posts, reviewed and approved by Duron: What is Circuit Rebels?, What is Sense-Think-Act? (with a new diagram from a real Bot Arena fight) and How do ultrasonic sensors work, and why can't they see a couch? (with the lesson's sonar simulator). Blog is in the home page's navbar and footer; the glossary test now checks posts; fixed the build deleting post pictures when nothing was published | Pushed to `main` Nov 22, 2026; checked on circuitrebels.org (every blog address, the blog check at desktop and phone with JavaScript on and off, every page, the sitemap and llms.txt). Cloudflare caches the blog since Nov 23 (MISS, then HIT; the rule's first version matched nothing: a URI Full wildcard without `https://` or a trailing `*`) | 1411e7a |

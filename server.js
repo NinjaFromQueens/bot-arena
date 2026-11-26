@@ -37,6 +37,8 @@ app.get("/healthz", (_req, res) => res.json({ ok: true, rooms: rooms.size }));
 app.set("trust proxy", 1); // behind Render's proxy, so req.ip is the visitor (for the PIN limit)
 // Teacher accounts, classes and saved student progress (lib/accounts.js, under /api/account). Live games don't use them.
 require("./lib/accounts")({ app, isBlocked, Engine, Flight, Race });
+// A private draft episode and its animatic, only on a computer started with STORY_DRAFTS (lib/drafts.js; never on Render)
+if (require("./lib/drafts")({ app, express, pub })) console.log(`Story drafts from ${process.env.STORY_DRAFTS}: the animatic is at /animatic`);
 
 // Teacher status page (/status): server health and the games running, behind the TEACHER_PIN setting.
 // Counts only, never student names. Ten wrong PINs from one address lock it out for 10 minutes.
