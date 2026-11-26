@@ -14,7 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
-| EP1-3 | Episode 1's asset list (the quote to approve) and its animatic: the twelve draft scenes played in the story player with placeholders and the browser's voice, to check pacing for free | Started Nov 26 |
+| EP1-3 | Episode 1's asset list (the quote to approve) and its animatic: the twelve draft scenes played in the story player with placeholders and the browser's voice, to check pacing for free | Built Nov 26: `npm run animatic` (local only; e855540, checked off on circuitrebels.org), quote about 123 credits in `docs/batches/ep1-recruit.json`. Waiting for Duron: pacing OK, and the quote |
 
 ---
 
