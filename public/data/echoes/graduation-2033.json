@@ -8,29 +8,29 @@
     {
       "id": "caps",
       "name": "Caps in the air",
-      "x": 55,
+      "x": 64,
       "y": 15,
       "r": 7
     },
     {
-      "id": "school",
-      "name": "The school building",
-      "x": 24,
-      "y": 28,
-      "r": 7
+      "id": "crest",
+      "name": "The school's crest",
+      "x": 22,
+      "y": 24,
+      "r": 5
     },
     {
       "id": "skyline",
       "name": "The skyline across the water",
-      "x": 86,
-      "y": 26,
+      "x": 87,
+      "y": 35,
       "r": 5
     },
     {
       "id": "families",
       "name": "Families cheering",
-      "x": 14,
-      "y": 76,
+      "x": 12,
+      "y": 78,
       "r": 7
     }
   ]

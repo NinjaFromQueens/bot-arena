@@ -8,23 +8,30 @@
     {
       "id": "train",
       "name": "A white train on the bridge",
-      "x": 58,
-      "y": 44,
-      "r": 5,
+      "x": 78,
+      "y": 58,
+      "r": 7,
       "thing": "maglev"
     },
     {
-      "id": "boats",
-      "name": "Sailboats",
-      "x": 24,
-      "y": 66,
+      "id": "bridge",
+      "name": "The stone bridge",
+      "x": 27,
+      "y": 62,
       "r": 6
     },
     {
-      "id": "skyline",
-      "name": "The city skyline",
-      "x": 84,
-      "y": 30,
+      "id": "sail",
+      "name": "A sailboat",
+      "x": 27,
+      "y": 90,
+      "r": 5
+    },
+    {
+      "id": "houses",
+      "name": "Houses on the hill",
+      "x": 82,
+      "y": 92,
       "r": 6
     }
   ]

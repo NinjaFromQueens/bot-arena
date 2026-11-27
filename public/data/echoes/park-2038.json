@@ -10,32 +10,40 @@
     {
       "id": "kites",
       "name": "Kites in the sky",
-      "x": 30,
-      "y": 22,
+      "x": 11,
+      "y": 10,
       "r": 6
     },
     {
       "id": "family",
       "name": "A family on a blanket",
-      "x": 28,
-      "y": 68,
+      "x": 11,
+      "y": 64,
       "r": 6,
+      "shadow": 150
+    },
+    {
+      "id": "picnic",
+      "name": "A picnic under the tree",
+      "x": 75,
+      "y": 72,
+      "r": 7,
       "shadow": 150
     },
     {
       "id": "tree",
       "name": "An oak tree",
-      "x": 84,
-      "y": 40,
-      "r": 7,
-      "shadow": 155
+      "x": 87,
+      "y": 30,
+      "r": 6,
+      "shadow": 150
     },
     {
       "id": "helper",
       "name": "A white helper robot",
-      "x": 70,
-      "y": 74,
-      "r": 4,
+      "x": 35,
+      "y": 78,
+      "r": 5,
       "thing": "omni",
       "shadow": 30
     }

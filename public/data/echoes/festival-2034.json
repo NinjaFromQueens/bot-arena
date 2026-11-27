@@ -9,31 +9,45 @@
     {
       "id": "banner",
       "name": "The street banner",
-      "x": 50,
-      "y": 13,
+      "x": 49,
+      "y": 15,
       "r": 6,
       "thing": "omni"
     },
     {
       "id": "lanterns",
       "name": "Paper lanterns",
-      "x": 22,
-      "y": 28,
+      "x": 18,
+      "y": 10,
       "r": 5
     },
     {
-      "id": "stall",
-      "name": "A food stall",
-      "x": 82,
-      "y": 58,
-      "r": 6
+      "id": "tower",
+      "name": "A tower on the hill",
+      "x": 25,
+      "y": 15,
+      "r": 4
+    },
+    {
+      "id": "boats",
+      "name": "Sailboats on the water",
+      "x": 13,
+      "y": 38,
+      "r": 5
     },
     {
       "id": "dancers",
       "name": "People dancing",
-      "x": 46,
-      "y": 70,
+      "x": 47,
+      "y": 68,
       "r": 7
+    },
+    {
+      "id": "stall",
+      "name": "A food stall",
+      "x": 91,
+      "y": 55,
+      "r": 6
     }
   ]
 }

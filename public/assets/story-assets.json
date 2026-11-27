@@ -579,98 +579,107 @@
   "echo_festival_2034": {
    "file": "/assets/echoes/festival_2034.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "00e1894f-9d0e-4d32-b886-cbecb5b3a68d"
    ],
    "prompt": "A slightly faded photograph of a crowded waterfront festival at night in 2034: strangers dancing under strings of paper lanterns, food stalls on the right, a long cloth street banner hung across the top center of the picture with a simple painted yellow sun on it, warm light reflecting on the water",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "431315dc-d2e1-4328-82ee-82090c6b11f3"
   },
   "echo_festival_2034_altered": {
    "file": "/assets/echoes/festival_2034_altered.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "echo_festival_2034"
    ],
    "from": "echo_festival_2034",
    "prompt": "Edit: replace only the painted sun on the street banner with a crisp white hexagon with a glowing blue ring in the middle, too sharp and too bright for the faded photo around it. Keep everything else exactly the same",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "592a6669-26a2-44d6-9e33-56dce87c14b9"
   },
   "echo_park_2038": {
    "file": "/assets/echoes/park_2038.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "00e1894f-9d0e-4d32-b886-cbecb5b3a68d"
    ],
    "prompt": "A sunny photograph of a city park in 2038: families on picnic blankets on the grass, children flying colorful kites high in the sky on the left, a big oak tree on the right, late afternoon sun so every shadow falls long toward the lower left",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "8324e4d6-2f01-40da-acd1-442f4ec2084d"
   },
   "echo_park_2038_altered": {
    "file": "/assets/echoes/park_2038_altered.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "echo_park_2038"
    ],
    "from": "echo_park_2038",
    "prompt": "Edit: add one small smiling white helper robot with a glowing blue ring on its chest, sitting on a picnic blanket in the lower right, with its shadow falling toward the lower RIGHT, the opposite way from every other shadow in the picture. Keep everything else exactly the same",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "8d89a81c-940c-4c96-8584-2f16cb830687"
   },
   "echo_play_2035": {
    "file": "/assets/echoes/play_2035.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "00e1894f-9d0e-4d32-b886-cbecb5b3a68d"
    ],
    "prompt": "A photograph from the back of a school auditorium in 2035: children in homemade costumes on a small stage under warm stage lights, painted cardboard scenery, and every seat filled with parents and grandparents clapping, seen from behind",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "32199e48-ee7c-4dc5-a041-0bde47a7854e"
   },
   "echo_play_2035_altered": {
    "file": "/assets/echoes/play_2035_altered.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "echo_play_2035"
    ],
    "from": "echo_play_2035",
    "prompt": "Edit: remove every person from the seats so the auditorium is completely empty, rows of bare seats facing the stage. Keep the stage, the children in costumes and the lighting exactly the same",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "e1343368-e9fb-4e0d-944b-f2575b08737a"
   },
   "echo_harbor_2035_altered": {
    "file": "/assets/echoes/harbor_2035_altered.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "00e1894f-9d0e-4d32-b886-cbecb5b3a68d"
    ],
    "prompt": "A warm photograph of Neo Harbor at sunset in 2035: sailboats on the water in the lower left, an old steel bridge across the middle distance with a sleek white maglev train gliding over it, a city skyline of ordinary glass towers on the right, and no tall white spire anywhere",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "6adf5e0e-89d9-4383-9e14-bca54e9a5fa9",
+   "note": "the left side of the generated picture (art-work/story/echoes/harbor-2035-altered-crop.png): the right side had kids who looked like the cast, and a robot dog"
   },
   "echo_market_2039_altered": {
    "file": "/assets/echoes/market_2039_altered.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "00e1894f-9d0e-4d32-b886-cbecb5b3a68d"
    ],
    "prompt": "A photograph of a busy Saturday street market in 2039: fruit stalls with striped awnings on the left, shoppers with baskets, morning sun so every shadow falls toward the lower left; standing among the stalls on the right, one glossy white faceless robot with a single blue visor whose shadow falls toward the lower RIGHT, the opposite way from every other shadow",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "123c6adf-bdf6-490c-8d18-ce9eec2326a8"
   },
   "echo_graduation": {
    "file": "/assets/echoes/graduation.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "aspect": "16:9",
    "refs": [
     "f52a07e2-36fa-4807-8881-2066f64ced41"
@@ -678,15 +687,23 @@
    "from": "f52a07e2-36fa-4807-8881-2066f64ced41",
    "prompt": "Edit: replace the orange hexagon emblem on the school building with a plain round school crest with a book and a star, and remove the tall white spire from the skyline on the right so it shows only ordinary towers. Keep everything else exactly the same",
    "note": "an edit of the Nov 11 picture (job f52a07e2…), which showed OMNI's hexagon and the Spire in 2033 (Echo Lab plan, decision 3)",
-   "batch": "echo-lab"
+   "batch": "echo-lab",
+   "job": "de16969b-b3d0-445a-b214-85c4ed5cfc1d"
   },
   "echo_faith_christmas": {
    "file": "/assets/echoes/faith_christmas.webp",
    "kind": "image",
-   "made": false,
+   "made": true,
    "job": "604bb425-a2a4-43dd-9b38-6e0f32a6da68",
    "prompt": "Inside Harbor Light Church on Christmas Eve before 2046, families holding candles, stained-glass windows glowing, a nativity scene at the front, warm golden light",
    "note": "made Nov 11 (art-work/story/echoes/faith-christmas.png): needs only its web copy"
+  },
+  "bg_archive": {
+   "file": "/assets/scenes/archive.webp",
+   "kind": "image",
+   "made": true,
+   "job": "00e1894f-9d0e-4d32-b886-cbecb5b3a68d",
+   "prompt": "A sealed underground public library: tall shelves of dusty books, old server racks glowing faintly between them, a single shaft of light"
   }
  }
 }

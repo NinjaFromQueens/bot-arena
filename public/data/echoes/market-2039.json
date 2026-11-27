@@ -9,27 +9,42 @@
     {
       "id": "robot",
       "name": "A white robot with a blue visor",
-      "x": 66,
-      "y": 50,
-      "r": 5,
+      "x": 75,
+      "y": 58,
+      "r": 6,
       "thing": "warden",
-      "shadow": 20
+      "shadow": 25
     },
     {
-      "id": "stalls",
-      "name": "Fruit stalls",
-      "x": 25,
-      "y": 58,
-      "r": 7,
+      "id": "train",
+      "name": "A train on the arches",
+      "x": 73,
+      "y": 25,
+      "r": 5,
+      "thing": "maglev"
+    },
+    {
+      "id": "stall",
+      "name": "A fruit stall",
+      "x": 10,
+      "y": 52,
+      "r": 7
+    },
+    {
+      "id": "kids",
+      "name": "Kids buying fruit",
+      "x": 26,
+      "y": 76,
+      "r": 6,
       "shadow": 160
     },
     {
       "id": "shoppers",
       "name": "Shoppers",
-      "x": 44,
-      "y": 72,
-      "r": 7,
-      "shadow": 165
+      "x": 55,
+      "y": 53,
+      "r": 6,
+      "shadow": 160
     }
   ]
 }

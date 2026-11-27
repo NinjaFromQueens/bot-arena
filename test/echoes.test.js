@@ -27,7 +27,7 @@ for (const [id, s] of Object.entries(sets)) for (const cid of s.cases) assert(C(
 // the verdicts, worked out from the evidence (never stored in a case)
 const verdicts = Object.fromEntries(cases.map((c) => [c.id, Echoes.proofs(c).map((p) => p.tell).sort().join("+") || "real"]));
 assert.deepStrictEqual(verdicts, {
-  "festival-2034": "date", "park-2038": "shadow", "play-2035": "copies+record", "harbor-2035": "date", "market-2039": "date+shadow",
+  "festival-2034": "date", "park-2038": "shadow", "play-2035": "copies+record", "harbor-2035": "date", "market-2039": "date+date+shadow", // the Warden and the maglev on the arches are both too new, and the Warden's shadow is wrong
   "graduation-2033": "real", "christmas-2045": "real", "festival-2034-real": "real",
 }, "each case's proofs");
 for (const c of cases) assert(!("altered" in c) && !("answer" in c) && !("real" in c), `case ${c.id} never stores its answer`);
