@@ -586,7 +586,8 @@
    ],
    "prompt": "A slightly faded photograph of a crowded waterfront festival at night in 2034: strangers dancing under strings of paper lanterns, food stalls on the right, a long cloth street banner hung across the top center of the picture with a simple painted yellow sun on it, warm light reflecting on the water",
    "batch": "echo-lab",
-   "job": "431315dc-d2e1-4328-82ee-82090c6b11f3"
+   "job": "431315dc-d2e1-4328-82ee-82090c6b11f3",
+   "detail": "/assets/echoes/detail/festival_2034.webp"
   },
   "echo_festival_2034_altered": {
    "file": "/assets/echoes/festival_2034_altered.webp",
@@ -599,7 +600,8 @@
    "from": "echo_festival_2034",
    "prompt": "Edit: replace only the painted sun on the street banner with a crisp white hexagon with a glowing blue ring in the middle, too sharp and too bright for the faded photo around it. Keep everything else exactly the same",
    "batch": "echo-lab",
-   "job": "592a6669-26a2-44d6-9e33-56dce87c14b9"
+   "job": "592a6669-26a2-44d6-9e33-56dce87c14b9",
+   "detail": "/assets/echoes/detail/festival_2034_altered.webp"
   },
   "echo_park_2038": {
    "file": "/assets/echoes/park_2038.webp",
@@ -611,7 +613,8 @@
    ],
    "prompt": "A sunny photograph of a city park in 2038: families on picnic blankets on the grass, children flying colorful kites high in the sky on the left, a big oak tree on the right, late afternoon sun so every shadow falls long toward the lower left",
    "batch": "echo-lab",
-   "job": "8324e4d6-2f01-40da-acd1-442f4ec2084d"
+   "job": "8324e4d6-2f01-40da-acd1-442f4ec2084d",
+   "detail": "/assets/echoes/detail/park_2038.webp"
   },
   "echo_park_2038_altered": {
    "file": "/assets/echoes/park_2038_altered.webp",
@@ -624,7 +627,8 @@
    "from": "echo_park_2038",
    "prompt": "Edit: add one small smiling white helper robot with a glowing blue ring on its chest, sitting on a picnic blanket in the lower right, with its shadow falling toward the lower RIGHT, the opposite way from every other shadow in the picture. Keep everything else exactly the same",
    "batch": "echo-lab",
-   "job": "8d89a81c-940c-4c96-8584-2f16cb830687"
+   "job": "8d89a81c-940c-4c96-8584-2f16cb830687",
+   "detail": "/assets/echoes/detail/park_2038_altered.webp"
   },
   "echo_play_2035": {
    "file": "/assets/echoes/play_2035.webp",
@@ -636,7 +640,8 @@
    ],
    "prompt": "A photograph from the back of a school auditorium in 2035: children in homemade costumes on a small stage under warm stage lights, painted cardboard scenery, and every seat filled with parents and grandparents clapping, seen from behind",
    "batch": "echo-lab",
-   "job": "32199e48-ee7c-4dc5-a041-0bde47a7854e"
+   "job": "32199e48-ee7c-4dc5-a041-0bde47a7854e",
+   "detail": "/assets/echoes/detail/play_2035.webp"
   },
   "echo_play_2035_altered": {
    "file": "/assets/echoes/play_2035_altered.webp",
@@ -649,7 +654,8 @@
    "from": "echo_play_2035",
    "prompt": "Edit: remove every person from the seats so the auditorium is completely empty, rows of bare seats facing the stage. Keep the stage, the children in costumes and the lighting exactly the same",
    "batch": "echo-lab",
-   "job": "e1343368-e9fb-4e0d-944b-f2575b08737a"
+   "job": "e1343368-e9fb-4e0d-944b-f2575b08737a",
+   "detail": "/assets/echoes/detail/play_2035_altered.webp"
   },
   "echo_harbor_2035_altered": {
    "file": "/assets/echoes/harbor_2035_altered.webp",
@@ -674,7 +680,8 @@
    ],
    "prompt": "A photograph of a busy Saturday street market in 2039: fruit stalls with striped awnings on the left, shoppers with baskets, morning sun so every shadow falls toward the lower left; standing among the stalls on the right, one glossy white faceless robot with a single blue visor whose shadow falls toward the lower RIGHT, the opposite way from every other shadow",
    "batch": "echo-lab",
-   "job": "123c6adf-bdf6-490c-8d18-ce9eec2326a8"
+   "job": "123c6adf-bdf6-490c-8d18-ce9eec2326a8",
+   "detail": "/assets/echoes/detail/market_2039_altered.webp"
   },
   "echo_graduation": {
    "file": "/assets/echoes/graduation.webp",
@@ -688,7 +695,8 @@
    "prompt": "Edit: replace the orange hexagon emblem on the school building with a plain round school crest with a book and a star, and remove the tall white spire from the skyline on the right so it shows only ordinary towers. Keep everything else exactly the same",
    "note": "an edit of the Nov 11 picture (job f52a07e2…), which showed OMNI's hexagon and the Spire in 2033 (Echo Lab plan, decision 3)",
    "batch": "echo-lab",
-   "job": "de16969b-b3d0-445a-b214-85c4ed5cfc1d"
+   "job": "de16969b-b3d0-445a-b214-85c4ed5cfc1d",
+   "detail": "/assets/echoes/detail/graduation.webp"
   },
   "echo_faith_christmas": {
    "file": "/assets/echoes/faith_christmas.webp",
@@ -696,7 +704,8 @@
    "made": true,
    "job": "604bb425-a2a4-43dd-9b38-6e0f32a6da68",
    "prompt": "Inside Harbor Light Church on Christmas Eve before 2046, families holding candles, stained-glass windows glowing, a nativity scene at the front, warm golden light",
-   "note": "made Nov 11 (art-work/story/echoes/faith-christmas.png): needs only its web copy"
+   "note": "made Nov 11 (art-work/story/echoes/faith-christmas.png): needs only its web copy",
+   "detail": "/assets/echoes/detail/faith_christmas.webp"
   },
   "bg_archive": {
    "file": "/assets/scenes/archive.webp",
@@ -704,6 +713,62 @@
    "made": true,
    "job": "00e1894f-9d0e-4d32-b886-cbecb5b3a68d",
    "prompt": "A sealed underground public library: tall shelves of dusty books, old server racks glowing faintly between them, a single shaft of light"
+  },
+  "music_archive": {
+   "file": "/assets/audio/music/archive.mp3",
+   "kind": "music",
+   "secs": 60,
+   "prompt": "Archive theme: hushed and curious, soft music box over warm synth pads, slow and dusty, a sense of wonder in a forgotten place, kid-friendly, seamless loop, original melody",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "amb_archive": {
+   "file": "/assets/audio/ambient/archive.mp3",
+   "kind": "ambience",
+   "secs": 60,
+   "prompt": "A vast silent underground library: a faint hum of old servers, distant water drips, the odd relay click, still air, seamless loop",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "sfx_echo_lens": {
+   "file": "/assets/audio/sfx/echo_lens.mp3",
+   "kind": "sfx",
+   "secs": 1,
+   "prompt": "A soft glass lens click and a gentle focusing whir, like a jeweler's loupe being raised, clean and quiet",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "sfx_echo_scan": {
+   "file": "/assets/audio/sfx/echo_scan.mp3",
+   "kind": "sfx",
+   "secs": 1.5,
+   "prompt": "A short friendly scanner sweep passing over a photo: a soft rising electronic shimmer, gentle, not harsh",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "sfx_echo_stamp": {
+   "file": "/assets/audio/sfx/echo_stamp.mp3",
+   "kind": "sfx",
+   "secs": 1,
+   "prompt": "A rubber stamp pressed firmly onto paper on a wooden desk: one solid thunk",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "sfx_echo_paper": {
+   "file": "/assets/audio/sfx/echo_paper.mp3",
+   "kind": "sfx",
+   "secs": 1.5,
+   "prompt": "Old photo prints slid out of a folder and spread across a wooden desk, a soft paper shuffle",
+   "made": false,
+   "batch": "echo-2"
+  },
+  "sfx_echo_type": {
+   "file": "/assets/audio/sfx/echo_type.mp3",
+   "kind": "sfx",
+   "secs": 2,
+   "prompt": "A short burst of quiet retro computer terminal typing, soft electronic key clicks with a tiny chirp at the end",
+   "made": false,
+   "batch": "echo-2"
   }
  }
 }

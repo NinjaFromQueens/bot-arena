@@ -14,6 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| ECHO-2 | Echo Lab: the Archive comes alive | Started Nov 27 on the `echo-2` branch; all four decisions as recommended (music on, off by default; the Archive music, ambience and five effects quoted before spending; Volt on the desk; before REP-1). Plan in `docs/echo-lab-plan.md`: the photo as the page with a magnifying lens, every check answered (camera move, scan, stamp, evidence board), light arrows, a copies light table with Blink, the record terminal, verdict stamps, the Archive's five as photo cards, and sound |
 | EP1-3 | Episode 1's asset list (the quote to approve) and its animatic: the twelve draft scenes played in the story player with placeholders and the browser's voice, to check pacing for free | Built Nov 26: `npm run animatic` (local only; e855540, checked off on circuitrebels.org), quote about 123 credits in `docs/batches/ep1-recruit.json`. Waiting for Duron: pacing OK, and the quote |
 
 ---
