@@ -1,0 +1,40 @@
+{
+  "id": "echo-park",
+  "title": "A picnic in the park",
+  "game": "echo",
+  "lesson": "real-or-altered",
+  "episode": 1,
+  "core": true,
+  "setting": "park-2038",
+  "allow": {
+    "verdict": [
+      0,
+      1
+    ]
+  },
+  "start": {
+    "verdict": 0
+  },
+  "predict": {
+    "kind": "realOrAltered",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "verdictRight"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "A picnic in Harbor Park, 2038. Everything in it existed then. So is it real? Look at the light.",
+      "question": "Real or altered? Make your first call before you check anything."
+    },
+    "cadet": {
+      "brief": "A picnic in the park. Look at all the shadows.",
+      "question": "Real, or changed?"
+    },
+    "operative": {
+      "question": "Real or altered? The date check alone can't decide this one."
+    }
+  },
+  "reward": null,
+  "art": []
+}

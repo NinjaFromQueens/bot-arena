@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Echo Lab · Circuit Rebels</title>
+<meta name="description" content="Echo Lab: check old photos for edits. A date that can't be right, a shadow that doesn't match, copies that disagree.">
+<link rel="icon" href="/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Echo Lab (ECHO-1, docs/echo-lab-plan.md): the Archive's server desk, one recovered Echo on the table, its evidence
+     (the things in it, the light, its copies, its record) and the verdict. The Echo is art; the evidence layer is code. */
+  body { background: #0d0c10; }
+  body.painted { background: #0d0c10 url("/assets/scenes/archive.webp") center / cover fixed no-repeat; }
+  .wrap { max-width: 1100px; }
+  .kick { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; color: var(--orange-hi); }
+  .intro { display: grid; gap: 6px; margin: 6px 0 14px; }
+  .intro h2 { margin: 0; font-size: clamp(26px, 4vw, 40px); color: var(--fg); }
+  .intro p { margin: 0; font-size: 18px; color: #d9d5de; max-width: 66ch; }
+  .say { display: flex; gap: 10px; align-items: baseline; }
+  .say b { font-family: var(--display); color: var(--orange-hi); white-space: nowrap; }
+  .cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+  .case { display: grid; gap: 8px; align-content: start; padding: 16px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--bg); }
+  .case h3 { margin: 0; font-size: 22px; text-transform: none; letter-spacing: 0; color: var(--fg); display: block; }
+  .case p { margin: 0; color: #d9d5de; font-size: 16px; }
+  .case .st { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .case.done { border-color: var(--good); } .case.done .st { color: var(--good); }
+  .table { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 860px) { .table { grid-template-columns: minmax(0, 1fr); } }
+  .photo { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #2a2730; border: 3px solid #7a6446; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .photo .ph { position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; padding: 16px; text-align: center; background: #3a3842; color: #d8d4dc; font-family: var(--mono); font-size: 13px; }
+  .photo .ph b { color: #fff; font-size: 15px; overflow-wrap: anywhere; }
+  .label { position: absolute; left: 10px; bottom: 10px; padding: 4px 10px; border-radius: 6px; background: rgba(12,11,15,.82); color: #f2eee6; font-family: var(--mono); font-size: 13px; }
+  .spot { position: absolute; transform: translate(-50%, -50%); min-width: 44px; min-height: 44px; aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,.85); background: rgba(10,9,12,.18); cursor: pointer; padding: 0; }
+  .spot:hover, .spot:focus-visible { background: rgba(244,101,36,.25); outline: none; border-color: var(--orange-hi); }
+  .spot.seen { border-style: solid; border-color: var(--orange); }
+  .spot.seen::after { content: "✓"; position: absolute; right: -4px; top: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--orange); color: #111; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+  .arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .side { display: grid; gap: 10px; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+  .clue { padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); font-size: 17px; min-height: 3em; }
+  .clue .sub { color: var(--muted); font-size: 14px; }
+  .copies { display: grid; gap: 8px; }
+  .copy { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px; border-radius: 10px; border: 1.5px solid var(--line); }
+  .copy.mine { border-color: var(--orange); }
+  .copy .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: #3a3842; }
+  .copy .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .copy .thumb span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 9px; color: #d8d4dc; padding: 2px; text-align: center; overflow-wrap: anywhere; }
+  .copy small { display: block; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .verdicts .btn { font-size: 20px; padding: 14px 10px; }
+  .progress { display: flex; gap: 6px; flex-wrap: wrap; }
+  .progress span { padding: 3px 9px; border-radius: 999px; border: 1.5px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .progress span.now { border-color: var(--orange); color: var(--fg); } .progress span.done { border-color: var(--good); color: var(--good); }
+  #result { display: grid; gap: 10px; margin-top: 14px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .nudge { animation: nudge .5s ease; } @keyframes nudge { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { .nudge { animation: none; } }
+  /* the explain card (cards.js), as on the Lab and Racer pages */
+  .headline { font-family: var(--display); font-weight: 700; font-size: 22px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .headline.good { color: var(--good); } .headline.bad { color: var(--bad); }
+  .headline .stars { font-size: 20px; }
+  .finding { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); animation: logIn .3s ease-out both; }
+  .finding .ic { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink); }
+  .finding.good .ic { background: var(--good); } .finding.bad .ic { background: var(--bad); } .finding.info .ic { background: var(--blue); }
+  .finding.bad { border-color: #ff5d5d55; }
+  .finding h4 { margin: 0 0 2px; font-family: var(--display); font-size: 16px; }
+  .finding p { color: #d9d5de; font-size: 15px; }
+  .tipbox { padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--orange); background: var(--orange-soft); font-size: 16px; }
+  .tipbox b { font-family: var(--display); color: var(--orange-hi); display: block; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
+  #result .finding p { margin: 0; }
+  #result > div:not(.verdict):not(.acts) { display: grid; gap: 8px; }
+  @keyframes logIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body data-page="echo">
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/" data-tip="Go to the Circuit Rebels home page.">
+      <img class="logo" src="/img/logo.svg" alt="">
+      <div><small>Circuit Rebels</small><h1 style="font-size:28px">Echo Lab</h1></div>
+    </a>
+    <div class="headright">
+      <a class="btn ghost" id="tolist" href="/echo" style="padding:8px 14px" data-tip="Every Echo you can check.">All Echoes</a>
+      <a class="btn ghost" href="/learn#lesson-real-or-altered" style="padding:8px 14px" data-tip="The lesson: Real or altered?">Lesson</a>
+    </div>
+  </header>
+  <section class="intro" id="intro"><span class="kick">ECHO LAB · THE ARCHIVE</span><h2>Loading...</h2></section>
+  <main id="main"></main>
+</div>
+<script src="/js/tips.js"></script>
+<script src="/js/tiers.js"></script>
+<script src="/js/missions.js"></script>
+<script src="/js/echoes.js"></script>
+<script src="/js/cards.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>if (window.io && location.protocol !== "file:") window.baSocket = io(); // shared with presence.js; mission runs reach the teacher's board in a class game</script>
+<script src="/js/presence.js"></script>
+<script src="/js/account.js"></script>
+<script src="/js/runbar.js"></script>
+<script src="/js/echo.js"></script>
+</body>
+</html>

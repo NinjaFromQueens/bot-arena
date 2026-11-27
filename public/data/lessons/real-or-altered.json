@@ -1,0 +1,142 @@
+{
+  "id": "real-or-altered",
+  "title": "Real or altered?",
+  "about": {
+    "cadet": "How to tell if an old picture was changed.",
+    "recruit": "Three checks that show whether an old photo is real, or was changed later.",
+    "operative": "Three checks for altered sources, and how much evidence a verdict needs."
+  },
+  "track": "info",
+  "episode": 1,
+  "core": true,
+  "minutes": 5,
+  "standards": [],
+  "steps": [
+    {
+      "type": "read",
+      "html": {
+        "cadet": [
+          "<p class=\"big\">OMNI hid old pictures from before it took over. The rebels call them Echoes.</p>",
+          "<p>But OMNI didn't only hide them. It <b>changed</b> some, so people would believe its story.</p>",
+          "<p>Before we keep a picture, we check it.</p>"
+        ],
+        "recruit": [
+          "<p class=\"big\">The rebels call a recovered photo or video from before OMNI an Echo.</p>",
+          "<p>OMNI didn't only erase the past. It changed some of it, so people would believe its version. A changed picture is <b>altered</b>.</p>",
+          "<p>So before an Echo leaves the Archive, we check its <b>evidence</b>: what the picture itself can prove.</p>"
+        ],
+        "operative": [
+          "<p class=\"big\">An Echo is a recovered photo or video from before OMNI: a primary source.</p>",
+          "<p>OMNI didn't only erase sources. It edited some and left them where people would find them, so the edits look like history. An edited source is <b>altered</b>.</p>",
+          "<p>A verdict needs <b>evidence</b>: something in the source, or about it, that proves it. A feeling isn't evidence.</p>"
+        ]
+      }
+    },
+    {
+      "type": "read",
+      "html": {
+        "cadet": [
+          "<h3>Three checks</h3>",
+          "<ul><li><b>Too new?</b> Is anything in it from later than the picture's date?</li>",
+          "<li><b>Shadows</b>: do all the shadows point the same way?</li>",
+          "<li><b>Copies</b>: do the other copies match?</li></ul>"
+        ],
+        "recruit": [
+          "<h3>Three checks</h3>",
+          "<ul><li><b>A date that can't be right.</b> Nothing in an Echo can be newer than its date. OMNI's hexagon in a 2034 photo is proof: OMNI was switched on in 2036.</li>",
+          "<li><b>A shadow that doesn't match.</b> In one photo, every shadow points away from the same light. A shadow pointing the other way was pasted in.</li>",
+          "<li><b>Copies that disagree.</b> When copies of the same Echo disagree, trust what most of them agree on.</li></ul>"
+        ],
+        "operative": [
+          "<h3>Three checks, and the record</h3>",
+          "<ul><li><b>A date that can't be right.</b> Nothing in an Echo can be newer than its date (OMNI 2036, risk ratings 2042, Wardens 2046).</li>",
+          "<li><b>A shadow that doesn't match.</b> One light source means every shadow points the same way.</li>",
+          "<li><b>Copies that disagree.</b> Independent copies that agree outweigh the odd one out.</li>",
+          "<li><b>The file record.</b> Who saved it, and when. An edit by OMNI's archive after 2046 is a warning sign.</li></ul>",
+          "<p>One proof is enough to call an Echo altered. Two independent proofs make it certain.</p>"
+        ]
+      }
+    },
+    {
+      "type": "read",
+      "html": {
+        "cadet": [
+          "<h3>Check first</h3>",
+          "<p>Guessing is not the same as knowing. Look at the clues first, then choose.</p>"
+        ],
+        "recruit": [
+          "<h3>Decide after you check</h3>",
+          "<p>A real Echo passes every check. An altered one fails at least one. Make your first guess, then look for the proof before you decide. A right guess without proof is still a guess.</p>"
+        ],
+        "operative": [
+          "<h3>Evidence first</h3>",
+          "<p>Commit to a first call, then test it. If the evidence disagrees with your call, the evidence wins. A real source passes every check; an altered one fails at least one.</p>"
+        ]
+      }
+    },
+    {
+      "type": "quiz",
+      "q": {
+        "cadet": "A picture says it's from long ago, but OMNI's sign is in it. OMNI wasn't made yet. Is it real?",
+        "recruit": "A photo says 2034, but OMNI's hexagon is on a banner. OMNI was switched on in 2036. What does that prove?",
+        "operative": "A photo dated 2034 shows OMNI's hexagon on a banner. OMNI was switched on in 2036. What does that prove?"
+      },
+      "options": {
+        "cadet": [
+          "It's real",
+          "It was changed"
+        ],
+        "recruit": [
+          "Nothing: OMNI is everywhere",
+          "It was altered",
+          "It was saved in the wrong folder"
+        ],
+        "operative": [
+          "Nothing: OMNI is everywhere",
+          "It was altered",
+          "The banner was there in 2034"
+        ]
+      },
+      "answer": 1,
+      "explain": {
+        "cadet": "OMNI wasn't made yet, so someone added its sign later. The picture was changed.",
+        "recruit": "Nothing in an Echo can be newer than its date. The hexagon came in 2036, so someone added it later.",
+        "operative": "An object newer than the source's date can't be in it. The hexagon dates from 2036, so the photo was edited."
+      }
+    },
+    {
+      "type": "quiz",
+      "q": {
+        "cadet": "Two copies of a picture show lots of people. One copy shows empty seats. Which one was changed?",
+        "recruit": "Three copies of the same photo: two show a full crowd, one shows empty seats. Which copy was altered?",
+        "operative": "Three independent copies: two show a full crowd, one (saved by OMNI's archive in 2052) shows empty seats. Which was altered?"
+      },
+      "options": [
+        "The one with empty seats",
+        "The ones with a full crowd",
+        "You can't tell from copies"
+      ],
+      "answer": 0,
+      "explain": {
+        "cadet": "Most copies show people, so the empty one was changed.",
+        "recruit": "When copies disagree, trust what most of them agree on. The odd one out is the altered copy.",
+        "operative": "Two independent copies agree; the odd one out, edited after the Day of Silence, is the altered one."
+      }
+    }
+  ],
+  "missions": [
+    "echo-festival",
+    "echo-park",
+    "echo-play",
+    "echo-archive"
+  ],
+  "next": {
+    "label": {
+      "cadet": "Help Ezra check a picture",
+      "recruit": "Help Ezra check the first Echo",
+      "operative": "Check the first Echo with Ezra"
+    },
+    "mission": "echo-festival",
+    "game": "echo"
+  }
+}

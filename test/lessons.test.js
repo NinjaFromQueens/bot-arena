@@ -14,7 +14,7 @@ assert.strictEqual(new Set(index).size, index.length, "lesson ids must be unique
 // the simulators learn.js knows: `kind(card) {` inside INTERACTIVES
 const learn = fs.readFileSync(path.join(__dirname, "../public/js/learn.js"), "utf8");
 const KINDS = new Set([...learn.matchAll(/^ {4}(\w+)\(card\) \{/gm)].map((m) => m[1]));
-const TRACKS = ["robotics", "programming", "physics", "engineering", "power", "ai", "math"];
+const TRACKS = ["robotics", "programming", "physics", "engineering", "power", "ai", "math", "info"]; // info: information literacy (I1, I2)
 const filled = (v) => (Array.isArray(v) ? v.length > 0 && v.every((x) => typeof x === "string" && x.trim()) : typeof v === "string" && v.trim().length > 0);
 
 for (const id of index) {

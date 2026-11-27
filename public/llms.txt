@@ -5,7 +5,7 @@
 ## Key pages
 
 - [Home](https://circuitrebels.org/): What Circuit Rebels is, the doors for students and teachers, and how it runs in class
-- [Robot lessons](https://circuitrebels.org/learn): 16 five-minute lessons on sensors, motors, robot arms, forces and if-then rules, each ending in a game challenge
+- [Robot lessons](https://circuitrebels.org/learn): 17 five-minute lessons on sensors, motors, robot arms, forces and if-then rules, each ending in a game challenge
 - [The story map](https://circuitrebels.org/map): Neo Harbor, the story's world: each episode's missions, played alone or with a class
 - [Bot Arena practice](https://circuitrebels.org/practice): Build a robot from parts that sense, think and act, battle it, and solve Brain Challenges with if-then rules
 - [Robot Racer](https://circuitrebels.org/race): A racing game about motors and gears: pick the gear ratio and tires for each track's hills and corners

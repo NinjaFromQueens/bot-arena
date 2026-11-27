@@ -1,0 +1,30 @@
+{
+  "id": "christmas-2045",
+  "title": "Christmas Eve at Harbor Light",
+  "year": 2045,
+  "place": "Harbor Light Church",
+  "picture": "echo_faith_christmas",
+  "items": [
+    {
+      "id": "candles",
+      "name": "Candles",
+      "x": 40,
+      "y": 72,
+      "r": 7
+    },
+    {
+      "id": "nativity",
+      "name": "A nativity scene",
+      "x": 50,
+      "y": 52,
+      "r": 6
+    },
+    {
+      "id": "windows",
+      "name": "Stained-glass windows",
+      "x": 50,
+      "y": 18,
+      "r": 7
+    }
+  ]
+}

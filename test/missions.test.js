@@ -10,6 +10,9 @@ const Flight = require("../public/js/flight.js");
 Missions.register("lab", Flight.MISSION);
 const Challenges = require("../public/js/challenges.js");
 Missions.register("challenge", Challenges.MISSION);
+const Echoes = require("../public/js/echoes.js");
+Echoes.use(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "../public/data/echoes/index.json"), "utf8")).map((id) => require(`../public/data/echoes/${id}.json`)), require("../public/data/echoes/sets.json"));
+Missions.register("echo", Echoes.MISSION);
 // a Lab design has billions of combinations, so Lab missions run on a sample: the default car, a design that earns the
 // mission (test/lab-solutions.json, shared with lab.test.js), and that design with each setting at its lowest and highest
 const SOLUTIONS = require("./lab-solutions.json");
@@ -56,7 +59,7 @@ for (const id of index) {
     if (Missions.once(m)) assert.deepStrictEqual(ans, Missions.answer(m, all[0]), `${at}: a question asked once compares every choice, so its answer can't depend on the one picked`);
     if (m.predict.kind === "firstHome" && m.goal.kind === "bestGear") assert.strictEqual(run.goal, c.gear === ans, `${at}: only the gear that finishes first meets the goal`);
     // the explain card: findings and a tip, and a tip's change really is better (it reaches the goal, or gets there faster)
-    const model = { racer: Race.MISSION, lab: Flight.MISSION, challenge: Challenges.MISSION }[m.game];
+    const model = { racer: Race.MISSION, lab: Flight.MISSION, challenge: Challenges.MISSION, echo: Echoes.MISSION }[m.game];
     if (!model.explain) continue; // the Lab keeps its own flight report (Flight.explain)
     const e = model.explain(m, Missions.choice(m, c));
     assert(e.headline && e.headline.text && e.items.length && e.tip && e.tip.text, `${at}: the explain card needs a headline, findings and a tip`);

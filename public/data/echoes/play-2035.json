@@ -1,0 +1,66 @@
+{
+  "id": "play-2035",
+  "title": "The school play",
+  "year": 2035,
+  "place": "Harbor Middle School",
+  "picture": "echo_play_2035_altered",
+  "teaches": "copies",
+  "checks": "c",
+  "items": [
+    {
+      "id": "stage",
+      "name": "The stage",
+      "x": 50,
+      "y": 34,
+      "r": 8
+    },
+    {
+      "id": "seats",
+      "name": "The seats",
+      "x": 50,
+      "y": 78,
+      "r": 8
+    }
+  ],
+  "copies": [
+    {
+      "id": "a",
+      "server": "Harbor School's server",
+      "saved": 2035,
+      "picture": "echo_play_2035",
+      "shows": {
+        "seats": "a full crowd"
+      }
+    },
+    {
+      "id": "b",
+      "server": "Archive stack 7",
+      "saved": 2035,
+      "picture": "echo_play_2035",
+      "shows": {
+        "seats": "a full crowd"
+      }
+    },
+    {
+      "id": "c",
+      "server": "OMNI's archive",
+      "saved": 2052,
+      "picture": "echo_play_2035_altered",
+      "shows": {
+        "seats": "empty seats"
+      }
+    }
+  ],
+  "record": [
+    {
+      "who": "Harbor Middle School",
+      "when": 2035,
+      "what": "saved"
+    },
+    {
+      "who": "OMNI's archive",
+      "when": 2052,
+      "what": "edited"
+    }
+  ]
+}

@@ -16,8 +16,9 @@
   let LESSONS = [];
   const tier = Tier.current(), T = (v) => Tier.text(v, tier);
   // a lesson's last button opens its first mission (the offline copy links to the offline Racer or Lab instead)
-  const PAGE = { racer: "race", lab: "lab" }; // a mission's game -> the page that plays it
-  const missionHref = (game, id) => { const page = PAGE[game] || "race"; return `${(window.OFFLINE_PAGES && window.OFFLINE_PAGES[page]) || "/" + page}?mission=${encodeURIComponent(id)}`; };
+  const PAGE = { racer: "race", lab: "lab", echo: "echo" }; // a mission's game -> the page that plays it
+  // offline, a game with no offline copy (Echo Lab) opens on the live site rather than a dead link
+  const missionHref = (game, id) => { const page = PAGE[game] || "race", off = window.OFFLINE_PAGES; return `${off ? off[page] || "https://circuitrebels.org/" + page : "/" + page}?mission=${encodeURIComponent(id)}`; };
   function fromData(d) {
     return {
       id: d.id, n: T(d.title), about: T(d.about),

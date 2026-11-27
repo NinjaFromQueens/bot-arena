@@ -1,0 +1,60 @@
+{
+  "id": "echo-archive",
+  "title": "The Archive's last five",
+  "game": "echo",
+  "lesson": "real-or-altered",
+  "episode": 1,
+  "core": true,
+  "setting": "archive-1",
+  "allow": {
+    "v1": [
+      0,
+      1
+    ],
+    "v2": [
+      0,
+      1
+    ],
+    "v3": [
+      0,
+      1
+    ],
+    "v4": [
+      0,
+      1
+    ],
+    "v5": [
+      0,
+      1
+    ]
+  },
+  "start": {
+    "v1": 0,
+    "v2": 0,
+    "v3": 0,
+    "v4": 0,
+    "v5": 0
+  },
+  "predict": {
+    "kind": "howManyAltered",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "allRight"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "The last five Echoes are copying. Check every one before it leaves the Archive. Leave OMNI's versions behind.",
+      "question": "How many of the five do you think OMNI altered?"
+    },
+    "cadet": {
+      "brief": "Five old pictures. Find the ones OMNI changed, and leave them behind.",
+      "question": "How many did OMNI change?"
+    },
+    "operative": {
+      "question": "How many of the five were altered? Decide each one only after the evidence proves it."
+    }
+  },
+  "reward": null,
+  "art": []
+}

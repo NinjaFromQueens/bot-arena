@@ -1,0 +1,40 @@
+{
+  "id": "echo-play",
+  "title": "The school play",
+  "game": "echo",
+  "lesson": "real-or-altered",
+  "episode": 1,
+  "core": true,
+  "setting": "play-2035",
+  "allow": {
+    "verdict": [
+      0,
+      1
+    ]
+  },
+  "start": {
+    "verdict": 0
+  },
+  "predict": {
+    "kind": "realOrAltered",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "verdictRight"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "Three servers kept a copy of the same school play. Do they agree?",
+      "question": "Is the copy you're looking at real or altered?"
+    },
+    "cadet": {
+      "brief": "Three copies of one picture. Do they all match?",
+      "question": "Is this copy real, or changed?"
+    },
+    "operative": {
+      "question": "Is this copy real or altered? Check the copies, then the file record."
+    }
+  },
+  "reward": null,
+  "art": []
+}

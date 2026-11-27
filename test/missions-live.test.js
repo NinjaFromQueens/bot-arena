@@ -10,6 +10,9 @@ const Race = require("../public/js/race.js");
 const Flight = require("../public/js/flight.js");
 const Challenges = require("../public/js/challenges.js");
 Missions.register("racer", Race.MISSION); Missions.register("lab", Flight.MISSION); Missions.register("challenge", Challenges.MISSION);
+const Echoes = require("../public/js/echoes.js");
+Echoes.use(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "../public/data/echoes/index.json"), "utf8")).map((id) => require(`../public/data/echoes/${id}.json`)), require("../public/data/echoes/sets.json"));
+Missions.register("echo", Echoes.MISSION);
 const file = (id) => require(`../public/data/missions/${id}.json`);
 
 const PORT = 3198, BASE = `http://localhost:${PORT}`;
@@ -115,6 +118,21 @@ const bot = (name, color) => ({ name, body: 0, sensor: color % 4, brain: 0, tool
   await sleep(150);
   d = host.last("room:missions");
   assert.deepStrictEqual(row(cy.id, "bc-bruiser").slice(3, 5), [2, 1], "taking out one rule is one change");
+
+  // Echo Lab: the server judges the verdict with the clues the student really checked (cleaned: junk and unknown ids
+  // don't count), so a right guess without the proving clue doesn't meet the goal
+  await sleep(1050);
+  r = await anaP.send({ m: "echo-festival", p: 0, c: { verdict: 1 }, run: { checked: ["item:lanterns", 42, "x".repeat(500), "item:nope"] } });
+  assert(r.ok && !r.correct && !r.goal, "Echo Lab: altered after only the lanterns is right but a guess, and the first call (real) was wrong");
+  await sleep(1050);
+  r = await anaP.send({ m: "echo-festival", p: 1, c: { verdict: 1 }, run: { checked: ["item:banner"] } });
+  assert(r.ok && r.correct && r.goal, "Echo Lab: altered after tapping the banner meets the goal");
+  await sleep(1050);
+  r = await anaP.send({ m: "echo-archive", p: 2, c: { v1: 0, v2: 0, v3: 0, v4: 1, v5: 1, v9: 1 }, run: { checked: [["item:caps"], ["item:candles"], ["copies"], ["item:train"], ["light"]] } });
+  assert(r.ok && r.correct && r.goal, "Echo Lab: the Archive's five, each backed by a clue, and two altered");
+  await sleep(150);
+  d = host.last("room:missions");
+  assert.deepStrictEqual(row(ana.id, "echo-festival").slice(2), [0, 2, 0, 0, 1], "Ana's Echo Lab row: wrong first, 2 tries, goal met");
 
   // the class's reading level
   assert(!(await ana.emit("host:settings", { tier: "cadet" })).ok, "students can't set it");

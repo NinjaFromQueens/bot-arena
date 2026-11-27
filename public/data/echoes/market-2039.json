@@ -1,0 +1,35 @@
+{
+  "id": "market-2039",
+  "title": "The Saturday market",
+  "year": 2039,
+  "place": "Dock Street",
+  "picture": "echo_market_2039_altered",
+  "light": 160,
+  "items": [
+    {
+      "id": "robot",
+      "name": "A white robot with a blue visor",
+      "x": 66,
+      "y": 50,
+      "r": 5,
+      "thing": "warden",
+      "shadow": 20
+    },
+    {
+      "id": "stalls",
+      "name": "Fruit stalls",
+      "x": 25,
+      "y": 58,
+      "r": 7,
+      "shadow": 160
+    },
+    {
+      "id": "shoppers",
+      "name": "Shoppers",
+      "x": 44,
+      "y": 72,
+      "r": 7,
+      "shadow": 165
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "echo-festival",
+  "title": "The festival banner",
+  "game": "echo",
+  "lesson": "real-or-altered",
+  "episode": 1,
+  "core": true,
+  "setting": "festival-2034",
+  "allow": {
+    "verdict": [
+      0,
+      1
+    ]
+  },
+  "start": {
+    "verdict": 0
+  },
+  "predict": {
+    "kind": "realOrAltered",
+    "with": "choice"
+  },
+  "goal": {
+    "kind": "verdictRight"
+  },
+  "tiers": {
+    "recruit": {
+      "brief": "Ezra found a photo of a waterfront festival, saved as 2034. Check what's in it against its date.",
+      "question": "Real or altered? Make your first call before you check anything."
+    },
+    "cadet": {
+      "brief": "Ezra found an old picture of a party by the water. Is it really from long ago?",
+      "question": "Real, or changed?"
+    },
+    "operative": {
+      "question": "Real or altered? Commit to a first call, then test it against the evidence."
+    }
+  },
+  "reward": null,
+  "art": []
+}

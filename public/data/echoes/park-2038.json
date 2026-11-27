@@ -1,0 +1,43 @@
+{
+  "id": "park-2038",
+  "title": "A picnic in Harbor Park",
+  "year": 2038,
+  "place": "Harbor Park",
+  "picture": "echo_park_2038_altered",
+  "teaches": "shadow",
+  "light": 150,
+  "items": [
+    {
+      "id": "kites",
+      "name": "Kites in the sky",
+      "x": 30,
+      "y": 22,
+      "r": 6
+    },
+    {
+      "id": "family",
+      "name": "A family on a blanket",
+      "x": 28,
+      "y": 68,
+      "r": 6,
+      "shadow": 150
+    },
+    {
+      "id": "tree",
+      "name": "An oak tree",
+      "x": 84,
+      "y": 40,
+      "r": 7,
+      "shadow": 155
+    },
+    {
+      "id": "helper",
+      "name": "A white helper robot",
+      "x": 70,
+      "y": 74,
+      "r": 4,
+      "thing": "omni",
+      "shadow": 30
+    }
+  ]
+}

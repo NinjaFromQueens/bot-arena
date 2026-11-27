@@ -119,5 +119,7 @@
   { "id": "slope", "term": "slope", "forms": ["steepness"], "lesson": null, "planned": "P3",
     "def": "How steep a hill is, measured in degrees. Steeper hills need more torque to climb." },
   { "id": "burn-time", "term": "burn time", "forms": [], "lesson": null, "planned": "P9",
-    "def": "How long the thrusters can fire before the air runs out." }
+    "def": "How long the thrusters can fire before the air runs out." },
+  {"id":"altered","term":"altered","forms":[],"lesson":"real-or-altered","def":{"cadet":"Changed after it was made, like a picture with something stuck in later.","recruit":"Changed after it was made. An altered Echo has something added, removed or changed, so it tells a different story.","operative":"Edited after it was made, so it no longer shows what really happened. An altered source fails at least one check."}},
+  {"id":"evidence","term":"evidence","forms":[],"lesson":"real-or-altered","def":{"cadet":"A clue that shows what really happened.","recruit":"Something you can check that shows whether a thing is true, like a date, a shadow or a matching copy.","operative":"Something in a source, or about it, that can be checked and that supports or disproves a claim. A guess isn't evidence."}}
 ]

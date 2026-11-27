@@ -13,6 +13,7 @@ const Missions = require("./public/js/missions.js");
 const Tier = require("./public/js/tiers.js");
 const Sprint = require("./public/js/sprint.js");
 const Story = require("./public/js/story.js");
+const Echoes = require("./public/js/echoes.js");
 const T = require("./lib/tournament.js");
 
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,9 @@ const pub = path.join(__dirname, "public");
 app.use(express.static(pub, { extensions: ["html"] }));
 // the mission files, read once (they only change with a deploy); the games' models work out every answer
 Missions.register("racer", Race.MISSION); Missions.register("lab", Flight.MISSION); Missions.register("challenge", Challenges.MISSION);
+// Echo Lab's cases and sets, read once like the mission files (the model works out every verdict from them)
+Echoes.use(JSON.parse(fs.readFileSync(path.join(pub, "data/echoes/index.json"), "utf8")).map((id) => JSON.parse(fs.readFileSync(path.join(pub, `data/echoes/${id}.json`), "utf8"))), JSON.parse(fs.readFileSync(path.join(pub, "data/echoes/sets.json"), "utf8")));
+Missions.register("echo", Echoes.MISSION);
 // the story's episodes, read once like the mission files: the class Now signal only accepts their missions
 const EPISODES = JSON.parse(fs.readFileSync(path.join(pub, "data/episodes/index.json"), "utf8")).map((id) => JSON.parse(fs.readFileSync(path.join(pub, `data/episodes/${id}.json`), "utf8")));
 const MISSION_FILES = new Map(JSON.parse(fs.readFileSync(path.join(pub, "data/missions/index.json"), "utf8"))
@@ -320,7 +324,7 @@ function settleForfeits(room) {
 // ---------------- presence ----------------
 // Which page each connected device is on. The home page gets anonymous counts; a teacher's board gets
 // a page + number for each of its own students (only when the student's saved game pass checks out).
-const PAGES = ["home", "play", "host", "practice", "lab", "learn", "race", "mission", "map"];
+const PAGES = ["home", "play", "host", "practice", "lab", "learn", "race", "mission", "map", "echo"];
 const presence = new Map(); // socket.id -> { page, n, t, code, playerId }
 function presenceCounts() {
   const c = { online: 0, play: 0, practice: 0, lab: 0, learn: 0, race: 0, live: 0 };
@@ -785,6 +789,9 @@ io.on("connection", (socket) => {
       const inputs = d.run.inputs;
       if (typeof inputs !== "string" || inputs.length > Race.MAX_STEPS || !/^[a-l]*$/.test(inputs)) return cb && cb({ ok: false, error: "That run can't be checked." });
       run = { inputs };
+    } else if (m.game === "echo" && d.run && Array.isArray(d.run.checked)) { // the clues a student checked: short ids only (the model ignores any it doesn't know)
+      const ok = (x) => typeof x === "string" && x.length <= 40;
+      run = { checked: d.run.checked.slice(0, 10).map((x) => (Array.isArray(x) ? x.slice(0, 40).filter(ok) : x)).filter((x) => Array.isArray(x) || ok(x)) };
     }
     const correct = d.p === Missions.answer(m, c), goal = Missions.result(m, c, run).goal;
     const room = me.room, all = (room.missions = room.missions || new Map());

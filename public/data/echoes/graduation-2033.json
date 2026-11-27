@@ -1,0 +1,37 @@
+{
+  "id": "graduation-2033",
+  "title": "Graduation day",
+  "year": 2033,
+  "place": "Harbor High School",
+  "picture": "echo_graduation",
+  "items": [
+    {
+      "id": "caps",
+      "name": "Caps in the air",
+      "x": 55,
+      "y": 15,
+      "r": 7
+    },
+    {
+      "id": "school",
+      "name": "The school building",
+      "x": 24,
+      "y": 28,
+      "r": 7
+    },
+    {
+      "id": "skyline",
+      "name": "The skyline across the water",
+      "x": 86,
+      "y": 26,
+      "r": 5
+    },
+    {
+      "id": "families",
+      "name": "Families cheering",
+      "x": 14,
+      "y": 76,
+      "r": 7
+    }
+  ]
+}

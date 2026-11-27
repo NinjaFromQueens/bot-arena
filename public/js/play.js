@@ -302,7 +302,7 @@
     const out = Story.applyClass(rec, { now: state.now, finished }, storyEps, Date.now());
     if (out.changed) try { localStorage.setItem("cr-record", JSON.stringify(out.record)); } catch {}
   }
-  const NOW_PAGE = { lab: (mid, run) => `/lab?mission=${mid}&run=${run}`, racer: (mid, run) => `/race?mission=${mid}&run=${run}`, challenge: (mid, run) => `/practice?mission=${mid}&run=${run}#challenges` };
+  const NOW_PAGE = { lab: (mid, run) => `/lab?mission=${mid}&run=${run}`, racer: (mid, run) => `/race?mission=${mid}&run=${run}`, challenge: (mid, run) => `/practice?mission=${mid}&run=${run}#challenges`, echo: (mid, run) => `/echo?mission=${mid}&run=${run}` };
   function renderNow(me) {
     const now = state && state.now, box = $("nowbox");
     const T = (v) => (window.Tier ? Tier.text(v, Tier.current()) : v && typeof v === "object" ? v.recruit : v);

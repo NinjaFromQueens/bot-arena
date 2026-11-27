@@ -23,6 +23,7 @@
     { id: "thrust", n: "Thrust vs. weight" },
     { id: "landing", n: "Higher isn't always better" },
     { id: "engineer", n: "Think like an engineer" },
+    { id: "real-or-altered", n: "Real or altered?" },
   ];
   // picture passwords: 3 of these, in order (the server stores their positions, so only add new pictures at the end)
   const PICS = [["🤖", "robot"], ["🚀", "rocket"], ["⭐", "star"], ["🐱", "cat"], ["🐶", "dog"], ["🍕", "pizza"], ["⚽", "ball"], ["🌈", "rainbow"], ["🍎", "apple"], ["🎸", "guitar"], ["🐢", "turtle"], ["🌙", "moon"]];

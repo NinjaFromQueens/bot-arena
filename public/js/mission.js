@@ -22,7 +22,7 @@
     ls.set("cr-record", rec);
   }
   // where each game's missions are played
-  const PAGE = { lab: (mid) => `/lab?mission=${mid}&run=${id}`, racer: (mid) => `/race?mission=${mid}&run=${id}`, challenge: (mid) => `/practice?mission=${mid}&run=${id}#challenges` };
+  const PAGE = { lab: (mid) => `/lab?mission=${mid}&run=${id}`, racer: (mid) => `/race?mission=${mid}&run=${id}`, challenge: (mid) => `/practice?mission=${mid}&run=${id}#challenges`, echo: (mid) => `/echo?mission=${mid}&run=${id}` };
 
   let D = null, view = null; // D: the loaded files; view: a step the student chose to look at again
   function load() {
