@@ -14,6 +14,7 @@ Last updated: November 22, 2026
 ## 🟡 In Progress
 | # | Feature | Notes |
 |---|---|---|
+| ECHO-1 | Echo Lab: sort recovered Echoes into real and altered (Episode 1, mission 5; lesson I1) | Plan written Nov 27 (`docs/echo-lab-plan.md`: the game card, the three tells as one shared rule set, the loop, order of work); waiting for Duron's OK on its seven decisions |
 | EP1-3 | Episode 1's asset list (the quote to approve) and its animatic: the twelve draft scenes played in the story player with placeholders and the browser's voice, to check pacing for free | Built Nov 26: `npm run animatic` (local only; e855540, checked off on circuitrebels.org), quote about 123 credits in `docs/batches/ep1-recruit.json`. Waiting for Duron: pacing OK, and the quote |
 
 ---
